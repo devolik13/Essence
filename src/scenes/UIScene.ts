@@ -433,7 +433,8 @@ export class UIScene extends Phaser.Scene {
 
 /** Строит мини-бар XP из символов */
 function buildXPBar(current: number, needed: number, width: number): string {
-  const filled = Math.round((current / needed) * width);
+  if (needed <= 0) return '[' + '█'.repeat(width) + ']';
+  const filled = Math.min(width, Math.max(0, Math.round((current / needed) * width)));
   return '[' + '█'.repeat(filled) + '░'.repeat(width - filled) + ']';
 }
 
