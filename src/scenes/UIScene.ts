@@ -1,15 +1,18 @@
 import Phaser from 'phaser';
 import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
+import { Creature } from '../entities/Creature';
 import { StatName } from '../types/stats';
 import { CaptureProcess, CaptureState } from '../systems/capture';
 import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT } from '../utils/constants';
+import { STAT_NAMES_SHORT } from '../utils/statNames';
 
 interface UIData {
   sphere: Sphere;
   body: Body | null;
   capture: CaptureProcess | null;
+  target: Creature | null;
 }
 
 const SKILL_SLOT_SIZE = 48;
@@ -18,7 +21,8 @@ const SKILL_SLOTS_COUNT = 8;
 
 export class UIScene extends Phaser.Scene {
   private statsText!: Phaser.GameObjects.Text;
-  private spellText!: Phaser.GameObjects.Text;   // прогресс заклинания под статами
+  private spellText!: Phaser.GameObjects.Text;
+  private targetPanel!: Phaser.GameObjects.Text;
   private resourceText!: Phaser.GameObjects.Text;
   private bodyInfoText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
@@ -55,6 +59,16 @@ export class UIScene extends Phaser.Scene {
       backgroundColor: '#000000bb',
       padding: { x: 8, y: 5 },
     }).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    // Панель цели (правый верхний угол, под bodyInfoText)
+    this.targetPanel = this.add.text(GAME_WIDTH - 10, 90, '', {
+      fontSize: '11px',
+      color: '#ffddaa',
+      align: 'right',
+      lineSpacing: 4,
+      backgroundColor: '#000000bb',
+      padding: { x: 8, y: 6 },
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     // Ресурсы тела (нижний центр, над панелью умений)
     this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
@@ -103,10 +117,10 @@ export class UIScene extends Phaser.Scene {
     const gs = this.scene.get('GameScene');
     gs.events.on('update-ui', (data: UIData) => this.updateUI(data));
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
-      this.addLog(`▲ ${STAT_NAMES_RU[data.stat]} → ${data.newValue}`);
+      this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
     gs.events.on('creature-killed', (data: { name: string; xp: number; stats: StatName[] }) => {
-      const statStr = data.stats.map(s => STAT_NAMES_RU[s]).join(', ');
+      const statStr = data.stats.map(s => STAT_NAMES_SHORT[s]).join(', ');
       this.addLog(`${data.name} убит  +${data.xp} XP → [${statStr}]`);
     });
     gs.events.on('player-died', () => this.addLog('⚠ Тело погибло. Вы в астрале.'));
@@ -134,7 +148,7 @@ export class UIScene extends Phaser.Scene {
       const isActive = cap !== undefined; // этот стат прокачивается в текущем теле
       const isCapped = cap !== undefined && val >= cap;
 
-      let line = `${STAT_NAMES_RU[stat]}: ${val}`;
+      let line = `${STAT_NAMES_SHORT[stat]}: ${val}`;
 
       if (isActive && xpTracker) {
         if (isCapped) {
@@ -211,6 +225,53 @@ export class UIScene extends Phaser.Scene {
 
     // ── Панель умений ─────────────────────────────────
     this.updateSkillBar(body);
+
+    // ── Панель выбранной цели ─────────────────────────
+    this.updateTargetPanel(data.target);
+  }
+
+  private updateTargetPanel(target: Creature | null) {
+    if (!target || target.isDead) {
+      this.targetPanel.setVisible(false);
+      return;
+    }
+
+    const def = target.definition;
+    const lines: string[] = [];
+
+    // Имя и тип урона
+    const dmgLabel = def.damageType === 'magic' ? '✦ Магия' : def.damageType === 'ranged' ? '➶ Дальний' : '⚔ Ближний';
+    lines.push(`── ${def.nameRu} ──`);
+    lines.push(`${dmgLabel}  HP: ${Math.round(target.currentHP)}/${target.maxHP}`);
+    lines.push('');
+
+    // Боевые статы
+    lines.push('Боевые статы:');
+    const npc = def.npcStats ?? {};
+    for (const [stat, val] of Object.entries(npc)) {
+      if ((val ?? 0) > 0) {
+        lines.push(`  ${STAT_NAMES_SHORT[stat as StatName]}: ${val}`);
+      }
+    }
+    lines.push('');
+
+    // Капы (что тело даст Сфере)
+    lines.push('Обучает Сферу:');
+    for (const [stat, cap] of Object.entries(def.caps)) {
+      lines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → кап ${cap}`);
+    }
+
+    // Умение
+    lines.push('');
+    lines.push(`Умение: ${def.abilityName}`);
+
+    // Заклинание (если есть)
+    if (def.signatureSpell) {
+      lines.push(`Заклинание: ${def.signatureSpell.nameRu}`);
+      lines.push(`  (нужно ${def.spellXPThreshold} XP)`);
+    }
+
+    this.targetPanel.setText(lines.join('\n')).setVisible(true);
   }
 
   private buildSkillBar() {
@@ -287,15 +348,3 @@ const STAT_ORDER: StatName[] = [
   StatName.Mana, StatName.Luck,
 ];
 
-const STAT_NAMES_RU: Record<StatName, string> = {
-  [StatName.Strength]:  'Сила   ',
-  [StatName.Agility]:   'Ловкость',
-  [StatName.Accuracy]:  'Точность',
-  [StatName.Evasion]:   'Уклон  ',
-  [StatName.Health]:    'Здоровье',
-  [StatName.Armor]:     'Стойкость',
-  [StatName.Intellect]: 'Интеллект',
-  [StatName.Will]:      'Воля   ',
-  [StatName.Mana]:      'Мана   ',
-  [StatName.Luck]:      'Удача  ',
-};

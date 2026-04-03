@@ -19,6 +19,9 @@ export enum WeaponType {
   Staff = 'staff',
 }
 
+/** Тип урона — определяет формулу расчёта и стат-источник */
+export type DamageType = 'melee' | 'magic' | 'ranged';
+
 export const WEAPON_COOLDOWNS: Record<WeaponType, number> = {
   [WeaponType.Dagger]: 0.8,
   [WeaponType.Sword]: 1.2,
@@ -37,15 +40,14 @@ export interface BodyDefinition {
   name: string;
   nameRu: string;
   type: BodyType;
+  damageType: DamageType;  // тип урона существа — определяет формулу атаки
   caps: StatCaps;
   npcStats?: Partial<Stats>;
   xpReward: number;
   weapon: WeaponType;
   color: number;
   abilityName: string;
-  /** Заклинание которому учит это тело */
   signatureSpell?: AbilityDef;
-  /** XP порог для изучения заклинания */
   spellXPThreshold?: number;
 }
 
@@ -57,6 +59,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     name: 'Human Warrior',
     nameRu: 'Человек-воин',
     type: BodyType.Combat,
+    damageType: 'melee',
     caps: { [StatName.Strength]: 30, [StatName.Armor]: 15, [StatName.Health]: 5 },
     xpReward: 40,
     weapon: WeaponType.Sword,
@@ -68,6 +71,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     name: 'Human Archer',
     nameRu: 'Человек-лучник',
     type: BodyType.Combat,
+    damageType: 'ranged',
     caps: { [StatName.Agility]: 30, [StatName.Accuracy]: 15, [StatName.Evasion]: 5 },
     xpReward: 40,
     weapon: WeaponType.ShortBow,
@@ -79,6 +83,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     name: 'Human Mage',
     nameRu: 'Человек-маг',
     type: BodyType.Combat,
+    damageType: 'magic',
     caps: { [StatName.Intellect]: 30, [StatName.Mana]: 15, [StatName.Will]: 5 },
     xpReward: 40,
     weapon: WeaponType.Staff,
@@ -94,6 +99,7 @@ export const GOBLIN: BodyDefinition = {
   name: 'Goblin',
   nameRu: 'Гоблин',
   type: BodyType.Combat,
+  damageType: 'melee',
   caps: { [StatName.Agility]: 15, [StatName.Luck]: 10, [StatName.Evasion]: 8 },
   xpReward: 25,
   weapon: WeaponType.Dagger,

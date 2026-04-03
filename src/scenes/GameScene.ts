@@ -3,7 +3,7 @@ import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
 import { DamageText } from '../entities/DamageText';
-import { STARTER_BODIES, GOBLIN } from '../types/bodies';
+import { STARTER_BODIES, GOBLIN, WEAPON_COOLDOWNS } from '../types/bodies';
 import { CREATURE_DB } from '../data/creatureDB';
 import {
   MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH_TILES, MAP_HEIGHT_TILES,
@@ -217,6 +217,7 @@ export class GameScene extends Phaser.Scene {
       sphere: this.sphere,
       body: this.playerBody,
       capture: this.captureProcess,
+      target: this.selectedTarget,
     });
   }
 
@@ -408,12 +409,11 @@ export class GameScene extends Phaser.Scene {
 
     if (!closestCreature) return;
 
-    // Расчёт урона по типу оружия
-    const result = weapon.isMelee
-      ? calcMeleeDamage(this.sphere.stats, closestCreature.stats)
-      : this.playerBody.definition.weapon === 'staff'
-        ? calcMagicDamage(this.sphere.stats, closestCreature.stats)
-        : calcRangedDamage(this.sphere.stats, closestCreature.stats);
+    // Расчёт урона по damageType тела
+    const dt = this.playerBody.definition.damageType;
+    const result = dt === 'magic'  ? calcMagicDamage(this.sphere.stats, closestCreature.stats)
+                 : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats)
+                 :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats);
 
     if (result.hit) {
       closestCreature.takeDamage(result.final);
@@ -441,18 +441,10 @@ export class GameScene extends Phaser.Scene {
   private creatureAttackPlayer(creature: Creature) {
     if (!this.playerBody) return;
 
-    const weapon = WEAPONS[creature.definition.weapon];
-    let result;
-    if (!weapon.isMelee) {
-      // Staff → магический урон (Интеллект, всегда попадает)
-      // Bow → дальний урон (Ловкость)
-      const isStaff = creature.definition.weapon === 'staff';
-      result = isStaff
-        ? calcMagicDamage(creature.stats, this.sphere.stats)
-        : calcRangedDamage(creature.stats, this.sphere.stats);
-    } else {
-      result = calcMeleeDamage(creature.stats, this.sphere.stats);
-    }
+    const cdt = creature.definition.damageType;
+    const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, this.sphere.stats)
+                 : cdt === 'ranged' ? calcRangedDamage(creature.stats, this.sphere.stats)
+                 :                    calcMeleeDamage(creature.stats, this.sphere.stats);
 
     if (result.hit) {
       this.playerBody.takeDamage(result.final);
@@ -462,7 +454,7 @@ export class GameScene extends Phaser.Scene {
       new DamageText(this, this.playerBody.x, this.playerBody.y, result.final, result.crit, !result.hit)
     );
 
-    creature.attackCooldown = weapon.cooldown;
+    creature.attackCooldown = WEAPON_COOLDOWNS[creature.definition.weapon];
 
     if (this.playerBody.isDead) {
       this.onPlayerDeath();
