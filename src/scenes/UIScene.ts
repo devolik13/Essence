@@ -107,6 +107,12 @@ export class UIScene extends Phaser.Scene {
     gameScene.events.on('body-captured', (name: string) => {
       this.addLog(`Захвачено тело: ${name}`);
     });
+    gameScene.events.on('capture-available', (name: string) => {
+      this.addLog(`Тело "${name}" доступно для захвата [E]`);
+    });
+    gameScene.events.on('capture-start', (name: string) => {
+      this.addLog(`Захват "${name}"...`);
+    });
   }
 
   private updateUI(data: UIData) {

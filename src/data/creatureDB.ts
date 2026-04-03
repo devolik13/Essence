@@ -33,7 +33,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     npcStats: {
       [StatName.Strength]: 1,
       [StatName.Accuracy]: 2,
-      [StatName.Evasion]: 3,   // в мире кролик просто убегает, не танцует
+      [StatName.Evasion]: 0,   // пассивное — не уворачивается, просто убегает
       [StatName.Health]: 4,
       [StatName.Armor]: 1,
       [StatName.Luck]: 2,

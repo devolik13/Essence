@@ -95,9 +95,9 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
 
-      // В астрале: [E] захват стартового тела
+      // В астрале: [E] захват стартового тела или мёртвого существа
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        this.tryPossessStarter();
+        this.tryPossessStarter() || this.tryCaptureDead();
       }
     }
 
@@ -174,15 +174,33 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Попытка захватить стартовое тело (в астрале, нажатие E) */
-  private tryPossessStarter() {
+  private tryPossessStarter(): boolean {
     for (let i = 0; i < this.starterPositions.length; i++) {
       const pos = this.starterPositions[i];
       const dist = distance(this.sphere.x, this.sphere.y, pos.x, pos.y);
       if (dist < CAPTURE_RANGE) {
         this.possessStarterBody(i);
-        return;
+        return true;
       }
     }
+    return false;
+  }
+
+  /** Попытка захватить тело мёртвого существа (в астрале, нажатие E) */
+  private tryCaptureDead(): boolean {
+    if (this.captureProcess?.state === CaptureState.Casting) return false;
+
+    for (const creature of this.creatures) {
+      if (!creature.isDead) continue;
+      const dist = distance(this.sphere.x, this.sphere.y, creature.x, creature.y);
+      if (dist < CAPTURE_RANGE) {
+        this.captureProcess = startCapture(creature.definition.id);
+        this.captureTarget = creature;
+        this.events.emit('capture-start', creature.definition.nameRu);
+        return true;
+      }
+    }
+    return false;
   }
 
   private possessStarterBody(index: number) {
@@ -322,9 +340,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onCreatureKilled(creature: Creature) {
-    // XP за убийство
-    // TODO: распределить по всем основным статам тела
     this.events.emit('creature-killed', creature.definition.nameRu);
+    // Тело остаётся в мире — игрок может захватить его в астрале (E)
+    // Подсвечиваем пульсацией чтобы показать что тело доступно
+    this.tweens.add({
+      targets: creature,
+      alpha: { from: 0.4, to: 0.7 },
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+    });
+    this.events.emit('capture-available', creature.definition.nameRu);
   }
 
   private onPlayerDeath() {
