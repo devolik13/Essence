@@ -3,7 +3,7 @@ import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { StatName } from '../types/stats';
 import { CaptureProcess, CaptureState } from '../systems/capture';
-import { calcRank } from '../systems/progression';
+import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT } from '../utils/constants';
 
 interface UIData {
@@ -12,16 +12,11 @@ interface UIData {
   capture: CaptureProcess | null;
 }
 
-/**
- * UIScene — оверлей поверх игровой сцены.
- * Показывает статы, HP/Mana, слоты умений.
- */
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
 
 export class UIScene extends Phaser.Scene {
-  // Панели
   private statsText!: Phaser.GameObjects.Text;
   private resourceText!: Phaser.GameObjects.Text;
   private bodyInfoText!: Phaser.GameObjects.Text;
@@ -30,7 +25,6 @@ export class UIScene extends Phaser.Scene {
   private captureBar!: Phaser.GameObjects.Rectangle;
   private captureBarBg!: Phaser.GameObjects.Rectangle;
 
-  // Панель умений
   private skillSlotsBg: Phaser.GameObjects.Rectangle[] = [];
   private skillSlotsIcon: Phaser.GameObjects.Text[] = [];
   private skillSlotsKey: Phaser.GameObjects.Text[] = [];
@@ -47,19 +41,19 @@ export class UIScene extends Phaser.Scene {
     this.statsText = this.add.text(10, 10, '', {
       fontSize: '12px',
       color: '#aaeeff',
-      lineSpacing: 4,
-      backgroundColor: '#000000aa',
-      padding: { x: 6, y: 4 },
+      lineSpacing: 5,
+      backgroundColor: '#000000bb',
+      padding: { x: 8, y: 6 },
     }).setScrollFactor(0).setDepth(1000);
 
-    // Ресурсы тела (нижний центр)
-    this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 60, '', {
-      fontSize: '14px',
+    // Ресурсы тела (нижний центр, над панелью умений)
+    this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
+      fontSize: '13px',
       color: '#ffffff',
       align: 'center',
       backgroundColor: '#000000aa',
       padding: { x: 8, y: 4 },
-    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(1000);
+    }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000);
 
     // Инфо о теле (правый верхний)
     this.bodyInfoText = this.add.text(GAME_WIDTH - 10, 10, '', {
@@ -71,101 +65,118 @@ export class UIScene extends Phaser.Scene {
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(1000);
 
     // Подсказки (нижний левый)
-    this.hintText = this.add.text(10, GAME_HEIGHT - 30, '', {
+    this.hintText = this.add.text(10, GAME_HEIGHT - 12, '', {
       fontSize: '11px',
-      color: '#888888',
-    }).setScrollFactor(0).setDepth(1000);
+      color: '#666677',
+    }).setOrigin(0, 1).setScrollFactor(0).setDepth(1000);
 
-    // Лог событий (левый нижний, над подсказками)
-    this.logText = this.add.text(10, GAME_HEIGHT - 120, '', {
+    // Лог событий
+    this.logText = this.add.text(10, GAME_HEIGHT - 130, '', {
       fontSize: '10px',
       color: '#aaaaaa',
-      lineSpacing: 2,
+      lineSpacing: 3,
     }).setScrollFactor(0).setDepth(1000);
 
     // Полоска захвата
-    this.captureBarBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40, 120, 8, 0x333333)
+    this.captureBarBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40, 140, 10, 0x333333)
       .setScrollFactor(0).setDepth(1001).setVisible(false);
-    this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 60, GAME_HEIGHT / 2 + 40, 0, 8, 0x66ccff)
+    this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, 0x66ccff)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Захват...', {
+      fontSize: '11px', color: '#66ccff',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
-    // Панель умений — 8 слотов внизу по центру
+    // Панель умений
     this.buildSkillBar();
 
-    // Слушаем события GameScene
-    const gameScene = this.scene.get('GameScene');
-    gameScene.events.on('update-ui', (data: UIData) => this.updateUI(data));
-    gameScene.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
-      this.addLog(`${STAT_NAMES_RU[data.stat]} повышен до ${data.newValue}!`);
+    // События от GameScene
+    const gs = this.scene.get('GameScene');
+    gs.events.on('update-ui', (data: UIData) => this.updateUI(data));
+    gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
+      this.addLog(`▲ ${STAT_NAMES_RU[data.stat]} → ${data.newValue}`);
     });
-    gameScene.events.on('creature-killed', (name: string) => {
-      this.addLog(`${name} убит!`);
+    gs.events.on('creature-killed', (data: { name: string; xp: number; stats: StatName[] }) => {
+      const statStr = data.stats.map(s => STAT_NAMES_RU[s]).join(', ');
+      this.addLog(`${data.name} убит  +${data.xp} XP → [${statStr}]`);
     });
-    gameScene.events.on('player-died', () => {
-      this.addLog('Тело погибло. Вы в астрале.');
-    });
-    gameScene.events.on('body-captured', (name: string) => {
-      this.addLog(`Захвачено тело: ${name}`);
-    });
-    gameScene.events.on('capture-available', (name: string) => {
-      this.addLog(`Тело "${name}" доступно для захвата [E]`);
-    });
-    gameScene.events.on('capture-start', (name: string) => {
-      this.addLog(`Захват "${name}"...`);
-    });
+    gs.events.on('player-died', () => this.addLog('⚠ Тело погибло. Вы в астрале.'));
+    gs.events.on('body-captured', (name: string) => this.addLog(`✦ Захвачено: ${name}`));
+    gs.events.on('capture-available', (name: string) => this.addLog(`${name} — нажми [E] для захвата`));
+    gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
   }
 
   private updateUI(data: UIData) {
     const { sphere, body, capture } = data;
 
-    // Статы сферы
+    // ── Статы сферы с XP-прогрессом ──────────────────
     const rank = calcRank(sphere.stats);
-    this.statsText.setText(
-      `── Сфера  Ранг ${rank.toFixed(1)} ──\n` +
-      `Сила: ${sphere.stats[StatName.Strength]}  Ловк: ${sphere.stats[StatName.Agility]}\n` +
-      `Точн: ${sphere.stats[StatName.Accuracy]}  Укл: ${sphere.stats[StatName.Evasion]}\n` +
-      `Здор: ${sphere.stats[StatName.Health]}  Стойк: ${sphere.stats[StatName.Armor]}\n` +
-      `Инт: ${sphere.stats[StatName.Intellect]}  Воля: ${sphere.stats[StatName.Will]}\n` +
-      `Мана: ${sphere.stats[StatName.Mana]}  Удача: ${sphere.stats[StatName.Luck]}`
-    );
+    const caps = body?.definition.caps ?? {};
+    const xpTracker = body?.xpTracker;
 
-    // Ресурсы тела
+    const lines: string[] = [`── Сфера  Ранг ${rank.toFixed(1)} ──`];
+
+    for (const stat of STAT_ORDER) {
+      const val = sphere.stats[stat];
+      const cap = caps[stat];
+      const isActive = cap !== undefined; // этот стат прокачивается в текущем теле
+      const isCapped = cap !== undefined && val >= cap;
+
+      let line = `${STAT_NAMES_RU[stat]}: ${val}`;
+
+      if (isActive && xpTracker) {
+        if (isCapped) {
+          line += ` [КАП]`;
+        } else {
+          const currentXP = xpTracker[stat];
+          const needed = xpToNextLevel(val);
+          const pips = buildXPBar(currentXP, needed, 8);
+          line += ` ${pips} ${currentXP}/${needed}`;
+        }
+      }
+
+      if (cap !== undefined) {
+        line = `► ${line}  (кап ${cap})`;
+      }
+
+      lines.push(line);
+    }
+
+    this.statsText.setText(lines.join('\n'));
+
+    // ── Ресурсы тела ──────────────────────────────────
     if (body) {
       const hpPct = Math.round((body.currentHP / body.maxHP) * 100);
       const manaPct = Math.round((body.currentMana / body.maxMana) * 100);
       this.resourceText.setText(
-        `HP: ${Math.round(body.currentHP)} / ${body.maxHP} (${hpPct}%)  |  ` +
-        `Мана: ${Math.round(body.currentMana)} / ${body.maxMana} (${manaPct}%)`
+        `HP ${Math.round(body.currentHP)}/${body.maxHP} (${hpPct}%)   Мана ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)`
       );
       this.resourceText.setVisible(true);
 
       this.bodyInfoText.setText(
         `── ${body.definition.nameRu} ──\n` +
-        `Оружие: ${body.weapon.nameRu}\n` +
-        `КД: ${body.weapon.cooldown}с  Дальность: ${body.weapon.range}`
+        `Оружие: ${body.weapon.nameRu}  КД: ${body.weapon.cooldown}с`
       );
       this.bodyInfoText.setVisible(true);
-
-      this.hintText.setText('[ЛКМ] Атака  [Q] Выход из тела');
+      this.hintText.setText('[1] Атака  [Q] Выйти из тела  [E] Захват');
     } else {
       this.resourceText.setVisible(false);
       this.bodyInfoText.setVisible(false);
       this.hintText.setText('[WASD] Движение  [E] Захватить тело');
     }
 
-    // Панель умений
-    this.updateSkillBar(body);
-
-    // Полоска захвата
-    if (capture && capture.state === CaptureState.Casting) {
-      const progress = capture.elapsed / capture.duration;
+    // ── Полоска захвата ───────────────────────────────
+    if (capture?.state === CaptureState.Casting) {
+      const p = capture.elapsed / capture.duration;
       this.captureBarBg.setVisible(true);
       this.captureBar.setVisible(true);
-      this.captureBar.width = 120 * progress;
+      this.captureBar.width = 140 * p;
     } else {
       this.captureBarBg.setVisible(false);
       this.captureBar.setVisible(false);
     }
+
+    // ── Панель умений ─────────────────────────────────
+    this.updateSkillBar(body);
   }
 
   private buildSkillBar() {
@@ -176,30 +187,24 @@ export class UIScene extends Phaser.Scene {
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
       const x = startX + i * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2;
 
-      // Фон слота
-      const bg = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE, 0x222233, 0.85)
+      const bg = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE, 0x1a1a2e, 0.9)
         .setScrollFactor(0).setDepth(1000);
-      // Рамка
       this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE)
-        .setScrollFactor(0).setDepth(1001)
-        .setStrokeStyle(1, 0x5566aa, 0.8)
-        .setFillStyle(0, 0);
+        .setStrokeStyle(1, 0x4455aa, 0.7).setFillStyle(0, 0)
+        .setScrollFactor(0).setDepth(1001);
       this.skillSlotsBg.push(bg);
 
-      // Иконка умения (текст-заглушка)
       const icon = this.add.text(x, y - 4, '', {
         fontSize: '11px', color: '#ffffff', align: 'center',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
       this.skillSlotsIcon.push(icon);
 
-      // Цифра клавиши
-      const key = this.add.text(x - SKILL_SLOT_SIZE / 2 + 4, y - SKILL_SLOT_SIZE / 2 + 3, `${i + 1}`, {
-        fontSize: '9px', color: '#888899',
+      const key = this.add.text(x - SKILL_SLOT_SIZE / 2 + 3, y - SKILL_SLOT_SIZE / 2 + 2, `${i + 1}`, {
+        fontSize: '9px', color: '#555577',
       }).setScrollFactor(0).setDepth(1003);
       this.skillSlotsKey.push(key);
 
-      // Оверлей кулдауна
-      const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, 0x000000, 0.6)
+      const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, 0x000000, 0.65)
         .setOrigin(0.5, 1).setScrollFactor(0).setDepth(1004);
       this.skillSlotsCd.push(cd);
     }
@@ -210,23 +215,19 @@ export class UIScene extends Phaser.Scene {
       const slot = body?.abilitySlots[i];
       const ability = slot?.ability ?? null;
 
-      // Подсветка занятых слотов
-      this.skillSlotsBg[i].setFillStyle(ability ? 0x2a2a44 : 0x222233, 0.85);
+      this.skillSlotsBg[i].setFillStyle(ability ? 0x1e2244 : 0x1a1a2e, 0.9);
 
-      // Иконка
       if (i === 0 && body) {
-        // Слот 1 — базовая атака, всегда активна
-        this.skillSlotsIcon[i].setText('⚔').setColor('#ffcc44');
+        this.skillSlotsIcon[i].setText('⚔').setColor('#ffdd66').setFontSize('16px');
       } else if (ability) {
-        this.skillSlotsIcon[i].setText(ability.nameRu.slice(0, 4)).setColor('#ccddff');
+        this.skillSlotsIcon[i].setText(ability.nameRu.slice(0, 6)).setColor('#aaccff').setFontSize('10px');
       } else {
         this.skillSlotsIcon[i].setText('');
       }
 
-      // Кулдаун
       if (slot && slot.cooldownRemaining > 0) {
-        const ratio = slot.cooldownRemaining / (slot.ability?.cooldown ?? 1);
-        this.skillSlotsCd[i].height = SKILL_SLOT_SIZE * Math.min(ratio, 1);
+        const ratio = Math.min(slot.cooldownRemaining / (slot.ability?.cooldown ?? 1), 1);
+        this.skillSlotsCd[i].height = SKILL_SLOT_SIZE * ratio;
       } else {
         this.skillSlotsCd[i].height = 0;
       }
@@ -235,22 +236,32 @@ export class UIScene extends Phaser.Scene {
 
   private addLog(msg: string) {
     this.logMessages.push(msg);
-    if (this.logMessages.length > 6) {
-      this.logMessages.shift();
-    }
+    if (this.logMessages.length > 6) this.logMessages.shift();
     this.logText.setText(this.logMessages.join('\n'));
   }
 }
 
+/** Строит мини-бар XP из символов */
+function buildXPBar(current: number, needed: number, width: number): string {
+  const filled = Math.round((current / needed) * width);
+  return '[' + '█'.repeat(filled) + '░'.repeat(width - filled) + ']';
+}
+
+const STAT_ORDER: StatName[] = [
+  StatName.Strength, StatName.Agility, StatName.Accuracy, StatName.Evasion,
+  StatName.Health, StatName.Armor, StatName.Intellect, StatName.Will,
+  StatName.Mana, StatName.Luck,
+];
+
 const STAT_NAMES_RU: Record<StatName, string> = {
-  [StatName.Strength]: 'Сила',
-  [StatName.Agility]: 'Ловкость',
-  [StatName.Accuracy]: 'Точность',
-  [StatName.Evasion]: 'Уклонение',
-  [StatName.Health]: 'Здоровье',
-  [StatName.Armor]: 'Стойкость',
+  [StatName.Strength]:  'Сила   ',
+  [StatName.Agility]:   'Ловкость',
+  [StatName.Accuracy]:  'Точность',
+  [StatName.Evasion]:   'Уклон  ',
+  [StatName.Health]:    'Здоровье',
+  [StatName.Armor]:     'Стойкость',
   [StatName.Intellect]: 'Интеллект',
-  [StatName.Will]: 'Воля',
-  [StatName.Mana]: 'Мана',
-  [StatName.Luck]: 'Удача',
+  [StatName.Will]:      'Воля   ',
+  [StatName.Mana]:      'Мана   ',
+  [StatName.Luck]:      'Удача  ',
 };

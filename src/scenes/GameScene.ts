@@ -393,21 +393,6 @@ export class GameScene extends Phaser.Scene {
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
 
-    // XP за удар — идёт в первый кап тела (основной стат тела)
-    if (result.hit) {
-      const primaryStat = this.getBodyPrimaryStat();
-      const levelUp = addXP(
-        this.sphere.stats,
-        this.playerBody.xpTracker,
-        primaryStat,
-        2,
-        this.playerBody.definition.caps,
-      );
-      if (levelUp) {
-        this.events.emit('stat-up', levelUp);
-      }
-    }
-
     // Проверка смерти моба
     if (closestCreature.isDead) {
       this.onCreatureKilled(closestCreature);
@@ -436,7 +421,33 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onCreatureKilled(creature: Creature) {
-    this.events.emit('creature-killed', creature.definition.nameRu);
+    // XP за убийство — делится поровну между всеми капами тела
+    if (this.playerBody) {
+      const caps = this.playerBody.definition.caps;
+      const capStats = Object.keys(caps) as StatName[];
+      const xpTotal = creature.definition.xpReward;
+      const xpEach = Math.floor(xpTotal / capStats.length);
+
+      for (const stat of capStats) {
+        const levelUp = addXP(
+          this.sphere.stats,
+          this.playerBody.xpTracker,
+          stat,
+          xpEach,
+          caps,
+        );
+        if (levelUp) this.events.emit('stat-up', levelUp);
+      }
+
+      this.events.emit('creature-killed', {
+        name: creature.definition.nameRu,
+        xp: xpTotal,
+        stats: capStats,
+      });
+    } else {
+      this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
+    }
+
     // Пульсация — тело доступно для захвата
     this.tweens.add({
       targets: creature,

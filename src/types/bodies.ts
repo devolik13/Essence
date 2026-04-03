@@ -36,8 +36,9 @@ export interface BodyDefinition {
   name: string;
   nameRu: string;
   type: BodyType;
-  caps: StatCaps;          // чему учит Сферу (потолки роста)
-  npcStats?: Partial<Stats>; // боевые статы моба в мире (если не задано — берутся капы)
+  caps: StatCaps;
+  npcStats?: Partial<Stats>;
+  xpReward: number;          // XP за убийство этого существа
   weapon: WeaponType;
   color: number;
   abilityName: string;
@@ -51,11 +52,8 @@ export const STARTER_BODIES: BodyDefinition[] = [
     name: 'Human Warrior',
     nameRu: 'Человек-воин',
     type: BodyType.Combat,
-    caps: {
-      [StatName.Strength]: 30,
-      [StatName.Armor]: 15,
-      [StatName.Health]: 5,
-    },
+    caps: { [StatName.Strength]: 30, [StatName.Armor]: 15, [StatName.Health]: 5 },
+    xpReward: 40,
     weapon: WeaponType.Sword,
     color: 0xcc3333,
     abilityName: 'Двойной удар',
@@ -65,11 +63,8 @@ export const STARTER_BODIES: BodyDefinition[] = [
     name: 'Human Archer',
     nameRu: 'Человек-лучник',
     type: BodyType.Combat,
-    caps: {
-      [StatName.Agility]: 30,
-      [StatName.Accuracy]: 15,
-      [StatName.Evasion]: 5,
-    },
+    caps: { [StatName.Agility]: 30, [StatName.Accuracy]: 15, [StatName.Evasion]: 5 },
+    xpReward: 40,
     weapon: WeaponType.ShortBow,
     color: 0x33cc33,
     abilityName: 'Прицельный выстрел',
@@ -79,11 +74,8 @@ export const STARTER_BODIES: BodyDefinition[] = [
     name: 'Human Mage',
     nameRu: 'Человек-маг',
     type: BodyType.Combat,
-    caps: {
-      [StatName.Intellect]: 30,
-      [StatName.Mana]: 15,
-      [StatName.Will]: 5,
-    },
+    caps: { [StatName.Intellect]: 30, [StatName.Mana]: 15, [StatName.Will]: 5 },
+    xpReward: 40,
     weapon: WeaponType.Staff,
     color: 0x3366ff,
     abilityName: 'Искра',
@@ -97,11 +89,8 @@ export const GOBLIN: BodyDefinition = {
   name: 'Goblin',
   nameRu: 'Гоблин',
   type: BodyType.Combat,
-  caps: {
-    [StatName.Agility]: 15,
-    [StatName.Luck]: 10,
-    [StatName.Evasion]: 8,
-  },
+  caps: { [StatName.Agility]: 15, [StatName.Luck]: 10, [StatName.Evasion]: 8 },
+  xpReward: 25,
   weapon: WeaponType.Dagger,
   color: 0x66aa44,
   abilityName: 'Подлый удар',
