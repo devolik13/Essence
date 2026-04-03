@@ -1,4 +1,4 @@
-import { StatCaps, StatName } from './stats';
+import { StatCaps, StatName, Stats } from './stats';
 
 export enum BodyType {
   Passive = 1,
@@ -36,10 +36,11 @@ export interface BodyDefinition {
   name: string;
   nameRu: string;
   type: BodyType;
-  caps: StatCaps;
+  caps: StatCaps;          // чему учит Сферу (потолки роста)
+  npcStats?: Partial<Stats>; // боевые статы моба в мире (если не задано — берутся капы)
   weapon: WeaponType;
-  color: number;         // цвет для рендера (пока без спрайтов)
-  abilityName: string;   // умение при капе
+  color: number;
+  abilityName: string;
 }
 
 // ─── Стартовые тела ────────────────────────────────────

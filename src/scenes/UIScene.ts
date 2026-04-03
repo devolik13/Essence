@@ -16,6 +16,10 @@ interface UIData {
  * UIScene — оверлей поверх игровой сцены.
  * Показывает статы, HP/Mana, слоты умений.
  */
+const SKILL_SLOT_SIZE = 48;
+const SKILL_SLOT_GAP = 6;
+const SKILL_SLOTS_COUNT = 8;
+
 export class UIScene extends Phaser.Scene {
   // Панели
   private statsText!: Phaser.GameObjects.Text;
@@ -25,6 +29,12 @@ export class UIScene extends Phaser.Scene {
   private logText!: Phaser.GameObjects.Text;
   private captureBar!: Phaser.GameObjects.Rectangle;
   private captureBarBg!: Phaser.GameObjects.Rectangle;
+
+  // Панель умений
+  private skillSlotsBg: Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsIcon: Phaser.GameObjects.Text[] = [];
+  private skillSlotsKey: Phaser.GameObjects.Text[] = [];
+  private skillSlotsCd: Phaser.GameObjects.Rectangle[] = [];
 
   private logMessages: string[] = [];
 
@@ -78,6 +88,9 @@ export class UIScene extends Phaser.Scene {
       .setScrollFactor(0).setDepth(1001).setVisible(false);
     this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 60, GAME_HEIGHT / 2 + 40, 0, 8, 0x66ccff)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
+
+    // Панель умений — 8 слотов внизу по центру
+    this.buildSkillBar();
 
     // Слушаем события GameScene
     const gameScene = this.scene.get('GameScene');
@@ -134,6 +147,9 @@ export class UIScene extends Phaser.Scene {
       this.hintText.setText('[WASD] Движение  [E] Захватить тело');
     }
 
+    // Панель умений
+    this.updateSkillBar(body);
+
     // Полоска захвата
     if (capture && capture.state === CaptureState.Casting) {
       const progress = capture.elapsed / capture.duration;
@@ -143,6 +159,71 @@ export class UIScene extends Phaser.Scene {
     } else {
       this.captureBarBg.setVisible(false);
       this.captureBar.setVisible(false);
+    }
+  }
+
+  private buildSkillBar() {
+    const totalW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP;
+    const startX = (GAME_WIDTH - totalW) / 2;
+    const y = GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 8;
+
+    for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
+      const x = startX + i * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2;
+
+      // Фон слота
+      const bg = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE, 0x222233, 0.85)
+        .setScrollFactor(0).setDepth(1000);
+      // Рамка
+      this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE)
+        .setScrollFactor(0).setDepth(1001)
+        .setStrokeStyle(1, 0x5566aa, 0.8)
+        .setFillStyle(0, 0);
+      this.skillSlotsBg.push(bg);
+
+      // Иконка умения (текст-заглушка)
+      const icon = this.add.text(x, y - 4, '', {
+        fontSize: '11px', color: '#ffffff', align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
+      this.skillSlotsIcon.push(icon);
+
+      // Цифра клавиши
+      const key = this.add.text(x - SKILL_SLOT_SIZE / 2 + 4, y - SKILL_SLOT_SIZE / 2 + 3, `${i + 1}`, {
+        fontSize: '9px', color: '#888899',
+      }).setScrollFactor(0).setDepth(1003);
+      this.skillSlotsKey.push(key);
+
+      // Оверлей кулдауна
+      const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, 0x000000, 0.6)
+        .setOrigin(0.5, 1).setScrollFactor(0).setDepth(1004);
+      this.skillSlotsCd.push(cd);
+    }
+  }
+
+  private updateSkillBar(body: Body | null) {
+    for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
+      const slot = body?.abilitySlots[i];
+      const ability = slot?.ability ?? null;
+
+      // Подсветка занятых слотов
+      this.skillSlotsBg[i].setFillStyle(ability ? 0x2a2a44 : 0x222233, 0.85);
+
+      // Иконка
+      if (i === 0 && body) {
+        // Слот 1 — базовая атака, всегда активна
+        this.skillSlotsIcon[i].setText('⚔').setColor('#ffcc44');
+      } else if (ability) {
+        this.skillSlotsIcon[i].setText(ability.nameRu.slice(0, 4)).setColor('#ccddff');
+      } else {
+        this.skillSlotsIcon[i].setText('');
+      }
+
+      // Кулдаун
+      if (slot && slot.cooldownRemaining > 0) {
+        const ratio = slot.cooldownRemaining / (slot.ability?.cooldown ?? 1);
+        this.skillSlotsCd[i].height = SKILL_SLOT_SIZE * Math.min(ratio, 1);
+      } else {
+        this.skillSlotsCd[i].height = 0;
+      }
     }
   }
 

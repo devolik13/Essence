@@ -39,10 +39,11 @@ export class Creature extends Phaser.GameObjects.Container {
     this.spawnX = x;
     this.spawnY = y;
 
-    // Статы моба = его капы (или дефолт 1 где нет капа)
+    // Статы моба: npcStats если заданы, иначе капы
     this.stats = createDefaultStats();
-    for (const [stat, cap] of Object.entries(definition.caps)) {
-      this.stats[stat as StatName] = cap as number;
+    const source = definition.npcStats ?? definition.caps;
+    for (const [stat, val] of Object.entries(source)) {
+      if (val !== undefined) this.stats[stat as StatName] = val;
     }
 
     this.currentHP = maxHP(this.stats);
