@@ -18,6 +18,39 @@ import {
 } from '../systems/capture';
 import { addXP, isFirstCapReached } from '../systems/progression';
 import { StatName } from '../types/stats';
+import { AbilityDef } from '../types/abilities';
+
+/** Базовые атаки для каждого вида тела (слот 1) */
+const BASIC_ATTACKS: Record<string, AbilityDef> = {
+  default: {
+    id: 'basic_melee', nameRu: 'Удар', damageType: 'melee',
+    cooldown: 1.2, manaCost: 0, range: 48, description: 'Базовый удар',
+  },
+  human_warrior: {
+    id: 'basic_sword', nameRu: 'Удар мечом', damageType: 'melee',
+    cooldown: 1.2, manaCost: 0, range: 48, description: 'Удар мечом',
+  },
+  human_archer: {
+    id: 'basic_bow', nameRu: 'Выстрел', damageType: 'ranged',
+    cooldown: 1.0, manaCost: 0, range: 200, description: 'Выстрел из лука',
+  },
+  human_mage: {
+    id: 'basic_staff', nameRu: 'Удар посохом', damageType: 'magic',
+    cooldown: 1.5, manaCost: 2, range: 180, description: 'Магический выстрел',
+  },
+  rabbit: {
+    id: 'basic_paw', nameRu: 'Удар лапой', damageType: 'melee',
+    cooldown: 0.8, manaCost: 0, range: 36, description: 'Быстрый удар лапой',
+  },
+  goblin: {
+    id: 'basic_dagger', nameRu: 'Укол кинжалом', damageType: 'melee',
+    cooldown: 0.8, manaCost: 0, range: 40, description: 'Укол кинжалом',
+  },
+  wolf: {
+    id: 'basic_bite', nameRu: 'Укус', damageType: 'melee',
+    cooldown: 0.8, manaCost: 0, range: 38, description: 'Укус волка',
+  },
+};
 
 export class GameScene extends Phaser.Scene {
   private sphere!: Sphere;
@@ -186,12 +219,18 @@ export class GameScene extends Phaser.Scene {
     return false;
   }
 
-  /** Попытка захватить тело мёртвого существа (в астрале, нажатие E) */
+  /** Попытка захватить существо рядом (в астрале, нажатие E):
+   *  - Пассивное (Type 1): захват живого
+   *  - Боевое (Type 2): только мёртвого
+   */
   private tryCaptureDead(): boolean {
     if (this.captureProcess?.state === CaptureState.Casting) return false;
 
     for (const creature of this.creatures) {
-      if (!creature.isDead) continue;
+      const isPassive = creature.definition.type === 1;
+      const eligible = isPassive ? true : creature.isDead;
+      if (!eligible) continue;
+
       const dist = distance(this.sphere.x, this.sphere.y, creature.x, creature.y);
       if (dist < CAPTURE_RANGE) {
         this.captureProcess = startCapture(creature.definition.id);
@@ -209,6 +248,7 @@ export class GameScene extends Phaser.Scene {
 
     this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
     this.playerBody.possess(this);
+    this.playerBody.abilitySlots[0].ability = BASIC_ATTACKS[def.id] ?? BASIC_ATTACKS['default'];
     this.sphere.enterBody();
   }
 
@@ -297,13 +337,13 @@ export class GameScene extends Phaser.Scene {
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
 
-    // XP за удар
+    // XP за удар — идёт в первый кап тела (основной стат тела)
     if (result.hit) {
-      const xpStat = weapon.isMelee ? StatName.Strength : StatName.Agility;
+      const primaryStat = this.getBodyPrimaryStat();
       const levelUp = addXP(
         this.sphere.stats,
         this.playerBody.xpTracker,
-        xpStat,
+        primaryStat,
         2,
         this.playerBody.definition.caps,
       );
@@ -367,16 +407,35 @@ export class GameScene extends Phaser.Scene {
   // ─── Захват существа ──────────────────────────────────
 
   private completeCaptureCreature(creature: Creature) {
-    // Захватываем тело существа — создаём Body из его определения
     const def = creature.definition;
     this.playerBody = new Body(this, creature.x, creature.y, def, this.sphere.stats);
     this.playerBody.possess(this);
+
+    // Слот 1 — базовая атака тела (зависит от существа)
+    this.playerBody.abilitySlots[0].ability = BASIC_ATTACKS[def.id] ?? BASIC_ATTACKS['default'];
+
     this.sphere.enterBody();
 
-    // Убираем существо
+    // Убираем существо из мира
     creature.destroy();
     this.creatures = this.creatures.filter(c => c !== creature);
 
     this.events.emit('body-captured', def.nameRu);
+  }
+
+  /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */
+  private getBodyPrimaryStat(): StatName {
+    if (!this.playerBody) return StatName.Strength;
+    const caps = this.playerBody.definition.caps;
+    // Находим стат с наибольшим капом — это главный обучающий стат тела
+    let best = StatName.Strength;
+    let bestVal = 0;
+    for (const [stat, val] of Object.entries(caps)) {
+      if ((val ?? 0) > bestVal) {
+        bestVal = val ?? 0;
+        best = stat as StatName;
+      }
+    }
+    return best;
   }
 }
