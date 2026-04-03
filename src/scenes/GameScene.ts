@@ -287,7 +287,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Кролики — рядом с базой (пассивные)
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 7; i++) {
       const x = 200 + Math.random() * 300;
       const y = 450 + Math.random() * 150;
       const creature = new Creature(this, x, y, CREATURE_DB['rabbit']);
