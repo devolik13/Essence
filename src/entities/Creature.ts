@@ -3,6 +3,7 @@ import { BodyDefinition } from '../types/bodies';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { maxHP } from '../systems/combat';
 import { CREATURE_SPEED, AGGRO_RANGE, LEASH_RANGE } from '../utils/constants';
+import { WEAPONS } from '../data/weapons';
 import { distance } from '../utils/math';
 import { clamp } from '../utils/math';
 
@@ -91,11 +92,14 @@ export class Creature extends Phaser.GameObjects.Container {
       const dist = distance(this.x, this.y, playerX, playerY);
       const distFromSpawn = distance(this.x, this.y, this.spawnX, this.spawnY);
 
+      const weapon = WEAPONS[this.definition.weapon];
+      const attackRange = weapon.isMelee ? 44 : weapon.range * 0.85; // дальнобойные чуть не дотягиваются до max
+      const preferredDist = weapon.isMelee ? 0 : weapon.range * 0.6; // дистанция удержания для ranged
+
       if (this.aiState === 'chase' || this.aiState === 'attack') {
-        // Поводок — слишком далеко от спавна
         if (distFromSpawn > LEASH_RANGE) {
           this.aiState = 'return';
-        } else if (dist < 40) {
+        } else if (dist <= attackRange) {
           this.aiState = 'attack';
         } else {
           this.aiState = 'chase';
@@ -120,6 +124,20 @@ export class Creature extends Phaser.GameObjects.Container {
           this.moveToward(playerX, playerY, CREATURE_SPEED * 1.2, dt);
         }
         break;
+      case 'attack':
+        // Дальнобойные: держат дистанцию — отходят если игрок подошёл слишком близко
+        if (playerX !== undefined && playerY !== undefined) {
+          const weapon = WEAPONS[this.definition.weapon];
+          if (!weapon.isMelee) {
+            const dist2 = distance(this.x, this.y, playerX, playerY);
+            const preferred = weapon.range * 0.6;
+            if (dist2 < preferred * 0.7) {
+              // Отходим от игрока
+              this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 0.9, dt);
+            }
+          }
+        }
+        break;
       case 'return':
         this.moveToward(this.spawnX, this.spawnY, CREATURE_SPEED, dt);
         break;
@@ -139,6 +157,15 @@ export class Creature extends Phaser.GameObjects.Container {
     const hpRatio = clamp(this.currentHP / this.maxHP, 0, 1);
     this.hpBar.width = 36 * hpRatio;
     this.hpBar.setFillStyle(hpRatio > 0.5 ? 0x44cc44 : hpRatio > 0.25 ? 0xddaa00 : 0xcc3333);
+  }
+
+  private moveAwayFrom(tx: number, ty: number, speed: number, dt: number) {
+    const dx = this.x - tx;
+    const dy = this.y - ty;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    this.x += (dx / dist) * speed * dt;
+    this.y += (dy / dist) * speed * dt;
   }
 
   private moveToward(tx: number, ty: number, speed: number, dt: number) {
