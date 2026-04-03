@@ -7,12 +7,14 @@ import { CaptureProcess, CaptureState } from '../systems/capture';
 import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT } from '../utils/constants';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
+import { QuestProgress } from '../types/quests';
 
 interface UIData {
   sphere: Sphere;
   body: Body | null;
   capture: CaptureProcess | null;
   target: Creature | null;
+  quests: QuestProgress[];
 }
 
 const SKILL_SLOT_SIZE = 48;
@@ -23,6 +25,7 @@ export class UIScene extends Phaser.Scene {
   private statsText!: Phaser.GameObjects.Text;
   private spellText!: Phaser.GameObjects.Text;
   private targetPanel!: Phaser.GameObjects.Text;
+  private questPanel!: Phaser.GameObjects.Text;
   private resourceText!: Phaser.GameObjects.Text;
   private bodyInfoText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
@@ -69,6 +72,16 @@ export class UIScene extends Phaser.Scene {
       backgroundColor: '#000000bb',
       padding: { x: 8, y: 6 },
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    // Панель квестов (правый нижний угол, над skill bar)
+    this.questPanel = this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 72, '', {
+      fontSize: '11px',
+      color: '#ffeeaa',
+      align: 'right',
+      lineSpacing: 4,
+      backgroundColor: '#000000bb',
+      padding: { x: 8, y: 6 },
+    }).setOrigin(1, 1).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     // Ресурсы тела (нижний центр, над панелью умений)
     this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
@@ -129,6 +142,9 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`★ Изучено: ${spell.nameRu} → слот 2`);
+    });
+    gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
+      this.addLog(`✦ КВЕСТ ВЫПОЛНЕН: ${data.name}  +${data.xp} XP`);
     });
   }
 
@@ -228,6 +244,9 @@ export class UIScene extends Phaser.Scene {
 
     // ── Панель выбранной цели ─────────────────────────
     this.updateTargetPanel(data.target);
+
+    // ── Панель квестов ────────────────────────────────
+    this.updateQuestPanel(data.quests);
   }
 
   private updateTargetPanel(target: Creature | null) {
@@ -272,6 +291,32 @@ export class UIScene extends Phaser.Scene {
     }
 
     this.targetPanel.setText(lines.join('\n')).setVisible(true);
+  }
+
+  private updateQuestPanel(quests: QuestProgress[]) {
+    const active = quests.filter(q => !q.completed);
+    if (active.length === 0) {
+      this.questPanel.setVisible(false);
+      return;
+    }
+
+    const lines: string[] = ['── Квесты ──'];
+    for (const q of active) {
+      lines.push(`${q.def.nameRu}`);
+      for (let i = 0; i < q.def.objectives.length; i++) {
+        const obj = q.def.objectives[i];
+        const cur = q.counts[i];
+        const done = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
+        const label = obj.type === 'kill'       ? 'Убить'
+                    : obj.type === 'capture'    ? 'Захватить'
+                    :                             'Изучить заклинание';
+        const target = obj.targetId ? ` (${obj.targetId})` : '';
+        lines.push(`  ${label}${target}: ${done}`);
+      }
+      lines.push(`  Награда: ${q.def.xpReward} XP`);
+    }
+
+    this.questPanel.setText(lines.join('\n')).setVisible(true);
   }
 
   private buildSkillBar() {

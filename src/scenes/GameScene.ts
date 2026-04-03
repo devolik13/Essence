@@ -19,6 +19,8 @@ import {
 import { addXP, isFirstCapReached } from '../systems/progression';
 import { StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
+import { QuestTracker } from '../systems/questTracker';
+import { QUESTS } from '../data/questDB';
 
 /** Базовые атаки для каждого вида тела (слот 1) */
 const BASIC_ATTACKS: Record<string, AbilityDef> = {
@@ -74,6 +76,9 @@ export class GameScene extends Phaser.Scene {
   private captureProcess: CaptureProcess | null = null;
   private captureTarget: Creature | null = null;
 
+  // Квесты
+  private questTracker!: QuestTracker;
+
   // Выбранная цель
   private selectedTarget: Creature | null = null;
   private targetIndicator!: Phaser.GameObjects.Arc;
@@ -90,6 +95,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // ─── Квесты ──────────────────────────────────────
+    this.questTracker = new QuestTracker(QUESTS);
+
     // ─── Тайловая карта ──────────────────────────────
     this.buildMap();
 
@@ -119,9 +127,11 @@ export class GameScene extends Phaser.Scene {
       this.key2     = this.input.keyboard.addKey('TWO');
     }
 
-    // При изучении заклинания — обновляем слоты текущего тела
-    this.events.on('spell-learned', (_spell: import('../types/abilities').AbilityDef) => {
+    // При изучении заклинания — обновляем слоты и квесты
+    this.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       if (this.playerBody) this.fillBodySlots(this.playerBody);
+      const spellCompleted = this.questTracker.onSpellLearned(spell.id);
+      for (const q of spellCompleted) this.onQuestComplete(q);
     });
 
     // ─── Клик ────────────────────────────────────────
@@ -218,6 +228,7 @@ export class GameScene extends Phaser.Scene {
       body: this.playerBody,
       capture: this.captureProcess,
       target: this.selectedTarget,
+      quests: this.questTracker.getAll(),
     });
   }
 
@@ -372,6 +383,13 @@ export class GameScene extends Phaser.Scene {
       const y = 620 + Math.random() * 120;
       this.creatures.push(new Creature(this, x, y, CREATURE_DB['forest_spirit']));
     }
+
+    // Разведчики — дальнобойные, правее гоблинов
+    for (let i = 0; i < 4; i++) {
+      const x = 820 + Math.random() * 180;
+      const y = 500 + Math.random() * 150;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['scout']));
+    }
   }
 
   // ─── Атака ────────────────────────────────────────────
@@ -500,6 +518,9 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
     }
 
+    // Квест — засчитать убийство
+    this.handleQuestKill(creature.definition.id, xpTotal);
+
     // Пульсация — тело доступно для захвата
     this.tweens.add({
       targets: creature,
@@ -546,6 +567,35 @@ export class GameScene extends Phaser.Scene {
     this.creatures = this.creatures.filter(c => c !== creature);
 
     this.events.emit('body-captured', def.nameRu);
+
+    // Квест — засчитать захват
+    const captureCompleted = this.questTracker.onCapture(def.id);
+    for (const q of captureCompleted) this.onQuestComplete(q);
+  }
+
+  // ─── Квестовые хелперы ───────────────────────────────
+
+  private handleQuestKill(creatureId: string, _xpFromKill: number) {
+    const completed = this.questTracker.onKill(creatureId);
+    for (const q of completed) this.onQuestComplete(q);
+  }
+
+  private onQuestComplete(q: import('../types/quests').QuestProgress) {
+    const xpReward = q.def.xpReward;
+    this.events.emit('quest-complete', { name: q.def.nameRu, xp: xpReward });
+
+    // Распределяем XP как за убийство — по капам текущего тела
+    if (this.playerBody && xpReward > 0) {
+      const caps = this.playerBody.definition.caps;
+      const capStats = Object.keys(caps) as StatName[];
+      if (capStats.length > 0) {
+        const xpEach = Math.floor(xpReward / capStats.length);
+        for (const stat of capStats) {
+          const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
+          if (levelUp) this.events.emit('stat-up', levelUp);
+        }
+      }
+    }
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */

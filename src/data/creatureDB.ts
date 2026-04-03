@@ -85,6 +85,18 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Staff, color: 0x88eecc, abilityName: 'Искра',
   },
 
+  scout: {
+    id: 'scout', name: 'Scout', nameRu: 'Разведчик',
+    type: BodyType.Combat, damageType: 'ranged',
+    caps: { [StatName.Agility]: 25, [StatName.Accuracy]: 20, [StatName.Evasion]: 12 },
+    xpReward: 35,
+    npcStats: {
+      [StatName.Agility]: 8, [StatName.Accuracy]: 10, [StatName.Evasion]: 6,
+      [StatName.Health]: 7,  [StatName.Armor]: 2,    [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.ShortBow, color: 0x88aa55, abilityName: 'Прицельный выстрел',
+  },
+
   shaman: {
     id: 'shaman', name: 'Shaman', nameRu: 'Шаман',
     type: BodyType.Combat, damageType: 'magic',
