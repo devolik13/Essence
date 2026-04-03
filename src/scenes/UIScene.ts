@@ -18,6 +18,7 @@ const SKILL_SLOTS_COUNT = 8;
 
 export class UIScene extends Phaser.Scene {
   private statsText!: Phaser.GameObjects.Text;
+  private spellText!: Phaser.GameObjects.Text;   // прогресс заклинания под статами
   private resourceText!: Phaser.GameObjects.Text;
   private bodyInfoText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
@@ -45,6 +46,15 @@ export class UIScene extends Phaser.Scene {
       backgroundColor: '#000000bb',
       padding: { x: 8, y: 6 },
     }).setScrollFactor(0).setDepth(1000);
+
+    // Прогресс заклинания (под statsText, позиция обновляется динамически)
+    this.spellText = this.add.text(10, 200, '', {
+      fontSize: '11px',
+      color: '#ddaaff',
+      lineSpacing: 3,
+      backgroundColor: '#000000bb',
+      padding: { x: 8, y: 5 },
+    }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     // Ресурсы тела (нижний центр, над панелью умений)
     this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
@@ -103,12 +113,8 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('body-captured', (name: string) => this.addLog(`✦ Захвачено: ${name}`));
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} — нажми [E] для захвата`));
     gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
-    gs.events.on('spell-progress', (d: { spell: import('../types/abilities').AbilityDef; current: number; threshold: number }) => {
-      const bar = buildXPBar(d.current, d.threshold, 8);
-      this.addLog(`✧ Заклинание "${d.spell.nameRu}" ${bar} ${d.current}/${d.threshold}`);
-    });
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
-      this.addLog(`★ ИЗУЧЕНО заклинание: ${spell.nameRu}! (слот 2)`);
+      this.addLog(`★ Изучено: ${spell.nameRu} → слот 2`);
     });
   }
 
@@ -149,6 +155,27 @@ export class UIScene extends Phaser.Scene {
     }
 
     this.statsText.setText(lines.join('\n'));
+
+    // ── Прогресс заклинания под статами ──────────────
+    const sig = body?.definition.signatureSpell;
+    const threshold = body?.definition.spellXPThreshold;
+    if (sig && threshold) {
+      const alreadyLearned = sphere.learnedSpells.some(s => s.id === sig.id);
+      if (alreadyLearned) {
+        this.spellText.setText(`✦ ${sig.nameRu} — ИЗУЧЕНО`).setVisible(true);
+      } else {
+        const current = sphere.spellProgress[sig.id] ?? 0;
+        const bar = buildXPBar(current, threshold, 10);
+        this.spellText.setText(
+          `✧ Заклинание: ${sig.nameRu}\n${bar}  ${current} / ${threshold} XP`
+        ).setVisible(true);
+      }
+      // Позиционируем прямо под панелью статов
+      const statsBounds = this.statsText.getBounds();
+      this.spellText.setPosition(10, statsBounds.bottom + 4);
+    } else {
+      this.spellText.setVisible(false);
+    }
 
     // ── Ресурсы тела ──────────────────────────────────
     if (body) {
