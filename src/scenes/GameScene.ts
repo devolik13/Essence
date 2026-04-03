@@ -22,35 +22,36 @@ import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 
-/** Базовые атаки для каждого вида тела (слот 1) */
+/** Базовые атаки для каждого вида тела (слот 1).
+ *  baseDamage = 0 — урон берётся из weapon.baseDamage в handleAttack */
 const BASIC_ATTACKS: Record<string, AbilityDef> = {
   default: {
     id: 'basic_melee', nameRu: 'Удар', damageType: 'melee',
-    cooldown: 1.2, manaCost: 0, range: 48, description: 'Базовый удар',
+    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Базовый удар',
   },
   human_warrior: {
     id: 'basic_sword', nameRu: 'Удар мечом', damageType: 'melee',
-    cooldown: 1.2, manaCost: 0, range: 48, description: 'Удар мечом',
+    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Удар мечом',
   },
   human_archer: {
     id: 'basic_bow', nameRu: 'Выстрел', damageType: 'ranged',
-    cooldown: 1.0, manaCost: 0, range: 200, description: 'Выстрел из лука',
+    cooldown: 1.0, manaCost: 0, range: 200, baseDamage: 0, description: 'Выстрел из лука',
   },
   human_mage: {
     id: 'basic_staff', nameRu: 'Удар посохом', damageType: 'magic',
-    cooldown: 1.5, manaCost: 2, range: 180, description: 'Магический выстрел',
+    cooldown: 1.5, manaCost: 2, range: 180, baseDamage: 0, description: 'Магический выстрел',
   },
   rabbit: {
     id: 'basic_paw', nameRu: 'Удар лапой', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 36, description: 'Быстрый удар лапой',
+    cooldown: 0.8, manaCost: 0, range: 36, baseDamage: 0, description: 'Быстрый удар лапой',
   },
   goblin: {
     id: 'basic_dagger', nameRu: 'Укол кинжалом', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 40, description: 'Укол кинжалом',
+    cooldown: 0.8, manaCost: 0, range: 40, baseDamage: 0, description: 'Укол кинжалом',
   },
   wolf: {
     id: 'basic_bite', nameRu: 'Укус', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 38, description: 'Укус волка',
+    cooldown: 0.8, manaCost: 0, range: 38, baseDamage: 0, description: 'Укус волка',
   },
 };
 
@@ -429,9 +430,10 @@ export class GameScene extends Phaser.Scene {
 
     // Расчёт урона по damageType тела
     const dt = this.playerBody.definition.damageType;
-    const result = dt === 'magic'  ? calcMagicDamage(this.sphere.stats, closestCreature.stats)
-                 : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats)
-                 :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats);
+    const wb = weapon.baseDamage;
+    const result = dt === 'magic'  ? calcMagicDamage(this.sphere.stats, closestCreature.stats, wb)
+                 : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats, wb)
+                 :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats, wb);
 
     if (result.hit) {
       closestCreature.takeDamage(result.final);
@@ -460,9 +462,10 @@ export class GameScene extends Phaser.Scene {
     if (!this.playerBody) return;
 
     const cdt = creature.definition.damageType;
-    const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, this.sphere.stats)
-                 : cdt === 'ranged' ? calcRangedDamage(creature.stats, this.sphere.stats)
-                 :                    calcMeleeDamage(creature.stats, this.sphere.stats);
+    const cwb = WEAPONS[creature.definition.weapon].baseDamage;
+    const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, this.sphere.stats, cwb)
+                 : cdt === 'ranged' ? calcRangedDamage(creature.stats, this.sphere.stats, cwb)
+                 :                    calcMeleeDamage(creature.stats, this.sphere.stats, cwb);
 
     if (result.hit) {
       this.playerBody.takeDamage(result.final);
@@ -647,7 +650,7 @@ export class GameScene extends Phaser.Scene {
     this.playerBody.currentMana -= spell.manaCost;
 
     // Урон (заклинания всегда магический урон)
-    const result = calcMagicDamage(this.sphere.stats, target.stats);
+    const result = calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
     target.takeDamage(result.final);
 
     this.damageTexts.push(

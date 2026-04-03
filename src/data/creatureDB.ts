@@ -10,7 +10,8 @@ export const SPELL_SPARK: AbilityDef = {
   cooldown: 1.8,
   manaCost: 5,
   range: 150,
-  description: 'Магический разряд. Урон: 3 + Интеллект×2.5',
+  baseDamage: 14,  // базовый урон заклинания (выше посоха, это спец. способность)
+  description: 'Магический разряд. Урон: 14 × (1 + Интеллект/100)',
 };
 
 export const CREATURE_DB: Record<string, BodyDefinition> = {

@@ -9,6 +9,7 @@ export interface AbilityDef {
   cooldown: number;       // сек
   manaCost: number;
   range: number;          // пикс
+  baseDamage: number;     // базовый урон способности
   description: string;
 }
 

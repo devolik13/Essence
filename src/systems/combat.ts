@@ -24,16 +24,17 @@ export function manaRegenPerSec(stats: Stats): number {
 
 // ─── Урон ──────────────────────────────────────────────
 
-export function meleeBaseDamage(strength: number): number {
-  return 5 + strength * 2;
+/** Урон = базовый урон оружия × (1 + Стат/100) */
+export function meleeBaseDamage(weaponBase: number, strength: number): number {
+  return weaponBase * (1 + strength / 100);
 }
 
-export function rangedBaseDamage(agility: number): number {
-  return 5 + agility * 2;
+export function rangedBaseDamage(weaponBase: number, agility: number): number {
+  return weaponBase * (1 + agility / 100);
 }
 
-export function magicBaseDamage(intellect: number): number {
-  return 3 + intellect * 2.5;
+export function magicBaseDamage(weaponBase: number, intellect: number): number {
+  return weaponBase * (1 + intellect / 100);
 }
 
 // ─── Защита ────────────────────────────────────────────
@@ -55,9 +56,9 @@ export function hitChance(accuracy: number, evasion: number): number {
   return accuracy / (accuracy + evasion);
 }
 
-/** Шанс крита: Удача / (Удача + 50) */
+/** Шанс крита: Удача / (Удача + 500) — при капе 500 = 50% */
 export function critChance(luck: number): number {
-  return luck / (luck + 50);
+  return luck / (luck + 500);
 }
 
 export const CRIT_MULTIPLIER = 1.5;
@@ -72,11 +73,11 @@ export interface DamageResult {
   final: number;
 }
 
-export function calcMeleeDamage(attacker: Stats, defender: Stats): DamageResult {
+export function calcMeleeDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
   const hit = Math.random() < hitChance(attacker[StatName.Accuracy], defender[StatName.Evasion]);
   if (!hit) return { raw: 0, reduced: 0, hit: false, crit: false, final: 0 };
 
-  const raw = meleeBaseDamage(attacker[StatName.Strength]);
+  const raw = meleeBaseDamage(weaponBase, attacker[StatName.Strength]);
   const reduction = physicalReduction(defender[StatName.Armor]);
   const reduced = raw * (1 - reduction);
   const crit = Math.random() < critChance(attacker[StatName.Luck]);
@@ -85,11 +86,11 @@ export function calcMeleeDamage(attacker: Stats, defender: Stats): DamageResult 
   return { raw, reduced, hit: true, crit, final: Math.round(final_) };
 }
 
-export function calcRangedDamage(attacker: Stats, defender: Stats): DamageResult {
+export function calcRangedDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
   const hit = Math.random() < hitChance(attacker[StatName.Accuracy], defender[StatName.Evasion]);
   if (!hit) return { raw: 0, reduced: 0, hit: false, crit: false, final: 0 };
 
-  const raw = rangedBaseDamage(attacker[StatName.Agility]);
+  const raw = rangedBaseDamage(weaponBase, attacker[StatName.Agility]);
   const reduction = physicalReduction(defender[StatName.Armor]);
   const reduced = raw * (1 - reduction);
   const crit = Math.random() < critChance(attacker[StatName.Luck]);
@@ -98,9 +99,9 @@ export function calcRangedDamage(attacker: Stats, defender: Stats): DamageResult
   return { raw, reduced, hit: true, crit, final: Math.round(final_) };
 }
 
-export function calcMagicDamage(attacker: Stats, defender: Stats): DamageResult {
+export function calcMagicDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
   // Магия всегда попадает
-  const raw = magicBaseDamage(attacker[StatName.Intellect]);
+  const raw = magicBaseDamage(weaponBase, attacker[StatName.Intellect]);
   const reduction = magicalReduction(defender[StatName.Will]);
   const reduced = raw * (1 - reduction);
   const crit = Math.random() < critChance(attacker[StatName.Luck]);
