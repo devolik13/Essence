@@ -74,10 +74,15 @@ export class GameScene extends Phaser.Scene {
   private captureProcess: CaptureProcess | null = null;
   private captureTarget: Creature | null = null;
 
+  // Выбранная цель
+  private selectedTarget: Creature | null = null;
+  private targetIndicator!: Phaser.GameObjects.Arc;
+
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
   private keyE!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
+  private key1!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -100,17 +105,33 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
     this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
 
+    // ─── Индикатор выбранной цели ─────────────────────
+    this.targetIndicator = this.add.arc(0, 0, 18, 0, 360, false, 0xffff00, 0)
+      .setStrokeStyle(2, 0xffff00, 0.8).setVisible(false);
+
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
-      this.keyQ = this.input.keyboard.addKey('Q');
-      this.keyE = this.input.keyboard.addKey('E');
+      this.keyQ     = this.input.keyboard.addKey('Q');
+      this.keyE     = this.input.keyboard.addKey('E');
       this.keySpace = this.input.keyboard.addKey('SPACE');
+      this.key1     = this.input.keyboard.addKey('ONE');
     }
 
-    // ─── Клик — атака ────────────────────────────────
+    // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (pointer.leftButtonDown()) {
-        this.handleAttack();
+      if (!pointer.leftButtonDown()) return;
+      // Пробуем выбрать цель кликом
+      const worldX = pointer.worldX;
+      const worldY = pointer.worldY;
+      const clicked = this.creatures.find(c =>
+        !c.isDead && distance(c.x, c.y, worldX, worldY) < 20
+      );
+      if (clicked) {
+        this.selectTarget(clicked);
+      } else {
+        // Клик в пустоту — снять цель, или атаковать ближайшее
+        if (!this.selectedTarget) this.handleAttack();
+        else this.handleAttack();
       }
     });
   }
@@ -128,6 +149,11 @@ export class GameScene extends Phaser.Scene {
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
+      }
+
+      // Слот 1 [1] — базовая атака
+      if (Phaser.Input.Keyboard.JustDown(this.key1)) {
+        this.handleAttack();
       }
     } else {
       this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
@@ -152,6 +178,14 @@ export class GameScene extends Phaser.Scene {
 
     // Обновляем текст урона
     this.damageTexts = this.damageTexts.filter(dt => !dt.update(time, delta));
+
+    // Индикатор выбранной цели
+    if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
+      this.targetIndicator.setPosition(this.selectedTarget.x, this.selectedTarget.y).setVisible(true);
+    } else {
+      this.selectedTarget = null;
+      this.targetIndicator.setVisible(false);
+    }
 
     // Захват
     if (this.captureProcess && this.captureProcess.state === CaptureState.Casting) {
@@ -304,19 +338,34 @@ export class GameScene extends Phaser.Scene {
 
   // ─── Атака ────────────────────────────────────────────
 
+  private selectTarget(creature: Creature) {
+    this.selectedTarget = creature;
+  }
+
   private handleAttack() {
     if (!this.playerBody || this.playerBody.attackCooldown > 0) return;
 
     const weapon = this.playerBody.weapon;
-    let closestCreature: Creature | null = null;
-    let closestDist = weapon.range;
 
-    for (const creature of this.creatures) {
-      if (creature.isDead) continue;
-      const dist = distance(this.playerBody.x, this.playerBody.y, creature.x, creature.y);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestCreature = creature;
+    // Приоритет: выбранная цель → ближайшая в радиусе
+    let closestCreature: Creature | null = null;
+
+    if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
+      const dist = distance(this.playerBody.x, this.playerBody.y, this.selectedTarget.x, this.selectedTarget.y);
+      if (dist <= weapon.range) {
+        closestCreature = this.selectedTarget;
+      }
+    }
+
+    if (!closestCreature) {
+      let closestDist = weapon.range;
+      for (const creature of this.creatures) {
+        if (creature.isDead) continue;
+        const dist = distance(this.playerBody.x, this.playerBody.y, creature.x, creature.y);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestCreature = creature;
+        }
       }
     }
 
