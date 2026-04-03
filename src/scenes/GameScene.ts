@@ -24,6 +24,12 @@ import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
 
+// ── Штраф за смерть ──────────────────────────────────────
+// TODO: подобрать значения после тестирования баланса
+const DEATH_XP_LOSS_PCT    = 0.10;  // 10% накопленного XP в текущих статах
+const DEATH_DEBUFF_DURATION = 30;   // сек — длительность дебаффа
+export const DEATH_DEBUFF_MULT = 0.85;  // ×0.85 к урону пока дебафф активен
+
 /** Базовые атаки для каждого вида тела (слот 1).
  *  baseDamage = 0 — урон берётся из weapon.baseDamage в handleAttack */
 const BASIC_ATTACKS: Record<string, AbilityDef> = {
@@ -293,6 +299,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Захват
+    // Тикаем дебафф смерти
+    if (this.sphere.deathDebuffRemaining > 0) {
+      this.sphere.deathDebuffRemaining = Math.max(0, this.sphere.deathDebuffRemaining - delta / 1000);
+    }
+
     if (this.captureProcess && this.captureProcess.state === CaptureState.Casting) {
       this.captureProcess = updateCapture(this.captureProcess, delta);
 
@@ -313,6 +324,7 @@ export class GameScene extends Phaser.Scene {
       capture: this.captureProcess,
       target: this.selectedTarget,
       quests: this.questTracker.getAll(),
+      deathDebuff: this.sphere.deathDebuffRemaining,
       aoeCast: this.aoeCasting
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
         : null,
@@ -634,14 +646,30 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onPlayerDeath() {
-    // Респавн — выход из тела на камне возрождения
+    // ── Штраф за смерть ──────────────────────────────────
+    let totalXpLost = 0;
+    if (this.playerBody) {
+      // Теряем % XP по статам текущего тела
+      const caps = this.playerBody.definition.caps;
+      for (const stat of Object.keys(caps) as StatName[]) {
+        const cur = this.sphere.xpTracker[stat] ?? 0;
+        const lost = Math.floor(cur * DEATH_XP_LOSS_PCT);
+        this.sphere.xpTracker[stat] = cur - lost;
+        totalXpLost += lost;
+      }
+    }
+    // Дебафф урона (TODO: применять в боевых формулах после тестирования)
+    this.sphere.deathDebuffRemaining = DEATH_DEBUFF_DURATION;
+
+    // ── Выход из тела ─────────────────────────────────────
     if (this.playerBody) {
       this.playerBody.release();
       this.playerBody.destroy();
       this.playerBody = null;
     }
-    this.sphere.enterAstral(320, 320); // камень возрождения
-    this.events.emit('player-died');
+    this.sphere.enterAstral(320, 320);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
+    this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
 
   // ─── Захват существа ──────────────────────────────────

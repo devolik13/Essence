@@ -15,6 +15,7 @@ interface UIData {
   capture: CaptureProcess | null;
   target: Creature | null;
   quests: QuestProgress[];
+  deathDebuff: number;   // секунд осталось (0 = нет)
   aoeCast: { elapsed: number; duration: number; name: string } | null;
 }
 
@@ -151,7 +152,11 @@ export class UIScene extends Phaser.Scene {
       const statStr = data.stats.map(s => STAT_NAMES_SHORT[s]).join(', ');
       this.addLog(`${data.name} убит  +${data.xp} XP → [${statStr}]`);
     });
-    gs.events.on('player-died', () => this.addLog('⚠ Тело погибло. Вы в астрале.'));
+    gs.events.on('player-died', (data: { xpLost: number; debuffDuration: number }) => {
+      this.addLog(`⚠ Тело погибло. Вы в астрале.`);
+      if (data?.xpLost > 0) this.addLog(`  ↓ Потеряно ${data.xpLost} XP (штраф смерти)`);
+      this.addLog(`  ✦ Слабость астрала: −15% урон на ${data?.debuffDuration ?? 30}с`);
+    });
     gs.events.on('body-captured', (name: string) => this.addLog(`✦ Захвачено: ${name}`));
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} — нажми [E] для захвата`));
     gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
@@ -180,7 +185,9 @@ export class UIScene extends Phaser.Scene {
     const caps = body?.definition.caps ?? {};
     const xpTracker = sphere.xpTracker;
 
-    const lines: string[] = [`── Сфера  Ранг ${rank.toFixed(1)} ──`];
+    const debuffSecs = Math.ceil(data.deathDebuff ?? 0);
+    const debuffStr = debuffSecs > 0 ? `  ⚠ Слабость ${debuffSecs}с` : '';
+    const lines: string[] = [`── Сфера  Ранг ${rank.toFixed(1)} ──${debuffStr}`];
 
     for (const stat of STAT_ORDER) {
       const val = sphere.stats[stat];

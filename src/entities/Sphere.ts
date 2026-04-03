@@ -11,11 +11,14 @@ import { AbilityDef } from '../types/abilities';
  */
 export class Sphere extends Phaser.GameObjects.Container {
   public stats: Stats;
-  public xpTracker: StatXP;            // накопленный XP по статам
-  public spellProgress: Record<string, number> = {}; // spellId → накопленный XP
-  public learnedSpells: AbilityDef[] = [];           // выученные заклинания навсегда
+  public xpTracker: StatXP;
+  public spellProgress: Record<string, number> = {};
+  public learnedSpells: AbilityDef[] = [];
   public inBody: boolean = false;
   public learnedAbilities: string[] = [];
+
+  // Штраф смерти
+  public deathDebuffRemaining: number = 0;  // сек осталось
 
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
