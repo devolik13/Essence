@@ -59,6 +59,10 @@ export class GameScene extends Phaser.Scene {
   private damageTexts: DamageText[] = [];
   private starterBodies: Phaser.GameObjects.Arc[] = [];
 
+  // Очередь респауна: { definitionId, x, y, delay (мс осталось) }
+  private respawnQueue: { id: string; x: number; y: number; timer: number }[] = [];
+  private readonly RESPAWN_DELAY = 15000; // 15 секунд
+
   // Стартовые тела на камне возрождения
   private starterPositions = [
     { x: 280, y: 300 },  // Воин
@@ -159,6 +163,9 @@ export class GameScene extends Phaser.Scene {
         this.captureTarget = null;
       }
     }
+
+    // Респаун
+    this.tickRespawn(delta);
 
     // Передаём данные в UIScene
     this.events.emit('update-ui', {
@@ -381,8 +388,7 @@ export class GameScene extends Phaser.Scene {
 
   private onCreatureKilled(creature: Creature) {
     this.events.emit('creature-killed', creature.definition.nameRu);
-    // Тело остаётся в мире — игрок может захватить его в астрале (E)
-    // Подсвечиваем пульсацией чтобы показать что тело доступно
+    // Пульсация — тело доступно для захвата
     this.tweens.add({
       targets: creature,
       alpha: { from: 0.4, to: 0.7 },
@@ -391,6 +397,15 @@ export class GameScene extends Phaser.Scene {
       repeat: -1,
     });
     this.events.emit('capture-available', creature.definition.nameRu);
+
+    // Через 30 сек тело само исчезает и встаёт в очередь респауна
+    this.time.delayedCall(30000, () => {
+      if (creature.active) {
+        this.scheduleRespawn(creature);
+        creature.destroy();
+        this.creatures = this.creatures.filter(c => c !== creature);
+      }
+    });
   }
 
   private onPlayerDeath() {
@@ -416,7 +431,8 @@ export class GameScene extends Phaser.Scene {
 
     this.sphere.enterBody();
 
-    // Убираем существо из мира
+    // Убираем существо из мира + ставим в очередь респауна
+    this.scheduleRespawn(creature);
     creature.destroy();
     this.creatures = this.creatures.filter(c => c !== creature);
 
@@ -437,5 +453,32 @@ export class GameScene extends Phaser.Scene {
       }
     }
     return best;
+  }
+
+  // ─── Респаун ──────────────────────────────────────────
+
+  private scheduleRespawn(creature: Creature) {
+    this.respawnQueue.push({
+      id: creature.definition.id,
+      x: creature.spawnX,
+      y: creature.spawnY,
+      timer: this.RESPAWN_DELAY,
+    });
+  }
+
+  private tickRespawn(delta: number) {
+    for (const entry of this.respawnQueue) {
+      entry.timer -= delta;
+    }
+
+    const ready = this.respawnQueue.filter(e => e.timer <= 0);
+    this.respawnQueue = this.respawnQueue.filter(e => e.timer > 0);
+
+    for (const entry of ready) {
+      const def = CREATURE_DB[entry.id];
+      if (!def) continue;
+      const creature = new Creature(this, entry.x, entry.y, def);
+      this.creatures.push(creature);
+    }
   }
 }
