@@ -91,6 +91,13 @@ export class Body extends Phaser.GameObjects.Container {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
 
+    // Кулдауны слотов умений
+    for (const slot of this.abilitySlots) {
+      if (slot.cooldownRemaining > 0) {
+        slot.cooldownRemaining = Math.max(0, slot.cooldownRemaining - dt);
+      }
+    }
+
     // Реген
     if (!this.isDead) {
       this.currentHP = clamp(this.currentHP + hpRegenPerSec(this.sphereStats) * dt, 0, this.maxHP);

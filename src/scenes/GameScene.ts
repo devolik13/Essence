@@ -83,6 +83,7 @@ export class GameScene extends Phaser.Scene {
   private keyE!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
   private key1!: Phaser.Input.Keyboard.Key;
+  private key2!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -115,6 +116,7 @@ export class GameScene extends Phaser.Scene {
       this.keyE     = this.input.keyboard.addKey('E');
       this.keySpace = this.input.keyboard.addKey('SPACE');
       this.key1     = this.input.keyboard.addKey('ONE');
+      this.key2     = this.input.keyboard.addKey('TWO');
     }
 
     // При изучении заклинания — обновляем слоты текущего тела
@@ -159,6 +161,10 @@ export class GameScene extends Phaser.Scene {
       // Слот 1 [1] — базовая атака
       if (Phaser.Input.Keyboard.JustDown(this.key1)) {
         this.handleAttack();
+      }
+      // Слот 2 [2] — заклинание
+      if (Phaser.Input.Keyboard.JustDown(this.key2)) {
+        this.handleSpell(1);
       }
     } else {
       this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
@@ -402,10 +408,12 @@ export class GameScene extends Phaser.Scene {
 
     if (!closestCreature) return;
 
-    // Расчёт урона
+    // Расчёт урона по типу оружия
     const result = weapon.isMelee
       ? calcMeleeDamage(this.sphere.stats, closestCreature.stats)
-      : calcRangedDamage(this.sphere.stats, closestCreature.stats);
+      : this.playerBody.definition.weapon === 'staff'
+        ? calcMagicDamage(this.sphere.stats, closestCreature.stats)
+        : calcRangedDamage(this.sphere.stats, closestCreature.stats);
 
     if (result.hit) {
       closestCreature.takeDamage(result.final);
@@ -562,6 +570,52 @@ export class GameScene extends Phaser.Scene {
       }
     }
     return best;
+  }
+
+  // ─── Заклинания ───────────────────────────────────────
+
+  private handleSpell(slotIndex: number) {
+    if (!this.playerBody) return;
+
+    const slot = this.playerBody.abilitySlots[slotIndex];
+    if (!slot?.ability) return;
+    if (slot.cooldownRemaining > 0) return;
+
+    const spell = slot.ability;
+
+    // Проверка маны
+    if (this.playerBody.currentMana < spell.manaCost) {
+      this.events.emit('no-mana');
+      return;
+    }
+
+    // Найти цель
+    let target = this.selectedTarget && !this.selectedTarget.isDead ? this.selectedTarget : null;
+    if (!target) {
+      let closestDist = spell.range;
+      for (const c of this.creatures) {
+        if (c.isDead) continue;
+        const d = distance(this.playerBody.x, this.playerBody.y, c.x, c.y);
+        if (d < closestDist) { closestDist = d; target = c; }
+      }
+    }
+    if (!target) return;
+
+    // Расход маны
+    this.playerBody.currentMana -= spell.manaCost;
+
+    // Урон (заклинания всегда магический урон)
+    const result = calcMagicDamage(this.sphere.stats, target.stats);
+    target.takeDamage(result.final);
+
+    this.damageTexts.push(
+      new DamageText(this, target.x, target.y - 10, result.final, result.crit, false)
+    );
+
+    // Кулдаун на слот
+    slot.cooldownRemaining = spell.cooldown;
+
+    if (target.isDead) this.onCreatureKilled(target);
   }
 
   // ─── Респаун ──────────────────────────────────────────
