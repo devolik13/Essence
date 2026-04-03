@@ -88,6 +88,11 @@ export class GameScene extends Phaser.Scene {
 
   // AoE прицеливание
   private aoeTargeting: { slotIndex: number; spell: AbilityDef } | null = null;
+  private aoeCasting: {
+    slotIndex: number; spell: AbilityDef;
+    targetX: number; targetY: number;
+    elapsed: number; duration: number;
+  } | null = null;
   private aoeIndicator!: Phaser.GameObjects.Graphics;
 
   // Клавиши
@@ -254,16 +259,37 @@ export class GameScene extends Phaser.Scene {
     }
 
     // AoE индикатор — следует за мышью
-    if (this.aoeTargeting) {
+    if (this.aoeTargeting && this.playerBody) {
+      const spell = this.aoeTargeting.spell;
       const ptr = this.input.activePointer;
       const wx = this.cameras.main.scrollX + ptr.x / this.cameras.main.zoom;
       const wy = this.cameras.main.scrollY + ptr.y / this.cameras.main.zoom;
-      const radius = this.aoeTargeting.spell.aoeRadius ?? 60;
+      const aoeR = spell.aoeRadius ?? 60;
+      const castDist = distance(this.playerBody.x, this.playerBody.y, wx, wy);
+      const inRange = castDist <= spell.range;
+
       this.aoeIndicator.clear().setVisible(true);
-      this.aoeIndicator.fillStyle(0xff6600, 0.18);
-      this.aoeIndicator.fillCircle(wx, wy, radius);
-      this.aoeIndicator.lineStyle(2, 0xff8800, 0.9);
-      this.aoeIndicator.strokeCircle(wx, wy, radius);
+
+      // Тонкий круг максимальной дальности вокруг игрока
+      this.aoeIndicator.lineStyle(1, 0xff4444, 0.45);
+      this.aoeIndicator.strokeCircle(this.playerBody.x, this.playerBody.y, spell.range);
+
+      // Зона поражения: яркая в радиусе, тусклая за ним
+      const fillAlpha   = inRange ? 0.18 : 0.05;
+      const strokeAlpha = inRange ? 0.9  : 0.25;
+      const strokeColor = inRange ? 0xff8800 : 0x888888;
+      this.aoeIndicator.fillStyle(0xff6600, fillAlpha);
+      this.aoeIndicator.fillCircle(wx, wy, aoeR);
+      this.aoeIndicator.lineStyle(2, strokeColor, strokeAlpha);
+      this.aoeIndicator.strokeCircle(wx, wy, aoeR);
+    }
+
+    // Каст AoE — тикаем таймер
+    if (this.aoeCasting && this.playerBody) {
+      this.aoeCasting.elapsed += delta / 1000;
+      if (this.aoeCasting.elapsed >= this.aoeCasting.duration) {
+        this.executeAoeSpell();
+      }
     }
 
     // Захват
@@ -287,6 +313,9 @@ export class GameScene extends Phaser.Scene {
       capture: this.captureProcess,
       target: this.selectedTarget,
       quests: this.questTracker.getAll(),
+      aoeCast: this.aoeCasting
+        ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
+        : null,
     });
   }
 
@@ -742,7 +771,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Выстрел AoE в точку worldX/worldY */
+  /** Клик в режиме прицеливания — проверки и запуск каста */
   private fireAoeSpell(worldX: number, worldY: number) {
     if (!this.aoeTargeting || !this.playerBody) return;
     const { slotIndex, spell } = this.aoeTargeting;
@@ -750,7 +779,6 @@ export class GameScene extends Phaser.Scene {
     const slot = this.playerBody.abilitySlots[slotIndex];
     if (!slot || slot.cooldownRemaining > 0) { this.exitAoeTargeting(); return; }
 
-    // Проверка дальности
     const castDist = distance(this.playerBody.x, this.playerBody.y, worldX, worldY);
     if (castDist > spell.range) {
       this.events.emit('spell-out-of-range');
@@ -758,38 +786,71 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Проверка маны
     if (this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       this.exitAoeTargeting();
       return;
     }
 
-    // Расход маны и кулдаун
+    // Выходим из режима прицеливания и начинаем каст
+    this.aoeTargeting = null;
+    this.aoeIndicator.clear().setVisible(false);
+
+    const castTime = spell.castTime ?? 0;
+    if (castTime > 0) {
+      // Запуск каста — блокируем движение
+      this.playerBody.isCasting = true;
+      this.aoeCasting = {
+        slotIndex, spell,
+        targetX: worldX, targetY: worldY,
+        elapsed: 0, duration: castTime,
+      };
+      this.events.emit('cast-start', { name: spell.nameRu, duration: castTime });
+    } else {
+      // Мгновенный выстрел
+      this.doAoeDamage(spell, slotIndex, worldX, worldY);
+    }
+  }
+
+  /** Вызывается когда таймер каста завершился */
+  private executeAoeSpell() {
+    if (!this.aoeCasting || !this.playerBody) return;
+    const { spell, slotIndex, targetX, targetY } = this.aoeCasting;
+    this.playerBody.isCasting = false;
+    this.aoeCasting = null;
+    this.events.emit('cast-end');
+    this.doAoeDamage(spell, slotIndex, targetX, targetY);
+  }
+
+  /** Наносит AoE урон и ставит кулдаун */
+  private doAoeDamage(spell: AbilityDef, slotIndex: number, worldX: number, worldY: number) {
+    if (!this.playerBody) return;
+    const slot = this.playerBody.abilitySlots[slotIndex];
+    if (!slot) return;
+
     this.playerBody.currentMana -= spell.manaCost;
     slot.cooldownRemaining = spell.cooldown;
 
-    // Урон всем в радиусе
     const radius = spell.aoeRadius ?? 60;
-    const hit: Creature[] = [];
     for (const c of this.creatures) {
       if (c.isDead) continue;
-      if (distance(c.x, c.y, worldX, worldY) <= radius) hit.push(c);
-    }
-
-    for (const c of hit) {
+      if (distance(c.x, c.y, worldX, worldY) > radius) continue;
       const result = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
       c.takeDamage(result.final);
       this.damageTexts.push(new DamageText(this, c.x, c.y - 10, result.final, result.crit, false));
       if (c.isDead) this.onCreatureKilled(c);
     }
-
-    this.exitAoeTargeting();
   }
 
   private exitAoeTargeting() {
     this.aoeTargeting = null;
     this.aoeIndicator.clear().setVisible(false);
+    // Отмена каста
+    if (this.aoeCasting && this.playerBody) {
+      this.playerBody.isCasting = false;
+    }
+    this.aoeCasting = null;
+    this.events.emit('cast-end');
   }
 
   // ─── Респаун ──────────────────────────────────────────

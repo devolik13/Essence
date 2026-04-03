@@ -15,6 +15,7 @@ interface UIData {
   capture: CaptureProcess | null;
   target: Creature | null;
   quests: QuestProgress[];
+  aoeCast: { elapsed: number; duration: number; name: string } | null;
 }
 
 const SKILL_SLOT_SIZE = 48;
@@ -37,6 +38,11 @@ export class UIScene extends Phaser.Scene {
   private skillSlotsIcon: Phaser.GameObjects.Text[] = [];
   private skillSlotsKey: Phaser.GameObjects.Text[] = [];
   private skillSlotsCd: Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsCdText: Phaser.GameObjects.Text[] = [];
+
+  private castBarBg!: Phaser.GameObjects.Rectangle;
+  private castBar!: Phaser.GameObjects.Rectangle;
+  private castLabel!: Phaser.GameObjects.Text;
 
   private logMessages: string[] = [];
 
@@ -122,6 +128,16 @@ export class UIScene extends Phaser.Scene {
     this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Захват...', {
       fontSize: '11px', color: '#66ccff',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+
+    // Полоска каста заклинания (над skill bar)
+    const castY = GAME_HEIGHT - 72;
+    this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, 0x222222)
+      .setScrollFactor(0).setDepth(1001).setVisible(false);
+    this.castBar = this.add.rectangle(GAME_WIDTH / 2 - 80, castY, 0, 10, 0xff8800)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
+    this.castLabel = this.add.text(GAME_WIDTH / 2, castY - 14, '', {
+      fontSize: '11px', color: '#ff8800',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
     // Панель умений
     this.buildSkillBar();
@@ -251,6 +267,19 @@ export class UIScene extends Phaser.Scene {
     // ── Панель умений ─────────────────────────────────
     this.updateSkillBar(body);
 
+    // ── Полоска каста ─────────────────────────────────
+    if (data.aoeCast) {
+      const p = Math.min(data.aoeCast.elapsed / data.aoeCast.duration, 1);
+      this.castBarBg.setVisible(true);
+      this.castBar.setVisible(true);
+      this.castBar.width = 160 * p;
+      this.castLabel.setText(`◎ ${data.aoeCast.name}  ${data.aoeCast.elapsed.toFixed(1)} / ${data.aoeCast.duration.toFixed(0)}с`).setVisible(true);
+    } else {
+      this.castBarBg.setVisible(false);
+      this.castBar.setVisible(false);
+      this.castLabel.setVisible(false);
+    }
+
     // ── Панель выбранной цели ─────────────────────────
     this.updateTargetPanel(data.target);
 
@@ -356,6 +385,12 @@ export class UIScene extends Phaser.Scene {
       const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, 0x000000, 0.65)
         .setOrigin(0.5, 1).setScrollFactor(0).setDepth(1004);
       this.skillSlotsCd.push(cd);
+
+      const cdText = this.add.text(x, y, '', {
+        fontSize: '12px', color: '#ffffff', align: 'center',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
+      this.skillSlotsCdText.push(cdText);
     }
   }
 
@@ -377,8 +412,10 @@ export class UIScene extends Phaser.Scene {
       if (slot && slot.cooldownRemaining > 0) {
         const ratio = Math.min(slot.cooldownRemaining / (slot.ability?.cooldown ?? 1), 1);
         this.skillSlotsCd[i].height = SKILL_SLOT_SIZE * ratio;
+        this.skillSlotsCdText[i].setText(slot.cooldownRemaining.toFixed(1));
       } else {
         this.skillSlotsCd[i].height = 0;
+        this.skillSlotsCdText[i].setText('');
       }
     }
   }

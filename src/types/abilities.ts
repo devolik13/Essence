@@ -6,12 +6,13 @@ export interface AbilityDef {
   id: string;
   nameRu: string;
   damageType: DamageType;
-  cooldown: number;       // сек
+  cooldown: number;       // сек (после выстрела)
+  castTime?: number;      // сек (время каста; 0/undefined = мгновенно)
   manaCost: number;
   range: number;          // пикс — макс. дальность броска
-  baseDamage: number;     // базовый урон способности
-  isAoe?: boolean;        // требует режима прицеливания
-  aoeRadius?: number;     // радиус поражения (пикс)
+  baseDamage: number;
+  isAoe?: boolean;
+  aoeRadius?: number;
   description: string;
 }
 

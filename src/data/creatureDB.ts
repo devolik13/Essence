@@ -5,15 +5,16 @@ import { AbilityDef } from '../types/abilities';
 /** Заклинание Огненный Шар (AoE) */
 export const SPELL_FIREBALL: AbilityDef = {
   id: 'spell_fireball',
-  nameRu: 'Огненный Шар',
+  nameRu: 'Огн. Шар',
   damageType: 'magic',
-  cooldown: 3.5,
+  castTime: 2,
+  cooldown: 5,
   manaCost: 15,
   range: 260,
   baseDamage: 18,
   isAoe: true,
   aoeRadius: 80,
-  description: 'Огненный взрыв. Урон: 18 × (1 + Интеллект/100) по всем в радиусе 80',
+  description: 'Огненный взрыв. Каст 2с. Урон: 18 × (1 + Интеллект/100) по всем в радиусе 80',
 };
 
 /** Заклинание Искра */

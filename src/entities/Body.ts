@@ -17,7 +17,8 @@ export class Body extends Phaser.GameObjects.Container {
   public currentMana: number;
   public abilitySlots: AbilitySlot[];
   public isPlayerControlled: boolean = false;
-  public attackCooldown: number = 0; // сек до следующей атаки
+  public isCasting: boolean = false;   // заблокировать движение во время каста
+  public attackCooldown: number = 0;   // сек до следующей атаки
 
   private bodySprite: Phaser.GameObjects.Arc;
   private hpBar: Phaser.GameObjects.Rectangle;
@@ -104,8 +105,8 @@ export class Body extends Phaser.GameObjects.Container {
       this.currentMana = clamp(this.currentMana + manaRegenPerSec(this.sphereStats) * dt, 0, this.maxMana);
     }
 
-    // Движение
-    if (this.isPlayerControlled && this.keys) {
+    // Движение (заблокировано во время каста)
+    if (this.isPlayerControlled && this.keys && !this.isCasting) {
       let vx = 0;
       let vy = 0;
 
