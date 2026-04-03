@@ -27,7 +27,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     nameRu: 'Кролик',
     type: BodyType.Passive,
     caps: {
-      [StatName.Evasion]: 20,  // тело учит уклонению
+      [StatName.Evasion]: 10,  // тело учит уклонению
       [StatName.Agility]: 8,
     },
     npcStats: {
