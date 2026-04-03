@@ -41,8 +41,8 @@ export class UIScene extends Phaser.Scene {
   private skillSlotsKey: Phaser.GameObjects.Text[] = [];
   private skillSlotsCd: Phaser.GameObjects.Rectangle[] = [];
   private skillSlotsCdText: Phaser.GameObjects.Text[] = [];
-  private skillSlotsLock: Phaser.GameObjects.Text[] = [];
-  private slotLocked: boolean[] = Array(SKILL_SLOTS_COUNT).fill(false);
+  private skillBarLocked: boolean = false;
+  private lockBtn!: Phaser.GameObjects.Text;
 
   // Spell picker
   private spellPickerContainer!: Phaser.GameObjects.Container;
@@ -417,27 +417,13 @@ export class UIScene extends Phaser.Scene {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
       this.skillSlotsCdText.push(cdText);
 
-      // Замок — только для слотов 2–8 (i >= 1)
+      // Клик по слоту 2–8 — открыть пикер
       if (i >= 1) {
-        const lockX = x + SKILL_SLOT_SIZE / 2 - 8;
-        const lockY = y - SKILL_SLOT_SIZE / 2 + 8;
-        const lock = this.add.text(lockX, lockY, '🔓', { fontSize: '10px' })
-          .setOrigin(0.5).setScrollFactor(0).setDepth(1006)
-          .setInteractive({ useHandCursor: true })
-          .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-            ptr.event.stopPropagation();
-            this.slotLocked[i] = !this.slotLocked[i];
-            lock.setText(this.slotLocked[i] ? '🔒' : '🔓');
-            if (this.slotLocked[i] && this.spellPickerSlot === i) this.closeSpellPicker();
-          });
-        this.skillSlotsLock.push(lock);
-
-        // Клик по слоту — открыть пикер (i >= 1, не слот атаки)
         bg.setInteractive({ useHandCursor: true })
           .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
             ptr.event.stopPropagation();
-            if (this.slotLocked[i]) {
-              this.addLog('🔒 Слот заблокирован');
+            if (this.skillBarLocked) {
+              this.addLog('🔒 Панель заблокирована');
               return;
             }
             if (this.cachedInCombat) {
@@ -450,10 +436,21 @@ export class UIScene extends Phaser.Scene {
               this.openSpellPicker(i);
             }
           });
-      } else {
-        this.skillSlotsLock.push(null as unknown as Phaser.GameObjects.Text);
       }
     }
+
+    // Общий замок — слева от слот-бара
+    const barStartX = (GAME_WIDTH - totalW) / 2;
+    this.lockBtn = this.add.text(barStartX - 20, GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 8, '🔓', {
+      fontSize: '18px',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1006)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        ptr.event.stopPropagation();
+        this.skillBarLocked = !this.skillBarLocked;
+        this.lockBtn.setText(this.skillBarLocked ? '🔒' : '🔓');
+        if (this.skillBarLocked) this.closeSpellPicker();
+      });
 
     // Spell picker container (скрыт по умолчанию)
     this.spellPickerContainer = this.add.container(0, 0).setDepth(1100).setVisible(false);
