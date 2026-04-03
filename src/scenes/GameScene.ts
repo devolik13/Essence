@@ -786,6 +786,7 @@ export class GameScene extends Phaser.Scene {
     // Урон (заклинания всегда магический урон)
     const result = calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
     target.takeDamage(result.final);
+    this.aggroCreature(target);
 
     this.damageTexts.push(
       new DamageText(this, target.x, target.y - 10, result.final, result.crit, false)
@@ -880,8 +881,15 @@ export class GameScene extends Phaser.Scene {
       if (distance(c.x, c.y, worldX, worldY) > radius) continue;
       const result = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
       c.takeDamage(result.final);
+      this.aggroCreature(c);
       this.damageTexts.push(new DamageText(this, c.x, c.y - 10, result.final, result.crit, false));
       if (c.isDead) this.onCreatureKilled(c);
+    }
+  }
+
+  private aggroCreature(creature: Creature) {
+    if (!creature.isDead && (creature.aiState === 'idle' || creature.aiState === 'wander')) {
+      creature.aiState = 'chase';
     }
   }
 

@@ -49,6 +49,7 @@ export class UIScene extends Phaser.Scene {
   private spellPickerSlot: number = -1;
   private cachedLearnedSpells: import('../types/abilities').AbilityDef[] = [];
   private cachedInCombat: boolean = false;
+  private cachedBody: Body | null = null;
 
   private castBarBg!: Phaser.GameObjects.Rectangle;
   private castBar!: Phaser.GameObjects.Rectangle;
@@ -192,6 +193,7 @@ export class UIScene extends Phaser.Scene {
     // Кэш для spell picker
     this.cachedLearnedSpells = sphere.learnedSpells;
     this.cachedInCombat = data.inCombat ?? false;
+    this.cachedBody = body;
     if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
 
     // ── Статы сферы с XP-прогрессом ──────────────────
@@ -458,7 +460,13 @@ export class UIScene extends Phaser.Scene {
 
   private openSpellPicker(slotIndex: number) {
     this.spellPickerSlot = slotIndex;
-    const spells = this.cachedLearnedSpells;
+    // Filter out spells already assigned to other slots
+    const usedIds = new Set(
+      this.cachedBody?.abilitySlots
+        .filter((s, i) => i !== slotIndex && s.ability)
+        .map(s => s.ability!.id) ?? []
+    );
+    const spells = this.cachedLearnedSpells.filter(s => !usedIds.has(s.id));
 
     // Чистим старое содержимое
     this.spellPickerContainer.removeAll(true);
