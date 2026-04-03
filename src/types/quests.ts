@@ -2,8 +2,8 @@ export type ObjectiveType = 'kill' | 'capture' | 'learn_spell';
 
 export interface QuestObjective {
   type: ObjectiveType;
-  /** creature id, spell id, or undefined = any */
   targetId?: string;
+  targetNameRu?: string;  // русское имя цели для отображения
   count: number;
 }
 

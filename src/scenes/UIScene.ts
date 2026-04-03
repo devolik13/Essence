@@ -79,15 +79,14 @@ export class UIScene extends Phaser.Scene {
       padding: { x: 8, y: 6 },
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
 
-    // Панель квестов (правый нижний угол, над skill bar)
-    this.questPanel = this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 72, '', {
+    // Панель квестов (левая сторона, под статами — позиция обновляется динамически)
+    this.questPanel = this.add.text(10, 300, '', {
       fontSize: '11px',
       color: '#ffeeaa',
-      align: 'right',
-      lineSpacing: 4,
+      lineSpacing: 3,
       backgroundColor: '#000000bb',
       padding: { x: 8, y: 6 },
-    }).setOrigin(1, 1).setScrollFactor(0).setDepth(1000).setVisible(false);
+    }).setOrigin(0, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     // Ресурсы тела (нижний центр, над панелью умений)
     this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
@@ -340,19 +339,24 @@ export class UIScene extends Phaser.Scene {
 
     const lines: string[] = ['── Квесты ──'];
     for (const q of active) {
-      lines.push(`${q.def.nameRu}`);
+      lines.push(`▸ ${q.def.nameRu}  (+${q.def.xpReward} XP)`);
       for (let i = 0; i < q.def.objectives.length; i++) {
         const obj = q.def.objectives[i];
         const cur = q.counts[i];
         const done = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-        const label = obj.type === 'kill'       ? 'Убить'
-                    : obj.type === 'capture'    ? 'Захватить'
-                    :                             'Изучить заклинание';
-        const target = obj.targetId ? ` (${obj.targetId})` : '';
-        lines.push(`  ${label}${target}: ${done}`);
+        const verb = obj.type === 'kill'    ? 'Убить'
+                   : obj.type === 'capture' ? 'Захватить'
+                   :                         'Изучить';
+        const name = obj.targetNameRu ?? obj.targetId ?? '';
+        lines.push(`  ${verb} ${name}: ${done}`);
       }
-      lines.push(`  Награда: ${q.def.xpReward} XP`);
     }
+
+    // Позиция: под панелью статов + под заклинанием если видно
+    const anchor = this.spellText.visible
+      ? this.spellText.getBounds().bottom
+      : this.statsText.getBounds().bottom;
+    this.questPanel.setPosition(10, anchor + 6);
 
     this.questPanel.setText(lines.join('\n')).setVisible(true);
   }
