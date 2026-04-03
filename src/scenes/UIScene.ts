@@ -111,7 +111,7 @@ export class UIScene extends Phaser.Scene {
     // ── Статы сферы с XP-прогрессом ──────────────────
     const rank = calcRank(sphere.stats);
     const caps = body?.definition.caps ?? {};
-    const xpTracker = body?.xpTracker;
+    const xpTracker = sphere.xpTracker;
 
     const lines: string[] = [`── Сфера  Ранг ${rank.toFixed(1)} ──`];
 

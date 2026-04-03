@@ -431,7 +431,7 @@ export class GameScene extends Phaser.Scene {
       for (const stat of capStats) {
         const levelUp = addXP(
           this.sphere.stats,
-          this.playerBody.xpTracker,
+          this.sphere.xpTracker,
           stat,
           xpEach,
           caps,

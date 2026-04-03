@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { BodyDefinition } from '../types/bodies';
 import { Stats, StatName } from '../types/stats';
 import { AbilitySlot, createEmptySlots } from '../types/abilities';
-import { StatXP, createEmptyXP } from '../systems/progression';
 import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/combat';
 import { BODY_SPEED } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
@@ -17,7 +16,6 @@ export class Body extends Phaser.GameObjects.Container {
   public currentHP: number;
   public currentMana: number;
   public abilitySlots: AbilitySlot[];
-  public xpTracker: StatXP;
   public isPlayerControlled: boolean = false;
   public attackCooldown: number = 0; // сек до следующей атаки
 
@@ -42,7 +40,6 @@ export class Body extends Phaser.GameObjects.Container {
     super(scene, x, y);
 
     this.definition = definition;
-    this.xpTracker = createEmptyXP();
     this.abilitySlots = createEmptySlots();
 
     // Ресурсы на макс
