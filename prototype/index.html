@@ -449,8 +449,7 @@ function completeCapture(){
   casting=false;castTarget=null;castTimer=0;clearRing();
   SP.gfx.visible=false;
   addLog('ЗАХВАТ: '+possessed.def.name,'good');
-  hint('ЗАХВАТ ЗАВЕРШЁН
-'+possessed.def.name,2);
+  hint('ЗАХВАТ ЗАВЕРШЁН - '+possessed.def.name,2);
   updateUI();
 }
 function cancelCapture(){casting=false;castTarget=null;castTimer=0;clearRing();}
