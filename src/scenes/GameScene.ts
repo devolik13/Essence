@@ -433,7 +433,18 @@ export class GameScene extends Phaser.Scene {
   private creatureAttackPlayer(creature: Creature) {
     if (!this.playerBody) return;
 
-    const result = calcMeleeDamage(creature.stats, this.sphere.stats);
+    const weapon = WEAPONS[creature.definition.weapon];
+    let result;
+    if (!weapon.isMelee) {
+      // Staff → магический урон (Интеллект, всегда попадает)
+      // Bow → дальний урон (Ловкость)
+      const isStaff = creature.definition.weapon === 'staff';
+      result = isStaff
+        ? calcMagicDamage(creature.stats, this.sphere.stats)
+        : calcRangedDamage(creature.stats, this.sphere.stats);
+    } else {
+      result = calcMeleeDamage(creature.stats, this.sphere.stats);
+    }
 
     if (result.hit) {
       this.playerBody.takeDamage(result.final);
@@ -443,9 +454,8 @@ export class GameScene extends Phaser.Scene {
       new DamageText(this, this.playerBody.x, this.playerBody.y, result.final, result.crit, !result.hit)
     );
 
-    creature.attackCooldown = 1.5; // мобы атакуют раз в 1.5 сек
+    creature.attackCooldown = weapon.cooldown;
 
-    // Смерть игрока
     if (this.playerBody.isDead) {
       this.onPlayerDeath();
     }
