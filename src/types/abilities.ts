@@ -8,8 +8,10 @@ export interface AbilityDef {
   damageType: DamageType;
   cooldown: number;       // сек
   manaCost: number;
-  range: number;          // пикс
+  range: number;          // пикс — макс. дальность броска
   baseDamage: number;     // базовый урон способности
+  isAoe?: boolean;        // требует режима прицеливания
+  aoeRadius?: number;     // радиус поражения (пикс)
   description: string;
 }
 

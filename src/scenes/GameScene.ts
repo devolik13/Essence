@@ -22,7 +22,7 @@ import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
-import { SPELL_SPARK } from '../data/creatureDB';
+import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
 
 /** Базовые атаки для каждого вида тела (слот 1).
  *  baseDamage = 0 — урон берётся из weapon.baseDamage в handleAttack */
@@ -86,12 +86,23 @@ export class GameScene extends Phaser.Scene {
   private selectedTarget: Creature | null = null;
   private targetIndicator!: Phaser.GameObjects.Arc;
 
+  // AoE прицеливание
+  private aoeTargeting: { slotIndex: number; spell: AbilityDef } | null = null;
+  private aoeIndicator!: Phaser.GameObjects.Graphics;
+
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
   private keyE!: Phaser.Input.Keyboard.Key;
+  private keyEsc!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
   private key1!: Phaser.Input.Keyboard.Key;
   private key2!: Phaser.Input.Keyboard.Key;
+  private key3!: Phaser.Input.Keyboard.Key;
+  private key4!: Phaser.Input.Keyboard.Key;
+  private key5!: Phaser.Input.Keyboard.Key;
+  private key6!: Phaser.Input.Keyboard.Key;
+  private key7!: Phaser.Input.Keyboard.Key;
+  private key8!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -123,13 +134,23 @@ export class GameScene extends Phaser.Scene {
     this.targetIndicator = this.add.arc(0, 0, 18, 0, 360, false, 0xffff00, 0)
       .setStrokeStyle(2, 0xffff00, 0.8).setVisible(false);
 
+    // ─── AoE индикатор (следует за мышью) ─────────────
+    this.aoeIndicator = this.add.graphics().setDepth(60).setVisible(false);
+
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
       this.keyQ     = this.input.keyboard.addKey('Q');
       this.keyE     = this.input.keyboard.addKey('E');
+      this.keyEsc   = this.input.keyboard.addKey('ESC');
       this.keySpace = this.input.keyboard.addKey('SPACE');
       this.key1     = this.input.keyboard.addKey('ONE');
       this.key2     = this.input.keyboard.addKey('TWO');
+      this.key3     = this.input.keyboard.addKey('THREE');
+      this.key4     = this.input.keyboard.addKey('FOUR');
+      this.key5     = this.input.keyboard.addKey('FIVE');
+      this.key6     = this.input.keyboard.addKey('SIX');
+      this.key7     = this.input.keyboard.addKey('SEVEN');
+      this.key8     = this.input.keyboard.addKey('EIGHT');
     }
 
     // При изучении заклинания — обновляем слоты и квесты
@@ -141,8 +162,20 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      // Правая кнопка — отмена AoE
+      if (pointer.rightButtonDown()) {
+        this.exitAoeTargeting();
+        return;
+      }
       if (!pointer.leftButtonDown()) return;
-      // Пробуем выбрать цель кликом
+
+      // Если активен режим AoE — выстрел
+      if (this.aoeTargeting) {
+        this.fireAoeSpell(pointer.worldX, pointer.worldY);
+        return;
+      }
+
+      // Обычный клик — выбрать цель
       const worldX = pointer.worldX;
       const worldY = pointer.worldY;
       const clicked = this.creatures.find(c =>
@@ -151,9 +184,7 @@ export class GameScene extends Phaser.Scene {
       if (clicked) {
         this.selectTarget(clicked);
       } else {
-        // Клик в пустоту — снять цель, или атаковать ближайшее
-        if (!this.selectedTarget) this.handleAttack();
-        else this.handleAttack();
+        this.handleAttack();
       }
     });
   }
@@ -177,9 +208,18 @@ export class GameScene extends Phaser.Scene {
       if (Phaser.Input.Keyboard.JustDown(this.key1)) {
         this.handleAttack();
       }
-      // Слот 2 [2] — заклинание
-      if (Phaser.Input.Keyboard.JustDown(this.key2)) {
-        this.handleSpell(1);
+      // Слоты 2–8 — заклинания
+      const spellKeys = [this.key2, this.key3, this.key4, this.key5, this.key6, this.key7, this.key8];
+      for (let i = 0; i < spellKeys.length; i++) {
+        if (Phaser.Input.Keyboard.JustDown(spellKeys[i])) {
+          this.activateSpellSlot(i + 1);
+          break;
+        }
+      }
+
+      // ESC — отмена AoE
+      if (Phaser.Input.Keyboard.JustDown(this.keyEsc)) {
+        this.exitAoeTargeting();
       }
     } else {
       this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
@@ -211,6 +251,19 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.selectedTarget = null;
       this.targetIndicator.setVisible(false);
+    }
+
+    // AoE индикатор — следует за мышью
+    if (this.aoeTargeting) {
+      const ptr = this.input.activePointer;
+      const wx = this.cameras.main.scrollX + ptr.x / this.cameras.main.zoom;
+      const wy = this.cameras.main.scrollY + ptr.y / this.cameras.main.zoom;
+      const radius = this.aoeTargeting.spell.aoeRadius ?? 60;
+      this.aoeIndicator.clear().setVisible(true);
+      this.aoeIndicator.fillStyle(0xff6600, 0.18);
+      this.aoeIndicator.fillCircle(wx, wy, radius);
+      this.aoeIndicator.lineStyle(2, 0xff8800, 0.9);
+      this.aoeIndicator.strokeCircle(wx, wy, radius);
     }
 
     // Захват
@@ -670,6 +723,73 @@ export class GameScene extends Phaser.Scene {
     slot.cooldownRemaining = spell.cooldown;
 
     if (target.isDead) this.onCreatureKilled(target);
+  }
+
+  /** Активировать слот 1–7: AoE → режим прицеливания, иначе мгновенный каст */
+  private activateSpellSlot(slotIndex: number) {
+    if (!this.playerBody) return;
+    const slot = this.playerBody.abilitySlots[slotIndex];
+    if (!slot?.ability) return;
+    if (slot.cooldownRemaining > 0) return;
+
+    const spell = slot.ability;
+    if (spell.isAoe) {
+      // Входим в режим прицеливания
+      this.aoeTargeting = { slotIndex, spell };
+      this.events.emit('aoe-targeting', spell.nameRu);
+    } else {
+      this.handleSpell(slotIndex);
+    }
+  }
+
+  /** Выстрел AoE в точку worldX/worldY */
+  private fireAoeSpell(worldX: number, worldY: number) {
+    if (!this.aoeTargeting || !this.playerBody) return;
+    const { slotIndex, spell } = this.aoeTargeting;
+
+    const slot = this.playerBody.abilitySlots[slotIndex];
+    if (!slot || slot.cooldownRemaining > 0) { this.exitAoeTargeting(); return; }
+
+    // Проверка дальности
+    const castDist = distance(this.playerBody.x, this.playerBody.y, worldX, worldY);
+    if (castDist > spell.range) {
+      this.events.emit('spell-out-of-range');
+      this.exitAoeTargeting();
+      return;
+    }
+
+    // Проверка маны
+    if (this.playerBody.currentMana < spell.manaCost) {
+      this.events.emit('no-mana');
+      this.exitAoeTargeting();
+      return;
+    }
+
+    // Расход маны и кулдаун
+    this.playerBody.currentMana -= spell.manaCost;
+    slot.cooldownRemaining = spell.cooldown;
+
+    // Урон всем в радиусе
+    const radius = spell.aoeRadius ?? 60;
+    const hit: Creature[] = [];
+    for (const c of this.creatures) {
+      if (c.isDead) continue;
+      if (distance(c.x, c.y, worldX, worldY) <= radius) hit.push(c);
+    }
+
+    for (const c of hit) {
+      const result = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+      c.takeDamage(result.final);
+      this.damageTexts.push(new DamageText(this, c.x, c.y - 10, result.final, result.crit, false));
+      if (c.isDead) this.onCreatureKilled(c);
+    }
+
+    this.exitAoeTargeting();
+  }
+
+  private exitAoeTargeting() {
+    this.aoeTargeting = null;
+    this.aoeIndicator.clear().setVisible(false);
   }
 
   // ─── Респаун ──────────────────────────────────────────

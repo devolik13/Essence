@@ -149,6 +149,12 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('save-loaded', () => {
       this.addLog('↺ Прогресс загружен из сохранения');
     });
+    gs.events.on('aoe-targeting', (name: string) => {
+      this.addLog(`◎ Прицеливание: ${name}  [ЛКМ] выстрел  [ПКМ/ESC] отмена`);
+    });
+    gs.events.on('spell-out-of-range', () => {
+      this.addLog('✗ Слишком далеко для заклинания');
+    });
   }
 
   private updateUI(data: UIData) {

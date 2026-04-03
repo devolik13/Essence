@@ -2,6 +2,20 @@ import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 
+/** Заклинание Огненный Шар (AoE) */
+export const SPELL_FIREBALL: AbilityDef = {
+  id: 'spell_fireball',
+  nameRu: 'Огненный Шар',
+  damageType: 'magic',
+  cooldown: 3.5,
+  manaCost: 15,
+  range: 260,
+  baseDamage: 18,
+  isAoe: true,
+  aoeRadius: 80,
+  description: 'Огненный взрыв. Урон: 18 × (1 + Интеллект/100) по всем в радиусе 80',
+};
+
 /** Заклинание Искра */
 export const SPELL_SPARK: AbilityDef = {
   id: 'spell_spark',
@@ -34,6 +48,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Рывок',
+    signatureSpell: SPELL_FIREBALL,
+    spellXPThreshold: 30,  // легко учится для теста
   },
 
   wolf: {
