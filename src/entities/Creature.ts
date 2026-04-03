@@ -52,19 +52,19 @@ export class Creature extends Phaser.GameObjects.Container {
     this.bodySprite = scene.add.arc(0, 0, 12, 0, 360, false, definition.color, 1);
     this.add(this.bodySprite);
 
-    // HP-бар
-    this.hpBarBg = scene.add.rectangle(0, -20, 28, 3, 0x333333);
-    this.add(this.hpBarBg);
-    this.hpBar = scene.add.rectangle(0, -20, 28, 3, 0xcc3333);
-    this.add(this.hpBar);
-
     // Имя
-    this.nameText = scene.add.text(0, -28, definition.nameRu, {
+    this.nameText = scene.add.text(0, -30, definition.nameRu, {
       fontSize: '10px',
       color: '#cccccc',
       align: 'center',
     }).setOrigin(0.5);
     this.add(this.nameText);
+
+    // HP-бар (фон + заливка, левый край = -18)
+    this.hpBarBg = scene.add.rectangle(0, -20, 36, 5, 0x222222).setOrigin(0.5, 0.5);
+    this.add(this.hpBarBg);
+    this.hpBar = scene.add.rectangle(-18, -20, 36, 5, 0xcc3333).setOrigin(0, 0.5);
+    this.add(this.hpBar);
 
     scene.add.existing(this);
   }
@@ -135,9 +135,10 @@ export class Creature extends Phaser.GameObjects.Container {
         break;
     }
 
-    // HP-бар
-    const hpRatio = this.currentHP / this.maxHP;
-    this.hpBar.width = 28 * hpRatio;
+    // HP-бар (заливка слева направо)
+    const hpRatio = clamp(this.currentHP / this.maxHP, 0, 1);
+    this.hpBar.width = 36 * hpRatio;
+    this.hpBar.setFillStyle(hpRatio > 0.5 ? 0x44cc44 : hpRatio > 0.25 ? 0xddaa00 : 0xcc3333);
   }
 
   private moveToward(tx: number, ty: number, speed: number, dt: number) {

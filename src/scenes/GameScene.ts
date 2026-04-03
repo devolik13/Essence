@@ -21,6 +21,8 @@ import { StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
+import { saveSphere, loadSphere } from '../systems/saveLoad';
+import { SPELL_SPARK } from '../data/creatureDB';
 
 /** Базовые атаки для каждого вида тела (слот 1).
  *  baseDamage = 0 — урон берётся из weapon.baseDamage в handleAttack */
@@ -104,6 +106,8 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Сфера ───────────────────────────────────────
     this.sphere = new Sphere(this, 320, 320);
+    const loaded = loadSphere(this.sphere, [SPELL_SPARK]);
+    if (loaded) this.events.emit('save-loaded');
 
     // ─── Стартовые тела (визуальные маркеры) ─────────
     this.createStarterMarkers();
@@ -524,6 +528,9 @@ export class GameScene extends Phaser.Scene {
     // Квест — засчитать убийство
     this.handleQuestKill(creature.definition.id, xpTotal);
 
+    // Автосохранение
+    saveSphere(this.sphere, [SPELL_SPARK]);
+
     // Пульсация — тело доступно для захвата
     this.tweens.add({
       targets: creature,
@@ -570,6 +577,7 @@ export class GameScene extends Phaser.Scene {
     this.creatures = this.creatures.filter(c => c !== creature);
 
     this.events.emit('body-captured', def.nameRu);
+    saveSphere(this.sphere, [SPELL_SPARK]);
 
     // Квест — засчитать захват
     const captureCompleted = this.questTracker.onCapture(def.id);
@@ -599,6 +607,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
+    saveSphere(this.sphere, [SPELL_SPARK]);
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */

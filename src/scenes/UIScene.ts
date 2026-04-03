@@ -146,6 +146,9 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
       this.addLog(`✦ КВЕСТ ВЫПОЛНЕН: ${data.name}  +${data.xp} XP`);
     });
+    gs.events.on('save-loaded', () => {
+      this.addLog('↺ Прогресс загружен из сохранения');
+    });
   }
 
   private updateUI(data: UIData) {
