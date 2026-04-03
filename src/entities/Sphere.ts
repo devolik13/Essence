@@ -16,6 +16,8 @@ export class Sphere extends Phaser.GameObjects.Container {
   public learnedSpells: AbilityDef[] = [];
   public inBody: boolean = false;
   public learnedAbilities: string[] = [];
+  /** Сохранённые назначения слотов: индекс → spell.id или null */
+  public savedSlotIds: (string | null)[] = Array(8).fill(null);
 
   // Штраф смерти
   public deathDebuffRemaining: number = 0;  // сек осталось

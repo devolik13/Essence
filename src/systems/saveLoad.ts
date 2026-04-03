@@ -12,6 +12,7 @@ interface SaveData {
   learnedSpellIds: string[];
   questCompleted: string[];
   questCounts: Record<string, number[]>;
+  savedSlotIds?: (string | null)[];
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -31,6 +32,7 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     learnedSpellIds: sphere.learnedSpells.map(s => s.id),
     questCompleted,
     questCounts,
+    savedSlotIds: [...sphere.savedSlotIds],
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -66,6 +68,11 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     // Восстановить квесты
     if (quests && data.questCounts) {
       quests.restoreState(data.questCompleted ?? [], data.questCounts);
+    }
+
+    // Восстановить назначения слотов
+    if (data.savedSlotIds) {
+      sphere.savedSlotIds = [...data.savedSlotIds];
     }
 
     return true;

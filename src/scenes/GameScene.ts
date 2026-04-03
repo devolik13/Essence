@@ -178,6 +178,9 @@ export class GameScene extends Phaser.Scene {
       if (!slot) return;
       slot.ability = data.spell;
       slot.cooldownRemaining = 0;
+      // Сохраняем назначение в Сферу
+      this.sphere.savedSlotIds[data.slotIndex] = data.spell?.id ?? null;
+      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
     });
 
     // ─── Клик ────────────────────────────────────────
@@ -338,6 +341,14 @@ export class GameScene extends Phaser.Scene {
       aoeCast: this.aoeCasting
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
         : null,
+      playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
+        : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
+      creatures: this.creatures.map(c => ({
+        x: c.x, y: c.y,
+        isDead: c.isDead,
+        isPassive: c.definition.type === 1,
+        isAggro: c.aiState === 'chase' || c.aiState === 'attack',
+      })),
     });
   }
 
@@ -362,6 +373,25 @@ export class GameScene extends Phaser.Scene {
     this.add.image(320, 280, 'respawn_stone');
     this.add.text(320, 256, 'Камень возрождения', {
       fontSize: '11px', color: '#aaaaee', align: 'center',
+    }).setOrigin(0.5);
+
+    // ─── Зоны ────────────────────────────────────────────
+    // Медвежья берлога (северо-восток)
+    this.add.rectangle(1350, 320, 320, 260, 0x664422, 0.12);
+    this.add.text(1350, 198, '⚔  Медвежья берлога', {
+      fontSize: '13px', color: '#997755', align: 'center',
+    }).setOrigin(0.5);
+
+    // Земли орков (восток-центр)
+    this.add.rectangle(1250, 620, 300, 260, 0x446633, 0.12);
+    this.add.text(1250, 498, '⚔  Земли орков', {
+      fontSize: '13px', color: '#669955', align: 'center',
+    }).setOrigin(0.5);
+
+    // Логово шамана (юг)
+    this.add.rectangle(550, 860, 300, 200, 0x9944aa, 0.12);
+    this.add.text(550, 766, '✦  Логово шамана', {
+      fontSize: '13px', color: '#bb66cc', align: 'center',
     }).setOrigin(0.5);
   }
 
@@ -424,21 +454,31 @@ export class GameScene extends Phaser.Scene {
     this.sphere.enterBody();
   }
 
-  /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — выученные заклинания */
+  /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — заклинания */
   private fillBodySlots(body: Body) {
     body.abilitySlots[0].ability = BASIC_ATTACKS[body.definition.id] ?? BASIC_ATTACKS['default'];
 
-    // Слот 2 — заклинание тела если уже выучено
+    // Если есть сохранённые назначения — применяем их
+    const hasCustomSlots = this.sphere.savedSlotIds.slice(1).some(id => id !== null);
+    if (hasCustomSlots) {
+      for (let i = 1; i < 8; i++) {
+        const savedId = this.sphere.savedSlotIds[i];
+        body.abilitySlots[i].ability = savedId
+          ? (this.sphere.learnedSpells.find(s => s.id === savedId) ?? null)
+          : null;
+      }
+      return;
+    }
+
+    // Иначе — автозаполнение
     const sig = body.definition.signatureSpell;
     if (sig) {
       const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
       if (learned) body.abilitySlots[1].ability = learned;
     }
-
-    // Слоты 3+ — остальные выученные заклинания Сферы
     let slotIdx = 2;
     for (const spell of this.sphere.learnedSpells) {
-      if (sig && spell.id === sig.id) continue; // уже в слоте 2
+      if (sig && spell.id === sig.id) continue;
       if (slotIdx >= 8) break;
       body.abilitySlots[slotIdx].ability = spell;
       slotIdx++;
@@ -499,6 +539,27 @@ export class GameScene extends Phaser.Scene {
       const y = 500 + Math.random() * 150;
       this.creatures.push(new Creature(this, x, y, CREATURE_DB['scout']));
     }
+
+    // Медведи — медвежья берлога (северо-восток)
+    for (let i = 0; i < 3; i++) {
+      const x = 1200 + Math.random() * 280;
+      const y = 210 + Math.random() * 210;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['bear']));
+    }
+
+    // Орки — земли орков (восток-центр)
+    for (let i = 0; i < 4; i++) {
+      const x = 1110 + Math.random() * 270;
+      const y = 500 + Math.random() * 240;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['orc']));
+    }
+
+    // Шаманы — логово шамана (юг)
+    for (let i = 0; i < 3; i++) {
+      const x = 410 + Math.random() * 270;
+      const y = 770 + Math.random() * 170;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['shaman']));
+    }
   }
 
   // ─── Атака ────────────────────────────────────────────
@@ -548,8 +609,11 @@ export class GameScene extends Phaser.Scene {
                  : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats, wb)
                  :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats, wb);
 
+    const finalDmg = (result.hit && this.sphere.deathDebuffRemaining > 0)
+      ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
+
     if (result.hit) {
-      closestCreature.takeDamage(result.final);
+      closestCreature.takeDamage(finalDmg);
 
       // Агро
       if (closestCreature.aiState === 'idle' || closestCreature.aiState === 'wander') {
@@ -559,7 +623,7 @@ export class GameScene extends Phaser.Scene {
 
     // Текст урона
     this.damageTexts.push(
-      new DamageText(this, closestCreature.x, closestCreature.y, result.final, result.crit, !result.hit)
+      new DamageText(this, closestCreature.x, closestCreature.y, finalDmg, result.crit, !result.hit)
     );
 
     // Кулдаун
@@ -785,11 +849,13 @@ export class GameScene extends Phaser.Scene {
 
     // Урон (заклинания всегда магический урон)
     const result = calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
-    target.takeDamage(result.final);
+    const spellDmg = this.sphere.deathDebuffRemaining > 0
+      ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
+    target.takeDamage(spellDmg);
     this.aggroCreature(target);
 
     this.damageTexts.push(
-      new DamageText(this, target.x, target.y - 10, result.final, result.crit, false)
+      new DamageText(this, target.x, target.y - 10, spellDmg, result.crit, false)
     );
 
     // Кулдаун на слот
@@ -880,9 +946,11 @@ export class GameScene extends Phaser.Scene {
       if (c.isDead) continue;
       if (distance(c.x, c.y, worldX, worldY) > radius) continue;
       const result = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
-      c.takeDamage(result.final);
+      const aoeDmg = this.sphere.deathDebuffRemaining > 0
+        ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
+      c.takeDamage(aoeDmg);
       this.aggroCreature(c);
-      this.damageTexts.push(new DamageText(this, c.x, c.y - 10, result.final, result.crit, false));
+      this.damageTexts.push(new DamageText(this, c.x, c.y - 10, aoeDmg, result.crit, false));
       if (c.isDead) this.onCreatureKilled(c);
     }
   }
