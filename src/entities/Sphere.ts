@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { SPHERE_SPEED } from '../utils/constants';
 import { calcRank, StatXP, createEmptyXP } from '../systems/progression';
+import { AbilityDef } from '../types/abilities';
 
 /**
  * Сфера — бессмертная сущность игрока.
@@ -10,9 +11,11 @@ import { calcRank, StatXP, createEmptyXP } from '../systems/progression';
  */
 export class Sphere extends Phaser.GameObjects.Container {
   public stats: Stats;
-  public xpTracker: StatXP;   // накопленный XP — принадлежит Сфере, не телу
+  public xpTracker: StatXP;            // накопленный XP по статам
+  public spellProgress: Record<string, number> = {}; // spellId → накопленный XP
+  public learnedSpells: AbilityDef[] = [];           // выученные заклинания навсегда
   public inBody: boolean = false;
-  public learnedAbilities: string[] = [];  // id умений из прошлых тел
+  public learnedAbilities: string[] = [];
 
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;

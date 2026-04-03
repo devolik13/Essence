@@ -117,6 +117,11 @@ export class GameScene extends Phaser.Scene {
       this.key1     = this.input.keyboard.addKey('ONE');
     }
 
+    // При изучении заклинания — обновляем слоты текущего тела
+    this.events.on('spell-learned', (_spell: import('../types/abilities').AbilityDef) => {
+      if (this.playerBody) this.fillBodySlots(this.playerBody);
+    });
+
     // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (!pointer.leftButtonDown()) return;
@@ -286,11 +291,31 @@ export class GameScene extends Phaser.Scene {
   private possessStarterBody(index: number) {
     const def = STARTER_BODIES[index];
     const pos = this.starterPositions[index];
-
     this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
     this.playerBody.possess(this);
-    this.playerBody.abilitySlots[0].ability = BASIC_ATTACKS[def.id] ?? BASIC_ATTACKS['default'];
+    this.fillBodySlots(this.playerBody);
     this.sphere.enterBody();
+  }
+
+  /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — выученные заклинания */
+  private fillBodySlots(body: Body) {
+    body.abilitySlots[0].ability = BASIC_ATTACKS[body.definition.id] ?? BASIC_ATTACKS['default'];
+
+    // Слот 2 — заклинание тела если уже выучено
+    const sig = body.definition.signatureSpell;
+    if (sig) {
+      const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
+      if (learned) body.abilitySlots[1].ability = learned;
+    }
+
+    // Слоты 3+ — остальные выученные заклинания Сферы
+    let slotIdx = 2;
+    for (const spell of this.sphere.learnedSpells) {
+      if (sig && spell.id === sig.id) continue; // уже в слоте 2
+      if (slotIdx >= 8) break;
+      body.abilitySlots[slotIdx].ability = spell;
+      slotIdx++;
+    }
   }
 
   // ─── Выход из тела ────────────────────────────────────
@@ -331,8 +356,14 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < 7; i++) {
       const x = 200 + Math.random() * 300;
       const y = 450 + Math.random() * 150;
-      const creature = new Creature(this, x, y, CREATURE_DB['rabbit']);
-      this.creatures.push(creature);
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['rabbit']));
+    }
+
+    // Лесные духи — рядом с кроликами (пассивные, учат Искре)
+    for (let i = 0; i < 6; i++) {
+      const x = 150 + Math.random() * 350;
+      const y = 620 + Math.random() * 120;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['forest_spirit']));
     }
   }
 
@@ -421,29 +452,40 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onCreatureKilled(creature: Creature) {
-    // XP за убийство — делится поровну между всеми капами тела
+    const xpTotal = creature.definition.xpReward;
+
     if (this.playerBody) {
+      // 1. Stat XP — делится по капам тела
       const caps = this.playerBody.definition.caps;
       const capStats = Object.keys(caps) as StatName[];
-      const xpTotal = creature.definition.xpReward;
       const xpEach = Math.floor(xpTotal / capStats.length);
-
       for (const stat of capStats) {
-        const levelUp = addXP(
-          this.sphere.stats,
-          this.sphere.xpTracker,
-          stat,
-          xpEach,
-          caps,
-        );
+        const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
         if (levelUp) this.events.emit('stat-up', levelUp);
       }
 
-      this.events.emit('creature-killed', {
-        name: creature.definition.nameRu,
-        xp: xpTotal,
-        stats: capStats,
-      });
+      // 2. Spell XP — полный xpReward идёт в заклинание тела (дублируется)
+      const spell = this.playerBody.definition.signatureSpell;
+      const threshold = this.playerBody.definition.spellXPThreshold;
+      if (spell && threshold) {
+        const prev = this.sphere.spellProgress[spell.id] ?? 0;
+        const alreadyLearned = this.sphere.learnedSpells.some(s => s.id === spell.id);
+
+        if (!alreadyLearned) {
+          const next = prev + xpTotal;
+          this.sphere.spellProgress[spell.id] = next;
+
+          if (next >= threshold) {
+            // Заклинание выучено!
+            this.sphere.learnedSpells.push(spell);
+            this.events.emit('spell-learned', spell);
+          } else {
+            this.events.emit('spell-progress', { spell, current: next, threshold });
+          }
+        }
+      }
+
+      this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: xpTotal, stats: capStats });
     } else {
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
     }
@@ -485,10 +527,7 @@ export class GameScene extends Phaser.Scene {
     const def = creature.definition;
     this.playerBody = new Body(this, creature.x, creature.y, def, this.sphere.stats);
     this.playerBody.possess(this);
-
-    // Слот 1 — базовая атака тела (зависит от существа)
-    this.playerBody.abilitySlots[0].ability = BASIC_ATTACKS[def.id] ?? BASIC_ATTACKS['default'];
-
+    this.fillBodySlots(this.playerBody);
     this.sphere.enterBody();
 
     // Убираем существо из мира + ставим в очередь респауна

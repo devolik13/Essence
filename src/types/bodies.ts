@@ -1,4 +1,5 @@
 import { StatCaps, StatName, Stats } from './stats';
+import { AbilityDef } from './abilities';
 
 export enum BodyType {
   Passive = 1,
@@ -38,10 +39,14 @@ export interface BodyDefinition {
   type: BodyType;
   caps: StatCaps;
   npcStats?: Partial<Stats>;
-  xpReward: number;          // XP за убийство этого существа
+  xpReward: number;
   weapon: WeaponType;
   color: number;
   abilityName: string;
+  /** Заклинание которому учит это тело */
+  signatureSpell?: AbilityDef;
+  /** XP порог для изучения заклинания */
+  spellXPThreshold?: number;
 }
 
 // ─── Стартовые тела ────────────────────────────────────

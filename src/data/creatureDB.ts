@@ -1,5 +1,17 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
+import { AbilityDef } from '../types/abilities';
+
+/** Заклинание Искра */
+export const SPELL_SPARK: AbilityDef = {
+  id: 'spell_spark',
+  nameRu: 'Искра',
+  damageType: 'magic',
+  cooldown: 1.5,
+  manaCost: 5,
+  range: 150,
+  description: 'Магический разряд. Урон: 3 + Интеллект×2.5',
+};
 
 /**
  * caps     = чему учит тело Сферу (потолки роста параметров)
@@ -98,6 +110,30 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Greatsword,
     color: 0x446633,
     abilityName: 'Рассечение',
+  },
+
+  forest_spirit: {
+    id: 'forest_spirit',
+    name: 'Forest Spirit',
+    nameRu: 'Лесной дух',
+    type: BodyType.Passive,
+    caps: { [StatName.Mana]: 12, [StatName.Intellect]: 8 },
+    xpReward: 15,
+    signatureSpell: SPELL_SPARK,
+    spellXPThreshold: 75,        // убей ~5 духов → выучишь Искру
+    npcStats: {
+      [StatName.Strength]: 1,
+      [StatName.Accuracy]: 3,
+      [StatName.Evasion]: 2,
+      [StatName.Health]: 3,
+      [StatName.Intellect]: 4,
+      [StatName.Mana]: 10,
+      [StatName.Armor]: 0,
+      [StatName.Luck]: 1,
+    },
+    weapon: WeaponType.Staff,
+    color: 0x88eecc,
+    abilityName: 'Искра',
   },
 
   shaman: {

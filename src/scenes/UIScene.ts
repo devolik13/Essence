@@ -103,6 +103,13 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('body-captured', (name: string) => this.addLog(`✦ Захвачено: ${name}`));
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} — нажми [E] для захвата`));
     gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
+    gs.events.on('spell-progress', (d: { spell: import('../types/abilities').AbilityDef; current: number; threshold: number }) => {
+      const bar = buildXPBar(d.current, d.threshold, 8);
+      this.addLog(`✧ Заклинание "${d.spell.nameRu}" ${bar} ${d.current}/${d.threshold}`);
+    });
+    gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
+      this.addLog(`★ ИЗУЧЕНО заклинание: ${spell.nameRu}! (слот 2)`);
+    });
   }
 
   private updateUI(data: UIData) {
