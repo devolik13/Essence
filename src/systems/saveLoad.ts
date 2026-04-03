@@ -1,6 +1,7 @@
 import { Sphere } from '../entities/Sphere';
 import { AbilityDef } from '../types/abilities';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
+import { QuestTracker } from './questTracker';
 
 const SAVE_KEY = 'essence_sphere_v1';
 
@@ -9,14 +10,27 @@ interface SaveData {
   xpTracker: Partial<Record<StatName, number>>;
   spellProgress: Record<string, number>;
   learnedSpellIds: string[];
+  questCompleted: string[];
+  questCounts: Record<string, number[]>;
 }
 
-export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[]): void {
+export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
+  const questCompleted: string[] = [];
+  const questCounts: Record<string, number[]> = {};
+  if (quests) {
+    for (const q of quests.getAll()) {
+      if (q.completed) questCompleted.push(q.def.id);
+      questCounts[q.def.id] = [...q.counts];
+    }
+  }
+
   const data: SaveData = {
     stats: { ...sphere.stats },
     xpTracker: { ...sphere.xpTracker },
     spellProgress: { ...sphere.spellProgress },
     learnedSpellIds: sphere.learnedSpells.map(s => s.id),
+    questCompleted,
+    questCounts,
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -25,7 +39,7 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[]): void {
   }
 }
 
-export function loadSphere(sphere: Sphere, allSpells: AbilityDef[]): boolean {
+export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: QuestTracker): boolean {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
@@ -48,6 +62,11 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[]): boolean {
 
     // Восстановить выученные заклинания
     sphere.learnedSpells = allSpells.filter(s => data.learnedSpellIds?.includes(s.id));
+
+    // Восстановить квесты
+    if (quests && data.questCounts) {
+      quests.restoreState(data.questCompleted ?? [], data.questCounts);
+    }
 
     return true;
   } catch {

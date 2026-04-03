@@ -32,6 +32,13 @@ export class QuestTracker {
     return this.quests.filter(q => !q.completed);
   }
 
+  restoreState(completedIds: string[], counts: Record<string, number[]>) {
+    for (const q of this.quests) {
+      if (counts[q.def.id]) q.counts = [...counts[q.def.id]];
+      if (completedIds.includes(q.def.id)) q.completed = true;
+    }
+  }
+
   private advance(type: string, targetId: string | undefined): QuestProgress[] {
     const completed: QuestProgress[] = [];
 

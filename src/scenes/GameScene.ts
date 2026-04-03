@@ -128,7 +128,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Сфера ───────────────────────────────────────
     this.sphere = new Sphere(this, 320, 320);
-    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
+    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
     if (loaded) this.events.emit('save-loaded');
 
     // ─── Стартовые тела (визуальные маркеры) ─────────
@@ -638,7 +638,7 @@ export class GameScene extends Phaser.Scene {
     this.handleQuestKill(creature.definition.id, xpTotal);
 
     // Автосохранение
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
 
     // Пульсация — тело доступно для захвата
     this.tweens.add({
@@ -683,7 +683,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody = null;
     }
     this.sphere.enterAstral(320, 320);
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
 
@@ -702,7 +702,7 @@ export class GameScene extends Phaser.Scene {
     this.creatures = this.creatures.filter(c => c !== creature);
 
     this.events.emit('body-captured', def.nameRu);
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
 
     // Квест — засчитать захват
     const captureCompleted = this.questTracker.onCapture(def.id);
@@ -732,7 +732,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */
