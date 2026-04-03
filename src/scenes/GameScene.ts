@@ -128,7 +128,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Сфера ───────────────────────────────────────
     this.sphere = new Sphere(this, 320, 320);
-    const loaded = loadSphere(this.sphere, [SPELL_SPARK]);
+    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
     if (loaded) this.events.emit('save-loaded');
 
     // ─── Стартовые тела (визуальные маркеры) ─────────
@@ -169,6 +169,15 @@ export class GameScene extends Phaser.Scene {
       if (this.playerBody) this.fillBodySlots(this.playerBody);
       const spellCompleted = this.questTracker.onSpellLearned(spell.id);
       for (const q of spellCompleted) this.onQuestComplete(q);
+    });
+
+    // Назначение заклинания в слот из spell picker (из UIScene)
+    this.events.on('assign-spell', (data: { slotIndex: number; spell: import('../types/abilities').AbilityDef | null }) => {
+      if (!this.playerBody) return;
+      const slot = this.playerBody.abilitySlots[data.slotIndex];
+      if (!slot) return;
+      slot.ability = data.spell;
+      slot.cooldownRemaining = 0;
     });
 
     // ─── Клик ────────────────────────────────────────
@@ -325,6 +334,7 @@ export class GameScene extends Phaser.Scene {
       target: this.selectedTarget,
       quests: this.questTracker.getAll(),
       deathDebuff: this.sphere.deathDebuffRemaining,
+      inCombat: this.isInCombat,
       aoeCast: this.aoeCasting
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
         : null,
@@ -493,6 +503,11 @@ export class GameScene extends Phaser.Scene {
 
   // ─── Атака ────────────────────────────────────────────
 
+  private get isInCombat(): boolean {
+    return this.playerBody !== null &&
+      this.creatures.some(c => !c.isDead && (c.aiState === 'chase' || c.aiState === 'attack'));
+  }
+
   private selectTarget(creature: Creature) {
     this.selectedTarget = creature;
   }
@@ -623,7 +638,7 @@ export class GameScene extends Phaser.Scene {
     this.handleQuestKill(creature.definition.id, xpTotal);
 
     // Автосохранение
-    saveSphere(this.sphere, [SPELL_SPARK]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
 
     // Пульсация — тело доступно для захвата
     this.tweens.add({
@@ -687,7 +702,7 @@ export class GameScene extends Phaser.Scene {
     this.creatures = this.creatures.filter(c => c !== creature);
 
     this.events.emit('body-captured', def.nameRu);
-    saveSphere(this.sphere, [SPELL_SPARK]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
 
     // Квест — засчитать захват
     const captureCompleted = this.questTracker.onCapture(def.id);
@@ -717,7 +732,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
-    saveSphere(this.sphere, [SPELL_SPARK]);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL]);
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */

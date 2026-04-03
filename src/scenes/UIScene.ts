@@ -15,7 +15,8 @@ interface UIData {
   capture: CaptureProcess | null;
   target: Creature | null;
   quests: QuestProgress[];
-  deathDebuff: number;   // секунд осталось (0 = нет)
+  deathDebuff: number;
+  inCombat: boolean;
   aoeCast: { elapsed: number; duration: number; name: string } | null;
 }
 
@@ -40,6 +41,14 @@ export class UIScene extends Phaser.Scene {
   private skillSlotsKey: Phaser.GameObjects.Text[] = [];
   private skillSlotsCd: Phaser.GameObjects.Rectangle[] = [];
   private skillSlotsCdText: Phaser.GameObjects.Text[] = [];
+  private skillSlotsLock: Phaser.GameObjects.Text[] = [];
+  private slotLocked: boolean[] = Array(SKILL_SLOTS_COUNT).fill(false);
+
+  // Spell picker
+  private spellPickerContainer!: Phaser.GameObjects.Container;
+  private spellPickerSlot: number = -1;
+  private cachedLearnedSpells: import('../types/abilities').AbilityDef[] = [];
+  private cachedInCombat: boolean = false;
 
   private castBarBg!: Phaser.GameObjects.Rectangle;
   private castBar!: Phaser.GameObjects.Rectangle;
@@ -179,6 +188,11 @@ export class UIScene extends Phaser.Scene {
 
   private updateUI(data: UIData) {
     const { sphere, body, capture } = data;
+
+    // Кэш для spell picker
+    this.cachedLearnedSpells = sphere.learnedSpells;
+    this.cachedInCombat = data.inCombat ?? false;
+    if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
 
     // ── Статы сферы с XP-прогрессом ──────────────────
     const rank = calcRank(sphere.stats);
@@ -402,7 +416,128 @@ export class UIScene extends Phaser.Scene {
         stroke: '#000000', strokeThickness: 3,
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
       this.skillSlotsCdText.push(cdText);
+
+      // Замок — только для слотов 2–8 (i >= 1)
+      if (i >= 1) {
+        const lockX = x + SKILL_SLOT_SIZE / 2 - 8;
+        const lockY = y - SKILL_SLOT_SIZE / 2 + 8;
+        const lock = this.add.text(lockX, lockY, '🔓', { fontSize: '10px' })
+          .setOrigin(0.5).setScrollFactor(0).setDepth(1006)
+          .setInteractive({ useHandCursor: true })
+          .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+            ptr.event.stopPropagation();
+            this.slotLocked[i] = !this.slotLocked[i];
+            lock.setText(this.slotLocked[i] ? '🔒' : '🔓');
+            if (this.slotLocked[i] && this.spellPickerSlot === i) this.closeSpellPicker();
+          });
+        this.skillSlotsLock.push(lock);
+
+        // Клик по слоту — открыть пикер (i >= 1, не слот атаки)
+        bg.setInteractive({ useHandCursor: true })
+          .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+            ptr.event.stopPropagation();
+            if (this.slotLocked[i]) {
+              this.addLog('🔒 Слот заблокирован');
+              return;
+            }
+            if (this.cachedInCombat) {
+              this.addLog('⚔ Нельзя менять заклинания в бою');
+              return;
+            }
+            if (this.spellPickerSlot === i) {
+              this.closeSpellPicker();
+            } else {
+              this.openSpellPicker(i);
+            }
+          });
+      } else {
+        this.skillSlotsLock.push(null as unknown as Phaser.GameObjects.Text);
+      }
     }
+
+    // Spell picker container (скрыт по умолчанию)
+    this.spellPickerContainer = this.add.container(0, 0).setDepth(1100).setVisible(false);
+  }
+
+  private openSpellPicker(slotIndex: number) {
+    this.spellPickerSlot = slotIndex;
+    const spells = this.cachedLearnedSpells;
+
+    // Чистим старое содержимое
+    this.spellPickerContainer.removeAll(true);
+
+    const itemSize = SKILL_SLOT_SIZE;
+    const gap = SKILL_SLOT_GAP;
+    const cols = spells.length + 1; // +1 = "очистить"
+    const panelW = cols * itemSize + (cols - 1) * gap + 16;
+    const panelH = itemSize + 32;
+
+    const totalSlotW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP;
+    const barStartX = (GAME_WIDTH - totalSlotW) / 2;
+    const slotX = barStartX + slotIndex * (itemSize + gap) + itemSize / 2;
+    const panelX = Math.min(Math.max(slotX - panelW / 2, 8), GAME_WIDTH - panelW - 8);
+    const panelY = GAME_HEIGHT - SKILL_SLOT_SIZE - 8 - panelH - 6;
+
+    // Фон панели
+    const bg = this.add.rectangle(panelW / 2, panelH / 2, panelW, panelH, 0x0a0a1a, 0.95)
+      .setStrokeStyle(1, 0x4455aa, 0.8);
+    this.spellPickerContainer.add(bg);
+
+    // Заголовок
+    const label = this.add.text(panelW / 2, 6, `Слот ${slotIndex + 1} — выбери заклинание`, {
+      fontSize: '10px', color: '#aaaacc',
+    }).setOrigin(0.5, 0);
+    this.spellPickerContainer.add(label);
+
+    const itemsY = panelH / 2 + 6;
+
+    // Иконки заклинаний
+    spells.forEach((spell, idx) => {
+      const ix = 8 + idx * (itemSize + gap) + itemSize / 2;
+      const itemBg = this.add.rectangle(ix, itemsY, itemSize, itemSize, 0x1e2244)
+        .setStrokeStyle(1, 0x6677cc).setInteractive({ useHandCursor: true })
+        .on('pointerover', () => itemBg.setFillStyle(0x2e3466))
+        .on('pointerout',  () => itemBg.setFillStyle(0x1e2244))
+        .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+          ptr.event.stopPropagation();
+          this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell });
+          this.closeSpellPicker();
+        });
+      const itemText = this.add.text(ix, itemsY, spell.nameRu.slice(0, 7), {
+        fontSize: '9px', color: '#aaccff', align: 'center',
+      }).setOrigin(0.5);
+      const aoeTag = spell.isAoe ? this.add.text(ix, itemsY + 14, 'AoE', {
+        fontSize: '8px', color: '#ff9944',
+      }).setOrigin(0.5) : null;
+      this.spellPickerContainer.add(itemBg);
+      this.spellPickerContainer.add(itemText);
+      if (aoeTag) this.spellPickerContainer.add(aoeTag);
+    });
+
+    // Кнопка "очистить слот"
+    const clearIdx = spells.length;
+    const cx = 8 + clearIdx * (itemSize + gap) + itemSize / 2;
+    const clearBg = this.add.rectangle(cx, itemsY, itemSize, itemSize, 0x221111)
+      .setStrokeStyle(1, 0x774444).setInteractive({ useHandCursor: true })
+      .on('pointerover', () => clearBg.setFillStyle(0x331111))
+      .on('pointerout',  () => clearBg.setFillStyle(0x221111))
+      .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        ptr.event.stopPropagation();
+        this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell: null });
+        this.closeSpellPicker();
+      });
+    const clearText = this.add.text(cx, itemsY, '✕\nочист.', {
+      fontSize: '9px', color: '#ff6666', align: 'center',
+    }).setOrigin(0.5);
+    this.spellPickerContainer.add(clearBg);
+    this.spellPickerContainer.add(clearText);
+
+    this.spellPickerContainer.setPosition(panelX, panelY).setVisible(true);
+  }
+
+  private closeSpellPicker() {
+    this.spellPickerSlot = -1;
+    this.spellPickerContainer.setVisible(false);
   }
 
   private updateSkillBar(body: Body | null) {
