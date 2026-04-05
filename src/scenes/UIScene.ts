@@ -8,6 +8,10 @@ import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
+import { InventoryItem } from '../types/items';
+import { ITEMS } from '../data/itemDB';
+import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
+import { getAllAchievementStatus } from '../systems/achievements';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
@@ -31,6 +35,8 @@ interface UIData {
   aoeCast: { elapsed: number; duration: number; name: string } | null;
   creatures: CreatureMapDot[];
   playerPos: { x: number; y: number } | null;
+  inventory: InventoryItem[];
+  unlockedAchievements: string[];
 }
 
 interface PanelState {
@@ -48,7 +54,9 @@ export class UIScene extends Phaser.Scene {
   private resourceText!:Phaser.GameObjects.Text;
   private bodyInfoText!:Phaser.GameObjects.Text;
   private hintText!:    Phaser.GameObjects.Text;
-  private logText!:     Phaser.GameObjects.Text;
+  private logText!:          Phaser.GameObjects.Text;
+  private inventoryText!:    Phaser.GameObjects.Text;
+  private achievementsText!: Phaser.GameObjects.Text;
   private captureBar!:  Phaser.GameObjects.Rectangle;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
   private castBarBg!:   Phaser.GameObjects.Rectangle;
@@ -72,15 +80,23 @@ export class UIScene extends Phaser.Scene {
   // ── Log ───────────────────────────────────────────────
   private logMessages: string[] = [];
 
+  // ── Achievement notifications ─────────────────────────
+  private achievementNotifBg!:   Phaser.GameObjects.Rectangle;
+  private achievementNotifText!: Phaser.GameObjects.Text;
+  private achievementNotifTimer: number = 0;
+  private achievementNotifQueue: AchievementDef[] = [];
+
   // ── Panel state (position, size, collapsed) ───────────
   private panelStates: Record<string, PanelState> = {
-    sphere:  { x: 10,              y: 10,   w: 145, h: 0,   collapsed: false },
-    spells:  { x: 10,              y: 250,  w: 145, h: 0,   collapsed: false },
-    quests:  { x: 10,              y: 340,  w: 145, h: 0,   collapsed: false },
-    body:    { x: GAME_WIDTH-180,  y: 10,   w: 170, h: 0,   collapsed: false },
-    target:  { x: GAME_WIDTH-180,  y: 110,  w: 170, h: 0,   collapsed: false },
-    log:     { x: 10,              y: 475,  w: 210, h: 0,   collapsed: false },
-    minimap: { x: GAME_WIDTH-156,  y: 440,  w: 150, h: 100, collapsed: false },
+    sphere:       { x: 10,              y: 10,   w: 145, h: 0,   collapsed: false },
+    spells:       { x: 10,              y: 250,  w: 145, h: 0,   collapsed: false },
+    quests:       { x: 10,              y: 340,  w: 145, h: 0,   collapsed: false },
+    body:         { x: GAME_WIDTH-180,  y: 10,   w: 170, h: 0,   collapsed: false },
+    target:       { x: GAME_WIDTH-180,  y: 110,  w: 170, h: 0,   collapsed: false },
+    log:          { x: 10,              y: 475,  w: 210, h: 0,   collapsed: false },
+    minimap:      { x: GAME_WIDTH-156,  y: 440,  w: 150, h: 100, collapsed: false },
+    inventory:    { x: GAME_WIDTH-190,  y: 220,  w: 180, h: 0,   collapsed: false },
+    achievements: { x: GAME_WIDTH-190,  y: 340,  w: 180, h: 0,   collapsed: true  },
   };
 
   // ── Panel header containers ───────────────────────────
@@ -157,6 +173,24 @@ export class UIScene extends Phaser.Scene {
       fontSize: '10px', color: '#aaaaaa', lineSpacing: 3,
     }).setScrollFactor(0).setDepth(1000);
 
+    this.inventoryText = this.add.text(0, 0, '', {
+      fontSize: '11px', color: '#ddddaa', lineSpacing: 3,
+      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+    }).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    this.achievementsText = this.add.text(0, 0, '', {
+      fontSize: '10px', color: '#ccddff', lineSpacing: 3,
+      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+    }).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    // Achievement unlock notification (top-center, fades out)
+    this.achievementNotifBg = this.add.rectangle(GAME_WIDTH / 2, 60, 280, 36, 0x112233, 0.93)
+      .setScrollFactor(0).setDepth(1200).setStrokeStyle(2, 0xffcc44, 0.9).setVisible(false);
+    this.achievementNotifText = this.add.text(GAME_WIDTH / 2, 60, '', {
+      fontSize: '12px', color: '#ffcc44', align: 'center',
+      stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1201).setVisible(false);
+
     // ── Mini-map ──────────────────────────────────────────
     const mm = this.panelStates.minimap;
     this.minimapBorder = this.add.rectangle(mm.x, mm.y + HEADER_H, mm.w, mm.h, 0x0a0f1a, 0.88)
@@ -165,18 +199,28 @@ export class UIScene extends Phaser.Scene {
     this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(1009);
 
     // ── Panel headers (draggable) ──────────────────────────
-    this.panelHeaders['sphere']  = this.makeHeader('sphere',  'Сфера');
-    this.panelHeaders['spells']  = this.makeHeader('spells',  'Заклинания');
-    this.panelHeaders['quests']  = this.makeHeader('quests',  'Квесты');
-    this.panelHeaders['body']    = this.makeHeader('body',    'Тело');
-    this.panelHeaders['target']  = this.makeHeader('target',  'Цель');
-    this.panelHeaders['log']     = this.makeHeader('log',     'Лог');
-    this.panelHeaders['minimap'] = this.makeHeader('minimap', 'Карта');
+    this.panelHeaders['sphere']       = this.makeHeader('sphere',       'Сфера');
+    this.panelHeaders['spells']       = this.makeHeader('spells',       'Заклинания');
+    this.panelHeaders['quests']       = this.makeHeader('quests',       'Квесты');
+    this.panelHeaders['body']         = this.makeHeader('body',         'Тело');
+    this.panelHeaders['target']       = this.makeHeader('target',       'Цель');
+    this.panelHeaders['log']          = this.makeHeader('log',          'Лог');
+    this.panelHeaders['minimap']      = this.makeHeader('minimap',      'Карта');
+    this.panelHeaders['inventory']    = this.makeHeader('inventory',    'Инвентарь');
+    this.panelHeaders['achievements'] = this.makeHeader('achievements', 'Ачивки');
 
     // ── Resize grips ───────────────────────────────────────
     for (const id of Object.keys(this.panelStates)) {
       this.grips[id] = this.makeResizeGrip(id, id === 'minimap');
     }
+
+    // ── Notification ticker ───────────────────────────────
+    this.time.addEvent({
+      delay: 50,
+      loop: true,
+      callback: this.tickAchievementNotif,
+      callbackScope: this,
+    });
 
     // ── Skill bar ─────────────────────────────────────────
     this.buildSkillBar();
@@ -226,6 +270,13 @@ export class UIScene extends Phaser.Scene {
       this.addLog(`◎ Прицеливание: ${name}  [ЛКМ/ПКМ]`);
     });
     gs.events.on('spell-out-of-range', () => this.addLog('✗ Слишком далеко'));
+    gs.events.on('loot-dropped', (data: { creatureName: string; loot: string }) => {
+      this.addLog(`↓ ${data.loot}`);
+    });
+    gs.events.on('achievement-unlocked', (ach: AchievementDef) => {
+      this.achievementNotifQueue.push(ach);
+      this.addLog(`★ Ачивка: ${ach.nameRu}`);
+    });
   }
 
   // ── Panel header factory ─────────────────────────────
@@ -622,6 +673,59 @@ export class UIScene extends Phaser.Scene {
       }
     }
 
+    // ── Inventory panel ───────────────────────────────────
+    {
+      const s = this.panelStates.inventory;
+      const inv = data.inventory ?? [];
+      this.panelHeaders['inventory'].setPosition(s.x, s.y);
+      this.setHeaderLabel('inventory', `Инвентарь (${inv.length})`);
+
+      if (!s.collapsed) {
+        let lines: string[];
+        if (inv.length === 0) {
+          lines = ['  Пусто'];
+        } else {
+          lines = inv.map(slot => {
+            const def = ITEMS[slot.itemId];
+            const rarityMark = def?.rarity === 'rare' ? '★' : def?.rarity === 'uncommon' ? '◆' : '·';
+            const icon = def?.icon ?? '?';
+            return `${rarityMark} ${icon} ${def?.nameRu ?? slot.itemId}  ×${slot.quantity}`;
+          });
+        }
+        this.inventoryText
+          .setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
+          .setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
+        this.positionGrip('inventory', this.inventoryText.getBounds().bottom);
+      } else {
+        this.inventoryText.setVisible(false);
+        this.positionGrip('inventory', s.y + HEADER_H);
+      }
+    }
+
+    // ── Achievements panel ────────────────────────────────
+    {
+      const s = this.panelStates.achievements;
+      const unlocked = data.unlockedAchievements ?? [];
+      const total = ACHIEVEMENTS.length;
+      this.panelHeaders['achievements'].setPosition(s.x, s.y);
+      this.setHeaderLabel('achievements', `Ачивки ${unlocked.length}/${total}`);
+
+      if (!s.collapsed) {
+        const sphere = data.sphere;
+        const statuses = getAllAchievementStatus(sphere);
+        const lines = statuses.map(({ def, unlocked: done }) =>
+          `${done ? '✓' : '✗'} ${def.icon} ${def.nameRu}`
+        );
+        this.achievementsText
+          .setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
+          .setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
+        this.positionGrip('achievements', this.achievementsText.getBounds().bottom);
+      } else {
+        this.achievementsText.setVisible(false);
+        this.positionGrip('achievements', s.y + HEADER_H);
+      }
+    }
+
     // ── Mini-map ──────────────────────────────────────────
     this.drawMinimap(data);
   }
@@ -851,6 +955,32 @@ export class UIScene extends Phaser.Scene {
     this.logMessages.push(msg);
     if (this.logMessages.length > 6) this.logMessages.shift();
     this.logText.setText(this.logMessages.join('\n'));
+  }
+
+  // ── Achievement notification ticker (called every 50ms) ──
+  private tickAchievementNotif() {
+    if (this.achievementNotifTimer > 0) {
+      this.achievementNotifTimer -= 50;
+      if (this.achievementNotifTimer <= 0) {
+        // fade out
+        this.tweens.add({
+          targets: [this.achievementNotifBg, this.achievementNotifText],
+          alpha: 0,
+          duration: 400,
+          onComplete: () => {
+            this.achievementNotifBg.setVisible(false);
+            this.achievementNotifText.setVisible(false);
+          },
+        });
+      }
+    } else if (this.achievementNotifQueue.length > 0) {
+      const ach = this.achievementNotifQueue.shift()!;
+      this.achievementNotifBg.setAlpha(0.93).setVisible(true);
+      this.achievementNotifText
+        .setText(`★ АЧИВКА: ${ach.nameRu}\n${ach.descRu}`)
+        .setAlpha(1).setVisible(true);
+      this.achievementNotifTimer = 3000;
+    }
   }
 }
 

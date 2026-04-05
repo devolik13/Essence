@@ -1,5 +1,6 @@
 import { StatCaps, StatName, Stats } from './stats';
 import { AbilityDef } from './abilities';
+import { LootEntry } from './items';
 
 export enum BodyType {
   Passive = 1,
@@ -49,6 +50,7 @@ export interface BodyDefinition {
   abilityName: string;
   signatureSpell?: AbilityDef;
   spellXPThreshold?: number;
+  lootTable?: LootEntry[];
 }
 
 // ─── Стартовые тела ────────────────────────────────────

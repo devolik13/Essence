@@ -2,6 +2,7 @@ import { Sphere } from '../entities/Sphere';
 import { AbilityDef } from '../types/abilities';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { QuestTracker } from './questTracker';
+import { InventoryItem } from '../types/items';
 
 const SAVE_KEY = 'essence_sphere_v1';
 
@@ -13,6 +14,9 @@ interface SaveData {
   questCompleted: string[];
   questCounts: Record<string, number[]>;
   savedSlotIds?: (string | null)[];
+  inventory?: InventoryItem[];
+  killCounts?: Record<string, number>;
+  unlockedAchievements?: string[];
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -33,6 +37,9 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     questCompleted,
     questCounts,
     savedSlotIds: [...sphere.savedSlotIds],
+    inventory: sphere.inventory.map(i => ({ ...i })),
+    killCounts: { ...sphere.killCounts },
+    unlockedAchievements: [...sphere.unlockedAchievements],
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -73,6 +80,19 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     // Восстановить назначения слотов
     if (data.savedSlotIds) {
       sphere.savedSlotIds = [...data.savedSlotIds];
+    }
+
+    // Восстановить инвентарь
+    if (data.inventory) {
+      sphere.inventory = data.inventory.map(i => ({ ...i }));
+    }
+
+    // Восстановить статистику убийств и ачивки
+    if (data.killCounts) {
+      sphere.killCounts = { ...data.killCounts };
+    }
+    if (data.unlockedAchievements) {
+      sphere.unlockedAchievements = [...data.unlockedAchievements];
     }
 
     return true;

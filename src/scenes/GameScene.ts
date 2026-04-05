@@ -23,6 +23,8 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
+import { rollLoot, ITEMS } from '../data/itemDB';
+import { checkAchievements } from '../systems/achievements';
 
 // ── Штраф за смерть ──────────────────────────────────────
 // TODO: подобрать значения после тестирования баланса
@@ -172,6 +174,11 @@ export class GameScene extends Phaser.Scene {
       if (this.playerBody) this.fillBodySlots(this.playerBody);
       const spellCompleted = this.questTracker.onSpellLearned(spell.id);
       for (const q of spellCompleted) this.onQuestComplete(q);
+      // Check spell achievements
+      const spellAch = checkAchievements(this.sphere);
+      for (const ach of spellAch) {
+        this.events.emit('achievement-unlocked', ach);
+      }
     });
 
     // Назначение заклинания в слот из spell picker (из UIScene)
@@ -372,6 +379,9 @@ export class GameScene extends Phaser.Scene {
         isPassive: c.definition.type === 1,
         isAggro: c.aiState === 'chase' || c.aiState === 'attack',
       })),
+      inventory: this.sphere.inventory,
+      killCounts: this.sphere.killCounts,
+      unlockedAchievements: this.sphere.unlockedAchievements,
     });
   }
 
@@ -756,6 +766,28 @@ export class GameScene extends Phaser.Scene {
     // Квест — засчитать убийство
     this.handleQuestKill(creature.definition.id, xpTotal);
 
+    // Лут
+    const dropped = rollLoot(creature.definition.id);
+    if (dropped.length > 0) {
+      for (const { itemId, qty } of dropped) {
+        this.sphere.addItem(itemId, qty);
+      }
+      const lootStr = dropped.map(d => {
+        const item = ITEMS[d.itemId];
+        return `${item?.nameRu ?? d.itemId} ×${d.qty}`;
+      }).join(', ');
+      this.events.emit('loot-dropped', { creatureName: creature.definition.nameRu, loot: lootStr });
+    }
+
+    // Статистика убийств
+    this.sphere.killCounts[creature.definition.id] = (this.sphere.killCounts[creature.definition.id] ?? 0) + 1;
+
+    // Ачивки
+    const newAchievements = checkAchievements(this.sphere);
+    for (const ach of newAchievements) {
+      this.events.emit('achievement-unlocked', ach);
+    }
+
     // Автосохранение
     saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
 
@@ -821,6 +853,14 @@ export class GameScene extends Phaser.Scene {
     this.creatures = this.creatures.filter(c => c !== creature);
 
     this.events.emit('body-captured', def.nameRu);
+
+    // Захваты: счётчик ачивок
+    this.sphere.killCounts['__captures'] = (this.sphere.killCounts['__captures'] ?? 0) + 1;
+    const captureAchievements = checkAchievements(this.sphere);
+    for (const ach of captureAchievements) {
+      this.events.emit('achievement-unlocked', ach);
+    }
+
     saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
 
     // Квест — засчитать захват

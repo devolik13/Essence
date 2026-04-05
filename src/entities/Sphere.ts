@@ -3,6 +3,7 @@ import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { SPHERE_SPEED, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
 import { calcRank, StatXP, createEmptyXP } from '../systems/progression';
 import { AbilityDef } from '../types/abilities';
+import { InventoryItem } from '../types/items';
 
 /**
  * Сфера — бессмертная сущность игрока.
@@ -18,6 +19,13 @@ export class Sphere extends Phaser.GameObjects.Container {
   public learnedAbilities: string[] = [];
   /** Сохранённые назначения слотов: индекс → spell.id или null */
   public savedSlotIds: (string | null)[] = Array(8).fill(null);
+
+  // Инвентарь
+  public inventory: InventoryItem[] = [];
+  /** Кол-во убитых существ по типу (для ачивок и статистики) */
+  public killCounts: Record<string, number> = {};
+  /** Разблокированные ачивки */
+  public unlockedAchievements: string[] = [];
 
   // Штраф смерти
   public deathDebuffRemaining: number = 0;  // сек осталось
@@ -93,6 +101,27 @@ export class Sphere extends Phaser.GameObjects.Container {
     // Пульсация свечения
     const pulse = 0.3 + Math.sin(_time / 300) * 0.1;
     this.glow.setAlpha(pulse);
+  }
+
+  /** Добавить предмет в инвентарь (стакается) */
+  addItem(itemId: string, qty: number) {
+    const existing = this.inventory.find(i => i.itemId === itemId);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      this.inventory.push({ itemId, quantity: qty });
+    }
+  }
+
+  /** Использовать предмет (consumable): возвращает true если использован */
+  useItem(itemId: string): boolean {
+    const slot = this.inventory.find(i => i.itemId === itemId);
+    if (!slot || slot.quantity <= 0) return false;
+    slot.quantity -= 1;
+    if (slot.quantity === 0) {
+      this.inventory = this.inventory.filter(i => i.itemId !== itemId);
+    }
+    return true;
   }
 
   /** Показать сферу (выход из тела) */
