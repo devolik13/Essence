@@ -26,6 +26,8 @@ export class Sphere extends Phaser.GameObjects.Container {
   public killCounts: Record<string, number> = {};
   /** Разблокированные ачивки */
   public unlockedAchievements: string[] = [];
+  /** Квесты, которые отслеживаются на экране */
+  public trackedQuestIds: string[] = [];
 
   // Штраф смерти
   public deathDebuffRemaining: number = 0;  // сек осталось

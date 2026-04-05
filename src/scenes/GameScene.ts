@@ -181,6 +181,18 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    // Переключение отслеживания квеста
+    this.events.on('track-quest', (questId: string) => {
+      const ids = this.sphere.trackedQuestIds;
+      const idx = ids.indexOf(questId);
+      if (idx >= 0) {
+        ids.splice(idx, 1);
+      } else {
+        ids.push(questId);
+      }
+      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
+    });
+
     // Назначение заклинания в слот из spell picker (из UIScene)
     this.events.on('assign-spell', (data: { slotIndex: number; spell: import('../types/abilities').AbilityDef | null }) => {
       if (!this.playerBody) return;
@@ -382,6 +394,7 @@ export class GameScene extends Phaser.Scene {
       inventory: this.sphere.inventory,
       killCounts: this.sphere.killCounts,
       unlockedAchievements: this.sphere.unlockedAchievements,
+      trackedQuestIds: this.sphere.trackedQuestIds,
     });
   }
 

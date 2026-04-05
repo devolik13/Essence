@@ -17,6 +17,7 @@ interface SaveData {
   inventory?: InventoryItem[];
   killCounts?: Record<string, number>;
   unlockedAchievements?: string[];
+  trackedQuestIds?: string[];
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -40,6 +41,7 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     inventory: sphere.inventory.map(i => ({ ...i })),
     killCounts: { ...sphere.killCounts },
     unlockedAchievements: [...sphere.unlockedAchievements],
+    trackedQuestIds: [...sphere.trackedQuestIds],
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -93,6 +95,9 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     }
     if (data.unlockedAchievements) {
       sphere.unlockedAchievements = [...data.unlockedAchievements];
+    }
+    if (data.trackedQuestIds) {
+      sphere.trackedQuestIds = [...data.trackedQuestIds];
     }
 
     return true;

@@ -15,6 +15,10 @@ import { getAllAchievementStatus } from '../systems/achievements';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
+const WIN_W = 310;
+const WIN_TITLE_H = 22;
+
+type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -37,6 +41,7 @@ interface UIData {
   playerPos: { x: number; y: number } | null;
   inventory: InventoryItem[];
   unlockedAchievements: string[];
+  trackedQuestIds: string[];
 }
 
 interface PanelState {
@@ -46,18 +51,31 @@ interface PanelState {
 }
 
 export class UIScene extends Phaser.Scene {
-  // ── Content text objects ──────────────────────────────
-  private statsText!:   Phaser.GameObjects.Text;
-  private spellText!:   Phaser.GameObjects.Text;
+  // ── Fixed content text objects ────────────────────────
   private targetPanel!: Phaser.GameObjects.Text;
-  private questPanel!:  Phaser.GameObjects.Text;
   private resourceText!:Phaser.GameObjects.Text;
   private bodyInfoText!:Phaser.GameObjects.Text;
   private hintText!:    Phaser.GameObjects.Text;
-  private logText!:          Phaser.GameObjects.Text;
-  private inventoryText!:    Phaser.GameObjects.Text;
-  private achievementsText!: Phaser.GameObjects.Text;
+  private logText!:     Phaser.GameObjects.Text;
   private captureBar!:  Phaser.GameObjects.Rectangle;
+
+  // ── Tracked quest HUD (top-left) ──────────────────────
+  private trackedQuestText!: Phaser.GameObjects.Text;
+
+  // ── Menu buttons ──────────────────────────────────────
+  private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
+  private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
+  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements'];
+
+  // ── Floating window ───────────────────────────────────
+  private currentWindow: WindowType | null = null;
+  private windowContainer!: Phaser.GameObjects.Container;
+  private windowTitleText!: Phaser.GameObjects.Text;
+  private windowContentText!: Phaser.GameObjects.Text;
+  private windowInteractables: Phaser.GameObjects.Text[] = [];
+  private windowX: number = 200;
+  private windowY: number = 50;
+  private cachedUIData: UIData | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
   private castBarBg!:   Phaser.GameObjects.Rectangle;
   private castBar!:     Phaser.GameObjects.Rectangle;
@@ -88,15 +106,10 @@ export class UIScene extends Phaser.Scene {
 
   // ── Panel state (position, size, collapsed) ───────────
   private panelStates: Record<string, PanelState> = {
-    sphere:       { x: 10,              y: 10,   w: 145, h: 0,   collapsed: false },
-    spells:       { x: 10,              y: 250,  w: 145, h: 0,   collapsed: false },
-    quests:       { x: 10,              y: 340,  w: 145, h: 0,   collapsed: false },
-    body:         { x: GAME_WIDTH-180,  y: 10,   w: 170, h: 0,   collapsed: false },
-    target:       { x: GAME_WIDTH-180,  y: 110,  w: 170, h: 0,   collapsed: false },
-    log:          { x: 10,              y: 475,  w: 210, h: 0,   collapsed: false },
-    minimap:      { x: GAME_WIDTH-156,  y: 440,  w: 150, h: 100, collapsed: false },
-    inventory:    { x: GAME_WIDTH-190,  y: 220,  w: 180, h: 0,   collapsed: false },
-    achievements: { x: GAME_WIDTH-190,  y: 340,  w: 180, h: 0,   collapsed: true  },
+    body:    { x: GAME_WIDTH-180, y: 10,  w: 170, h: 0,   collapsed: false },
+    target:  { x: GAME_WIDTH-180, y: 110, w: 170, h: 0,   collapsed: false },
+    log:     { x: 10,             y: 475, w: 210, h: 0,   collapsed: false },
+    minimap: { x: GAME_WIDTH-156, y: 440, w: 150, h: 100, collapsed: false },
   };
 
   // ── Panel header containers ───────────────────────────
@@ -143,24 +156,15 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', color: '#ff8800',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
-    // ── Panel content text objects (positioned in updateUI) ──
-    this.statsText = this.add.text(0, 0, '', {
-      fontSize: '12px', color: '#aaeeff', lineSpacing: 5,
+    // ── Tracked quest HUD (top-left) ─────────────────────
+    this.trackedQuestText = this.add.text(10, 10, '', {
+      fontSize: '11px', color: '#ffeeaa', lineSpacing: 4,
       backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setScrollFactor(0).setDepth(1000);
-
-    this.spellText = this.add.text(0, 0, '', {
-      fontSize: '11px', color: '#ddaaff', lineSpacing: 3,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 5 },
     }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
+    // ── Panel content text objects (positioned in updateUI) ──
     this.targetPanel = this.add.text(0, 0, '', {
       fontSize: '11px', color: '#ffddaa', lineSpacing: 4,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setScrollFactor(0).setDepth(1000).setVisible(false);
-
-    this.questPanel = this.add.text(0, 0, '', {
-      fontSize: '11px', color: '#ffeeaa', lineSpacing: 3,
       backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
     }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
@@ -172,16 +176,6 @@ export class UIScene extends Phaser.Scene {
     this.logText = this.add.text(0, 0, '', {
       fontSize: '10px', color: '#aaaaaa', lineSpacing: 3,
     }).setScrollFactor(0).setDepth(1000);
-
-    this.inventoryText = this.add.text(0, 0, '', {
-      fontSize: '11px', color: '#ddddaa', lineSpacing: 3,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setScrollFactor(0).setDepth(1000).setVisible(false);
-
-    this.achievementsText = this.add.text(0, 0, '', {
-      fontSize: '10px', color: '#ccddff', lineSpacing: 3,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     // Achievement unlock notification (top-center, fades out)
     this.achievementNotifBg = this.add.rectangle(GAME_WIDTH / 2, 60, 280, 36, 0x112233, 0.93)
@@ -199,15 +193,10 @@ export class UIScene extends Phaser.Scene {
     this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(1009);
 
     // ── Panel headers (draggable) ──────────────────────────
-    this.panelHeaders['sphere']       = this.makeHeader('sphere',       'Сфера');
-    this.panelHeaders['spells']       = this.makeHeader('spells',       'Заклинания');
-    this.panelHeaders['quests']       = this.makeHeader('quests',       'Квесты');
-    this.panelHeaders['body']         = this.makeHeader('body',         'Тело');
-    this.panelHeaders['target']       = this.makeHeader('target',       'Цель');
-    this.panelHeaders['log']          = this.makeHeader('log',          'Лог');
-    this.panelHeaders['minimap']      = this.makeHeader('minimap',      'Карта');
-    this.panelHeaders['inventory']    = this.makeHeader('inventory',    'Инвентарь');
-    this.panelHeaders['achievements'] = this.makeHeader('achievements', 'Ачивки');
+    this.panelHeaders['body']    = this.makeHeader('body',    'Тело');
+    this.panelHeaders['target']  = this.makeHeader('target',  'Цель');
+    this.panelHeaders['log']     = this.makeHeader('log',     'Лог');
+    this.panelHeaders['minimap'] = this.makeHeader('minimap', 'Карта');
 
     // ── Resize grips ───────────────────────────────────────
     for (const id of Object.keys(this.panelStates)) {
@@ -224,6 +213,12 @@ export class UIScene extends Phaser.Scene {
 
     // ── Skill bar ─────────────────────────────────────────
     this.buildSkillBar();
+
+    // ── Menu buttons ──────────────────────────────────────
+    this.buildMenuButtons();
+
+    // ── Floating window ───────────────────────────────────
+    this.buildFloatingWindow();
 
     // ── Events ────────────────────────────────────────────
     const gs = this.scene.get('GameScene');
@@ -436,117 +431,35 @@ export class UIScene extends Phaser.Scene {
   private updateUI(data: UIData) {
     const { sphere, body, capture } = data;
 
+    this.cachedUIData = data;
     this.cachedLearnedSpells = sphere.learnedSpells;
     this.cachedInCombat = data.inCombat ?? false;
     this.cachedBody = body;
     if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
 
-    const rank = calcRank(sphere.stats);
-    const caps = body?.definition.caps ?? {};
-    const xpTracker = sphere.xpTracker;
-    const debuffSecs = Math.ceil(data.deathDebuff ?? 0);
-
-    // ── Sphere panel ─────────────────────────────────────
+    // ── Tracked quest HUD (top-left) ──────────────────────
     {
-      const s = this.panelStates.sphere;
-      const debuffStr = debuffSecs > 0 ? `  ⚠ ${debuffSecs}с` : '';
-      this.setHeaderLabel('sphere', `Сфера  Ранг ${rank.toFixed(1)}${debuffStr}`);
-      this.panelHeaders['sphere'].setPosition(s.x, s.y);
-
-      if (!s.collapsed) {
+      const tracked = data.trackedQuestIds ?? [];
+      const trackedQuests = data.quests.filter(q => !q.completed && tracked.includes(q.def.id));
+      if (trackedQuests.length > 0) {
         const lines: string[] = [];
-        for (const stat of STAT_ORDER) {
-          const val = sphere.stats[stat];
-          const cap = caps[stat];
-          const isCapped = cap !== undefined && val >= cap;
-          let line = `${STAT_NAMES_SHORT[stat]}: ${val}`;
-          if (cap !== undefined && xpTracker) {
-            if (isCapped) {
-              line += ' [КАП]';
-            } else {
-              const xp = xpTracker[stat];
-              const need = xpToNextLevel(val);
-              line += ` ${buildXPBar(xp, need, 8)} ${xp}/${need}`;
-            }
+        for (const q of trackedQuests) {
+          lines.push(`▸ ${q.def.nameRu}`);
+          for (let i = 0; i < q.def.objectives.length; i++) {
+            const obj = q.def.objectives[i];
+            const cur = q.counts[i];
+            const isDone = cur >= obj.count;
+            lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? obj.targetId ?? ''}`);
           }
-          if (cap !== undefined) line = `► ${line}  (кап ${cap})`;
-          lines.push(line);
         }
-        this.statsText.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true).setPosition(s.x, s.y + HEADER_H)
-          .setText(lines.join('\n')).setVisible(true);
-        const bottom = this.statsText.getBounds().bottom;
-        this.positionGrip('sphere', bottom);
+        this.trackedQuestText.setText(lines.join('\n')).setVisible(true);
       } else {
-        this.statsText.setVisible(false);
-        this.positionGrip('sphere', s.y + HEADER_H);
+        this.trackedQuestText.setVisible(false);
       }
     }
 
-    // ── Spells panel ─────────────────────────────────────
-    {
-      const s = this.panelStates.spells;
-      const sig = body?.definition.signatureSpell;
-      const threshold = body?.definition.spellXPThreshold;
-      const hasSpell = !!(sig && threshold);
-      this.panelHeaders['spells'].setVisible(hasSpell).setPosition(s.x, s.y);
-      this.grips['spells'].setVisible(hasSpell);
-
-      if (hasSpell && sig && threshold) {
-        const learned = sphere.learnedSpells.some(sp => sp.id === sig.id);
-        this.setHeaderLabel('spells', learned ? `✦ ${sig.nameRu} ИЗУЧЕНО` : `✧ ${sig.nameRu}`);
-
-        if (!s.collapsed) {
-          let txt: string;
-          if (learned) {
-            txt = `✦ ${sig.nameRu} — ИЗУЧЕНО`;
-          } else {
-            const cur = sphere.spellProgress[sig.id] ?? 0;
-            txt = `✧ ${sig.nameRu}\n${buildXPBar(cur, threshold, 10)}  ${cur} / ${threshold} XP`;
-          }
-          this.spellText.setFixedSize(s.w, 0).setPosition(s.x, s.y + HEADER_H).setText(txt).setVisible(true);
-          this.positionGrip('spells', this.spellText.getBounds().bottom);
-        } else {
-          this.spellText.setVisible(false);
-          this.positionGrip('spells', s.y + HEADER_H);
-        }
-      } else {
-        this.spellText.setVisible(false);
-      }
-    }
-
-    // ── Quests panel ──────────────────────────────────────
-    {
-      const s = this.panelStates.quests;
-      const active = data.quests.filter(q => !q.completed);
-      this.panelHeaders['quests'].setVisible(active.length > 0).setPosition(s.x, s.y);
-      this.grips['quests'].setVisible(active.length > 0);
-
-      if (active.length > 0) {
-        this.setHeaderLabel('quests', `Квесты (${active.length})`);
-        if (!s.collapsed) {
-          const lines: string[] = [];
-          for (const q of active) {
-            lines.push(`▸ ${q.def.nameRu}  +${q.def.xpReward} XP`);
-            for (let i = 0; i < q.def.objectives.length; i++) {
-              const obj = q.def.objectives[i];
-              const cur = q.counts[i];
-              const done = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-              const verb = obj.type === 'kill'    ? 'Убить'
-                         : obj.type === 'capture' ? 'Захватить' : 'Изучить';
-              lines.push(`  ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${done}`);
-            }
-          }
-          this.questPanel.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
-            .setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
-          this.positionGrip('quests', this.questPanel.getBounds().bottom);
-        } else {
-          this.questPanel.setVisible(false);
-          this.positionGrip('quests', s.y + HEADER_H);
-        }
-      } else {
-        this.questPanel.setVisible(false);
-      }
-    }
+    // ── Refresh open window ───────────────────────────────
+    if (this.currentWindow) this.buildWindowContent(data);
 
     // ── Resources (always visible when in body) ──────────
     if (body) {
@@ -670,59 +583,6 @@ export class UIScene extends Phaser.Scene {
       } else {
         this.logText.setVisible(false);
         this.positionGrip('log', s.y + HEADER_H);
-      }
-    }
-
-    // ── Inventory panel ───────────────────────────────────
-    {
-      const s = this.panelStates.inventory;
-      const inv = data.inventory ?? [];
-      this.panelHeaders['inventory'].setPosition(s.x, s.y);
-      this.setHeaderLabel('inventory', `Инвентарь (${inv.length})`);
-
-      if (!s.collapsed) {
-        let lines: string[];
-        if (inv.length === 0) {
-          lines = ['  Пусто'];
-        } else {
-          lines = inv.map(slot => {
-            const def = ITEMS[slot.itemId];
-            const rarityMark = def?.rarity === 'rare' ? '★' : def?.rarity === 'uncommon' ? '◆' : '·';
-            const icon = def?.icon ?? '?';
-            return `${rarityMark} ${icon} ${def?.nameRu ?? slot.itemId}  ×${slot.quantity}`;
-          });
-        }
-        this.inventoryText
-          .setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
-          .setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
-        this.positionGrip('inventory', this.inventoryText.getBounds().bottom);
-      } else {
-        this.inventoryText.setVisible(false);
-        this.positionGrip('inventory', s.y + HEADER_H);
-      }
-    }
-
-    // ── Achievements panel ────────────────────────────────
-    {
-      const s = this.panelStates.achievements;
-      const unlocked = data.unlockedAchievements ?? [];
-      const total = ACHIEVEMENTS.length;
-      this.panelHeaders['achievements'].setPosition(s.x, s.y);
-      this.setHeaderLabel('achievements', `Ачивки ${unlocked.length}/${total}`);
-
-      if (!s.collapsed) {
-        const sphere = data.sphere;
-        const statuses = getAllAchievementStatus(sphere);
-        const lines = statuses.map(({ def, unlocked: done }) =>
-          `${done ? '✓' : '✗'} ${def.icon} ${def.nameRu}`
-        );
-        this.achievementsText
-          .setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
-          .setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
-        this.positionGrip('achievements', this.achievementsText.getBounds().bottom);
-      } else {
-        this.achievementsText.setVisible(false);
-        this.positionGrip('achievements', s.y + HEADER_H);
       }
     }
 
@@ -947,6 +807,248 @@ export class UIScene extends Phaser.Scene {
       } else {
         this.skillSlotsCd[i].height = 0;
         this.skillSlotsCdText[i].setText('');
+      }
+    }
+  }
+
+  // ── Menu buttons ─────────────────────────────────────
+
+  private buildMenuButtons() {
+    const labels = ['Статы', 'Инвентарь', 'Квесты', 'Ачивки'];
+    const btnW = 76;
+    const btnH = 22;
+    const gap = 4;
+    const y = GAME_HEIGHT - SKILL_SLOT_SIZE - 20 - btnH / 2;
+
+    for (let i = 0; i < labels.length; i++) {
+      const x = 10 + i * (btnW + gap) + btnW / 2;
+      const bg = this.add.rectangle(x, y, btnW, btnH, 0x0e1828, 0.92)
+        .setStrokeStyle(1, 0x2d4a66, 0.9).setScrollFactor(0).setDepth(1010)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(0x1a2e44, 0.97); })
+        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(0x0e1828, 0.92); })
+        .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+          ptr.event.stopPropagation();
+          this.toggleWindow(this.menuBtnTypes[i]);
+        });
+      const txt = this.add.text(x, y, labels[i], {
+        fontSize: '11px', color: '#7799bb', align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+      this.menuBtnBgs.push(bg);
+      this.menuBtnTexts.push(txt);
+    }
+  }
+
+  private buildFloatingWindow() {
+    const WIN_H = 420;
+
+    const winBg = this.add.rectangle(0, WIN_TITLE_H, WIN_W, WIN_H, 0x070d18, 0.96)
+      .setOrigin(0, 0).setStrokeStyle(1, 0x2d4a66, 0.9).setScrollFactor(0).setDepth(1019);
+
+    const titleBg = this.add.rectangle(0, 0, WIN_W, WIN_TITLE_H, 0x0e1828, 0.97)
+      .setOrigin(0, 0).setStrokeStyle(1, 0x2d4a66, 0.9).setScrollFactor(0).setDepth(1020);
+
+    this.windowTitleText = this.add.text(8, 4, '', {
+      fontSize: '11px', color: '#8899bb',
+    }).setOrigin(0, 0).setScrollFactor(0).setDepth(1021);
+
+    const closeBtn = this.add.text(WIN_W - 6, 4, '[×]', {
+      fontSize: '10px', color: '#aa4444',
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(1022)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => closeBtn.setColor('#ff6666'))
+      .on('pointerout',  () => closeBtn.setColor('#aa4444'))
+      .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        ptr.event.stopPropagation();
+        this.closeWindow();
+      });
+
+    this.windowContentText = this.add.text(8, WIN_TITLE_H + 8, '', {
+      fontSize: '11px', color: '#cccccc', lineSpacing: 4,
+    }).setOrigin(0, 0).setScrollFactor(0).setDepth(1021);
+
+    // Drag via title bar
+    let dragMoved = false;
+    titleBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, WIN_W, WIN_TITLE_H), Phaser.Geom.Rectangle.Contains)
+      .on('pointerover', () => this.input.setDefaultCursor('grab'))
+      .on('pointerout',  () => this.input.setDefaultCursor('default'))
+      .on('dragstart', () => { dragMoved = false; })
+      .on('drag', (_ptr: Phaser.Input.Pointer, dx: number, dy: number) => {
+        dragMoved = true;
+        this.windowX = Math.max(0, Math.min(GAME_WIDTH - WIN_W, dx));
+        this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, dy));
+        this.windowContainer.setPosition(this.windowX, this.windowY);
+        this.repositionInteractables();
+        this.input.setDefaultCursor('grabbing');
+      })
+      .on('dragend', () => { this.input.setDefaultCursor('default'); dragMoved = false; });
+    this.input.setDraggable(titleBg);
+
+    this.windowContainer = this.add.container(this.windowX, this.windowY, [
+      winBg, titleBg, this.windowTitleText, closeBtn, this.windowContentText,
+    ]).setScrollFactor(0).setDepth(1018).setVisible(false);
+  }
+
+  private repositionInteractables() {
+    for (const btn of this.windowInteractables) {
+      btn.setPosition(
+        this.windowX + (btn as any).__relX,
+        this.windowY + (btn as any).__relY,
+      );
+    }
+  }
+
+  private toggleWindow(type: WindowType) {
+    if (this.currentWindow === type) {
+      this.closeWindow();
+      return;
+    }
+    this.currentWindow = type;
+    this.windowContainer.setVisible(true);
+    for (let i = 0; i < this.menuBtnTypes.length; i++) {
+      const active = this.menuBtnTypes[i] === type;
+      this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
+      this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+    }
+    if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+  }
+
+  private closeWindow() {
+    this.currentWindow = null;
+    this.windowContainer.setVisible(false);
+    for (const btn of this.windowInteractables) btn.destroy();
+    this.windowInteractables = [];
+    for (let i = 0; i < this.menuBtnTypes.length; i++) {
+      this.menuBtnBgs[i].setFillStyle(0x0e1828, 0.92);
+      this.menuBtnTexts[i].setColor('#7799bb');
+    }
+  }
+
+  private buildWindowContent(data: UIData) {
+    if (!this.currentWindow) return;
+    for (const btn of this.windowInteractables) btn.destroy();
+    this.windowInteractables = [];
+
+    const { sphere } = data;
+    const caps = data.body?.definition.caps ?? {};
+    const xpTracker = sphere.xpTracker;
+    const debuffSecs = Math.ceil(data.deathDebuff ?? 0);
+    const rank = calcRank(sphere.stats);
+
+    switch (this.currentWindow) {
+      case 'stats': {
+        const debuffStr = debuffSecs > 0 ? `  ⚠ Слабость: ${debuffSecs}с` : '';
+        const lines: string[] = [`◉ Ранг ${rank.toFixed(1)}${debuffStr}`, ''];
+        for (const stat of STAT_ORDER) {
+          const val = sphere.stats[stat];
+          const cap = caps[stat];
+          if (cap !== undefined) {
+            const isCapped = val >= cap;
+            let line = `► ${STAT_NAMES_SHORT[stat]}: ${val}/${cap}`;
+            if (!isCapped) {
+              const xp = xpTracker[stat] ?? 0;
+              const need = xpToNextLevel(val);
+              line += `  ${buildXPBar(xp, need, 6)} ${xp}/${need}`;
+            } else line += ' [КАП]';
+            lines.push(line);
+          } else {
+            lines.push(`  ${STAT_NAMES_SHORT[stat]}: ${val}`);
+          }
+        }
+        const sig = data.body?.definition.signatureSpell;
+        const threshold = data.body?.definition.spellXPThreshold;
+        if (sig && threshold) {
+          lines.push('');
+          const learned = sphere.learnedSpells.some(sp => sp.id === sig.id);
+          if (learned) {
+            lines.push(`✦ ${sig.nameRu} — ИЗУЧЕНО`);
+          } else {
+            const cur = sphere.spellProgress[sig.id] ?? 0;
+            lines.push(`✧ ${sig.nameRu}: ${buildXPBar(cur, threshold, 10)}  ${cur}/${threshold}`);
+          }
+        }
+        this.windowTitleText.setText('◉ Статы сферы');
+        this.windowContentText.setWordWrapWidth(WIN_W - 16, true).setText(lines.join('\n'));
+        break;
+      }
+      case 'inventory': {
+        const inv = data.inventory ?? [];
+        const lines: string[] = [];
+        if (inv.length === 0) {
+          lines.push('  Инвентарь пуст');
+        } else {
+          for (const slot of inv) {
+            const def = ITEMS[slot.itemId];
+            const r = def?.rarity === 'rare' ? '★' : def?.rarity === 'uncommon' ? '◆' : '·';
+            lines.push(`${r} ${def?.icon ?? '?'} ${def?.nameRu ?? slot.itemId}  ×${slot.quantity}`);
+            if (def?.descRu) lines.push(`   ${def.descRu}`);
+          }
+        }
+        this.windowTitleText.setText(`◈ Инвентарь  (${inv.length} видов)`);
+        this.windowContentText.setWordWrapWidth(WIN_W - 16, true).setText(lines.join('\n'));
+        break;
+      }
+      case 'quests': {
+        const active = data.quests.filter(q => !q.completed);
+        const done   = data.quests.filter(q =>  q.completed);
+        const tracked = data.trackedQuestIds ?? [];
+        const lines: string[] = [];
+        let relY = WIN_TITLE_H + 8;
+        const lineH = 15;
+
+        if (active.length === 0) {
+          lines.push('  Все квесты выполнены!');
+        } else {
+          for (const q of active) {
+            const isTracked = tracked.includes(q.def.id);
+            // Checkbox — created as interactive Text outside container
+            const btnRelX = WIN_W - 24;
+            const btnRelY = relY;
+            const btn = this.add.text(
+              this.windowX + btnRelX,
+              this.windowY + btnRelY,
+              isTracked ? '☑' : '☐',
+              { fontSize: '12px', color: isTracked ? '#66ccff' : '#556677' },
+            ).setScrollFactor(0).setDepth(1030)
+              .setInteractive({ useHandCursor: true })
+              .on('pointerover', () => btn.setColor('#aaddff'))
+              .on('pointerout',  () => btn.setColor(isTracked ? '#66ccff' : '#556677'))
+              .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+                ptr.event.stopPropagation();
+                this.scene.get('GameScene').events.emit('track-quest', q.def.id);
+                if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+              });
+            (btn as any).__relX = btnRelX;
+            (btn as any).__relY = btnRelY;
+            this.windowInteractables.push(btn);
+
+            lines.push(`▸ ${q.def.nameRu}  +${q.def.xpReward} XP`);
+            relY += lineH;
+            for (let i = 0; i < q.def.objectives.length; i++) {
+              const obj = q.def.objectives[i];
+              const cur = q.counts[i];
+              const d = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
+              const verb = obj.type === 'kill' ? 'Убить' : obj.type === 'capture' ? 'Захватить' : 'Изучить';
+              lines.push(`   ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${d}`);
+              relY += lineH;
+            }
+            relY += 4;
+          }
+        }
+        if (done.length > 0) lines.push('', `✓ Выполнено: ${done.length} квестов`);
+        this.windowTitleText.setText(`▸ Квесты  (${active.length} активных)`);
+        this.windowContentText.setWordWrapWidth(WIN_W - 30, true).setText(lines.join('\n'));
+        break;
+      }
+      case 'achievements': {
+        const statuses = getAllAchievementStatus(sphere);
+        const cnt = statuses.filter(s => s.unlocked).length;
+        const lines = statuses.map(({ def, unlocked }) =>
+          `${unlocked ? '✓' : '✗'} ${def.icon} ${def.nameRu}\n   ${def.descRu}`
+        );
+        this.windowTitleText.setText(`★ Ачивки  ${cnt}/${ACHIEVEMENTS.length}`);
+        this.windowContentText.setWordWrapWidth(WIN_W - 16, true).setText(lines.join('\n'));
+        break;
       }
     }
   }
