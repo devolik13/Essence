@@ -205,6 +205,22 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
       this.addLog(`✦ КВЕСТ: ${data.name}  +${data.xp} XP`);
     });
+    gs.events.on('quest-giver-talk', (data: { active: import('../types/quests').QuestProgress[]; done: import('../types/quests').QuestProgress[] }) => {
+      this.addLog('── Следопыт ──');
+      if (data.active.length === 0) {
+        this.addLog('  Все задания выполнены!');
+      } else {
+        for (const q of data.active) {
+          const progress = q.counts.map((c, i) =>
+            `${c}/${q.def.objectives[i].count}`
+          ).join(', ');
+          this.addLog(`  ▸ ${q.def.nameRu} [${progress}]  +${q.def.xpReward} XP`);
+        }
+      }
+      if (data.done.length > 0) {
+        this.addLog(`  ✓ Выполнено заданий: ${data.done.length}`);
+      }
+    });
     gs.events.on('save-loaded', () => this.addLog('↺ Прогресс загружен'));
     gs.events.on('aoe-targeting', (name: string) => {
       this.addLog(`◎ Прицеливание: ${name}  [ЛКМ/ПКМ]`);

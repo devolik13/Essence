@@ -88,6 +88,9 @@ export class GameScene extends Phaser.Scene {
   // Квесты
   private questTracker!: QuestTracker;
 
+  // NPC-квестодатель
+  private questGiverPos = { x: 390, y: 310 };
+
   // Выбранная цель
   private selectedTarget: Creature | null = null;
   private targetIndicator!: Phaser.GameObjects.Arc;
@@ -247,9 +250,11 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
 
-      // В астрале: [E] захват стартового тела или мёртвого существа
+      // В астрале: [E] — NPC, захват стартового тела, или мёртвого существа
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        this.tryPossessStarter() || this.tryCaptureDead();
+        this.tryTalkToQuestGiver() ||
+        this.tryPossessStarter()   ||
+        this.tryCaptureDead();
       }
     }
 
@@ -262,6 +267,24 @@ export class GameScene extends Phaser.Scene {
       // Моб атакует игрока
       if (creature.aiState === 'attack' && this.playerBody && creature.attackCooldown <= 0) {
         this.creatureAttackPlayer(creature);
+      }
+    }
+
+    // Столкновения: тело игрока ↔ мобы
+    if (this.playerBody) {
+      for (const c of this.creatures) {
+        if (c.isDead) continue;
+        const dx = this.playerBody.x - c.x;
+        const dy = this.playerBody.y - c.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = 26; // 14 + 12 — радиусы тела и моба
+        if (dist > 0 && dist < minDist) {
+          const push = (minDist - dist) / dist;
+          this.playerBody.x += dx * push * 0.6;
+          this.playerBody.y += dy * push * 0.6;
+          c.x -= dx * push * 0.4;
+          c.y -= dy * push * 0.4;
+        }
       }
     }
 
@@ -407,6 +430,18 @@ export class GameScene extends Phaser.Scene {
         fontSize: '9px', color: '#cccccc', align: 'center',
       }).setOrigin(0.5);
     });
+
+    // NPC-квестодатель
+    const qp = this.questGiverPos;
+    this.add.arc(qp.x, qp.y, 12, 0, 360, false, 0xffdd55, 0.9).setDepth(5);
+    this.add.arc(qp.x, qp.y, 16, 0, 360, false, 0xffaa00, 0.3).setDepth(4);
+    this.add.text(qp.x, qp.y - 24, '! Следопыт', {
+      fontSize: '10px', color: '#ffdd88', align: 'center',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(6);
+    this.add.text(qp.x, qp.y + 18, '[E] поговорить', {
+      fontSize: '8px', color: '#888866',
+    }).setOrigin(0.5).setDepth(6);
   }
 
   /** Попытка захватить стартовое тело (в астрале, нажатие E) */
@@ -614,11 +649,24 @@ export class GameScene extends Phaser.Scene {
 
     if (result.hit) {
       closestCreature.takeDamage(finalDmg);
-
-      // Агро
       if (closestCreature.aiState === 'idle' || closestCreature.aiState === 'wander') {
         closestCreature.aiState = 'chase';
       }
+    }
+
+    // Снаряд для дальнобойного и магического тела
+    if (dt === 'ranged') {
+      this.spawnProjectile(
+        this.playerBody.x, this.playerBody.y,
+        closestCreature.x, closestCreature.y,
+        0xddcc88, 10, 2,
+      );
+    } else if (dt === 'magic') {
+      this.spawnProjectile(
+        this.playerBody.x, this.playerBody.y,
+        closestCreature.x, closestCreature.y,
+        0xaaddff, 6, 6,
+      );
     }
 
     // Текст урона
@@ -646,6 +694,13 @@ export class GameScene extends Phaser.Scene {
 
     if (result.hit) {
       this.playerBody.takeDamage(result.final);
+    }
+
+    // Снаряд моба
+    if (cdt === 'ranged') {
+      this.spawnProjectile(creature.x, creature.y, this.playerBody.x, this.playerBody.y, 0xcc8844, 10, 2);
+    } else if (cdt === 'magic') {
+      this.spawnProjectile(creature.x, creature.y, this.playerBody.x, this.playerBody.y, 0xcc66ff, 6, 6);
     }
 
     this.damageTexts.push(
@@ -981,6 +1036,44 @@ export class GameScene extends Phaser.Scene {
       ease: 'Power2',
       onComplete: () => gfx.destroy(),
     });
+  }
+
+  /** Летящий снаряд: визуальный, урон уже применён */
+  private spawnProjectile(
+    fromX: number, fromY: number,
+    toX: number,   toY: number,
+    color: number, len: number, rad: number,
+  ) {
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+    const angle = Math.atan2(dy, dx);
+    const dist  = Math.sqrt(dx * dx + dy * dy);
+    const speed = 420; // px/s
+    const dur   = Math.min(600, (dist / speed) * 1000);
+
+    const proj = this.add.rectangle(fromX, fromY, len, rad, color, 0.95)
+      .setRotation(angle).setDepth(52);
+
+    this.tweens.add({
+      targets: proj,
+      x: toX, y: toY,
+      duration: dur,
+      ease: 'Linear',
+      onComplete: () => proj.destroy(),
+    });
+  }
+
+  /** Разговор с NPC-квестодателем */
+  private tryTalkToQuestGiver(): boolean {
+    const qp = this.questGiverPos;
+    if (distance(this.sphere.x, this.sphere.y, qp.x, qp.y) > CAPTURE_RANGE * 1.5) return false;
+
+    const all = this.questTracker.getAll();
+    const active = all.filter(q => !q.completed);
+    const done   = all.filter(q => q.completed);
+
+    this.events.emit('quest-giver-talk', { active, done });
+    return true;
   }
 
   private exitAoeTargeting() {
