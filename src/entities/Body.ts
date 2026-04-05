@@ -20,9 +20,11 @@ export class Body extends Phaser.GameObjects.Container {
   public isCasting: boolean = false;   // заблокировать движение во время каста
   public attackCooldown: number = 0;   // сек до следующей атаки
 
-  private bodySprite: Phaser.GameObjects.Arc;
+  private bodySprite: Phaser.GameObjects.Image;
   private hpBar: Phaser.GameObjects.Rectangle;
   private hpBarBg: Phaser.GameObjects.Rectangle;
+  /** Таймер красной вспышки при получении урона */
+  private hitFlashTimer: number = 0;
 
   private keys?: {
     W: Phaser.Input.Keyboard.Key;
@@ -47,8 +49,14 @@ export class Body extends Phaser.GameObjects.Container {
     this.currentHP = maxHP(sphereStats);
     this.currentMana = maxMana(sphereStats);
 
-    // Визуал — цветной круг (пока без спрайтов)
-    this.bodySprite = scene.add.arc(0, 0, 14, 0, 360, false, definition.color, 1);
+    // Визуал — спрайт персонажа
+    const textureKey = `body_${definition.id}`;
+    const hasTexture = scene.textures.exists(textureKey);
+    this.bodySprite = scene.add.image(0, 0, hasTexture ? textureKey : '__DEFAULT');
+    if (!hasTexture) {
+      // Фолбэк: цветной квадрат через tint
+      this.bodySprite.setTint(definition.color);
+    }
     this.add(this.bodySprite);
 
     // HP-бар
@@ -125,6 +133,12 @@ export class Body extends Phaser.GameObjects.Container {
       this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * dt));
     }
 
+    // Hit flash
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= dt;
+      if (this.hitFlashTimer <= 0) this.bodySprite.clearTint();
+    }
+
     // HP-бар обновление
     const hpRatio = this.currentHP / this.maxHP;
     this.hpBar.width = 32 * hpRatio;
@@ -141,6 +155,8 @@ export class Body extends Phaser.GameObjects.Container {
   takeDamage(amount: number): number {
     const actual = Math.min(this.currentHP, amount);
     this.currentHP -= actual;
+    this.bodySprite.setTint(0xff4444);
+    this.hitFlashTimer = 0.15;
     return actual;
   }
 }

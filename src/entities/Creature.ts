@@ -23,7 +23,7 @@ export class Creature extends Phaser.GameObjects.Container {
   public spawnX: number;
   public spawnY: number;
 
-  private bodySprite: Phaser.GameObjects.Arc;
+  private bodySprite: Phaser.GameObjects.Image;
   private hpBar: Phaser.GameObjects.Rectangle;
   private hpBarBg: Phaser.GameObjects.Rectangle;
   private nameText: Phaser.GameObjects.Text;
@@ -52,8 +52,12 @@ export class Creature extends Phaser.GameObjects.Container {
 
     this.currentHP = maxHP(this.stats);
 
-    // Визуал
-    this.bodySprite = scene.add.arc(0, 0, 12, 0, 360, false, definition.color, 1);
+    // Визуал — спрайт существа
+    const textureKey = `body_${definition.id}`;
+    const hasTexture = scene.textures.exists(textureKey);
+    this.bodySprite = scene.add.image(0, 0, hasTexture ? textureKey : '__DEFAULT');
+    this.bodySprite.setDisplaySize(24, 24);
+    if (!hasTexture) this.bodySprite.setTint(definition.color);
     this.add(this.bodySprite);
 
     // Имя
@@ -159,7 +163,7 @@ export class Creature extends Phaser.GameObjects.Container {
     // Hit flash
     if (this.hitFlashTimer > 0) {
       this.hitFlashTimer -= dt;
-      if (this.hitFlashTimer <= 0) this.bodySprite.setFillStyle(this.definition.color);
+      if (this.hitFlashTimer <= 0) this.bodySprite.clearTint();
     }
 
     // HP-бар (заливка слева направо)
@@ -193,9 +197,9 @@ export class Creature extends Phaser.GameObjects.Container {
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);
-      this.bodySprite.setFillStyle(this.definition.color);
+      this.bodySprite.clearTint();
     } else {
-      this.bodySprite.setFillStyle(0xff3333);
+      this.bodySprite.setTint(0xff4444);
       this.hitFlashTimer = 0.12;
     }
     return actual;
