@@ -1,13 +1,19 @@
-import Phaser from "phaser";
-import { Sphere } from "../entities/Sphere";
-import { Body } from "../entities/Body";
-import { Creature } from "../entities/Creature";
-import { StatName } from "../types/stats";
-import { CaptureProcess, CaptureState } from "../systems/capture";
-import { calcRank, xpToNextLevel } from "../systems/progression";
-import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from "../utils/constants";
-import { STAT_NAMES_SHORT } from "../utils/statNames";
-import { QuestProgress } from "../types/quests";
+import Phaser from 'phaser';
+import { Sphere } from '../entities/Sphere';
+import { Body } from '../entities/Body';
+import { Creature } from '../entities/Creature';
+import { StatName } from '../types/stats';
+import { CaptureProcess, CaptureState } from '../systems/capture';
+import { calcRank, xpToNextLevel } from '../systems/progression';
+import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
+import { STAT_NAMES_SHORT } from '../utils/statNames';
+import { QuestProgress } from '../types/quests';
+
+const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
+const HEADER_H = 20;
+const SKILL_SLOT_SIZE = 48;
+const SKILL_SLOT_GAP = 6;
+const SKILL_SLOTS_COUNT = 8;
 
 interface CreatureMapDot {
   x: number; y: number;
@@ -27,119 +33,83 @@ interface UIData {
   playerPos: { x: number; y: number } | null;
 }
 
-const SKILL_SLOT_SIZE = 48;
-const SKILL_SLOT_GAP = 6;
-const SKILL_SLOTS_COUNT = 8;
-const HEADER_H = 18;
-const PANEL_LEFT_W = 145;
-const PANEL_RIGHT_W = 170;
-const MM_W = 150;
-const MM_H = 100;
-const MM_LEFT = GAME_WIDTH - MM_W - 6;
-const MM_TOP  = GAME_HEIGHT - MM_H - 74;
-const MAP_SCALE_X = MM_W / MAP_WIDTH;
-const MAP_SCALE_Y = MM_H / MAP_HEIGHT;
+interface PanelState {
+  x: number; y: number;
+  w: number; h: number;   // h only used for minimap
+  collapsed: boolean;
+}
 
 export class UIScene extends Phaser.Scene {
-  private statsText!: Phaser.GameObjects.Text;
-  private spellText!: Phaser.GameObjects.Text;
+  // ── Content text objects ──────────────────────────────
+  private statsText!:   Phaser.GameObjects.Text;
+  private spellText!:   Phaser.GameObjects.Text;
   private targetPanel!: Phaser.GameObjects.Text;
-  private questPanel!: Phaser.GameObjects.Text;
-  private resourceText!: Phaser.GameObjects.Text;
-  private bodyInfoText!: Phaser.GameObjects.Text;
-  private hintText!: Phaser.GameObjects.Text;
-  private logText!: Phaser.GameObjects.Text;
-  private captureBar!: Phaser.GameObjects.Rectangle;
-  private captureBarBg!: Phaser.GameObjects.Rectangle;
+  private questPanel!:  Phaser.GameObjects.Text;
+  private resourceText!:Phaser.GameObjects.Text;
+  private bodyInfoText!:Phaser.GameObjects.Text;
+  private hintText!:    Phaser.GameObjects.Text;
+  private logText!:     Phaser.GameObjects.Text;
+  private captureBar!:  Phaser.GameObjects.Rectangle;
+  private captureBarBg!:Phaser.GameObjects.Rectangle;
+  private castBarBg!:   Phaser.GameObjects.Rectangle;
+  private castBar!:     Phaser.GameObjects.Rectangle;
+  private castLabel!:   Phaser.GameObjects.Text;
 
-  private skillSlotsBg: Phaser.GameObjects.Rectangle[] = [];
-  private skillSlotsIcon: Phaser.GameObjects.Text[] = [];
-  private skillSlotsKey: Phaser.GameObjects.Text[] = [];
-  private skillSlotsCd: Phaser.GameObjects.Rectangle[] = [];
-  private skillSlotsCdText: Phaser.GameObjects.Text[] = [];
-  private skillBarLocked: boolean = false;
-  private lockBtn!: Phaser.GameObjects.Text;
-
+  // ── Skill bar ─────────────────────────────────────────
+  private skillSlotsBg:      Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsIcon:    Phaser.GameObjects.Text[]      = [];
+  private skillSlotsKey:     Phaser.GameObjects.Text[]      = [];
+  private skillSlotsCd:      Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsCdText:  Phaser.GameObjects.Text[]      = [];
+  private skillBarLocked:    boolean = false;
+  private lockBtn!:          Phaser.GameObjects.Text;
   private spellPickerContainer!: Phaser.GameObjects.Container;
-  private spellPickerSlot: number = -1;
-  private cachedLearnedSpells: import("../types/abilities").AbilityDef[] = [];
-  private cachedInCombat: boolean = false;
-  private cachedBody: Body | null = null;
+  private spellPickerSlot:   number = -1;
+  private cachedLearnedSpells: import('../types/abilities').AbilityDef[] = [];
+  private cachedInCombat:    boolean = false;
+  private cachedBody:        Body | null = null;
 
-  private castBarBg!: Phaser.GameObjects.Rectangle;
-  private castBar!: Phaser.GameObjects.Rectangle;
-  private castLabel!: Phaser.GameObjects.Text;
-
+  // ── Log ───────────────────────────────────────────────
   private logMessages: string[] = [];
 
-  // Collapsible panel state
-  private collapsed: Record<string, boolean> = {
-    sphere: false, spells: false, quests: false,
-    body: false, target: false, log: false, minimap: false,
+  // ── Panel state (position, size, collapsed) ───────────
+  private panelStates: Record<string, PanelState> = {
+    sphere:  { x: 10,              y: 10,   w: 145, h: 0,   collapsed: false },
+    spells:  { x: 10,              y: 250,  w: 145, h: 0,   collapsed: false },
+    quests:  { x: 10,              y: 340,  w: 145, h: 0,   collapsed: false },
+    body:    { x: GAME_WIDTH-180,  y: 10,   w: 170, h: 0,   collapsed: false },
+    target:  { x: GAME_WIDTH-180,  y: 110,  w: 170, h: 0,   collapsed: false },
+    log:     { x: 10,              y: 475,  w: 210, h: 0,   collapsed: false },
+    minimap: { x: GAME_WIDTH-156,  y: 440,  w: 150, h: 100, collapsed: false },
   };
-  // Panel headers (Container: [0]=bg rect, [1]=label text, [2]=arrow text)
-  private hdrSphere!: Phaser.GameObjects.Container;
-  private hdrSpells!: Phaser.GameObjects.Container;
-  private hdrQuests!: Phaser.GameObjects.Container;
-  private hdrBody!: Phaser.GameObjects.Container;
-  private hdrTarget!: Phaser.GameObjects.Container;
-  private hdrLog!: Phaser.GameObjects.Container;
-  private hdrMinimap!: Phaser.GameObjects.Container;
 
-  // Mini-map
+  // ── Panel header containers ───────────────────────────
+  // Each: [0]=bg rect  [1]=label text  [2]=arrow text
+  private panelHeaders: Record<string, Phaser.GameObjects.Container> = {};
+
+  // ── Resize grips ──────────────────────────────────────
+  private grips: Record<string, Phaser.GameObjects.Rectangle> = {};
+
+  // ── Mini-map graphics ─────────────────────────────────
   private minimapBorder!: Phaser.GameObjects.Rectangle;
-  private minimapGfx!: Phaser.GameObjects.Graphics;
+  private minimapGfx!:    Phaser.GameObjects.Graphics;
 
-  constructor() { super({ key: "UIScene" }); }
+  constructor() { super({ key: 'UIScene' }); }
 
   create() {
-    // Stats text (left, under sphere header)
-    this.statsText = this.add.text(10, 10 + HEADER_H, '', {
-      fontSize: '12px', color: '#aaeeff', lineSpacing: 5,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setScrollFactor(0).setDepth(1000);
+    // Load saved layout before creating anything
+    this.loadUILayout();
 
-    // Spell progress text
-    this.spellText = this.add.text(10, 200, '', {
-      fontSize: '11px', color: '#ddaaff', lineSpacing: 3,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 5 },
-    }).setScrollFactor(0).setDepth(1000).setVisible(false);
-
-    // Target panel (right side)
-    this.targetPanel = this.add.text(GAME_WIDTH - 10, 90, '', {
-      fontSize: '11px', color: '#ffddaa', align: 'right', lineSpacing: 4,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
-
-    // Quest panel (left side)
-    this.questPanel = this.add.text(10, 300, '', {
-      fontSize: '11px', color: '#ffeeaa', lineSpacing: 3,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
-    }).setOrigin(0, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
-
-    // Resources (bottom center, above skill bar)
+    // ── Fixed UI elements (not in panels) ──────────────
     this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
       fontSize: '13px', color: '#ffffff', align: 'center',
       backgroundColor: '#000000aa', padding: { x: 8, y: 4 },
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000);
 
-    // Body info (right top)
-    this.bodyInfoText = this.add.text(GAME_WIDTH - 10, 10 + HEADER_H, '', {
-      fontSize: '11px', color: '#cccccc', align: 'right',
-      backgroundColor: '#000000aa', padding: { x: 6, y: 4 },
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(1000);
-
-    // Hint text
     this.hintText = this.add.text(10, GAME_HEIGHT - 12, '', {
       fontSize: '11px', color: '#666677',
     }).setOrigin(0, 1).setScrollFactor(0).setDepth(1000);
 
-    // Log text (bottom left)
-    this.logText = this.add.text(10, GAME_HEIGHT - 130, '', {
-      fontSize: '10px', color: '#aaaaaa', lineSpacing: 3,
-    }).setScrollFactor(0).setDepth(1000);
-
-    // Capture bar
     this.captureBarBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40, 140, 10, 0x333333)
       .setScrollFactor(0).setDepth(1001).setVisible(false);
     this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, 0x66ccff)
@@ -148,7 +118,6 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', color: '#66ccff',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
-    // Cast bar (above skill bar)
     const castY = GAME_HEIGHT - 72;
     this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, 0x222222)
       .setScrollFactor(0).setDepth(1001).setVisible(false);
@@ -158,215 +127,374 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', color: '#ff8800',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
-    // Skill bar
-    this.buildSkillBar();
+    // ── Panel content text objects (positioned in updateUI) ──
+    this.statsText = this.add.text(0, 0, '', {
+      fontSize: '12px', color: '#aaeeff', lineSpacing: 5,
+      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+    }).setScrollFactor(0).setDepth(1000);
 
-    // Panel headers
-    this.hdrSphere  = this.makeHeader('sphere',  10,                        10, PANEL_LEFT_W);
-    this.hdrSpells  = this.makeHeader('spells',  10,                       200, PANEL_LEFT_W);
-    this.hdrQuests  = this.makeHeader('quests',  10,                       300, PANEL_LEFT_W);
-    this.hdrBody    = this.makeHeader('body',    GAME_WIDTH - 10 - PANEL_RIGHT_W, 10,  PANEL_RIGHT_W);
-    this.hdrTarget  = this.makeHeader('target',  GAME_WIDTH - 10 - PANEL_RIGHT_W, 90,  PANEL_RIGHT_W);
-    this.hdrLog     = this.makeHeader('log',     10, GAME_HEIGHT - 130 - HEADER_H, PANEL_LEFT_W);
-    this.hdrMinimap = this.makeHeader('minimap', MM_LEFT, MM_TOP - HEADER_H - 2, MM_W);
+    this.spellText = this.add.text(0, 0, '', {
+      fontSize: '11px', color: '#ddaaff', lineSpacing: 3,
+      backgroundColor: '#000000bb', padding: { x: 8, y: 5 },
+    }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
-    // Mini-map background border
-    this.minimapBorder = this.add.rectangle(MM_LEFT, MM_TOP, MM_W, MM_H, 0x0a0f1a, 0.88)
+    this.targetPanel = this.add.text(0, 0, '', {
+      fontSize: '11px', color: '#ffddaa', lineSpacing: 4,
+      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+    }).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    this.questPanel = this.add.text(0, 0, '', {
+      fontSize: '11px', color: '#ffeeaa', lineSpacing: 3,
+      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+    }).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    this.bodyInfoText = this.add.text(0, 0, '', {
+      fontSize: '11px', color: '#cccccc',
+      backgroundColor: '#000000aa', padding: { x: 6, y: 4 },
+    }).setScrollFactor(0).setDepth(1000);
+
+    this.logText = this.add.text(0, 0, '', {
+      fontSize: '10px', color: '#aaaaaa', lineSpacing: 3,
+    }).setScrollFactor(0).setDepth(1000);
+
+    // ── Mini-map ──────────────────────────────────────────
+    const mm = this.panelStates.minimap;
+    this.minimapBorder = this.add.rectangle(mm.x, mm.y + HEADER_H, mm.w, mm.h, 0x0a0f1a, 0.88)
       .setOrigin(0, 0).setScrollFactor(0).setDepth(1008)
       .setStrokeStyle(1, 0x334466, 0.9);
-
-    // Mini-map graphics
     this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(1009);
 
-    // Events from GameScene
+    // ── Panel headers (draggable) ──────────────────────────
+    this.panelHeaders['sphere']  = this.makeHeader('sphere',  'Сфера');
+    this.panelHeaders['spells']  = this.makeHeader('spells',  'Заклинания');
+    this.panelHeaders['quests']  = this.makeHeader('quests',  'Квесты');
+    this.panelHeaders['body']    = this.makeHeader('body',    'Тело');
+    this.panelHeaders['target']  = this.makeHeader('target',  'Цель');
+    this.panelHeaders['log']     = this.makeHeader('log',     'Лог');
+    this.panelHeaders['minimap'] = this.makeHeader('minimap', 'Карта');
+
+    // ── Resize grips ───────────────────────────────────────
+    for (const id of Object.keys(this.panelStates)) {
+      this.grips[id] = this.makeResizeGrip(id, id === 'minimap');
+    }
+
+    // ── Skill bar ─────────────────────────────────────────
+    this.buildSkillBar();
+
+    // ── Events ────────────────────────────────────────────
     const gs = this.scene.get('GameScene');
     gs.events.on('update-ui', (data: UIData) => this.updateUI(data));
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
     gs.events.on('creature-killed', (data: { name: string; xp: number; stats: StatName[] }) => {
-      const statStr = data.stats.map(s => STAT_NAMES_SHORT[s]).join(', ');
-      this.addLog(`${data.name} убит  +${data.xp} XP → [${statStr}]`);
+      const s = data.stats.map(s => STAT_NAMES_SHORT[s]).join(', ');
+      this.addLog(`${data.name} убит  +${data.xp} XP → [${s}]`);
     });
     gs.events.on('player-died', (data: { xpLost: number; debuffDuration: number }) => {
-      this.addLog(`⚠ Тело погибло. Вы в астрале.`);
-      if (data?.xpLost > 0) this.addLog(`  ↓ Потеряно ${data.xpLost} XP (штраф смерти)`);
-      this.addLog(`  ✦ Слабость астрала: −15% урон на ${data?.debuffDuration ?? 30}с`);
+      this.addLog('⚠ Тело погибло. Вы в астрале.');
+      if (data?.xpLost > 0) this.addLog(`  ↓ Потеряно ${data.xpLost} XP`);
+      this.addLog(`  ✦ Слабость: −15% урон на ${data?.debuffDuration ?? 30}с`);
     });
     gs.events.on('body-captured', (name: string) => this.addLog(`✦ Захвачено: ${name}`));
-    gs.events.on('capture-available', (name: string) => this.addLog(`${name} — нажми [E] для захвата`));
+    gs.events.on('capture-available', (name: string) => this.addLog(`${name} — [E] захват`));
     gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
-      this.addLog(`★ Изучено: ${spell.nameRu} → слот 2`);
+      this.addLog(`★ Изучено: ${spell.nameRu}`);
     });
     gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
-      this.addLog(`✦ КВЕСТ ВЫПОЛНЕН: ${data.name}  +${data.xp} XP`);
+      this.addLog(`✦ КВЕСТ: ${data.name}  +${data.xp} XP`);
     });
-    gs.events.on('save-loaded', () => this.addLog('↺ Прогресс загружен из сохранения'));
+    gs.events.on('save-loaded', () => this.addLog('↺ Прогресс загружен'));
     gs.events.on('aoe-targeting', (name: string) => {
-      this.addLog(`◎ Прицеливание: ${name}  [ЛКМ] выстрел  [ПКМ/ESC] отмена`);
+      this.addLog(`◎ Прицеливание: ${name}  [ЛКМ/ПКМ]`);
     });
-    gs.events.on('spell-out-of-range', () => this.addLog('✗ Слишком далеко для заклинания'));
+    gs.events.on('spell-out-of-range', () => this.addLog('✗ Слишком далеко'));
   }
 
-  // ── Header helper ──────────────────────────────────────
+  // ── Panel header factory ─────────────────────────────
 
-  private makeHeader(panelId: string, x: number, y: number, width: number): Phaser.GameObjects.Container {
-    const bg = this.add.rectangle(0, 0, width, HEADER_H, 0x0e1020, 0.93)
+  private makeHeader(panelId: string, defaultLabel: string): Phaser.GameObjects.Container {
+    const state = this.panelStates[panelId];
+    let dragMoved = false;
+
+    const bg = this.add.rectangle(0, 0, state.w, HEADER_H, 0x0e1020, 0.93)
       .setOrigin(0, 0).setStrokeStyle(1, 0x2d3a55, 0.8);
-    const label = this.add.text(7, 3, '', {
+    const label = this.add.text(7, 3, defaultLabel, {
       fontSize: '11px', color: '#8899bb',
     }).setOrigin(0, 0);
-    const arrow = this.add.text(width - 5, 3, '▼', {
+    const arrow = this.add.text(state.w - 5, 3, '▼', {
       fontSize: '9px', color: '#445566',
     }).setOrigin(1, 0);
 
-    const container = this.add.container(x, y, [bg, label, arrow])
+    // Drag cursor icon (small grip dots)
+    const grip3 = this.add.text(state.w / 2, 3, '⋮⋮', {
+      fontSize: '9px', color: '#334455',
+    }).setOrigin(0.5, 0);
+
+    const container = this.add.container(state.x, state.y, [bg, label, arrow, grip3])
       .setScrollFactor(0).setDepth(1010)
-      .setSize(width, HEADER_H)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => (bg as Phaser.GameObjects.Rectangle).setFillStyle(0x182038, 0.98))
-      .on('pointerout',  () => (bg as Phaser.GameObjects.Rectangle).setFillStyle(0x0e1020, 0.93))
-      .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      .setSize(state.w, HEADER_H)
+      .setInteractive(
+        new Phaser.Geom.Rectangle(0, 0, state.w, HEADER_H),
+        Phaser.Geom.Rectangle.Contains,
+      )
+      .on('pointerover', () => {
+        (bg as Phaser.GameObjects.Rectangle).setFillStyle(0x182038, 0.98);
+        this.input.setDefaultCursor('grab');
+      })
+      .on('pointerout', () => {
+        (bg as Phaser.GameObjects.Rectangle).setFillStyle(0x0e1020, 0.93);
+        this.input.setDefaultCursor('default');
+      })
+      .on('dragstart', () => { dragMoved = false; })
+      .on('drag', (_ptr: Phaser.Input.Pointer, dx: number, dy: number) => {
+        dragMoved = true;
+        state.x = Math.max(0, Math.min(GAME_WIDTH  - state.w, dx));
+        state.y = Math.max(0, Math.min(GAME_HEIGHT - HEADER_H, dy));
+        container.setPosition(state.x, state.y);
+        this.input.setDefaultCursor('grabbing');
+      })
+      .on('dragend', () => {
+        if (dragMoved) this.saveUILayout();
+        this.input.setDefaultCursor('default');
+      })
+      .on('pointerup', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
-        this.collapsed[panelId] = !this.collapsed[panelId];
-        (arrow as Phaser.GameObjects.Text).setText(this.collapsed[panelId] ? '▶' : '▼');
+        if (!dragMoved) {
+          state.collapsed = !state.collapsed;
+          (arrow as Phaser.GameObjects.Text).setText(state.collapsed ? '▶' : '▼');
+          this.saveUILayout();
+        }
+        dragMoved = false;
       });
+
+    this.input.setDraggable(container);
     return container;
   }
 
-  private setHeaderLabel(hdr: Phaser.GameObjects.Container, text: string) {
-    (hdr.getAt(1) as Phaser.GameObjects.Text).setText(text);
+  private resizeHeader(panelId: string) {
+    const state = this.panelStates[panelId];
+    const hdr = this.panelHeaders[panelId];
+    if (!hdr) return;
+    const w = state.w;
+    (hdr.getAt(0) as Phaser.GameObjects.Rectangle).width = w;
+    (hdr.getAt(2) as Phaser.GameObjects.Text).setX(w - 5);   // arrow
+    (hdr.getAt(3) as Phaser.GameObjects.Text).setX(w / 2);   // grip dots
+    hdr.setSize(w, HEADER_H);
+    // Update hitArea too
+    hdr.input!.hitArea = new Phaser.Geom.Rectangle(0, 0, w, HEADER_H);
   }
 
-  // ── updateUI ──────────────────────────────────────────
+  private setHeaderLabel(panelId: string, text: string) {
+    const hdr = this.panelHeaders[panelId];
+    if (hdr) (hdr.getAt(1) as Phaser.GameObjects.Text).setText(text);
+  }
+
+  // ── Resize grip factory ──────────────────────────────
+
+  private makeResizeGrip(panelId: string, vertical: boolean): Phaser.GameObjects.Rectangle {
+    const state = this.panelStates[panelId];
+
+    const grip = this.add.rectangle(0, 0, 10, 10, 0x445566, 0.75)
+      .setScrollFactor(0).setDepth(1011)
+      .setStrokeStyle(1, 0x6688aa, 0.6)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => {
+        grip.setFillStyle(0x6688aa, 0.9);
+        this.input.setDefaultCursor(vertical ? 'se-resize' : 'e-resize');
+      })
+      .on('pointerout', () => {
+        grip.setFillStyle(0x445566, 0.75);
+        this.input.setDefaultCursor('default');
+      })
+      .on('drag', (ptr: Phaser.Input.Pointer) => {
+        state.w = Math.max(80, Math.min(GAME_WIDTH - state.x, Math.round(ptr.x - state.x)));
+        if (vertical) {
+          state.h = Math.max(60, Math.min(GAME_HEIGHT - state.y - HEADER_H, Math.round(ptr.y - state.y - HEADER_H)));
+        }
+        this.resizeHeader(panelId);
+      })
+      .on('dragend', () => {
+        this.saveUILayout();
+        this.input.setDefaultCursor('default');
+      });
+
+    this.input.setDraggable(grip);
+    return grip;
+  }
+
+  // ── Layout persistence ────────────────────────────────
+
+  private saveUILayout() {
+    try {
+      const save: Record<string, PanelState> = {};
+      for (const [k, v] of Object.entries(this.panelStates)) {
+        save[k] = { ...v };
+      }
+      localStorage.setItem(UI_LAYOUT_KEY, JSON.stringify(save));
+    } catch { /* localStorage unavailable */ }
+  }
+
+  private loadUILayout() {
+    try {
+      const raw = localStorage.getItem(UI_LAYOUT_KEY);
+      if (!raw) return;
+      const saved: Record<string, PanelState> = JSON.parse(raw);
+      for (const [k, v] of Object.entries(saved)) {
+        if (this.panelStates[k]) {
+          this.panelStates[k] = {
+            x: Math.max(0, Math.min(GAME_WIDTH  - 40, v.x ?? this.panelStates[k].x)),
+            y: Math.max(0, Math.min(GAME_HEIGHT - 20, v.y ?? this.panelStates[k].y)),
+            w: Math.max(80, v.w ?? this.panelStates[k].w),
+            h: Math.max(60, v.h ?? this.panelStates[k].h),
+            collapsed: v.collapsed ?? this.panelStates[k].collapsed,
+          };
+        }
+      }
+    } catch { /* corrupt save */ }
+  }
+
+  // ── Grip positioning helper ───────────────────────────
+
+  private positionGrip(panelId: string, contentBottom: number) {
+    const state = this.panelStates[panelId];
+    const grip = this.grips[panelId];
+    if (!grip) return;
+    grip.setPosition(state.x + state.w - 5, contentBottom - 5).setVisible(true);
+  }
+
+  // ── Main UI update ────────────────────────────────────
 
   private updateUI(data: UIData) {
     const { sphere, body, capture } = data;
 
-    // Cache for spell picker
     this.cachedLearnedSpells = sphere.learnedSpells;
     this.cachedInCombat = data.inCombat ?? false;
     this.cachedBody = body;
     if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
 
-    // ── Sphere panel ────────────────────────────────────
     const rank = calcRank(sphere.stats);
     const caps = body?.definition.caps ?? {};
     const xpTracker = sphere.xpTracker;
     const debuffSecs = Math.ceil(data.deathDebuff ?? 0);
-    const debuffStr = debuffSecs > 0 ? `  ⚠ ${debuffSecs}с` : '';
 
-    const statLines: string[] = [];
-    for (const stat of STAT_ORDER) {
-      const val = sphere.stats[stat];
-      const cap = caps[stat];
-      const isActive = cap !== undefined;
-      const isCapped = cap !== undefined && val >= cap;
-      let line = `${STAT_NAMES_SHORT[stat]}: ${val}`;
-      if (isActive && xpTracker) {
-        if (isCapped) {
-          line += ' [КАП]';
-        } else {
-          const currentXP = xpTracker[stat];
-          const needed = xpToNextLevel(val);
-          line += ` ${buildXPBar(currentXP, needed, 8)} ${currentXP}/${needed}`;
+    // ── Sphere panel ─────────────────────────────────────
+    {
+      const s = this.panelStates.sphere;
+      const debuffStr = debuffSecs > 0 ? `  ⚠ ${debuffSecs}с` : '';
+      this.setHeaderLabel('sphere', `Сфера  Ранг ${rank.toFixed(1)}${debuffStr}`);
+      this.panelHeaders['sphere'].setPosition(s.x, s.y);
+
+      if (!s.collapsed) {
+        const lines: string[] = [];
+        for (const stat of STAT_ORDER) {
+          const val = sphere.stats[stat];
+          const cap = caps[stat];
+          const isCapped = cap !== undefined && val >= cap;
+          let line = `${STAT_NAMES_SHORT[stat]}: ${val}`;
+          if (cap !== undefined && xpTracker) {
+            if (isCapped) {
+              line += ' [КАП]';
+            } else {
+              const xp = xpTracker[stat];
+              const need = xpToNextLevel(val);
+              line += ` ${buildXPBar(xp, need, 8)} ${xp}/${need}`;
+            }
+          }
+          if (cap !== undefined) line = `► ${line}  (кап ${cap})`;
+          lines.push(line);
         }
+        this.statsText.setPosition(s.x, s.y + HEADER_H)
+          .setText(lines.join('\n')).setVisible(true);
+        const bottom = this.statsText.getBounds().bottom;
+        this.positionGrip('sphere', bottom);
+      } else {
+        this.statsText.setVisible(false);
+        this.positionGrip('sphere', s.y + HEADER_H);
       }
-      if (cap !== undefined) line = `► ${line}  (кап ${cap})`;
-      statLines.push(line);
     }
 
-    const sphereHeaderY = 10;
-    this.hdrSphere.setY(sphereHeaderY);
-    this.setHeaderLabel(this.hdrSphere, `Сфера  Ранг ${rank.toFixed(1)}${debuffStr}`);
-    this.statsText.setY(sphereHeaderY + HEADER_H);
-    this.statsText.setText(statLines.join('\n')).setVisible(!this.collapsed.sphere);
+    // ── Spells panel ─────────────────────────────────────
+    {
+      const s = this.panelStates.spells;
+      const sig = body?.definition.signatureSpell;
+      const threshold = body?.definition.spellXPThreshold;
+      const hasSpell = !!(sig && threshold);
+      this.panelHeaders['spells'].setVisible(hasSpell).setPosition(s.x, s.y);
+      this.grips['spells'].setVisible(hasSpell);
 
-    const sphereBottom = this.collapsed.sphere
-      ? sphereHeaderY + HEADER_H
-      : this.statsText.getBounds().bottom;
+      if (hasSpell && sig && threshold) {
+        const learned = sphere.learnedSpells.some(sp => sp.id === sig.id);
+        this.setHeaderLabel('spells', learned ? `✦ ${sig.nameRu} ИЗУЧЕНО` : `✧ ${sig.nameRu}`);
 
-    // ── Spells panel ────────────────────────────────────
-    const sig = body?.definition.signatureSpell;
-    const threshold = body?.definition.spellXPThreshold;
-    const hasSpell = !!(sig && threshold);
-    const spellsHeaderY = sphereBottom + 4;
-    this.hdrSpells.setY(spellsHeaderY).setVisible(hasSpell);
-
-    if (hasSpell && sig && threshold) {
-      const alreadyLearned = sphere.learnedSpells.some(s => s.id === sig.id);
-      this.setHeaderLabel(this.hdrSpells,
-        alreadyLearned ? `✦ ${sig.nameRu} — ИЗУЧЕНО` : `✧ ${sig.nameRu}`);
-
-      if (!this.collapsed.spells) {
-        this.spellText.setPosition(10, spellsHeaderY + HEADER_H).setVisible(true);
-        if (alreadyLearned) {
-          this.spellText.setText(`✦ ${sig.nameRu} — ИЗУЧЕНО`);
+        if (!s.collapsed) {
+          let txt: string;
+          if (learned) {
+            txt = `✦ ${sig.nameRu} — ИЗУЧЕНО`;
+          } else {
+            const cur = sphere.spellProgress[sig.id] ?? 0;
+            txt = `✧ ${sig.nameRu}\n${buildXPBar(cur, threshold, 10)}  ${cur} / ${threshold} XP`;
+          }
+          this.spellText.setPosition(s.x, s.y + HEADER_H).setText(txt).setVisible(true);
+          this.positionGrip('spells', this.spellText.getBounds().bottom);
         } else {
-          const current = sphere.spellProgress[sig.id] ?? 0;
-          this.spellText.setText(
-            `✧ Заклинание: ${sig.nameRu}\n${buildXPBar(current, threshold, 10)}  ${current} / ${threshold} XP`
-          );
+          this.spellText.setVisible(false);
+          this.positionGrip('spells', s.y + HEADER_H);
         }
       } else {
         this.spellText.setVisible(false);
       }
-    } else {
-      this.spellText.setVisible(false);
     }
 
-    const spellsBottom = !hasSpell
-      ? spellsHeaderY
-      : this.collapsed.spells
-        ? spellsHeaderY + HEADER_H
-        : this.spellText.getBounds().bottom;
+    // ── Quests panel ──────────────────────────────────────
+    {
+      const s = this.panelStates.quests;
+      const active = data.quests.filter(q => !q.completed);
+      this.panelHeaders['quests'].setVisible(active.length > 0).setPosition(s.x, s.y);
+      this.grips['quests'].setVisible(active.length > 0);
 
-    // ── Quests panel ────────────────────────────────────
-    const activeQuests = data.quests.filter(q => !q.completed);
-    const questsHeaderY = spellsBottom + (hasSpell ? 4 : 0);
-    this.hdrQuests.setY(questsHeaderY).setVisible(activeQuests.length > 0);
-
-    if (activeQuests.length > 0) {
-      this.setHeaderLabel(this.hdrQuests, `Квесты (${activeQuests.length})`);
-      if (!this.collapsed.quests) {
-        const qLines: string[] = [];
-        for (const q of activeQuests) {
-          qLines.push(`▸ ${q.def.nameRu}  (+${q.def.xpReward} XP)`);
-          for (let i = 0; i < q.def.objectives.length; i++) {
-            const obj = q.def.objectives[i];
-            const cur = q.counts[i];
-            const done = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-            const verb = obj.type === 'kill'    ? 'Убить'
-                       : obj.type === 'capture' ? 'Захватить'
-                       :                         'Изучить';
-            const name = obj.targetNameRu ?? obj.targetId ?? '';
-            qLines.push(`  ${verb} ${name}: ${done}`);
+      if (active.length > 0) {
+        this.setHeaderLabel('quests', `Квесты (${active.length})`);
+        if (!s.collapsed) {
+          const lines: string[] = [];
+          for (const q of active) {
+            lines.push(`▸ ${q.def.nameRu}  +${q.def.xpReward} XP`);
+            for (let i = 0; i < q.def.objectives.length; i++) {
+              const obj = q.def.objectives[i];
+              const cur = q.counts[i];
+              const done = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
+              const verb = obj.type === 'kill'    ? 'Убить'
+                         : obj.type === 'capture' ? 'Захватить' : 'Изучить';
+              lines.push(`  ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${done}`);
+            }
           }
+          this.questPanel.setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
+          this.positionGrip('quests', this.questPanel.getBounds().bottom);
+        } else {
+          this.questPanel.setVisible(false);
+          this.positionGrip('quests', s.y + HEADER_H);
         }
-        this.questPanel.setPosition(10, questsHeaderY + HEADER_H)
-          .setText(qLines.join('\n')).setVisible(true);
       } else {
         this.questPanel.setVisible(false);
       }
-    } else {
-      this.questPanel.setVisible(false);
     }
 
-    // ── Resources (always visible when in body) ─────────
+    // ── Resources (always visible when in body) ──────────
     if (body) {
       const hpPct  = Math.round((body.currentHP   / body.maxHP)   * 100);
-      const manaPct = Math.round((body.currentMana / body.maxMana) * 100);
+      const manaPct= Math.round((body.currentMana / body.maxMana) * 100);
       this.resourceText.setText(
-        `HP ${Math.round(body.currentHP)}/${body.maxHP} (${hpPct}%)   Мана ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)`
+        `HP ${Math.round(body.currentHP)}/${body.maxHP} (${hpPct}%)   ` +
+        `Мана ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)`
       ).setVisible(true);
-      this.hintText.setText('[1] Атака  [Q] Выйти из тела  [E] Захват');
+      this.hintText.setText('[1] Атака  [Q] Выйти  [E] Захват  [2-8] Умения');
     } else {
       this.resourceText.setVisible(false);
       this.hintText.setText('[WASD] Движение  [E] Захватить тело');
     }
 
-    // ── Capture bar ─────────────────────────────────────
+    // ── Capture bar ──────────────────────────────────────
     if (capture?.state === CaptureState.Casting) {
       const p = capture.elapsed / capture.duration;
       this.captureBarBg.setVisible(true);
@@ -377,10 +505,10 @@ export class UIScene extends Phaser.Scene {
       this.captureBar.setVisible(false);
     }
 
-    // ── Skill bar ────────────────────────────────────────
+    // ── Skill bar ─────────────────────────────────────────
     this.updateSkillBar(body);
 
-    // ── Cast bar ─────────────────────────────────────────
+    // ── Cast bar ──────────────────────────────────────────
     if (data.aoeCast) {
       const p = Math.min(data.aoeCast.elapsed / data.aoeCast.duration, 1);
       this.castBarBg.setVisible(true);
@@ -395,136 +523,148 @@ export class UIScene extends Phaser.Scene {
       this.castLabel.setVisible(false);
     }
 
-    // ── Body panel (right) ───────────────────────────────
-    const bodyHeaderY = 10;
-    this.hdrBody.setY(bodyHeaderY).setVisible(!!body);
-    if (body) {
-      this.setHeaderLabel(this.hdrBody, body.definition.nameRu);
-      this.bodyInfoText.setY(bodyHeaderY + HEADER_H);
-      if (!this.collapsed.body) {
-        this.bodyInfoText.setText(
-          `── ${body.definition.nameRu} ──\n` +
-          `Оружие: ${body.weapon.nameRu}  КД: ${body.weapon.cooldown}с`
-        ).setVisible(true);
+    // ── Body panel (right) ────────────────────────────────
+    {
+      const s = this.panelStates.body;
+      this.panelHeaders['body'].setVisible(!!body).setPosition(s.x, s.y);
+      this.grips['body'].setVisible(!!body);
+      if (body) {
+        this.setHeaderLabel('body', body.definition.nameRu);
+        if (!s.collapsed) {
+          this.bodyInfoText.setPosition(s.x, s.y + HEADER_H).setText(
+            `── ${body.definition.nameRu} ──\n` +
+            `Оружие: ${body.weapon.nameRu}  КД: ${body.weapon.cooldown}с`
+          ).setVisible(true);
+          this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
+        } else {
+          this.bodyInfoText.setVisible(false);
+          this.positionGrip('body', s.y + HEADER_H);
+        }
       } else {
         this.bodyInfoText.setVisible(false);
       }
-    } else {
-      this.bodyInfoText.setVisible(false);
     }
 
-    const bodyBottom = (!body)
-      ? bodyHeaderY
-      : this.collapsed.body
-        ? bodyHeaderY + HEADER_H
-        : this.bodyInfoText.getBounds().bottom;
+    // ── Target panel (right) ──────────────────────────────
+    {
+      const s = this.panelStates.target;
+      const tgt = data.target;
+      const hasTarget = !!(tgt && !tgt.isDead);
+      this.panelHeaders['target'].setVisible(hasTarget).setPosition(s.x, s.y);
+      this.grips['target'].setVisible(hasTarget);
 
-    // ── Target panel (right) ─────────────────────────────
-    const targetHeaderY = body ? bodyBottom + 4 : bodyHeaderY;
-    this.hdrTarget.setY(targetHeaderY);
+      if (hasTarget && tgt) {
+        const hpPct = Math.round((tgt.currentHP / tgt.maxHP) * 100);
+        this.setHeaderLabel('target', `${tgt.definition.nameRu}  ${hpPct}%`);
 
-    const target = data.target;
-    if (target && !target.isDead) {
-      const hpPct = Math.round((target.currentHP / target.maxHP) * 100);
-      this.setHeaderLabel(this.hdrTarget, `${target.definition.nameRu}  ${hpPct}%`);
-      this.hdrTarget.setVisible(true);
-
-      if (!this.collapsed.target) {
-        const def = target.definition;
-        const dmgLabel = def.damageType === 'magic'  ? '✦ Магия'
-                       : def.damageType === 'ranged' ? '➶ Дальний' : '⚔ Ближний';
-        const tLines: string[] = [
-          `── ${def.nameRu} ──`,
-          `${dmgLabel}  HP: ${Math.round(target.currentHP)}/${target.maxHP}`,
-          '',
-          'Боевые статы:',
-        ];
-        const npc = def.npcStats ?? {};
-        for (const [stat, val] of Object.entries(npc)) {
-          if ((val ?? 0) > 0) tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]}: ${val}`);
+        if (!s.collapsed) {
+          const def = tgt.definition;
+          const dmgLabel = def.damageType === 'magic'  ? '✦ Магия'
+                         : def.damageType === 'ranged' ? '➶ Дальний' : '⚔ Ближний';
+          const tLines = [
+            `${dmgLabel}  HP: ${Math.round(tgt.currentHP)}/${tgt.maxHP}`,
+            '',
+            'Боевые статы:',
+          ];
+          for (const [stat, val] of Object.entries(def.npcStats ?? {})) {
+            if ((val ?? 0) > 0) tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]}: ${val}`);
+          }
+          tLines.push('', 'Обучает:');
+          for (const [stat, cap] of Object.entries(def.caps)) {
+            tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → кап ${cap}`);
+          }
+          tLines.push(``, `Умение: ${def.abilityName}`);
+          if (def.signatureSpell) {
+            tLines.push(`✦ ${def.signatureSpell.nameRu}  (${def.spellXPThreshold} XP)`);
+          }
+          this.targetPanel.setPosition(s.x, s.y + HEADER_H)
+            .setText(tLines.join('\n')).setVisible(true);
+          this.positionGrip('target', this.targetPanel.getBounds().bottom);
+        } else {
+          this.targetPanel.setVisible(false);
+          this.positionGrip('target', s.y + HEADER_H);
         }
-        tLines.push('', 'Обучает Сферу:');
-        for (const [stat, cap] of Object.entries(def.caps)) {
-          tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → кап ${cap}`);
-        }
-        tLines.push('', `Умение: ${def.abilityName}`);
-        if (def.signatureSpell) {
-          tLines.push(`Заклинание: ${def.signatureSpell.nameRu}`);
-          tLines.push(`  (нужно ${def.spellXPThreshold} XP)`);
-        }
-        this.targetPanel.setY(targetHeaderY + HEADER_H)
-          .setText(tLines.join('\n')).setVisible(true);
       } else {
         this.targetPanel.setVisible(false);
       }
-    } else {
-      this.hdrTarget.setVisible(false);
-      this.targetPanel.setVisible(false);
     }
 
-    // ── Log panel ────────────────────────────────────────
-    this.logText.setVisible(!this.collapsed.log);
+    // ── Log panel ─────────────────────────────────────────
+    {
+      const s = this.panelStates.log;
+      this.panelHeaders['log'].setPosition(s.x, s.y);
+      this.setHeaderLabel('log', 'Лог событий');
+      if (!s.collapsed) {
+        this.logText.setPosition(s.x, s.y + HEADER_H).setVisible(true);
+        this.positionGrip('log', this.logText.getBounds().bottom);
+      } else {
+        this.logText.setVisible(false);
+        this.positionGrip('log', s.y + HEADER_H);
+      }
+    }
 
-    // ── Mini-map ─────────────────────────────────────────
+    // ── Mini-map ──────────────────────────────────────────
     this.drawMinimap(data);
   }
 
   // ── Mini-map renderer ─────────────────────────────────
 
   private drawMinimap(data: UIData) {
-    const collapsed = this.collapsed.minimap;
-    this.minimapBorder.setVisible(!collapsed);
+    const s = this.panelStates.minimap;
+    this.panelHeaders['minimap'].setPosition(s.x, s.y);
+    this.setHeaderLabel('minimap', `Карта  ${s.w}×${s.h}`);
+
+    const collapsed = s.collapsed;
+    const mapTop = s.y + HEADER_H;
+    this.minimapBorder.setPosition(s.x, mapTop).setSize(s.w, s.h).setVisible(!collapsed);
     this.minimapGfx.clear();
-    if (collapsed) return;
 
-    const g = this.minimapGfx;
+    if (!collapsed) {
+      const sx = s.w / MAP_WIDTH;
+      const sy = s.h / MAP_HEIGHT;
+      const ml = s.x;
+      const mt = mapTop;
+      const g = this.minimapGfx;
 
-    // Safe zone tint (world x:224-480, y:256-448)
-    g.fillStyle(0x2244aa, 0.22);
-    g.fillRect(
-      MM_LEFT + 224 * MAP_SCALE_X,
-      MM_TOP  + 256 * MAP_SCALE_Y,
-      256 * MAP_SCALE_X,
-      192 * MAP_SCALE_Y,
-    );
+      // Background
+      g.fillStyle(0x0a0f1a, 0.85);
+      g.fillRect(ml, mt, s.w, s.h);
 
-    // Zone tints
-    // Bear zone: x1200-1520, y210-420
-    g.fillStyle(0x664422, 0.18);
-    g.fillRect(MM_LEFT + 1200 * MAP_SCALE_X, MM_TOP + 210 * MAP_SCALE_Y,
-               320 * MAP_SCALE_X, 210 * MAP_SCALE_Y);
-    // Orc zone: x1110-1380, y500-760
-    g.fillStyle(0x446633, 0.18);
-    g.fillRect(MM_LEFT + 1110 * MAP_SCALE_X, MM_TOP + 500 * MAP_SCALE_Y,
-               270 * MAP_SCALE_X, 260 * MAP_SCALE_Y);
-    // Shaman zone: x410-680, y770-940
-    g.fillStyle(0x9944aa, 0.18);
-    g.fillRect(MM_LEFT + 410 * MAP_SCALE_X, MM_TOP + 770 * MAP_SCALE_Y,
-               270 * MAP_SCALE_X, 170 * MAP_SCALE_Y);
+      // Safe zone
+      g.fillStyle(0x2244aa, 0.22);
+      g.fillRect(ml + 224*sx, mt + 256*sy, 256*sx, 192*sy);
 
-    // Creatures
-    for (const c of data.creatures) {
-      if (c.isDead) continue;
-      const cx = MM_LEFT + c.x * MAP_SCALE_X;
-      const cy = MM_TOP  + c.y * MAP_SCALE_Y;
-      if (c.isPassive) {
-        g.fillStyle(0x888888, 0.75);
-      } else if (c.isAggro) {
-        g.fillStyle(0xff3333, 1.0);
-      } else {
-        g.fillStyle(0xcc4444, 0.65);
+      // Zone tints
+      g.fillStyle(0x664422, 0.18);
+      g.fillRect(ml + 1200*sx, mt + 210*sy, 320*sx, 210*sy);
+      g.fillStyle(0x446633, 0.18);
+      g.fillRect(ml + 1110*sx, mt + 500*sy, 270*sx, 260*sy);
+      g.fillStyle(0x9944aa, 0.18);
+      g.fillRect(ml + 410*sx, mt + 770*sy, 270*sx, 170*sy);
+
+      // Creatures
+      for (const c of data.creatures) {
+        if (c.isDead) continue;
+        const cx = ml + c.x * sx;
+        const cy = mt + c.y * sy;
+        g.fillStyle(c.isPassive ? 0x888888 : c.isAggro ? 0xff3333 : 0xcc4444,
+                    c.isPassive ? 0.7 : c.isAggro ? 1.0 : 0.65);
+        g.fillRect(cx - 1, cy - 1, 2, 2);
       }
-      g.fillRect(cx - 1, cy - 1, 2, 2);
-    }
 
-    // Player dot
-    if (data.playerPos) {
-      const px = MM_LEFT + data.playerPos.x * MAP_SCALE_X;
-      const py = MM_TOP  + data.playerPos.y * MAP_SCALE_Y;
-      g.fillStyle(0x44aaff, 1.0);
-      g.fillRect(px - 1.5, py - 1.5, 3, 3);
-      g.lineStyle(1, 0xaaddff, 0.55);
-      g.strokeRect(px - 2.5, py - 2.5, 5, 5);
+      // Player
+      if (data.playerPos) {
+        const px = ml + data.playerPos.x * sx;
+        const py = mt + data.playerPos.y * sy;
+        g.fillStyle(0x44aaff, 1.0);
+        g.fillRect(px - 1.5, py - 1.5, 3, 3);
+        g.lineStyle(1, 0xaaddff, 0.55);
+        g.strokeRect(px - 2.5, py - 2.5, 5, 5);
+      }
+
+      this.positionGrip('minimap', mt + s.h);
+    } else {
+      this.positionGrip('minimap', s.y + HEADER_H);
     }
   }
 
@@ -550,9 +690,10 @@ export class UIScene extends Phaser.Scene {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
       this.skillSlotsIcon.push(icon);
 
-      const key = this.add.text(x - SKILL_SLOT_SIZE / 2 + 3, y - SKILL_SLOT_SIZE / 2 + 2, `${i + 1}`, {
-        fontSize: '9px', color: '#555577',
-      }).setScrollFactor(0).setDepth(1003);
+      const key = this.add.text(
+        x - SKILL_SLOT_SIZE / 2 + 3, y - SKILL_SLOT_SIZE / 2 + 2, `${i + 1}`,
+        { fontSize: '9px', color: '#555577' },
+      ).setScrollFactor(0).setDepth(1003);
       this.skillSlotsKey.push(key);
 
       const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, 0x000000, 0.65)
@@ -565,25 +706,21 @@ export class UIScene extends Phaser.Scene {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
       this.skillSlotsCdText.push(cdText);
 
-      // Click on slot 2-8 → open spell picker
       if (i >= 1) {
         bg.setInteractive({ useHandCursor: true })
           .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
             ptr.event.stopPropagation();
             if (this.skillBarLocked) { this.addLog('🔒 Панель заблокирована'); return; }
-            if (this.cachedInCombat) { this.addLog('⚔ Нельзя менять заклинания в бою'); return; }
+            if (this.cachedInCombat) { this.addLog('⚔ Нельзя менять в бою'); return; }
             if (this.spellPickerSlot === i) this.closeSpellPicker();
             else this.openSpellPicker(i);
           });
       }
     }
 
-    // Global lock button
-    const totalW2 = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP;
-    const barStartX = (GAME_WIDTH - totalW2) / 2;
-    this.lockBtn = this.add.text(barStartX - 20, GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 8, '🔓', {
-      fontSize: '18px',
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(1006)
+    const barStartX = (GAME_WIDTH - (SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP)) / 2;
+    this.lockBtn = this.add.text(barStartX - 20, y, '🔓', { fontSize: '18px' })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(1006)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
@@ -592,7 +729,6 @@ export class UIScene extends Phaser.Scene {
         if (this.skillBarLocked) this.closeSpellPicker();
       });
 
-    // Spell picker container (hidden by default)
     this.spellPickerContainer = this.add.container(0, 0).setDepth(1100).setVisible(false);
   }
 
@@ -603,72 +739,64 @@ export class UIScene extends Phaser.Scene {
         .filter((s, i) => i !== slotIndex && s.ability)
         .map(s => s.ability!.id) ?? []
     );
-    const spells = this.cachedLearnedSpells.filter(s => !usedIds.has(s.id));
-
+    const spells = this.cachedLearnedSpells.filter(sp => !usedIds.has(sp.id));
     this.spellPickerContainer.removeAll(true);
 
-    const itemSize = SKILL_SLOT_SIZE;
-    const gap = SKILL_SLOT_GAP;
-    const cols = spells.length + 1;
-    const panelW = cols * itemSize + (cols - 1) * gap + 16;
-    const panelH = itemSize + 32;
+    const sz = SKILL_SLOT_SIZE, gap = SKILL_SLOT_GAP;
+    const cols   = spells.length + 1;
+    const panelW = cols * sz + (cols - 1) * gap + 16;
+    const panelH = sz + 32;
 
-    const totalSlotW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP;
-    const barStartX = (GAME_WIDTH - totalSlotW) / 2;
-    const slotX = barStartX + slotIndex * (itemSize + gap) + itemSize / 2;
-    const panelX = Math.min(Math.max(slotX - panelW / 2, 8), GAME_WIDTH - panelW - 8);
-    const panelY = GAME_HEIGHT - SKILL_SLOT_SIZE - 8 - panelH - 6;
+    const totalSlotW = SKILL_SLOTS_COUNT * sz + (SKILL_SLOTS_COUNT - 1) * gap;
+    const barStartX  = (GAME_WIDTH - totalSlotW) / 2;
+    const slotX      = barStartX + slotIndex * (sz + gap) + sz / 2;
+    const panelX     = Math.min(Math.max(slotX - panelW / 2, 8), GAME_WIDTH - panelW - 8);
+    const panelY     = GAME_HEIGHT - sz - 8 - panelH - 6;
 
     const bg = this.add.rectangle(panelW / 2, panelH / 2, panelW, panelH, 0x0a0a1a, 0.95)
       .setStrokeStyle(1, 0x4455aa, 0.8);
-    this.spellPickerContainer.add(bg);
-
     const label = this.add.text(panelW / 2, 6, `Слот ${slotIndex + 1} — выбери заклинание`, {
       fontSize: '10px', color: '#aaaacc',
     }).setOrigin(0.5, 0);
-    this.spellPickerContainer.add(label);
+    this.spellPickerContainer.add([bg, label]);
 
-    const itemsY = panelH / 2 + 6;
-
+    const iy = panelH / 2 + 6;
     spells.forEach((spell, idx) => {
-      const ix = 8 + idx * (itemSize + gap) + itemSize / 2;
-      const itemBg = this.add.rectangle(ix, itemsY, itemSize, itemSize, 0x1e2244)
+      const ix = 8 + idx * (sz + gap) + sz / 2;
+      const ibg = this.add.rectangle(ix, iy, sz, sz, 0x1e2244)
         .setStrokeStyle(1, 0x6677cc).setInteractive({ useHandCursor: true })
-        .on('pointerover', () => itemBg.setFillStyle(0x2e3466))
-        .on('pointerout',  () => itemBg.setFillStyle(0x1e2244))
+        .on('pointerover', () => ibg.setFillStyle(0x2e3466))
+        .on('pointerout',  () => ibg.setFillStyle(0x1e2244))
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
           this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell });
           this.closeSpellPicker();
         });
-      const itemText = this.add.text(ix, itemsY, spell.nameRu.slice(0, 7), {
+      const itxt = this.add.text(ix, iy, spell.nameRu.slice(0, 7), {
         fontSize: '9px', color: '#aaccff', align: 'center',
       }).setOrigin(0.5);
-      const aoeTag = spell.isAoe ? this.add.text(ix, itemsY + 14, 'AoE', {
-        fontSize: '8px', color: '#ff9944',
-      }).setOrigin(0.5) : null;
-      this.spellPickerContainer.add(itemBg);
-      this.spellPickerContainer.add(itemText);
-      if (aoeTag) this.spellPickerContainer.add(aoeTag);
+      this.spellPickerContainer.add([ibg, itxt]);
+      if (spell.isAoe) {
+        this.spellPickerContainer.add(
+          this.add.text(ix, iy + 14, 'AoE', { fontSize: '8px', color: '#ff9944' }).setOrigin(0.5)
+        );
+      }
     });
 
-    const clearIdx = spells.length;
-    const cx = 8 + clearIdx * (itemSize + gap) + itemSize / 2;
-    const clearBg = this.add.rectangle(cx, itemsY, itemSize, itemSize, 0x221111)
+    const cx = 8 + spells.length * (sz + gap) + sz / 2;
+    const cbg = this.add.rectangle(cx, iy, sz, sz, 0x221111)
       .setStrokeStyle(1, 0x774444).setInteractive({ useHandCursor: true })
-      .on('pointerover', () => clearBg.setFillStyle(0x331111))
-      .on('pointerout',  () => clearBg.setFillStyle(0x221111))
+      .on('pointerover', () => cbg.setFillStyle(0x331111))
+      .on('pointerout',  () => cbg.setFillStyle(0x221111))
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
         this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell: null });
         this.closeSpellPicker();
       });
-    const clearText = this.add.text(cx, itemsY, '✕\nочист.', {
+    const ctxt = this.add.text(cx, iy, '✕\nочист.', {
       fontSize: '9px', color: '#ff6666', align: 'center',
     }).setOrigin(0.5);
-    this.spellPickerContainer.add(clearBg);
-    this.spellPickerContainer.add(clearText);
-
+    this.spellPickerContainer.add([cbg, ctxt]);
     this.spellPickerContainer.setPosition(panelX, panelY).setVisible(true);
   }
 
@@ -679,11 +807,9 @@ export class UIScene extends Phaser.Scene {
 
   private updateSkillBar(body: Body | null) {
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
-      const slot = body?.abilitySlots[i];
+      const slot    = body?.abilitySlots[i];
       const ability = slot?.ability ?? null;
-
       this.skillSlotsBg[i].setFillStyle(ability ? 0x1e2244 : 0x1a1a2e, 0.9);
-
       if (i === 0 && body) {
         this.skillSlotsIcon[i].setText('⚔').setColor('#ffdd66').setFontSize('16px');
       } else if (ability) {
@@ -691,7 +817,6 @@ export class UIScene extends Phaser.Scene {
       } else {
         this.skillSlotsIcon[i].setText('');
       }
-
       if (slot && slot.cooldownRemaining > 0) {
         const ratio = Math.min(slot.cooldownRemaining / (slot.ability?.cooldown ?? 1), 1);
         this.skillSlotsCd[i].height = SKILL_SLOT_SIZE * ratio;
