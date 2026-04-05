@@ -405,7 +405,7 @@ export class UIScene extends Phaser.Scene {
           if (cap !== undefined) line = `► ${line}  (кап ${cap})`;
           lines.push(line);
         }
-        this.statsText.setPosition(s.x, s.y + HEADER_H)
+        this.statsText.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true).setPosition(s.x, s.y + HEADER_H)
           .setText(lines.join('\n')).setVisible(true);
         const bottom = this.statsText.getBounds().bottom;
         this.positionGrip('sphere', bottom);
@@ -436,7 +436,7 @@ export class UIScene extends Phaser.Scene {
             const cur = sphere.spellProgress[sig.id] ?? 0;
             txt = `✧ ${sig.nameRu}\n${buildXPBar(cur, threshold, 10)}  ${cur} / ${threshold} XP`;
           }
-          this.spellText.setPosition(s.x, s.y + HEADER_H).setText(txt).setVisible(true);
+          this.spellText.setFixedSize(s.w, 0).setPosition(s.x, s.y + HEADER_H).setText(txt).setVisible(true);
           this.positionGrip('spells', this.spellText.getBounds().bottom);
         } else {
           this.spellText.setVisible(false);
@@ -469,7 +469,8 @@ export class UIScene extends Phaser.Scene {
               lines.push(`  ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${done}`);
             }
           }
-          this.questPanel.setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
+          this.questPanel.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
+            .setPosition(s.x, s.y + HEADER_H).setText(lines.join('\n')).setVisible(true);
           this.positionGrip('quests', this.questPanel.getBounds().bottom);
         } else {
           this.questPanel.setVisible(false);
@@ -531,10 +532,11 @@ export class UIScene extends Phaser.Scene {
       if (body) {
         this.setHeaderLabel('body', body.definition.nameRu);
         if (!s.collapsed) {
-          this.bodyInfoText.setPosition(s.x, s.y + HEADER_H).setText(
-            `── ${body.definition.nameRu} ──\n` +
-            `Оружие: ${body.weapon.nameRu}  КД: ${body.weapon.cooldown}с`
-          ).setVisible(true);
+          this.bodyInfoText.setFixedSize(s.w, 0)
+            .setPosition(s.x, s.y + HEADER_H).setText(
+              `── ${body.definition.nameRu} ──\n` +
+              `Оружие: ${body.weapon.nameRu}  КД: ${body.weapon.cooldown}с`
+            ).setVisible(true);
           this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
         } else {
           this.bodyInfoText.setVisible(false);
@@ -577,8 +579,8 @@ export class UIScene extends Phaser.Scene {
           if (def.signatureSpell) {
             tLines.push(`✦ ${def.signatureSpell.nameRu}  (${def.spellXPThreshold} XP)`);
           }
-          this.targetPanel.setPosition(s.x, s.y + HEADER_H)
-            .setText(tLines.join('\n')).setVisible(true);
+          this.targetPanel.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
+            .setPosition(s.x, s.y + HEADER_H).setText(tLines.join('\n')).setVisible(true);
           this.positionGrip('target', this.targetPanel.getBounds().bottom);
         } else {
           this.targetPanel.setVisible(false);
@@ -595,7 +597,8 @@ export class UIScene extends Phaser.Scene {
       this.panelHeaders['log'].setPosition(s.x, s.y);
       this.setHeaderLabel('log', 'Лог событий');
       if (!s.collapsed) {
-        this.logText.setPosition(s.x, s.y + HEADER_H).setVisible(true);
+        this.logText.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 10, true)
+          .setPosition(s.x, s.y + HEADER_H).setVisible(true);
         this.positionGrip('log', this.logText.getBounds().bottom);
       } else {
         this.logText.setVisible(false);
