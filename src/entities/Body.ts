@@ -3,7 +3,7 @@ import { BodyDefinition } from '../types/bodies';
 import { Stats, StatName } from '../types/stats';
 import { AbilitySlot, createEmptySlots } from '../types/abilities';
 import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/combat';
-import { BODY_SPEED } from '../utils/constants';
+import { BODY_SPEED, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
 import { clamp } from '../utils/math';
 
@@ -121,8 +121,8 @@ export class Body extends Phaser.GameObjects.Container {
         vy *= norm;
       }
 
-      this.x += vx * BODY_SPEED * dt;
-      this.y += vy * BODY_SPEED * dt;
+      this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * dt));
+      this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * dt));
     }
 
     // HP-бар обновление

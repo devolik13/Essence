@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
-import { SPHERE_SPEED } from '../utils/constants';
+import { SPHERE_SPEED, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
 import { calcRank, StatXP, createEmptyXP } from '../systems/progression';
 import { AbilityDef } from '../types/abilities';
 
@@ -87,8 +87,8 @@ export class Sphere extends Phaser.GameObjects.Container {
       vy *= norm;
     }
 
-    this.x += vx * speed * dt;
-    this.y += vy * speed * dt;
+    this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * speed * dt));
+    this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * speed * dt));
 
     // Пульсация свечения
     const pulse = 0.3 + Math.sin(_time / 300) * 0.1;

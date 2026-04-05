@@ -942,6 +942,8 @@ export class GameScene extends Phaser.Scene {
     slot.cooldownRemaining = spell.cooldown;
 
     const radius = spell.aoeRadius ?? 60;
+    this.spawnAoeFlash(worldX, worldY, radius);
+
     for (const c of this.creatures) {
       if (c.isDead) continue;
       if (distance(c.x, c.y, worldX, worldY) > radius) continue;
@@ -959,6 +961,26 @@ export class GameScene extends Phaser.Scene {
     if (!creature.isDead && (creature.aiState === 'idle' || creature.aiState === 'wander')) {
       creature.aiState = 'chase';
     }
+  }
+
+  private spawnAoeFlash(wx: number, wy: number, radius: number) {
+    const gfx = this.add.graphics().setDepth(55);
+    gfx.fillStyle(0xff6600, 0.55);
+    gfx.fillCircle(wx, wy, radius);
+    gfx.lineStyle(3, 0xffaa00, 0.9);
+    gfx.strokeCircle(wx, wy, radius);
+    // Inner bright core
+    gfx.fillStyle(0xffdd88, 0.4);
+    gfx.fillCircle(wx, wy, radius * 0.4);
+    this.tweens.add({
+      targets: gfx,
+      alpha: 0,
+      scaleX: 1.25,
+      scaleY: 1.25,
+      duration: 380,
+      ease: 'Power2',
+      onComplete: () => gfx.destroy(),
+    });
   }
 
   private exitAoeTargeting() {

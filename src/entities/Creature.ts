@@ -28,6 +28,9 @@ export class Creature extends Phaser.GameObjects.Container {
   private hpBarBg: Phaser.GameObjects.Rectangle;
   private nameText: Phaser.GameObjects.Text;
 
+  // Hit flash
+  private hitFlashTimer: number = 0;
+
   // Wander
   private wanderTimer: number = 0;
   private wanderDirX: number = 0;
@@ -153,6 +156,12 @@ export class Creature extends Phaser.GameObjects.Container {
         break;
     }
 
+    // Hit flash
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= dt;
+      if (this.hitFlashTimer <= 0) this.bodySprite.setFillStyle(this.definition.color);
+    }
+
     // HP-бар (заливка слева направо)
     const hpRatio = clamp(this.currentHP / this.maxHP, 0, 1);
     this.hpBar.width = 36 * hpRatio;
@@ -184,6 +193,10 @@ export class Creature extends Phaser.GameObjects.Container {
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);
+      this.bodySprite.setFillStyle(this.definition.color);
+    } else {
+      this.bodySprite.setFillStyle(0xff3333);
+      this.hitFlashTimer = 0.12;
     }
     return actual;
   }
