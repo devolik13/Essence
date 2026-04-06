@@ -75,6 +75,11 @@ export class UIScene extends Phaser.Scene {
   private windowInteractables: Phaser.GameObjects.Text[] = [];
   private windowX: number = 200;
   private windowY: number = 50;
+  private windowW: number = 310;
+  private windowH: number = 380;
+  private winBg!: Phaser.GameObjects.Rectangle;
+  private winTitleBg!: Phaser.GameObjects.Rectangle;
+  private winCloseBtn!: Phaser.GameObjects.Text;
   private cachedUIData: UIData | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
   private castBarBg!:   Phaser.GameObjects.Rectangle;
@@ -840,24 +845,22 @@ export class UIScene extends Phaser.Scene {
   }
 
   private buildFloatingWindow() {
-    const WIN_H = 420;
-
-    const winBg = this.add.rectangle(0, WIN_TITLE_H, WIN_W, WIN_H, 0x070d18, 0.96)
+    this.winBg = this.add.rectangle(0, WIN_TITLE_H, this.windowW, this.windowH, 0x070d18, 0.96)
       .setOrigin(0, 0).setStrokeStyle(1, 0x2d4a66, 0.9).setScrollFactor(0).setDepth(1019);
 
-    const titleBg = this.add.rectangle(0, 0, WIN_W, WIN_TITLE_H, 0x0e1828, 0.97)
+    this.winTitleBg = this.add.rectangle(0, 0, this.windowW, WIN_TITLE_H, 0x0e1828, 0.97)
       .setOrigin(0, 0).setStrokeStyle(1, 0x2d4a66, 0.9).setScrollFactor(0).setDepth(1020);
 
     this.windowTitleText = this.add.text(8, 4, '', {
       fontSize: '11px', color: '#8899bb',
     }).setOrigin(0, 0).setScrollFactor(0).setDepth(1021);
 
-    const closeBtn = this.add.text(WIN_W - 6, 4, '[×]', {
+    this.winCloseBtn = this.add.text(this.windowW - 6, 4, '[×]', {
       fontSize: '10px', color: '#aa4444',
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(1022)
       .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => closeBtn.setColor('#ff6666'))
-      .on('pointerout',  () => closeBtn.setColor('#aa4444'))
+      .on('pointerover', () => this.winCloseBtn.setColor('#ff6666'))
+      .on('pointerout',  () => this.winCloseBtn.setColor('#aa4444'))
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
         this.closeWindow();
@@ -867,26 +870,61 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', color: '#cccccc', lineSpacing: 4,
     }).setOrigin(0, 0).setScrollFactor(0).setDepth(1021);
 
-    // Drag via title bar
-    let dragMoved = false;
-    titleBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, WIN_W, WIN_TITLE_H), Phaser.Geom.Rectangle.Contains)
+    // ── Drag via title bar ────────────────────────────────
+    this.winTitleBg
+      .setInteractive(new Phaser.Geom.Rectangle(0, 0, this.windowW, WIN_TITLE_H), Phaser.Geom.Rectangle.Contains)
       .on('pointerover', () => this.input.setDefaultCursor('grab'))
       .on('pointerout',  () => this.input.setDefaultCursor('default'))
-      .on('dragstart', () => { dragMoved = false; })
       .on('drag', (_ptr: Phaser.Input.Pointer, dx: number, dy: number) => {
-        dragMoved = true;
-        this.windowX = Math.max(0, Math.min(GAME_WIDTH - WIN_W, dx));
+        this.windowX = Math.max(0, Math.min(GAME_WIDTH - this.windowW, dx));
         this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, dy));
         this.windowContainer.setPosition(this.windowX, this.windowY);
         this.repositionInteractables();
         this.input.setDefaultCursor('grabbing');
       })
-      .on('dragend', () => { this.input.setDefaultCursor('default'); dragMoved = false; });
-    this.input.setDraggable(titleBg);
+      .on('dragend', () => this.input.setDefaultCursor('default'));
+    this.input.setDraggable(this.winTitleBg);
+
+    // ── Resize grip (bottom-right corner) ────────────────
+    const grip = this.add.text(this.windowW - 3, WIN_TITLE_H + this.windowH - 3, '⇲', {
+      fontSize: '11px', color: '#334455',
+    }).setOrigin(1, 1).setScrollFactor(0).setDepth(1023)
+      .setInteractive({ useHandCursor: true, draggable: true })
+      .on('pointerover', () => {
+        this.input.setDefaultCursor('nwse-resize');
+        grip.setColor('#6688aa');
+      })
+      .on('pointerout', () => {
+        this.input.setDefaultCursor('default');
+        grip.setColor('#334455');
+      })
+      .on('drag', (ptr: Phaser.Input.Pointer) => {
+        const newW = Math.max(220, Math.min(560, ptr.x - this.windowX));
+        const newH = Math.max(120, Math.min(540, ptr.y - this.windowY - WIN_TITLE_H));
+        this.windowW = newW;
+        this.windowH = newH;
+        this.applyWindowSize(grip);
+        if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      })
+      .on('dragend', () => this.input.setDefaultCursor('default'));
+    this.input.setDraggable(grip);
 
     this.windowContainer = this.add.container(this.windowX, this.windowY, [
-      winBg, titleBg, this.windowTitleText, closeBtn, this.windowContentText,
+      this.winBg, this.winTitleBg, this.windowTitleText,
+      this.winCloseBtn, this.windowContentText, grip,
     ]).setScrollFactor(0).setDepth(1018).setVisible(false);
+  }
+
+  /** Обновить размеры всех элементов окна после ресайза */
+  private applyWindowSize(grip: Phaser.GameObjects.Text) {
+    this.winBg.setSize(this.windowW, this.windowH);
+    this.winTitleBg.setSize(this.windowW, WIN_TITLE_H);
+    this.winTitleBg.setInteractive(
+      new Phaser.Geom.Rectangle(0, 0, this.windowW, WIN_TITLE_H),
+      Phaser.Geom.Rectangle.Contains,
+    );
+    this.winCloseBtn.setX(this.windowW - 6);
+    grip.setPosition(this.windowW - 3, WIN_TITLE_H + this.windowH - 3);
   }
 
   private repositionInteractables() {
@@ -968,7 +1006,7 @@ export class UIScene extends Phaser.Scene {
           }
         }
         this.windowTitleText.setText('◉ Статы сферы');
-        this.windowContentText.setWordWrapWidth(WIN_W - 16, true).setText(lines.join('\n'));
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
       case 'inventory': {
@@ -985,7 +1023,7 @@ export class UIScene extends Phaser.Scene {
           }
         }
         this.windowTitleText.setText(`◈ Инвентарь  (${inv.length} видов)`);
-        this.windowContentText.setWordWrapWidth(WIN_W - 16, true).setText(lines.join('\n'));
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
       case 'quests': {
@@ -1002,7 +1040,7 @@ export class UIScene extends Phaser.Scene {
           for (const q of active) {
             const isTracked = tracked.includes(q.def.id);
             // Checkbox — created as interactive Text outside container
-            const btnRelX = WIN_W - 24;
+            const btnRelX = this.windowW - 24;
             const btnRelY = relY;
             const btn = this.add.text(
               this.windowX + btnRelX,
@@ -1037,7 +1075,7 @@ export class UIScene extends Phaser.Scene {
         }
         if (done.length > 0) lines.push('', `✓ Выполнено: ${done.length} квестов`);
         this.windowTitleText.setText(`▸ Квесты  (${active.length} активных)`);
-        this.windowContentText.setWordWrapWidth(WIN_W - 30, true).setText(lines.join('\n'));
+        this.windowContentText.setWordWrapWidth(this.windowW - 30, true).setText(lines.join('\n'));
         break;
       }
       case 'achievements': {
@@ -1047,7 +1085,7 @@ export class UIScene extends Phaser.Scene {
           `${unlocked ? '✓' : '✗'} ${def.icon} ${def.nameRu}\n   ${def.descRu}`
         );
         this.windowTitleText.setText(`★ Ачивки  ${cnt}/${ACHIEVEMENTS.length}`);
-        this.windowContentText.setWordWrapWidth(WIN_W - 16, true).setText(lines.join('\n'));
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
     }
