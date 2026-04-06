@@ -23,7 +23,7 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
-import { CHAPTER1_ZONES, VILLAGE_CENTER } from '../data/chapter1';
+import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 
@@ -574,52 +574,36 @@ export class GameScene extends Phaser.Scene {
   // ─── Спавн мобов ─────────────────────────────────────
 
   private spawnCreatures() {
-    // ── Глава 1: элементали по зонам ─────────────────────
-    for (const zone of CHAPTER1_ZONES) {
-      // Обычные мобы зоны
-      for (const group of zone.spawnGroups) {
+    const spawnGroups = (groups: { x: number; y: number; creatureId: string; count: number }[]) => {
+      for (const group of groups) {
         const def = CREATURE_DB[group.creatureId];
         if (!def) continue;
         for (let i = 0; i < group.count; i++) {
-          const jx = group.x + (Math.random() - 0.5) * 80;
-          const jy = group.y + (Math.random() - 0.5) * 80;
+          const jx = group.x + (Math.random() - 0.5) * 100;
+          const jy = group.y + (Math.random() - 0.5) * 100;
           this.creatures.push(new Creature(this, jx, jy, def));
         }
       }
-      // Босс зоны (временно из существующих мобов)
-      const bossDef = CREATURE_DB[zone.bossId];
-      if (bossDef) {
-        this.creatures.push(new Creature(this, zone.bossX, zone.bossY, bossDef));
+    };
+
+    // ── Глава 1: элементали по зонам ─────────────────────
+    for (const zone of CHAPTER1_ZONES) {
+      spawnGroups(zone.spawnGroups);
+      // Босс зоны (null = ещё не реализован)
+      if (zone.bossId) {
+        const bossDef = CREATURE_DB[zone.bossId];
+        if (bossDef) this.creatures.push(new Creature(this, zone.bossX, zone.bossY, bossDef));
       }
     }
 
+    // ── Мини-ивент локации ────────────────────────────────
+    // Серый лес (волки + медведи), Лагерь орков, Крестьянский хутор (разведчики)
+    for (const loc of MINI_EVENT_LOCATIONS) {
+      spawnGroups(loc.spawnGroups);
+    }
+
     // ── Стартовая зона (вокруг деревни Эшворт) ───────────
-    // Пассивные мобы и гоблины рядом для обучения
-    const village = VILLAGE_CENTER;
-
-    for (let i = 0; i < 7; i++) {
-      const x = village.x + (Math.random() - 0.5) * 400;
-      const y = village.y + (Math.random() - 0.5) * 400;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['rabbit']));
-    }
-
-    for (let i = 0; i < 6; i++) {
-      const x = village.x + (Math.random() - 0.5) * 500;
-      const y = village.y + (Math.random() - 0.5) * 500;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['forest_spirit']));
-    }
-
-    for (let i = 0; i < 5; i++) {
-      const x = village.x + 300 + Math.random() * 200;
-      const y = village.y + (Math.random() - 0.5) * 200;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['goblin']));
-    }
-
-    for (let i = 0; i < 3; i++) {
-      const x = village.x + 500 + Math.random() * 200;
-      const y = village.y + (Math.random() - 0.5) * 200;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['wolf']));
-    }
+    spawnGroups(VILLAGE_STARTER_SPAWNS);
   }
 
   // ─── Атака ────────────────────────────────────────────
