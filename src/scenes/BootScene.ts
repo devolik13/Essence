@@ -634,9 +634,43 @@ export class BootScene extends Phaser.Scene {
     g.fillRect(16, 3, 2, 3);
     g.generateTexture('body_whistler', 28, 28);
     g.clear();
+
+    // ── Warrior spritesheets (256×256 per frame, 5×5 = 25 frames) ────────────
+    const W = 256;
+    this.load.spritesheet('warrior_idle_down',   'assets/warrior/warrior_idle_down.png',   { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_idle_right',  'assets/warrior/warrior_idle_right.png',  { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_idle_up',     'assets/warrior/warrior_idle_up.png',     { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_walk_down',   'assets/warrior/warrior_walk_down.png',   { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_walk_right',  'assets/warrior/warrior_walk_right.png',  { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_walk_up',     'assets/warrior/warrior_walk_up.png',     { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_atk_down',    'assets/warrior/warrior_custom_sword_attack_down.png',  { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_atk_right',   'assets/warrior/warrior_custom_sword_attack_right.png', { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('warrior_atk_up',      'assets/warrior/warrior_custom_sword_attack_up.png',    { frameWidth: W, frameHeight: W });
   }
 
   create() {
+    // ── Warrior animations ────────────────────────────────────────────────────
+    const makeAnim = (key: string, sheet: string, frameRate: number, repeat: number) => {
+      if (!this.anims.exists(key)) {
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(sheet, { start: 0, end: 24 }),
+          frameRate,
+          repeat,
+        });
+      }
+    };
+
+    makeAnim('warrior_idle_down',  'warrior_idle_down',  8, -1);
+    makeAnim('warrior_idle_right', 'warrior_idle_right', 8, -1);
+    makeAnim('warrior_idle_up',    'warrior_idle_up',    8, -1);
+    makeAnim('warrior_walk_down',  'warrior_walk_down',  12, -1);
+    makeAnim('warrior_walk_right', 'warrior_walk_right', 12, -1);
+    makeAnim('warrior_walk_up',    'warrior_walk_up',    12, -1);
+    makeAnim('warrior_atk_down',   'warrior_atk_down',   14, 0);   // repeat=0 = один раз
+    makeAnim('warrior_atk_right',  'warrior_atk_right',  14, 0);
+    makeAnim('warrior_atk_up',     'warrior_atk_up',     14, 0);
+
     this.scene.start('GameScene');
     this.scene.start('UIScene');
   }
