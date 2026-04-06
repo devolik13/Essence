@@ -667,9 +667,9 @@ export class BootScene extends Phaser.Scene {
     makeAnim('warrior_walk_down',  'warrior_walk_down',  12, -1);
     makeAnim('warrior_walk_right', 'warrior_walk_right', 12, -1);
     makeAnim('warrior_walk_up',    'warrior_walk_up',    12, -1);
-    makeAnim('warrior_atk_down',   'warrior_atk_down',   14, 0);   // repeat=0 = один раз
-    makeAnim('warrior_atk_right',  'warrior_atk_right',  14, 0);
-    makeAnim('warrior_atk_up',     'warrior_atk_up',     14, 0);
+    makeAnim('warrior_atk_down',   'warrior_atk_down',   17, 0);   // repeat=0 = один раз (+20%)
+    makeAnim('warrior_atk_right',  'warrior_atk_right',  17, 0);
+    makeAnim('warrior_atk_up',     'warrior_atk_up',     17, 0);
 
     this.scene.start('GameScene');
     this.scene.start('UIScene');
