@@ -1,6 +1,12 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
+import {
+  MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3,
+  MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3,
+  MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3,
+  MOB_WIND_T1, MOB_WIND_T2,
+} from './elementalSpells';
 
 /** Заклинание Огненный Шар (AoE) */
 export const SPELL_FIREBALL: AbilityDef = {
@@ -125,6 +131,118 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
     },
     weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Искра',
+  },
+
+  // ─── Глава 1: Элементали Огня ───────────────────────────────────────────────
+
+  spark: {
+    id: 'spark', name: 'Spark', nameRu: 'Искра',
+    type: BodyType.Combat, damageType: 'magic', element: 'fire',
+    caps: { [StatName.Intellect]: 8, [StatName.Agility]: 12 },
+    xpReward: 12,
+    npcStats: {
+      [StatName.Intellect]: 3, [StatName.Accuracy]: 5, [StatName.Evasion]: 8,
+      [StatName.Health]: 3,    [StatName.Mana]: 5,     [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Staff, color: 0xff6600, abilityName: 'Искра',
+    npcSpells: [MOB_FIRE_T1],
+  },
+
+  asher: {
+    id: 'asher', name: 'Asher', nameRu: 'Пепельник',
+    type: BodyType.Combat, damageType: 'magic', element: 'fire',
+    caps: { [StatName.Intellect]: 14, [StatName.Health]: 10, [StatName.Armor]: 4 },
+    xpReward: 28,
+    npcStats: {
+      [StatName.Intellect]: 7, [StatName.Accuracy]: 6, [StatName.Evasion]: 3,
+      [StatName.Health]: 10,   [StatName.Armor]: 3,    [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Staff, color: 0xaa4400, abilityName: 'Огненная стрела',
+    npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2],
+  },
+
+  // ─── Глава 1: Элементали Воды ───────────────────────────────────────────────
+
+  splasher: {
+    id: 'splasher', name: 'Splasher', nameRu: 'Брызгун',
+    type: BodyType.Combat, damageType: 'magic', element: 'water',
+    caps: { [StatName.Intellect]: 10, [StatName.Agility]: 10, [StatName.Evasion]: 8 },
+    xpReward: 20,
+    npcStats: {
+      [StatName.Intellect]: 5, [StatName.Accuracy]: 6, [StatName.Evasion]: 5,
+      [StatName.Health]: 6,    [StatName.Mana]: 6,     [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Staff, color: 0x44aaff, abilityName: 'Ледышка',
+    npcSpells: [MOB_WATER_T1, MOB_WATER_T2],
+  },
+
+  fogger: {
+    id: 'fogger', name: 'Fogger', nameRu: 'Туманник',
+    type: BodyType.Combat, damageType: 'magic', element: 'water',
+    caps: { [StatName.Intellect]: 12, [StatName.Will]: 8, [StatName.Mana]: 12 },
+    xpReward: 25,
+    npcStats: {
+      [StatName.Intellect]: 6, [StatName.Accuracy]: 5, [StatName.Evasion]: 4,
+      [StatName.Health]: 8,    [StatName.Will]: 5,     [StatName.Mana]: 10, [StatName.Luck]: 1,
+    },
+    weapon: WeaponType.Staff, color: 0x88ccee, abilityName: 'Лед. дождь',
+    npcSpells: [MOB_WATER_T1, MOB_WATER_T3],
+  },
+
+  // ─── Глава 1: Элементали Земли ──────────────────────────────────────────────
+
+  pebble: {
+    id: 'pebble', name: 'Pebble', nameRu: 'Каменыш',
+    type: BodyType.Combat, damageType: 'magic', element: 'earth',
+    caps: { [StatName.Health]: 20, [StatName.Armor]: 14, [StatName.Strength]: 10 },
+    xpReward: 35,
+    npcStats: {
+      [StatName.Intellect]: 5, [StatName.Accuracy]: 5, [StatName.Evasion]: 1,
+      [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 1,
+    },
+    weapon: WeaponType.Mace, color: 0x887755, abilityName: 'Камешек',
+    npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2],
+  },
+
+  mudder: {
+    id: 'mudder', name: 'Mudder', nameRu: 'Грязевик',
+    type: BodyType.Combat, damageType: 'magic', element: 'earth',
+    caps: { [StatName.Health]: 16, [StatName.Armor]: 8, [StatName.Intellect]: 10 },
+    xpReward: 30,
+    npcStats: {
+      [StatName.Intellect]: 6, [StatName.Accuracy]: 4, [StatName.Evasion]: 2,
+      [StatName.Health]: 14,   [StatName.Armor]: 5,    [StatName.Luck]: 1,
+    },
+    weapon: WeaponType.Staff, color: 0x665533, abilityName: 'Зем. удар',
+    npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3],
+  },
+
+  // ─── Глава 1: Элементали Ветра ──────────────────────────────────────────────
+
+  gusty: {
+    id: 'gusty', name: 'Gusty', nameRu: 'Вихрик',
+    type: BodyType.Combat, damageType: 'magic', element: 'wind',
+    caps: { [StatName.Agility]: 20, [StatName.Evasion]: 14, [StatName.Accuracy]: 10 },
+    xpReward: 15,
+    npcStats: {
+      [StatName.Intellect]: 3, [StatName.Accuracy]: 7, [StatName.Evasion]: 10,
+      [StatName.Health]: 4,    [StatName.Agility]: 12, [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Dagger, color: 0xcceeaa, abilityName: 'Порыв',
+    npcSpells: [MOB_WIND_T1],
+  },
+
+  whistler: {
+    id: 'whistler', name: 'Whistler', nameRu: 'Свистун',
+    type: BodyType.Combat, damageType: 'magic', element: 'wind',
+    caps: { [StatName.Agility]: 14, [StatName.Accuracy]: 16, [StatName.Intellect]: 12 },
+    xpReward: 22,
+    npcStats: {
+      [StatName.Intellect]: 6, [StatName.Accuracy]: 9, [StatName.Evasion]: 7,
+      [StatName.Health]: 7,    [StatName.Agility]: 8,  [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.ShortBow, color: 0x99ddcc, abilityName: 'Ветрорез',
+    npcSpells: [MOB_WIND_T1, MOB_WIND_T2],
   },
 };
 

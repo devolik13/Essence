@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BodyDefinition } from '../types/bodies';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
+import { AbilityDef } from '../types/abilities';
 import { maxHP } from '../systems/combat';
 import { CREATURE_SPEED, AGGRO_RANGE, LEASH_RANGE } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
@@ -19,6 +20,11 @@ export class Creature extends Phaser.GameObjects.Container {
   public currentHP: number;
   public aiState: CreatureAIState = 'idle';
   public attackCooldown: number = 0;
+  /** Кулдауны заклинаний моба (индекс соответствует npcSpells[i]) */
+  public spellCooldowns: number[] = [];
+  /** Таймер каста текущего заклинания (>0 = идёт каст) */
+  public castTimer: number = 0;
+  public castingSpell: AbilityDef | null = null;
 
   public spawnX: number;
   public spawnY: number;
@@ -51,6 +57,11 @@ export class Creature extends Phaser.GameObjects.Container {
     }
 
     this.currentHP = maxHP(this.stats);
+
+    // Инициализация кулдаунов заклинаний
+    if (definition.npcSpells) {
+      this.spellCooldowns = new Array(definition.npcSpells.length).fill(0);
+    }
 
     // Визуал — спрайт существа
     const textureKey = `body_${definition.id}`;
@@ -89,9 +100,17 @@ export class Creature extends Phaser.GameObjects.Container {
 
     const dt = delta / 1000;
 
-    // Кулдаун
+    // Кулдауны
     if (this.attackCooldown > 0) {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
+    }
+    for (let i = 0; i < this.spellCooldowns.length; i++) {
+      if (this.spellCooldowns[i] > 0) this.spellCooldowns[i] = Math.max(0, this.spellCooldowns[i] - dt);
+    }
+
+    // Таймер каста
+    if (this.castTimer > 0) {
+      this.castTimer = Math.max(0, this.castTimer - dt);
     }
 
     // AI
@@ -203,5 +222,45 @@ export class Creature extends Phaser.GameObjects.Container {
       this.hitFlashTimer = 0.12;
     }
     return actual;
+  }
+
+  /**
+   * Возвращает заклинание готовое к касту (кулдаун = 0, не идёт каст).
+   * Если у заклинания есть castTime — запускает таймер и возвращает null
+   * до завершения каста (GameScene должна опрашивать castingSpell когда castTimer = 0).
+   * Если мгновенное — сразу возвращает spell и ставит кулдаун.
+   */
+  getReadySpell(): AbilityDef | null {
+    const spells = this.definition.npcSpells;
+    if (!spells || spells.length === 0) return null;
+    if (this.castTimer > 0) return null; // идёт каст
+
+    // Собираем готовые заклинания (кулдаун = 0)
+    const ready = spells
+      .map((s, i) => ({ spell: s, index: i }))
+      .filter(({ index }) => this.spellCooldowns[index] <= 0);
+
+    if (ready.length === 0) return null;
+
+    // Случайный выбор из готовых
+    const chosen = ready[Math.floor(Math.random() * ready.length)];
+    this.spellCooldowns[chosen.index] = chosen.spell.cooldown;
+
+    if (chosen.spell.castTime && chosen.spell.castTime > 0) {
+      // Начинаем каст — GameScene проверит castingSpell когда castTimer упадёт до 0
+      this.castTimer = chosen.spell.castTime;
+      this.castingSpell = chosen.spell;
+      return null;
+    }
+
+    // Мгновенное заклинание — сразу к бою
+    return chosen.spell;
+  }
+
+  /** Вызывается GameScene когда castTimer досчитал до 0 */
+  consumeCastingSpell(): AbilityDef | null {
+    const spell = this.castingSpell;
+    this.castingSpell = null;
+    return spell;
   }
 }

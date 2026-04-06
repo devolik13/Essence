@@ -435,6 +435,205 @@ export class BootScene extends Phaser.Scene {
     g.fillRect(16, 4, 1, 2);
     g.generateTexture('body_forest_spirit', 28, 28);
     g.clear();
+
+    // ── Spark / Искра (body_spark) — огненный шарик ───────
+    // Маленький пылающий шарик
+    g.fillStyle(0xcc3300, 1);
+    g.fillRect(6, 6, 16, 16);
+    g.fillStyle(0xff6600, 1);
+    g.fillRect(8, 8, 12, 12);
+    g.fillStyle(0xffaa00, 1);
+    g.fillRect(10, 10, 8, 8);
+    g.fillStyle(0xffff88, 1);
+    g.fillRect(12, 12, 4, 4);
+    // Языки пламени
+    g.fillStyle(0xff4400, 1);
+    g.fillRect(10, 3, 3, 5);
+    g.fillRect(15, 4, 3, 4);
+    g.fillRect(7, 4, 2, 4);
+    g.generateTexture('body_spark', 28, 28);
+    g.clear();
+
+    // ── Asher / Пепельник (body_asher) — пепельная фигура ─
+    g.fillStyle(0x333333, 1);
+    g.fillRect(9, 19, 4, 8);
+    g.fillRect(15, 19, 4, 8);
+    // Тело из пепла
+    g.fillStyle(0x555555, 1);
+    g.fillRect(5, 8, 18, 13);
+    // Угольные прожилки (оранжевые)
+    g.fillStyle(0xff4400, 1);
+    g.fillRect(8, 11, 2, 2);
+    g.fillRect(14, 13, 3, 2);
+    g.fillRect(10, 16, 2, 2);
+    g.fillRect(17, 10, 2, 3);
+    // Голова
+    g.fillStyle(0x444444, 1);
+    g.fillRect(8, 1, 12, 9);
+    // Глаза (красные угли)
+    g.fillStyle(0xff2200, 1);
+    g.fillRect(10, 4, 3, 3);
+    g.fillRect(16, 4, 3, 3);
+    g.generateTexture('body_asher', 28, 28);
+    g.clear();
+
+    // ── Splasher / Брызгун (body_splasher) — водяной пузырь
+    g.fillStyle(0x2255aa, 1);
+    g.fillRect(7, 7, 14, 14);
+    g.fillStyle(0x3377cc, 1);
+    g.fillRect(8, 6, 12, 16);
+    g.fillStyle(0x44aaff, 1);
+    g.fillRect(9, 7, 10, 14);
+    // Блик
+    g.fillStyle(0xaaddff, 1);
+    g.fillRect(10, 8, 4, 4);
+    // Глаза
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(10, 12, 3, 3);
+    g.fillRect(15, 12, 3, 3);
+    g.fillStyle(0x000066, 1);
+    g.fillRect(11, 13, 1, 2);
+    g.fillRect(16, 13, 1, 2);
+    // Капли воды
+    g.fillStyle(0x66bbff, 1);
+    g.fillRect(3, 9, 3, 4);
+    g.fillRect(22, 11, 3, 4);
+    g.generateTexture('body_splasher', 28, 28);
+    g.clear();
+
+    // ── Fogger / Туманник (body_fogger) — туманная фигура ─
+    g.fillStyle(0x6699aa, 0.7);
+    g.fillRect(5, 5, 18, 20);
+    g.fillStyle(0x88bbcc, 1);
+    g.fillRect(7, 7, 14, 16);
+    g.fillStyle(0xaaccdd, 0.8);
+    g.fillRect(9, 9, 10, 12);
+    // Туманные края
+    g.fillStyle(0x77aacc, 1);
+    g.fillRect(3, 8, 5, 10);
+    g.fillRect(20, 8, 5, 10);
+    g.fillRect(8, 2, 12, 5);
+    // Глаза (холодные голубые)
+    g.fillStyle(0xccffff, 1);
+    g.fillRect(10, 10, 3, 3);
+    g.fillRect(15, 10, 3, 3);
+    g.fillStyle(0x00ccee, 1);
+    g.fillRect(11, 11, 1, 2);
+    g.fillRect(16, 11, 1, 2);
+    g.generateTexture('body_fogger', 28, 28);
+    g.clear();
+
+    // ── Pebble / Каменыш (body_pebble) — каменный голем ──
+    // Ноги-блоки
+    g.fillStyle(0x554433, 1);
+    g.fillRect(7, 20, 6, 7);
+    g.fillRect(16, 20, 6, 7);
+    // Массивное каменное тело
+    g.fillStyle(0x776655, 1);
+    g.fillRect(4, 8, 20, 14);
+    // Трещины на теле
+    g.fillStyle(0x443322, 1);
+    g.fillRect(10, 10, 1, 8);
+    g.fillRect(15, 12, 1, 6);
+    g.fillRect(6, 14, 5, 1);
+    g.fillRect(18, 11, 5, 1);
+    // Руки-глыбы
+    g.fillStyle(0x665544, 1);
+    g.fillRect(0, 9, 5, 9);
+    g.fillRect(23, 9, 5, 9);
+    // Голова-блок
+    g.fillStyle(0x887766, 1);
+    g.fillRect(7, 1, 14, 9);
+    // Глаза (тусклые)
+    g.fillStyle(0x443322, 1);
+    g.fillRect(10, 4, 3, 3);
+    g.fillRect(16, 4, 3, 3);
+    g.generateTexture('body_pebble', 28, 28);
+    g.clear();
+
+    // ── Mudder / Грязевик (body_mudder) — грязь и корни ──
+    // Ноги из грязи
+    g.fillStyle(0x332211, 1);
+    g.fillRect(8, 20, 5, 7);
+    g.fillRect(16, 20, 5, 7);
+    // Тело (тёмно-коричневое)
+    g.fillStyle(0x554433, 1);
+    g.fillRect(5, 8, 18, 13);
+    // Корни/полосы
+    g.fillStyle(0x221100, 1);
+    g.fillRect(5, 12, 18, 2);
+    g.fillRect(7, 16, 3, 4);
+    g.fillRect(18, 15, 4, 4);
+    // Зелёные побеги (живые)
+    g.fillStyle(0x336622, 1);
+    g.fillRect(3, 7, 3, 5);
+    g.fillRect(22, 8, 3, 4);
+    g.fillRect(12, 5, 4, 4);
+    // Голова
+    g.fillStyle(0x665544, 1);
+    g.fillRect(8, 1, 12, 9);
+    // Глаза (жёлто-зелёные)
+    g.fillStyle(0x88cc22, 1);
+    g.fillRect(10, 4, 3, 3);
+    g.fillRect(16, 4, 3, 3);
+    g.generateTexture('body_mudder', 28, 28);
+    g.clear();
+
+    // ── Gusty / Вихрик (body_gusty) — маленький вихрь ────
+    // Вихрь (спиральные слои)
+    g.fillStyle(0x88bb88, 0.5);
+    g.fillRect(5, 5, 18, 18);
+    g.fillStyle(0xaaddaa, 0.8);
+    g.fillRect(7, 7, 14, 14);
+    g.fillStyle(0xcceecc, 1);
+    g.fillRect(9, 9, 10, 10);
+    g.fillStyle(0xeeffee, 1);
+    g.fillRect(11, 11, 6, 6);
+    // Спиральный эффект
+    g.fillStyle(0x77aa77, 1);
+    g.fillRect(5, 12, 4, 2);
+    g.fillRect(19, 12, 4, 2);
+    g.fillRect(12, 4, 2, 4);
+    g.fillRect(12, 20, 2, 4);
+    // Глаза (маленькие)
+    g.fillStyle(0x224422, 1);
+    g.fillRect(11, 12, 2, 2);
+    g.fillRect(15, 12, 2, 2);
+    g.generateTexture('body_gusty', 28, 28);
+    g.clear();
+
+    // ── Whistler / Свистун (body_whistler) — птицеэлементаль
+    // Ноги (когтистые)
+    g.fillStyle(0x88aa88, 1);
+    g.fillRect(9, 21, 4, 6);
+    g.fillRect(16, 21, 4, 6);
+    g.fillRect(8, 25, 3, 2);
+    g.fillRect(16, 25, 4, 2);
+    // Тело (обтекаемое)
+    g.fillStyle(0x99ccaa, 1);
+    g.fillRect(6, 9, 16, 13);
+    // Крылья
+    g.fillStyle(0xaaddcc, 1);
+    g.fillRect(0, 8, 7, 10);
+    g.fillRect(21, 8, 7, 10);
+    // Рисунок крыла
+    g.fillStyle(0x77aa88, 1);
+    g.fillRect(1, 10, 5, 2);
+    g.fillRect(1, 14, 5, 2);
+    g.fillRect(22, 10, 5, 2);
+    g.fillRect(22, 14, 5, 2);
+    // Голова (птичья)
+    g.fillStyle(0x88bb99, 1);
+    g.fillRect(9, 1, 10, 10);
+    // Клюв
+    g.fillStyle(0xddcc55, 1);
+    g.fillRect(8, 6, 4, 3);
+    // Глаза
+    g.fillStyle(0x111111, 1);
+    g.fillRect(11, 3, 3, 3);
+    g.fillRect(16, 3, 2, 3);
+    g.generateTexture('body_whistler', 28, 28);
+    g.clear();
   }
 
   create() {

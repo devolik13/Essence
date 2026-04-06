@@ -51,6 +51,12 @@ export interface BodyDefinition {
   signatureSpell?: AbilityDef;
   spellXPThreshold?: number;
   lootTable?: LootEntry[];
+  /** Заклинания которые моб использует в бою (тиры 1-3 своей школы) */
+  npcSpells?: AbilityDef[];
+  /** Стихия моба — для слабостей и зонального спавна */
+  element?: 'fire' | 'water' | 'earth' | 'wind';
+  /** Босс Главы */
+  isBoss?: boolean;
 }
 
 // ─── Стартовые тела ────────────────────────────────────

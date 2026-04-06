@@ -23,6 +23,7 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
+import { CHAPTER1_ZONES, VILLAGE_CENTER } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 
@@ -132,7 +133,7 @@ export class GameScene extends Phaser.Scene {
     this.buildMap();
 
     // ─── Сфера ───────────────────────────────────────
-    this.sphere = new Sphere(this, 320, 320);
+    this.sphere = new Sphere(this, VILLAGE_CENTER.x, VILLAGE_CENTER.y);
     const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
     if (loaded) this.events.emit('save-loaded');
 
@@ -283,9 +284,21 @@ export class GameScene extends Phaser.Scene {
     for (const creature of this.creatures) {
       creature.update(time, delta, px, py);
 
-      // Моб атакует игрока
+      // Моб атакует игрока — базовая атака оружием
       if (creature.aiState === 'attack' && this.playerBody && creature.attackCooldown <= 0) {
         this.creatureAttackPlayer(creature);
+      }
+
+      // Моб кастует заклинание (мгновенное)
+      if (creature.aiState === 'attack' && this.playerBody) {
+        const spell = creature.getReadySpell();
+        if (spell) this.creatureCastSpell(creature, spell);
+      }
+
+      // Завершение каста (castTime заклинания)
+      if (creature.castingSpell && creature.castTimer <= 0 && this.playerBody) {
+        const spell = creature.consumeCastingSpell();
+        if (spell) this.creatureCastSpell(creature, spell);
       }
     }
 
@@ -561,62 +574,51 @@ export class GameScene extends Phaser.Scene {
   // ─── Спавн мобов ─────────────────────────────────────
 
   private spawnCreatures() {
-    // Гоблины — группа справа от безопасной зоны
-    for (let i = 0; i < 5; i++) {
-      const x = 600 + Math.random() * 200;
-      const y = 250 + Math.random() * 200;
-      const creature = new Creature(this, x, y, CREATURE_DB['goblin']);
-      this.creatures.push(creature);
+    // ── Глава 1: элементали по зонам ─────────────────────
+    for (const zone of CHAPTER1_ZONES) {
+      // Обычные мобы зоны
+      for (const group of zone.spawnGroups) {
+        const def = CREATURE_DB[group.creatureId];
+        if (!def) continue;
+        for (let i = 0; i < group.count; i++) {
+          const jx = group.x + (Math.random() - 0.5) * 80;
+          const jy = group.y + (Math.random() - 0.5) * 80;
+          this.creatures.push(new Creature(this, jx, jy, def));
+        }
+      }
+      // Босс зоны (временно из существующих мобов)
+      const bossDef = CREATURE_DB[zone.bossId];
+      if (bossDef) {
+        this.creatures.push(new Creature(this, zone.bossX, zone.bossY, bossDef));
+      }
     }
 
-    // Волки — дальше
-    for (let i = 0; i < 3; i++) {
-      const x = 900 + Math.random() * 200;
-      const y = 300 + Math.random() * 200;
-      const creature = new Creature(this, x, y, CREATURE_DB['wolf']);
-      this.creatures.push(creature);
-    }
+    // ── Стартовая зона (вокруг деревни Эшворт) ───────────
+    // Пассивные мобы и гоблины рядом для обучения
+    const village = VILLAGE_CENTER;
 
-    // Кролики — рядом с базой (пассивные)
     for (let i = 0; i < 7; i++) {
-      const x = 200 + Math.random() * 300;
-      const y = 450 + Math.random() * 150;
+      const x = village.x + (Math.random() - 0.5) * 400;
+      const y = village.y + (Math.random() - 0.5) * 400;
       this.creatures.push(new Creature(this, x, y, CREATURE_DB['rabbit']));
     }
 
-    // Лесные духи — рядом с кроликами (пассивные, учат Искре)
     for (let i = 0; i < 6; i++) {
-      const x = 150 + Math.random() * 350;
-      const y = 620 + Math.random() * 120;
+      const x = village.x + (Math.random() - 0.5) * 500;
+      const y = village.y + (Math.random() - 0.5) * 500;
       this.creatures.push(new Creature(this, x, y, CREATURE_DB['forest_spirit']));
     }
 
-    // Разведчики — дальнобойные, правее гоблинов
-    for (let i = 0; i < 4; i++) {
-      const x = 820 + Math.random() * 180;
-      const y = 500 + Math.random() * 150;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['scout']));
+    for (let i = 0; i < 5; i++) {
+      const x = village.x + 300 + Math.random() * 200;
+      const y = village.y + (Math.random() - 0.5) * 200;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['goblin']));
     }
 
-    // Медведи — медвежья берлога (северо-восток)
     for (let i = 0; i < 3; i++) {
-      const x = 1200 + Math.random() * 280;
-      const y = 210 + Math.random() * 210;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['bear']));
-    }
-
-    // Орки — земли орков (восток-центр)
-    for (let i = 0; i < 4; i++) {
-      const x = 1110 + Math.random() * 270;
-      const y = 500 + Math.random() * 240;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['orc']));
-    }
-
-    // Шаманы — логово шамана (юг)
-    for (let i = 0; i < 3; i++) {
-      const x = 410 + Math.random() * 270;
-      const y = 770 + Math.random() * 170;
-      this.creatures.push(new Creature(this, x, y, CREATURE_DB['shaman']));
+      const x = village.x + 500 + Math.random() * 200;
+      const y = village.y + (Math.random() - 0.5) * 200;
+      this.creatures.push(new Creature(this, x, y, CREATURE_DB['wolf']));
     }
   }
 
@@ -731,6 +733,55 @@ export class GameScene extends Phaser.Scene {
     );
 
     creature.attackCooldown = WEAPON_COOLDOWNS[creature.definition.weapon];
+
+    if (this.playerBody.isDead) {
+      this.onPlayerDeath();
+    }
+  }
+
+  /** Моб кастует заклинание своей школы по игроку */
+  private creatureCastSpell(creature: Creature, spell: AbilityDef) {
+    if (!this.playerBody) return;
+
+    // Цвет снаряда по элементу
+    const elementColors: Record<string, number> = {
+      fire: 0xff5500,
+      water: 0x44aaff,
+      earth: 0x886633,
+      wind: 0xaaddaa,
+    };
+    const projColor = elementColors[creature.definition.element ?? 'fire'] ?? 0xcc66ff;
+
+    const result = calcMagicDamage(creature.stats, this.sphere.stats, spell.baseDamage);
+
+    if (result.hit) {
+      if (spell.isAoe) {
+        // AOE: урон всем телам в радиусе вокруг игрока (сейчас только игрок)
+        this.playerBody.takeDamage(result.final);
+        // Визуал AOE — несколько снарядов по кругу
+        for (let i = 0; i < 4; i++) {
+          const angle = (Math.PI * 2 * i) / 4;
+          const r = (spell.aoeRadius ?? 60) * 0.6;
+          this.spawnProjectile(
+            creature.x, creature.y,
+            this.playerBody.x + Math.cos(angle) * r,
+            this.playerBody.y + Math.sin(angle) * r,
+            projColor, 5, 5,
+          );
+        }
+      } else {
+        this.playerBody.takeDamage(result.final);
+        this.spawnProjectile(
+          creature.x, creature.y,
+          this.playerBody.x, this.playerBody.y,
+          projColor, 7, 5,
+        );
+      }
+    }
+
+    this.damageTexts.push(
+      new DamageText(this, this.playerBody.x, this.playerBody.y - 10, result.final, result.crit, !result.hit)
+    );
 
     if (this.playerBody.isDead) {
       this.onPlayerDeath();
