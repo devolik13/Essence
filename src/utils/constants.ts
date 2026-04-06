@@ -11,7 +11,7 @@ export const GAME_HEIGHT = 640;
 
 // ─── Движение ──────────────────────────────────────────
 export const SPHERE_SPEED = 200;       // пикс/сек в астрале
-export const BODY_SPEED = 150;         // пикс/сек в теле
+export const BODY_SPEED = 120;         // пикс/сек в теле
 export const CREATURE_SPEED = 80;      // пикс/сек мобы
 
 // ─── Боевые константы ──────────────────────────────────
