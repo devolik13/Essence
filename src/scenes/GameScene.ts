@@ -592,13 +592,16 @@ export class GameScene extends Phaser.Scene {
   // ─── Спавн мобов ─────────────────────────────────────
 
   private spawnCreatures() {
-    const spawnGroups = (groups: { x: number; y: number; creatureId: string; count: number }[]) => {
+    const spawnGroups = (
+      groups: { x: number; y: number; creatureId: string; count: number }[],
+      jitter = 100,
+    ) => {
       for (const group of groups) {
         const def = CREATURE_DB[group.creatureId];
         if (!def) continue;
         for (let i = 0; i < group.count; i++) {
-          const jx = group.x + (Math.random() - 0.5) * 100;
-          const jy = group.y + (Math.random() - 0.5) * 100;
+          const jx = group.x + (Math.random() - 0.5) * jitter;
+          const jy = group.y + (Math.random() - 0.5) * jitter;
           this.creatures.push(new Creature(this, jx, jy, def));
         }
       }
@@ -621,7 +624,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     // ── Стартовая зона (вокруг деревни Эшворт) ───────────
-    spawnGroups(VILLAGE_STARTER_SPAWNS);
+    // Малый джиттер ±40px — пассивные мобы не вылезают за границы деревни
+    spawnGroups(VILLAGE_STARTER_SPAWNS, 40);
   }
 
   // ─── Атака ────────────────────────────────────────────
