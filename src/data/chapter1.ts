@@ -127,42 +127,43 @@ export const CHAPTER1_ZONES: ZoneConfig[] = [
 
 export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
   // Серый лес — квест «пропавший скот»
-  // тайлы x:20-40, y:50-65 → пиксели ~640-1280, 1600-2080
+  // Буфер между деревней (y2=1504) и зоной ветра (y1=1664): y ~ 1510-1650
+  // Западная сторона, вне всех зональных баундов
   {
     id: 'grey_forest',
     label: 'Серый лес',
     spawnGroups: [
-      { x: 750,  y: 1700, creatureId: 'wolf',  count: 3 },
-      { x: 950,  y: 1750, creatureId: 'wolf',  count: 2 },
-      { x: 850,  y: 1850, creatureId: 'bear',  count: 2 },
-      { x: 1100, y: 1700, creatureId: 'wolf',  count: 2 },
-      { x: 1050, y: 1900, creatureId: 'bear',  count: 1 },
+      { x: 700,  y: 1540, creatureId: 'wolf', count: 3 },
+      { x: 900,  y: 1560, creatureId: 'wolf', count: 2 },
+      { x: 800,  y: 1620, creatureId: 'bear', count: 2 },
+      { x: 1050, y: 1540, creatureId: 'wolf', count: 2 },
+      { x: 980,  y: 1630, creatureId: 'bear', count: 1 },
     ],
   },
 
-  // Лагерь орков — буферная зона между деревней и зоной ветра
-  // тайлы x:55-70, y:52-64 → пиксели ~1760-2240, 1664-2048
+  // Лагерь орков — буфер юг-центр, между деревней и зоной ветра
+  // y ~ 1510-1650, центр по x
   {
     id: 'orc_camp',
     label: 'Лагерь орков',
     spawnGroups: [
-      { x: 1850, y: 1750, creatureId: 'orc',    count: 3 },
-      { x: 2050, y: 1780, creatureId: 'orc',    count: 2 },
-      { x: 1950, y: 1880, creatureId: 'shaman', count: 2 },
-      { x: 2150, y: 1820, creatureId: 'orc',    count: 2 },
-      { x: 2000, y: 1950, creatureId: 'shaman', count: 1 },
+      { x: 1850, y: 1530, creatureId: 'orc',    count: 3 },
+      { x: 2050, y: 1550, creatureId: 'orc',    count: 2 },
+      { x: 1950, y: 1620, creatureId: 'shaman', count: 2 },
+      { x: 2150, y: 1560, creatureId: 'orc',    count: 2 },
+      { x: 2000, y: 1640, creatureId: 'shaman', count: 1 },
     ],
   },
 
-  // Крестьянский хутор — буфер восток, разведчики
-  // тайлы x:80-95, y:10-22 → пиксели ~2560-3040, 320-704
+  // Крестьянский хутор — буфер север-восток, между деревней (y1=1056) и зоной воды (y2=896)
+  // y ~ 920-1050, восточная сторона
   {
     id: 'farmstead',
     label: 'Крестьянский хутор',
     spawnGroups: [
-      { x: 2700, y: 420, creatureId: 'scout', count: 2 },
-      { x: 2900, y: 500, creatureId: 'scout', count: 3 },
-      { x: 2800, y: 600, creatureId: 'scout', count: 2 },
+      { x: 2650, y: 940,  creatureId: 'scout', count: 2 },
+      { x: 2850, y: 970,  creatureId: 'scout', count: 3 },
+      { x: 2750, y: 1020, creatureId: 'scout', count: 2 },
     ],
   },
 ];
@@ -170,12 +171,17 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
 // ─── Стартовая зона (вокруг деревни) ──────────────────────────────────────────
 
 export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
-  // Пассивные — для обучения захвату
-  { x: 1920, y: 1280, creatureId: 'rabbit',       count: 7 },
-  { x: 1920, y: 1280, creatureId: 'forest_spirit', count: 6 },
-  // Первые враги — чуть восточнее деревни
-  { x: 2250, y: 1280, creatureId: 'goblin',        count: 5 },
-  { x: 2450, y: 1280, creatureId: 'wolf',          count: 3 },
+  // Пассивные — вокруг деревни (джиттер ±100px при спавне)
+  // Кролики — юго-запад от деревни
+  { x: 1650, y: 1420, creatureId: 'rabbit',        count: 4 },
+  { x: 1750, y: 1500, creatureId: 'rabbit',        count: 3 },
+  // Лесные духи — северо-запад от деревни
+  { x: 1650, y: 1150, creatureId: 'forest_spirit', count: 3 },
+  { x: 1780, y: 1080, creatureId: 'forest_spirit', count: 3 },
+  // Первые враги — восточнее деревни, но западнее зоны Огня (x < 2304)
+  { x: 2240, y: 1200, creatureId: 'goblin',        count: 3 },
+  { x: 2240, y: 1360, creatureId: 'goblin',        count: 2 },
+  { x: 2240, y: 1280, creatureId: 'wolf',          count: 3 },
 ];
 
 /** Village Eshworth — safe zone, player start point */

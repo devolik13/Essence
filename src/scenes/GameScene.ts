@@ -79,9 +79,9 @@ export class GameScene extends Phaser.Scene {
 
   // Стартовые тела на камне возрождения
   private starterPositions = [
-    { x: 280, y: 300 },  // Воин
-    { x: 320, y: 300 },  // Лучник
-    { x: 360, y: 300 },  // Маг
+    { x: 1880, y: 1340 },  // Воин
+    { x: 1920, y: 1340 },  // Лучник
+    { x: 1960, y: 1340 },  // Маг
   ];
 
   // Захват
@@ -92,7 +92,7 @@ export class GameScene extends Phaser.Scene {
   private questTracker!: QuestTracker;
 
   // NPC-квестодатель
-  private questGiverPos = { x: 390, y: 310 };
+  private questGiverPos = { x: 2020, y: 1240 };
 
   // Выбранная цель
   private selectedTarget: Creature | null = null;
@@ -421,36 +421,54 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Безопасная зона (камень) — 8x6 тайлов в центре-лево
-    for (let ty = 8; ty < 14; ty++) {
-      for (let tx = 7; tx < 15; tx++) {
+    // Деревня Эшворт — каменные тайлы вокруг центра карты (tx 56-64, ty 37-43)
+    // Центр карты тайл (60,40) = пиксель (1920, 1280)
+    for (let ty = 37; ty < 44; ty++) {
+      for (let tx = 56; tx < 65; tx++) {
         this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 'tile_stone');
       }
     }
 
-    // Камень возрождения
-    this.add.image(320, 280, 'respawn_stone');
-    this.add.text(320, 256, 'Камень возрождения', {
+    // Камень возрождения — в центре деревни
+    this.add.image(VILLAGE_CENTER.x, VILLAGE_CENTER.y - 80, 'respawn_stone');
+    this.add.text(VILLAGE_CENTER.x, VILLAGE_CENTER.y - 106, 'Камень возрождения', {
       fontSize: '11px', color: '#aaaaee', align: 'center',
     }).setOrigin(0.5);
 
-    // ─── Зоны ────────────────────────────────────────────
-    // Медвежья берлога (северо-восток)
-    this.add.rectangle(1350, 320, 320, 260, 0x664422, 0.12);
-    this.add.text(1350, 198, '⚔  Медвежья берлога', {
-      fontSize: '13px', color: '#997755', align: 'center',
+    // ─── Подписи зон ─────────────────────────────────────
+    this.add.text(3040, 1280, '🔥 Пепельная роща', {
+      fontSize: '14px', color: '#ff8844', align: 'center',
+      stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5);
 
-    // Земли орков (восток-центр)
-    this.add.rectangle(1250, 620, 300, 260, 0x446633, 0.12);
-    this.add.text(1250, 498, '⚔  Земли орков', {
-      fontSize: '13px', color: '#669955', align: 'center',
+    this.add.text(1920, 480, '🌊 Туманное озеро', {
+      fontSize: '14px', color: '#66aaff', align: 'center',
+      stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5);
 
-    // Логово шамана (юг)
-    this.add.rectangle(550, 860, 300, 200, 0x9944aa, 0.12);
-    this.add.text(550, 766, '✦  Логово шамана', {
-      fontSize: '13px', color: '#bb66cc', align: 'center',
+    this.add.text(800, 1280, '🪨 Каменные холмы', {
+      fontSize: '14px', color: '#aa8855', align: 'center',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5);
+
+    this.add.text(1920, 2080, '💨 Вершины ветров', {
+      fontSize: '14px', color: '#99ddaa', align: 'center',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5);
+
+    this.add.text(900, 1570, '🌲 Серый лес', {
+      fontSize: '12px', color: '#88aa66', align: 'center',
+      stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5);
+
+    this.add.text(2000, 1570, '⚔ Лагерь орков', {
+      fontSize: '12px', color: '#88aa55', align: 'center',
+      stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5);
+
+    this.add.text(2800, 720, '🏚 Крестьянский хутор', {
+      fontSize: '12px', color: '#ccaa77', align: 'center',
+      stroke: '#000000', strokeThickness: 2,
     }).setOrigin(0.5);
   }
 
@@ -881,7 +899,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.destroy();
       this.playerBody = null;
     }
-    this.sphere.enterAstral(320, 320);
+    this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
     saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL], this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
