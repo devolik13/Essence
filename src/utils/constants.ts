@@ -1,7 +1,7 @@
 // ─── Размеры мира ──────────────────────────────────────
 export const TILE_SIZE = 32;
-export const MAP_WIDTH_TILES = 60;
-export const MAP_HEIGHT_TILES = 40;
+export const MAP_WIDTH_TILES = 120;
+export const MAP_HEIGHT_TILES = 80;
 export const MAP_WIDTH = MAP_WIDTH_TILES * TILE_SIZE;
 export const MAP_HEIGHT = MAP_HEIGHT_TILES * TILE_SIZE;
 
