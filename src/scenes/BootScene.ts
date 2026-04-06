@@ -664,9 +664,9 @@ export class BootScene extends Phaser.Scene {
     makeAnim('warrior_idle_down',  'warrior_idle_down',  8, -1);
     makeAnim('warrior_idle_right', 'warrior_idle_right', 8, -1);
     makeAnim('warrior_idle_up',    'warrior_idle_up',    8, -1);
-    makeAnim('warrior_walk_down',  'warrior_walk_down',  12, -1);
-    makeAnim('warrior_walk_right', 'warrior_walk_right', 12, -1);
-    makeAnim('warrior_walk_up',    'warrior_walk_up',    12, -1);
+    makeAnim('warrior_walk_down',  'warrior_walk_down',  18, -1);
+    makeAnim('warrior_walk_right', 'warrior_walk_right', 18, -1);
+    makeAnim('warrior_walk_up',    'warrior_walk_up',    18, -1);
     makeAnim('warrior_atk_down',   'warrior_atk_down',   17, 0);   // repeat=0 = один раз (+20%)
     makeAnim('warrior_atk_right',  'warrior_atk_right',  17, 0);
     makeAnim('warrior_atk_up',     'warrior_atk_up',     17, 0);
