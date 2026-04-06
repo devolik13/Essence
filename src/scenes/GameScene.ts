@@ -708,7 +708,8 @@ export class GameScene extends Phaser.Scene {
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
 
-    // Анимация атаки (если тело поддерживает)
+    // Повернуть к цели и запустить анимацию атаки
+    this.playerBody.faceToward(closestCreature.x, closestCreature.y);
     this.playerBody.playAttackAnim();
 
     // Проверка смерти моба

@@ -119,6 +119,22 @@ export class Body extends Phaser.GameObjects.Container {
     this.keys = undefined;
   }
 
+  /**
+   * Повернуть спрайт к цели по координатам.
+   * Определяет направление (down/up/left/right) по углу к цели.
+   */
+  faceToward(tx: number, ty: number) {
+    if (!ANIMATED_BODIES[this.definition.id]) return;
+    const dx = tx - this.x;
+    const dy = ty - this.y;
+    // Вертикальная ось важнее если угол крутой (> 45°)
+    if (Math.abs(dy) >= Math.abs(dx)) {
+      this.facingDir = dy >= 0 ? 'down' : 'up';
+    } else {
+      this.facingDir = dx >= 0 ? 'right' : 'left';
+    }
+  }
+
   /** Запустить анимацию атаки (вызывается из GameScene при ударе) */
   playAttackAnim() {
     const animCfg = ANIMATED_BODIES[this.definition.id];
