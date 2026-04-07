@@ -2,39 +2,39 @@ import { AbilityDef } from '../types/abilities';
 
 // ─── Кролик ────────────────────────────────────────────────────────────────
 
-/** Рывок — резкое ускорение на 5 сек (+50% скорость) */
+/** Рывок — мгновенный бросок вперёд на 180px */
 export const ABILITY_DASH: AbilityDef = {
   id: 'dash',
   nameRu: 'Рывок',
   damageType: 'melee',
-  effectType: 'dash',
+  effectType: 'dash_forward',
+  dashDistance: 180,
   cooldown: 10,
   manaCost: 0,
   range: 0,
   baseDamage: 0,
-  description: 'Резкое ускорение на 5 сек. Скорость +50%',
+  description: 'Мгновенный бросок вперёд на 180px.',
 };
 
 // ─── Гоблин ────────────────────────────────────────────────────────────────
 
-/** Укол — быстрый удар кинжалом, 20% шанс яда */
+/** Укол — удар кинжалом от Ловкости, гарантированно 1 стак яда */
 export const ABILITY_STING: AbilityDef = {
   id: 'sting',
   nameRu: 'Укол',
   damageType: 'melee',
-  effectType: 'poison_strike',
   cooldown: 5,
   manaCost: 0,
   range: 44,
   baseDamage: 12,
-  poisonDps: 2,
-  poisonDuration: 5,
-  description: 'Укол кинжалом. Урон: 12 × (1 + Сила/100). 20% шанс яда (2 урон/сек, 5 сек)',
+  statusEffect: 'poison',
+  statusChance: 1.0,
+  description: 'Укол кинжалом (урон от Ловкости). Гарантированно 1 стак яда.',
 };
 
 // ─── Одноручный меч (обучает Волк) ─────────────────────────────────────────
 
-/** Удар мечом — мощный одиночный удар */
+/** Удар мечом — урон от Силы + Замедление */
 export const ABILITY_SWORD_STRIKE: AbilityDef = {
   id: 'sword_strike',
   nameRu: 'Удар мечом',
@@ -43,12 +43,14 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
   manaCost: 0,
   range: 52,
   baseDamage: 18,
-  description: 'Мощный удар мечом. Урон: 18 × (1 + Сила/100)',
+  statusEffect: 'slow',
+  statusChance: 1.0,
+  description: 'Удар мечом (урон от Силы). Накладывает Замедление.',
 };
 
 // ─── Булава (обучает Медведь) ───────────────────────────────────────────────
 
-/** Дробящий удар — тяжёлый удар булавой */
+/** Дробящий удар — урон от Силы + Сбитие концентрации */
 export const ABILITY_MACE_STRIKE: AbilityDef = {
   id: 'mace_strike',
   nameRu: 'Дробящий удар',
@@ -57,12 +59,14 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   manaCost: 0,
   range: 48,
   baseDamage: 22,
-  description: 'Дробящий удар булавой. Урон: 22 × (1 + Сила/100)',
+  statusEffect: 'interrupt',
+  statusChance: 1.0,
+  description: 'Удар булавой (урон от Силы). Сбивает каст (без кулдауна).',
 };
 
 // ─── Двуручный меч (обучает Орк) ───────────────────────────────────────────
 
-/** Рубящий удар — мощный удар двуручником с кровотечением */
+/** Рубящий удар — урон от Силы + Кровотечение */
 export const ABILITY_SLASH: AbilityDef = {
   id: 'slash',
   nameRu: 'Рубящий удар',
@@ -71,7 +75,9 @@ export const ABILITY_SLASH: AbilityDef = {
   manaCost: 0,
   range: 60,
   baseDamage: 30,
-  description: 'Рубящий удар двуручником. Урон: 30 × (1 + Сила/100)',
+  statusEffect: 'bleed',
+  statusChance: 1.0,
+  description: 'Рубящий удар двуручником (урон от Силы). Накладывает Кровотечение.',
 };
 
 // ─── Шаман (призыв) ────────────────────────────────────────────────────────
@@ -82,16 +88,16 @@ export const ABILITY_SUMMON_WOLF: AbilityDef = {
   nameRu: 'Призыв волка',
   damageType: 'magic',
   effectType: 'summon_wolf',
-  cooldown: 45,
+  cooldown: 5,   // кулдаун после смерти волка; пока жив — блокируется логикой
   manaCost: 20,
   range: 0,
   baseDamage: 0,
-  description: 'Призывает волка-союзника на 30 сек. Волк атакует ближайшего врага.',
+  description: 'Призывает волка-союзника на 30 сек. HP и атака волка масштабируются от Интеллекта. Пока волк жив — повторный призыв невозможен.',
 };
 
 // ─── Короткий лук (обучает Разведчик) ──────────────────────────────────────
 
-/** Прицельный выстрел — точный дальний выстрел */
+/** Прицельный выстрел — урон от Ловкости + Уязвимость */
 export const ABILITY_BOW_SHOT: AbilityDef = {
   id: 'bow_shot',
   nameRu: 'Прицельный выстрел',
@@ -100,40 +106,46 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   manaCost: 0,
   range: 240,
   baseDamage: 16,
-  description: 'Прицельный выстрел из лука. Урон: 16 × (1 + Точность/100)',
+  statusEffect: 'vulnerability',
+  statusChance: 1.0,
+  description: 'Прицельный выстрел (урон от Ловкости). Накладывает Уязвимость (+5% урон по цели).',
 };
 
-// ─── Длинный лук (не реализован на моб-учителе) ───────────────────────────
+// ─── Длинный лук (обучает bandit_archer) ──────────────────────────────────
 
-/** Дальний выстрел — мощный выстрел на предельную дистанцию */
+/** Дальний выстрел — урон от Ловкости, 50% шанс сброса кулдауна */
 export const ABILITY_LONGBOW_SHOT: AbilityDef = {
   id: 'longbow_shot',
   nameRu: 'Дальний выстрел',
   damageType: 'ranged',
+  effectType: 'reset_cooldown',
+  resetCooldownChance: 0.5,
   cooldown: 5,
   manaCost: 0,
   range: 320,
   baseDamage: 20,
-  description: 'Мощный выстрел из длинного лука. Урон: 20 × (1 + Точность/100)',
+  description: 'Выстрел из длинного лука (урон от Ловкости). 50% шанс сброса кулдауна.',
 };
 
-// ─── Арбалет (не реализован на моб-учителе) ───────────────────────────────
+// ─── Арбалет (обучает bandit_crossbow) ────────────────────────────────────
 
-/** Болт — пробивающий выстрел из арбалета */
+/** Пробивающий болт — урон от Ловкости, проходит сквозь до 3 целей */
 export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   id: 'crossbow_bolt',
   nameRu: 'Пробивающий болт',
   damageType: 'ranged',
+  effectType: 'pierce',
+  pierceCount: 3,
   cooldown: 6,
   manaCost: 0,
   range: 290,
   baseDamage: 24,
-  description: 'Пробивающий выстрел из арбалета. Урон: 24 × (1 + Точность/100)',
+  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей насквозь.',
 };
 
-// ─── Копьё (не реализован на моб-учителе) ─────────────────────────────────
+// ─── Копьё (обучает bandit_spear) ─────────────────────────────────────────
 
-/** Выпад — дистанционный колющий удар копьём */
+/** Выпад — урон от Силы, 30% шанс Отбрасывания */
 export const ABILITY_SPEAR_THRUST: AbilityDef = {
   id: 'spear_thrust',
   nameRu: 'Выпад',
@@ -142,12 +154,14 @@ export const ABILITY_SPEAR_THRUST: AbilityDef = {
   manaCost: 0,
   range: 80,
   baseDamage: 20,
-  description: 'Выпад копьём с увеличенной дистанцией. Урон: 20 × (1 + Сила/100)',
+  statusEffect: 'knockback',
+  statusChance: 0.3,
+  description: 'Выпад копьём (урон от Силы). 30% шанс Отбрасывания на 180px.',
 };
 
-// ─── Молот (не реализован на моб-учителе) ─────────────────────────────────
+// ─── Молот (обучает bandit_brute) ─────────────────────────────────────────
 
-/** Сокрушительный удар — мощный удар молотом с AoE */
+/** Сокрушительный удар — урон от Силы, AoE, 50% шанс Пробития брони */
 export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   id: 'hammer_strike',
   nameRu: 'Сокрушительный удар',
@@ -158,5 +172,7 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   baseDamage: 36,
   isAoe: true,
   aoeRadius: 60,
-  description: 'Удар молотом по земле. Урон: 36 × (1 + Сила/100), AoE радиус 60',
+  statusEffect: 'armor_break',
+  statusChance: 0.5,
+  description: 'Удар молотом (урон от Силы), AoE радиус 60. 50% шанс Пробития брони.',
 };

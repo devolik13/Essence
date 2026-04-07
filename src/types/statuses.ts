@@ -13,6 +13,9 @@ export type StatusEffectId =
   | 'slow'             // Замедление
   | 'knockback'        // Отбрасывание (мгновенно)
   | 'root'             // Корни
+  // Баффы движения/каста
+  | 'acceleration'     // Ускорение
+  | 'inspiration'      // Вдохновение
   // Контроль действий
   | 'stun'             // Оглушение
   | 'sleep'            // Сон
@@ -242,5 +245,15 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'hp_regen_boost', nameRu: 'Регенерация HP',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenHpBonus: 1.0,
+  },
+  acceleration: {
+    id: 'acceleration', nameRu: 'Ускорение',
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    moveSlow: -0.5, // отрицательное = ускорение (+50% скорость)
+  },
+  inspiration: {
+    id: 'inspiration', nameRu: 'Вдохновение',
+    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
+    castTimeIncrease: -0.3, // отрицательное = ускорение каста (-30% время каста)
   },
 };
