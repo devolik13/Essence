@@ -1361,6 +1361,88 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // ── Multi-projectile: 5 снарядов в случайные цели (Огненная стрела) ──
+    if (spell.effectType === 'multi_projectile') {
+      const radius = spell.projectileRadius ?? 150;
+      const count = spell.projectileCount ?? 5;
+      const pool = this.creatures.filter(c =>
+        !c.isDead && !c.isSummoned &&
+        distance(this.playerBody!.x, this.playerBody!.y, c.x, c.y) <= radius
+      );
+      if (pool.length > 0) {
+        for (let i = 0; i < count; i++) {
+          const c = pool[Math.floor(Math.random() * pool.length)];
+          const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          if (r.hit) {
+            const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
+            c.takeDamage(d);
+            this.damageTexts.push(new DamageText(this, c.x, c.y - 10 - i * 6, d, r.crit, false));
+            if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
+            if (c.isDead) this.onCreatureKilled(c);
+          }
+        }
+      }
+    }
+
+    // ── Cross AoE: 4 шипа крестом от цели (Каменный шип) ────────────────
+    if (spell.effectType === 'cross_aoe' && result.hit) {
+      const armLen = spell.crossArmLength ?? 260;
+      const armW   = spell.crossArmWidth  ?? 30;
+      const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+      for (const dir of dirs) {
+        for (const c of this.creatures) {
+          if (c === target || c.isDead || c.isSummoned) continue;
+          const dx = c.x - target.x;
+          const dy = c.y - target.y;
+          const proj = dx * dir.x + dy * dir.y;
+          if (proj <= 0 || proj > armLen) continue;
+          const perp = Math.abs(dx * dir.y - dy * dir.x);
+          if (perp > armW) continue;
+          const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          if (r.hit) {
+            const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
+            c.takeDamage(d);
+            this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d, r.crit, false));
+            if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
+            if (c.isDead) this.onCreatureKilled(c);
+          }
+        }
+      }
+    }
+
+    // ── Cone projectiles: 3 смерча конусом (Ветрорез) ────────────────────
+    if (spell.effectType === 'cone_projectiles' && result.hit) {
+      const count     = spell.projectileCount ?? 3;
+      const halfAngle = ((spell.coneAngle ?? 45) / 2) * (Math.PI / 180);
+      const armRange  = spell.range;
+      const dir       = this.playerBody.getFacingVector();
+      const baseAngle = Math.atan2(dir.y, dir.x);
+      // Равномерно распределяем лучи внутри конуса
+      for (let i = 0; i < count; i++) {
+        const t = count === 1 ? 0 : (i / (count - 1)) * 2 - 1; // -1..1
+        const rayAngle = baseAngle + t * halfAngle;
+        const rNx = Math.cos(rayAngle);
+        const rNy = Math.sin(rayAngle);
+        for (const c of this.creatures) {
+          if (c.isDead || c.isSummoned) continue;
+          const dx = c.x - this.playerBody!.x;
+          const dy = c.y - this.playerBody!.y;
+          const proj = dx * rNx + dy * rNy;
+          if (proj <= 0 || proj > armRange) continue;
+          const perp = Math.abs(dx * rNy - dy * rNx);
+          if (perp > 25) continue;
+          const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          if (r.hit) {
+            const isDouble = spell.doubleDamageChance && Math.random() < spell.doubleDamageChance;
+            const d = (this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final) * (isDouble ? 2 : 1);
+            c.takeDamage(d);
+            this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d, r.crit || !!isDouble, false));
+            if (c.isDead) this.onCreatureKilled(c);
+          }
+        }
+      }
+    }
+
     if (target.isDead) this.onCreatureKilled(target);
   }
 

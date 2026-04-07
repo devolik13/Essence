@@ -1,48 +1,51 @@
 /**
- * Elemental spells used by Chapter 1 mobs.
- * Based on concept/17_magic.md — tiers 1-3 of each elemental school.
- * Mob-appropriate: lower baseDamage than player spells, no mana cost (mobs don't track mana).
+ * Elemental spells — T1/T2 for player learning and mob use.
  *
- * Школьные эффекты (применяются ко всем заклинаниям школы):
+ * Школьные эффекты:
  *   Огонь  — 10% шанс Горение
  *   Вода   — 20% шанс Охлаждение
- *   Земля  — 50% шанс Пробитие брони
+ *   Земля  — 20% шанс Сокрушение/Пробитие брони
  *   Ветер  — 20% шанс двойной урон
+ *
+ * T1 дальность: 240px (как короткий лук)
  */
 import { AbilityDef } from '../types/abilities';
 
 // ─── FIRE SCHOOL ───────────────────────────────────────────────────────────────
 
-/** T1 — Искра (Spark): quick single-target shot */
+/** T1 — Искра: одиночный выстрел, 10% горение */
 export const MOB_FIRE_T1: AbilityDef = {
   id: 'mob_fire_t1',
   nameRu: 'Искра',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 0,
-  range: 180,
+  range: 240,
   baseDamage: 6,
   statusEffect: 'burn',
   statusChance: 0.1,
   description: 'Быстрый магический разряд огня. 10% шанс Горения.',
 };
 
-/** T2 — Огненная стрела (Fire Arrow) */
+/** T2 — Огненная стрела: 5 снарядов в случайные цели в радиусе 150px */
 export const MOB_FIRE_T2: AbilityDef = {
   id: 'mob_fire_t2',
   prerequisiteId: 'mob_fire_t1',
   nameRu: 'Огн. стрела',
   damageType: 'magic',
+  effectType: 'multi_projectile',
+  projectileCount: 5,
+  projectileRadius: 150,
   cooldown: 3.5,
   manaCost: 0,
-  range: 200,
+  range: 240,
   baseDamage: 11,
   statusEffect: 'burn',
   statusChance: 0.1,
-  description: 'Огненная стрела — усиленный выстрел. 10% шанс Горения.',
+  description: '5 огненных снарядов в случайные цели в радиусе 150px. 10% горение каждый.',
 };
 
-/** T3 — Огненная стена (Fire Wall): AOE */
+/** T3 — Огненная стена: AOE */
 export const MOB_FIRE_T3: AbilityDef = {
   id: 'mob_fire_t3',
   nameRu: 'Огн. стена',
@@ -61,21 +64,21 @@ export const MOB_FIRE_T3: AbilityDef = {
 
 // ─── WATER SCHOOL ──────────────────────────────────────────────────────────────
 
-/** T1 — Ледышка (Ice Shard) */
+/** T1 — Ледышка: одиночный выстрел, 20% охлаждение */
 export const MOB_WATER_T1: AbilityDef = {
   id: 'mob_water_t1',
   nameRu: 'Ледышка',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 0,
-  range: 200,
+  range: 240,
   baseDamage: 7,
   statusEffect: 'chill',
   statusChance: 0.2,
   description: 'Ледяной осколок. 20% шанс Охлаждения.',
 };
 
-/** T2 — Ледяная стрела (Ice Arrow): splash */
+/** T2 — Ледяная стрела: удар по цели + взрыв AoE 45px, 20% охлаждение */
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_water_t2',
   prerequisiteId: 'mob_water_t1',
@@ -83,16 +86,16 @@ export const MOB_WATER_T2: AbilityDef = {
   damageType: 'magic',
   cooldown: 4.0,
   manaCost: 0,
-  range: 220,
+  range: 240,
   baseDamage: 13,
   isAoe: true,
   aoeRadius: 45,
   statusEffect: 'chill',
   statusChance: 0.2,
-  description: 'Ледяной снаряд с брызгами. 20% шанс Охлаждения.',
+  description: 'Удар по цели + взрыв 45px. 20% охлаждение на каждую цель.',
 };
 
-/** T3 — Ледяной дождь (Ice Rain): AOE */
+/** T3 — Ледяной дождь: AOE */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_water_t3',
   nameRu: 'Лед. дождь',
@@ -111,38 +114,39 @@ export const MOB_WATER_T3: AbilityDef = {
 
 // ─── EARTH SCHOOL ──────────────────────────────────────────────────────────────
 
-/** T1 — Камешек (Pebble) */
+/** T1 — Камешек: одиночный выстрел, 20% Сокрушение брони (-20%) */
 export const MOB_EARTH_T1: AbilityDef = {
   id: 'mob_earth_t1',
   nameRu: 'Камешек',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 0,
-  range: 140,
+  range: 240,
   baseDamage: 9,
-  statusEffect: 'armor_break',
-  statusChance: 0.5,
-  description: 'Каменный снаряд. 50% шанс Пробития брони.',
+  statusEffect: 'armor_reduce',
+  statusChance: 0.2,
+  description: 'Каменный снаряд. 20% шанс Сокрушения брони (-20%).',
 };
 
-/** T2 — Каменный шип (Stone Spike): AoE */
+/** T2 — Каменный шип: удар по цели + 4 шипа крестом по 260px, 20% Пробитие брони (-50%) */
 export const MOB_EARTH_T2: AbilityDef = {
   id: 'mob_earth_t2',
   prerequisiteId: 'mob_earth_t1',
   nameRu: 'Кам. шип',
   damageType: 'magic',
+  effectType: 'cross_aoe',
+  crossArmLength: 260,
+  crossArmWidth: 30,
   cooldown: 5.0,
   manaCost: 0,
-  range: 160,
+  range: 240,
   baseDamage: 15,
-  isAoe: true,
-  aoeRadius: 55,
   statusEffect: 'armor_break',
-  statusChance: 0.5,
-  description: 'Шипы из земли вокруг цели. 50% шанс Пробития брони.',
+  statusChance: 0.2,
+  description: 'Удар по цели + 4 шипа крестом (260px). 20% Пробитие брони (-50%) на каждую цель.',
 };
 
-/** T3 — Земляной удар (Earth Slam): AoE */
+/** T3 — Земляной удар: AOE */
 export const MOB_EARTH_T3: AbilityDef = {
   id: 'mob_earth_t3',
   nameRu: 'Зем. удар',
@@ -155,40 +159,43 @@ export const MOB_EARTH_T3: AbilityDef = {
   isAoe: true,
   aoeRadius: 65,
   statusEffect: 'armor_break',
-  statusChance: 0.5,
-  description: 'Мощный удар землёй. 50% шанс Пробития брони.',
+  statusChance: 0.2,
+  description: 'Мощный удар землёй. 20% шанс Пробития брони.',
 };
 
 // ─── WIND SCHOOL ───────────────────────────────────────────────────────────────
 
-/** T1 — Порыв (Gust) */
+/** T1 — Порыв: одиночный выстрел, 20% двойной урон */
 export const MOB_WIND_T1: AbilityDef = {
   id: 'mob_wind_t1',
   nameRu: 'Порыв',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 0,
-  range: 160,
+  range: 240,
   baseDamage: 5,
   doubleDamageChance: 0.2,
   description: 'Порыв ветра. 20% шанс двойного урона.',
 };
 
-/** T2 — Ветрорез (Wind Cutter) */
+/** T2 — Ветрорез: 3 смерча конусом 45°, дальность 160px, 20% двойной урон */
 export const MOB_WIND_T2: AbilityDef = {
   id: 'mob_wind_t2',
   prerequisiteId: 'mob_wind_t1',
   nameRu: 'Ветрорез',
   damageType: 'magic',
+  effectType: 'cone_projectiles',
+  projectileCount: 3,
+  coneAngle: 45,
   cooldown: 5.0,
   manaCost: 0,
-  range: 220,
+  range: 160,
   baseDamage: 12,
   doubleDamageChance: 0.2,
-  description: 'Лезвие воздуха. 20% шанс двойного урона.',
+  description: '3 смерча конусом 45° (160px). 20% двойной урон на каждый.',
 };
 
-/** T3 — Грозовая туча (Storm Cloud): AOE */
+/** T3 — Грозовая туча: AOE */
 export const MOB_WIND_T3: AbilityDef = {
   id: 'mob_wind_t3',
   nameRu: 'Гроз. туча',

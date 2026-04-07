@@ -17,7 +17,7 @@ export interface AbilityDef {
   aoeRadius?: number;
 
   /** Особый механический эффект умения */
-  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe';
+  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles';
   /** Дальность броска вперёд (dash_forward), пикс */
   dashDistance?: number;
   /** Количество целей насквозь (pierce) */
@@ -26,8 +26,16 @@ export interface AbilityDef {
   resetCooldownChance?: number;
   /** Количество ударов (multi_hit) */
   hitCount?: number;
-  /** Угол конуса в градусах (cone_aoe) */
+  /** Угол конуса в градусах (cone_aoe, cone_projectiles) */
   coneAngle?: number;
+  /** Количество снарядов/смерчей (multi_projectile, cone_projectiles) */
+  projectileCount?: number;
+  /** Радиус поиска целей (multi_projectile) */
+  projectileRadius?: number;
+  /** Ширина луча крестового AoE (cross_aoe) */
+  crossArmWidth?: number;
+  /** Длина луча крестового AoE (cross_aoe) */
+  crossArmLength?: number;
 
   /** Статус-эффект накладываемый на цель */
   statusEffect?: StatusEffectId;
