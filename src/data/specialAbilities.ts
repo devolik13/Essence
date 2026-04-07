@@ -195,7 +195,7 @@ export const ABILITY_SPEAR_THRUST: AbilityDef = {
 
 // ─── Молот (обучает bandit_brute) ─────────────────────────────────────────
 
-/** Сокрушительный удар — урон от Силы, AoE, 50% шанс Пробития брони */
+/** Сокрушительный удар — урон от Силы, AoE, 20% шанс Сокращения брони */
 export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   id: 'hammer_strike',
   nameRu: 'Сокрушительный удар',
@@ -206,7 +206,21 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   baseDamage: 36,
   isAoe: true,
   aoeRadius: 60,
+  statusEffect: 'armor_reduce',
+  statusChance: 0.2,
+  description: 'Удар молотом (урон от Силы), AoE радиус 60. 20% шанс Сокрушения брони (-20%).',
+};
+
+/** Сильный удар — одиночный мощный удар, 20% шанс Пробития брони */
+export const ABILITY_HAMMER_SMASH: AbilityDef = {
+  id: 'hammer_smash',
+  nameRu: 'Сильный удар',
+  damageType: 'melee',
+  cooldown: 2,
+  manaCost: 0,
+  range: 56,
+  baseDamage: 36,
   statusEffect: 'armor_break',
-  statusChance: 0.5,
-  description: 'Удар молотом (урон от Силы), AoE радиус 60. 50% шанс Пробития брони.',
+  statusChance: 0.2,
+  description: 'Мощный удар молотом (урон от Силы). 20% шанс Пробития брони (-50%).',
 };

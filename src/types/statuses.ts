@@ -25,6 +25,7 @@ export type StatusEffectId =
   // Дебаффы
   | 'chill'            // Охлаждение
   | 'freeze'           // Заморозка
+  | 'armor_reduce'     // Сокращение брони
   | 'armor_break'      // Пробитие брони
   | 'weaken'           // Ослабление
   | 'drain'            // Иссушение
@@ -199,6 +200,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     maxStacks: 1, duration: 1, stackBehavior: 'refresh',
     outgoingDamageReduction: 0.2,
     moveSlow: 0.7,
+  },
+  armor_reduce: {
+    id: 'armor_reduce', nameRu: 'Сокрушение брони',
+    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
+    armorReduction: 0.2,
   },
   armor_break: {
     id: 'armor_break', nameRu: 'Пробитие брони',
