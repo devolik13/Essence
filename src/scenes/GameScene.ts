@@ -1139,6 +1139,12 @@ export class GameScene extends Phaser.Scene {
 
     // ── Призыв волка ───────────────────────────────────────────────────────
     if (spell.effectType === 'summon_wolf') {
+      // Пока волк жив — повторный призыв заблокирован
+      if (this.creatures.some(c => c.isSummoned && !c.isDead)) {
+        slot.cooldownRemaining = 0;
+        this.playerBody.currentMana += spell.manaCost;
+        return;
+      }
       this.spawnSummonedWolf(this.playerBody.x + 40, this.playerBody.y);
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -1201,6 +1207,43 @@ export class GameScene extends Phaser.Scene {
         } else {
           target.applyStatus(spell.statusEffect);
         }
+      }
+    }
+
+    // ── Pierce: пробивающий болт (арбалет) — доп. цели в линии ──────────
+    if (spell.effectType === 'pierce' && result.hit) {
+      const maxExtra = (spell.pierceCount ?? 3) - 1;
+      const dx = target.x - this.playerBody.x;
+      const dy = target.y - this.playerBody.y;
+      const lineLen = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = dx / lineLen;
+      const ny = dy / lineLen;
+      let piercedCount = 0;
+      // Сортируем по дальности от игрока чтобы пробивать ближних раньше
+      const px = this.playerBody!.x;
+      const py = this.playerBody!.y;
+      const sorted = [...this.creatures].sort((a, b) =>
+        distance(px, py, a.x, a.y) -
+        distance(px, py, b.x, b.y)
+      );
+      for (const c of sorted) {
+        if (piercedCount >= maxExtra) break;
+        if (c === target || c.isDead || c.isSummoned) continue;
+        const cx = c.x - this.playerBody.x;
+        const cy = c.y - this.playerBody.y;
+        const proj = cx * nx + cy * ny;
+        if (proj <= 0) continue;
+        const perp = Math.abs(cx * ny - cy * nx);
+        if (perp > 40) continue;
+        const r2 = spell.damageType === 'ranged'
+          ? calcRangedDamage(this.sphere.stats, c.stats, spell.baseDamage)
+          : calcMeleeDamage(this.sphere.stats, c.stats, spell.baseDamage);
+        if (r2.hit) {
+          c.takeDamage(r2.final);
+          this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r2.final, r2.crit, false));
+          if (c.isDead) this.onCreatureKilled(c);
+        }
+        piercedCount++;
       }
     }
 
@@ -1417,6 +1460,10 @@ export class GameScene extends Phaser.Scene {
     const wolf = new Creature(this, x, y, def);
     wolf.isSummoned = true;
     wolf.summonTimer = 30;
+    // Масштабирование от Интеллекта призывателя
+    const intel = this.sphere.stats.intellect ?? 0;
+    wolf.currentHP = wolf.currentHP + intel;
+    wolf.stats.strength = (wolf.stats.strength ?? 0) + Math.floor(intel / 5);
     // Зелёный оттенок чтобы отличить от врагов
     wolf.setAlpha(0.85);
     this.creatures.push(wolf);

@@ -12,6 +12,7 @@ import { InventoryItem } from '../types/items';
 import { ITEMS } from '../data/itemDB';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
 import { getAllAchievementStatus } from '../systems/achievements';
+import { STATUS_DEFS } from '../types/statuses';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
@@ -54,6 +55,7 @@ export class UIScene extends Phaser.Scene {
   // ── Fixed content text objects ────────────────────────
   private targetPanel!: Phaser.GameObjects.Text;
   private resourceText!:Phaser.GameObjects.Text;
+  private statusBarText!:Phaser.GameObjects.Text;
   private bodyInfoText!:Phaser.GameObjects.Text;
   private hintText!:    Phaser.GameObjects.Text;
   private logText!:     Phaser.GameObjects.Text;
@@ -143,6 +145,10 @@ export class UIScene extends Phaser.Scene {
     this.hintText = this.add.text(10, GAME_HEIGHT - 12, '', {
       fontSize: '11px', color: '#666677',
     }).setOrigin(0, 1).setScrollFactor(0).setDepth(1000);
+
+    this.statusBarText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 55, '', {
+      fontSize: '11px', color: '#ffffff', align: 'center',
+    }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000);
 
     this.captureBarBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40, 140, 10, 0x333333)
       .setScrollFactor(0).setDepth(1001).setVisible(false);
@@ -475,8 +481,24 @@ export class UIScene extends Phaser.Scene {
         `Мана ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)`
       ).setVisible(true);
       this.hintText.setText('[1] Атака  [Q] Выйти  [E] Захват  [2-8] Умения');
+
+      // ── Статус-иконки ────────────────────────────────────
+      if (body.statusEffects.size > 0) {
+        const parts: string[] = [];
+        for (const [, status] of body.statusEffects) {
+          const def = (STATUS_DEFS as Record<string, import('../types/statuses').StatusEffectDef>)[status.id];
+          const name = def?.nameRu ?? status.id;
+          const secs = Math.ceil(status.timer);
+          const stacks = status.stacks > 1 ? `×${status.stacks}` : '';
+          parts.push(`${name}${stacks}(${secs}с)`);
+        }
+        this.statusBarText.setText(parts.join('  ')).setVisible(true);
+      } else {
+        this.statusBarText.setVisible(false);
+      }
     } else {
       this.resourceText.setVisible(false);
+      this.statusBarText.setVisible(false);
       this.hintText.setText('[WASD] Движение  [E] Захватить тело');
     }
 
