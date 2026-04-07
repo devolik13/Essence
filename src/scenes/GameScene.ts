@@ -22,9 +22,9 @@ import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
-import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
 import {
-  ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
+  ABILITY_ACCELERATION, ABILITY_DASH,
+  ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
   ABILITY_SLASH, ABILITY_SLASH_SWEEP,
@@ -33,13 +33,13 @@ import {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
 } from '../data/specialAbilities';
 import {
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
   MOB_WIND_T1, MOB_WIND_T2,
+  MOB_NATURE_T1, MOB_NATURE_T2,
 } from '../data/elementalSpells';
 import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
@@ -153,7 +153,7 @@ export class GameScene extends Phaser.Scene {
     // ─── Сфера ───────────────────────────────────────
     this.sphere = new Sphere(this, VILLAGE_CENTER.x, VILLAGE_CENTER.y);
     const loaded = loadSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -163,7 +163,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -226,7 +226,7 @@ export class GameScene extends Phaser.Scene {
         ids.push(questId);
       }
       saveSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -236,7 +236,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -254,7 +254,7 @@ export class GameScene extends Phaser.Scene {
       // Сохраняем назначение в Сферу
       this.sphere.savedSlotIds[data.slotIndex] = data.spell?.id ?? null;
       saveSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -264,7 +264,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -971,7 +971,7 @@ export class GameScene extends Phaser.Scene {
 
     // Автосохранение
     saveSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -981,7 +981,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -1032,7 +1032,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
     saveSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -1042,7 +1042,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -1075,7 +1075,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     saveSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -1085,7 +1085,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -1121,7 +1121,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     saveSphere(this.sphere, [
-  SPELL_SPARK, SPELL_FIREBALL,
+  MOB_NATURE_T1, MOB_NATURE_T2,
   ABILITY_DASH, ABILITY_STING, ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
@@ -1131,7 +1131,7 @@ export class GameScene extends Phaser.Scene {
   ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
+  
   MOB_FIRE_T1, MOB_FIRE_T2,
   MOB_WATER_T1, MOB_WATER_T2,
   MOB_EARTH_T1, MOB_EARTH_T2,
@@ -1187,6 +1187,27 @@ export class GameScene extends Phaser.Scene {
 
     // ── Выстрел с отскоком: атака + бросок назад (обрабатывается ниже после урона)
     // dash_backward — не return здесь, падаем в обычный поток атаки
+
+    // ── Самобафф (ускорение и пр.) ─────────────────────────────────────────
+    if (spell.effectType === 'self_buff') {
+      if (spell.statusEffect) {
+        this.playerBody.applyStatus(spell.statusEffect);
+      }
+      this.events.emit('ability-used', spell.nameRu);
+      return;
+    }
+
+    // ── Лечение себя (природа T2) ──────────────────────────────────────────
+    if (spell.effectType === 'self_heal') {
+      const intel = this.sphere.stats.intellect ?? 0;
+      const healAmount = Math.round(spell.baseDamage * (1 + intel / 100));
+      this.playerBody.currentHP = Math.min(
+        this.playerBody.currentHP + healAmount,
+        this.playerBody.maxHP,
+      );
+      this.events.emit('ability-used', spell.nameRu);
+      return;
+    }
 
     // ── Призыв волка ───────────────────────────────────────────────────────
     if (spell.effectType === 'summon_wolf') {

@@ -2,6 +2,20 @@ import { AbilityDef } from '../types/abilities';
 
 // ─── Кролик ────────────────────────────────────────────────────────────────
 
+/** Ускорение — самобафф: +50% скорости на 3 сек */
+export const ABILITY_ACCELERATION: AbilityDef = {
+  id: 'acceleration',
+  nameRu: 'Ускорение',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'acceleration',
+  cooldown: 8,
+  manaCost: 0,
+  range: 0,
+  baseDamage: 0,
+  description: 'Мгновенно даёт +50% скорости на 3 сек.',
+};
+
 /** Рывок — мгновенный бросок вперёд на 180px */
 export const ABILITY_DASH: AbilityDef = {
   id: 'dash',

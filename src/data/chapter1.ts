@@ -206,9 +206,9 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
   // Кролики — юго-западный угол деревни, джиттер ±40px
   { x: 1720, y: 1440, creatureId: 'rabbit',        count: 4 },
   { x: 1820, y: 1460, creatureId: 'rabbit',        count: 3 },
-  // Лесные духи — северо-западный угол деревни
-  { x: 1700, y: 1120, creatureId: 'forest_spirit', count: 3 },
-  { x: 1820, y: 1100, creatureId: 'forest_spirit', count: 3 },
+  // Волки-духи — северо-западный угол деревни
+  { x: 1700, y: 1120, creatureId: 'spirit_wolf', count: 2 },
+  { x: 1820, y: 1100, creatureId: 'spirit_wolf', count: 2 },
   // Первые враги — чётко восточнее деревни (village x2=2176 + 300px зазор)
   // x=2500 гарантирует что с джиттером ±100px враги минимум на 224px от деревни
   { x: 2500, y: 1220, creatureId: 'goblin',         count: 3 },

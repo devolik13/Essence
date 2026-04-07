@@ -210,3 +210,33 @@ export const MOB_WIND_T3: AbilityDef = {
   doubleDamageChance: 0.2,
   description: 'Молнии по случайным целям в зоне. 20% шанс двойного урона.',
 };
+
+// ─── NATURE SCHOOL ─────────────────────────────────────────────────────────────
+
+/** T1 — Призыв волка: призывает волка-союзника */
+export const MOB_NATURE_T1: AbilityDef = {
+  id: 'mob_nature_t1',
+  nameRu: 'Призыв волка',
+  damageType: 'magic',
+  effectType: 'summon_wolf',
+  cooldown: 5,
+  manaCost: 20,
+  range: 0,
+  baseDamage: 0,
+  description: 'Призывает волка-союзника. HP и атака волка масштабируются от Интеллекта. Пока волк жив — повторный призыв невозможен.',
+};
+
+/** T2 — Природное лечение: исцеляет себя, зависит от Интеллекта */
+export const MOB_NATURE_T2: AbilityDef = {
+  id: 'mob_nature_t2',
+  prerequisiteId: 'mob_nature_t1',
+  nameRu: 'Лечение',
+  damageType: 'magic',
+  effectType: 'self_heal',
+  castTime: 1.5,
+  cooldown: 8,
+  manaCost: 15,
+  range: 0,
+  baseDamage: 20,
+  description: 'Лечит себя на 20 × (1 + Интеллект/100) HP.',
+};

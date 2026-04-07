@@ -1,14 +1,15 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
-import { AbilityDef } from '../types/abilities';
 import {
   MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3,
   MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3,
   MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3,
   MOB_WIND_T1, MOB_WIND_T2,
+  MOB_NATURE_T1, MOB_NATURE_T2,
 } from './elementalSpells';
 import {
   ABILITY_DASH,
+  ABILITY_ACCELERATION,
   ABILITY_STING,
   ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE,
@@ -27,35 +28,8 @@ import {
   ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE,
   ABILITY_HAMMER_SMASH,
-  ABILITY_SUMMON_WOLF,
 } from './specialAbilities';
 
-/** Заклинание Огненный Шар (AoE) */
-export const SPELL_FIREBALL: AbilityDef = {
-  id: 'spell_fireball',
-  nameRu: 'Огн. Шар',
-  damageType: 'magic',
-  castTime: 2,
-  cooldown: 5,
-  manaCost: 15,
-  range: 260,
-  baseDamage: 18,
-  isAoe: true,
-  aoeRadius: 80,
-  description: 'Огненный взрыв. Каст 2с. Урон: 18 × (1 + Интеллект/100) по всем в радиусе 80',
-};
-
-/** Заклинание Искра */
-export const SPELL_SPARK: AbilityDef = {
-  id: 'spell_spark',
-  nameRu: 'Искра',
-  damageType: 'magic',
-  cooldown: 1.8,
-  manaCost: 5,
-  range: 150,
-  baseDamage: 14,  // базовый урон заклинания (выше посоха, это спец. способность)
-  description: 'Магический разряд. Урон: 14 × (1 + Интеллект/100)',
-};
 
 export const CREATURE_DB: Record<string, BodyDefinition> = {
   goblin: {
@@ -78,8 +52,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 1, [StatName.Accuracy]: 2, [StatName.Evasion]: 0,
       [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Рывок',
-    signatureSpell: ABILITY_DASH,           spellXPThreshold: 50,
+    weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Ускорение',
+    signatureSpell: ABILITY_ACCELERATION,   spellXPThreshold: 50,
   },
 
   wolf: {
@@ -121,18 +95,34 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_SLASH,          spellXPThreshold: 50,
   },
 
-  forest_spirit: {
-    id: 'forest_spirit', name: 'Forest Spirit', nameRu: 'Лесной дух',
-    type: BodyType.Passive, damageType: 'magic',
-    caps: { [StatName.Mana]: 12, [StatName.Intellect]: 8 },
-    xpReward: 15,
-    signatureSpell: SPELL_SPARK,            spellXPThreshold: 50,
+  // ─── Глава 1: Школа природы ─────────────────────────────────────────────────
+
+  shaman: {
+    id: 'shaman', name: 'Shaman', nameRu: 'Шаман',
+    type: BodyType.Combat, damageType: 'magic',
+    caps: { [StatName.Intellect]: 25, [StatName.Mana]: 20, [StatName.Will]: 10 },
+    xpReward: 60,
     npcStats: {
-      [StatName.Intellect]: 4, [StatName.Accuracy]: 3, [StatName.Evasion]: 2,
-      [StatName.Health]: 3,    [StatName.Mana]: 10,    [StatName.Luck]: 1,
+      [StatName.Intellect]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 4,
+      [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Staff, color: 0x88eecc, abilityName: 'Искра',
-    npcSpells: [SPELL_SPARK],
+    weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Призыв волка',
+    npcSpells: [MOB_NATURE_T1],
+    signatureSpell: MOB_NATURE_T1,           spellXPThreshold: 50,
+  },
+
+  spirit_wolf: {
+    id: 'spirit_wolf', name: 'Spirit Wolf', nameRu: 'Волк-дух',
+    type: BodyType.Combat, damageType: 'magic', element: 'nature' as any,
+    caps: { [StatName.Intellect]: 20, [StatName.Health]: 16, [StatName.Mana]: 14 },
+    xpReward: 75,
+    npcStats: {
+      [StatName.Intellect]: 10, [StatName.Accuracy]: 8, [StatName.Evasion]: 6,
+      [StatName.Health]: 14,    [StatName.Will]: 6,     [StatName.Mana]: 12, [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Staff, color: 0x88cc88, abilityName: 'Лечение',
+    npcSpells: [MOB_NATURE_T1, MOB_NATURE_T2],
+    signatureSpell: MOB_NATURE_T2,           spellXPThreshold: 100,
   },
 
   scout: {
@@ -148,18 +138,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_BOW_SHOT,       spellXPThreshold: 50,
   },
 
-  shaman: {
-    id: 'shaman', name: 'Shaman', nameRu: 'Шаман',
-    type: BodyType.Combat, damageType: 'magic',
-    caps: { [StatName.Intellect]: 25, [StatName.Mana]: 20, [StatName.Will]: 10 },
-    xpReward: 60,
-    npcStats: {
-      [StatName.Intellect]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 4,
-      [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
-    },
-    weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Призыв волка',
-    signatureSpell: ABILITY_SUMMON_WOLF,    spellXPThreshold: 50,
-  },
 
   // ─── Глава 1: Элементали Огня ───────────────────────────────────────────────
 
