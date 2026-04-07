@@ -33,8 +33,9 @@ export type StatusEffectId =
   | 'stagger'          // Ошеломление
   | 'curse'            // Проклятие
   // Баффы
-  | 'mana_regen_boost' // Усиление регена маны
-  | 'hp_regen_boost';  // Регенерация HP
+  | 'mana_regen_boost'  // Усиление регена маны
+  | 'mana_regen_block'  // Блок регена маны
+  | 'hp_regen_boost';   // Регенерация HP
 
 export interface StatusEffectDef {
   id: StatusEffectId;
@@ -240,6 +241,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'mana_regen_boost', nameRu: 'Усиление регена маны',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenManaBonus: 0.5,
+  },
+  mana_regen_block: {
+    id: 'mana_regen_block', nameRu: 'Блок регена маны',
+    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
+    regenManaBonus: -0.5, // −50% реген маны
   },
   hp_regen_boost: {
     id: 'hp_regen_boost', nameRu: 'Регенерация HP',

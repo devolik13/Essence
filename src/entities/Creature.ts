@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BodyDefinition } from '../types/bodies';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
+import { StatusEffectId, ActiveStatusEffect, STATUS_DEFS } from '../types/statuses';
 import { maxHP } from '../systems/combat';
 import { CREATURE_SPEED, AGGRO_RANGE, LEASH_RANGE } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
@@ -25,9 +26,8 @@ export class Creature extends Phaser.GameObjects.Container {
   /** Таймер каста текущего заклинания (>0 = идёт каст) */
   public castTimer: number = 0;
   public castingSpell: AbilityDef | null = null;
-  /** Яд: урон в сек и оставшееся время */
-  public poisonDps: number = 0;
-  public poisonTimer: number = 0;
+  /** Активные статус-эффекты */
+  public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
   /** Призванное существо (союзник игрока) */
   public isSummoned: boolean = false;
   /** Оставшееся время призыва (сек) */
@@ -120,19 +120,27 @@ export class Creature extends Phaser.GameObjects.Container {
       this.castTimer = Math.max(0, this.castTimer - dt);
     }
 
-    // Яд
-    if (this.poisonTimer > 0) {
-      this.currentHP = Math.max(0, this.currentHP - this.poisonDps * dt);
-      this.poisonTimer = Math.max(0, this.poisonTimer - dt);
-      if (this.poisonTimer <= 0) this.poisonDps = 0;
-      if (this.currentHP <= 0) {
-        this.aiState = 'dead';
-        this.setAlpha(0.3);
+    // Статус-эффекты: тики и таймеры
+    for (const [id, status] of this.statusEffects) {
+      const def = STATUS_DEFS[id];
+      // DoT урон по HP
+      if (id === 'poison' && def.dotDpsPerStack) {
+        this.currentHP = Math.max(0, this.currentHP - def.dotDpsPerStack * status.stacks * dt);
+      } else if (id === 'burn' && def.dotPercentPerSec) {
+        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+        this.currentHP = Math.max(0, this.currentHP - dps * dt);
       }
+      // Декремент таймера, удаление истёкших
+      status.timer -= dt;
+      if (status.timer <= 0) this.statusEffects.delete(id);
+    }
+    if (this.currentHP <= 0 && this.aiState !== 'dead') {
+      this.aiState = 'dead';
+      this.setAlpha(0.3);
     }
 
-    // AI
-    if (playerX !== undefined && playerY !== undefined) {
+    // AI (блокируется оглушением/сном)
+    if (!this.isActionBlocked() && playerX !== undefined && playerY !== undefined) {
       const dist = distance(this.x, this.y, playerX, playerY);
       const distFromSpawn = distance(this.x, this.y, this.spawnX, this.spawnY);
 
@@ -161,40 +169,42 @@ export class Creature extends Phaser.GameObjects.Container {
       }
     }
 
-    // Передвижение по состоянию
-    switch (this.aiState) {
-      case 'chase':
-        if (playerX !== undefined && playerY !== undefined) {
-          this.moveToward(playerX, playerY, CREATURE_SPEED * 1.2, dt);
-        }
-        break;
-      case 'attack':
-        // Дальнобойные: держат дистанцию — отходят если игрок подошёл слишком близко
-        if (playerX !== undefined && playerY !== undefined) {
-          const weapon = WEAPONS[this.definition.weapon];
-          if (!weapon.isMelee) {
-            const dist2 = distance(this.x, this.y, playerX, playerY);
-            const preferred = weapon.range * 0.6;
-            if (dist2 < preferred * 0.7) {
-              // Отходим от игрока
-              this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 0.9, dt);
+    // Передвижение по состоянию (с модификатором скорости от статусов)
+    const speedMult = this.getSpeedMult();
+    if (speedMult > 0) {
+      switch (this.aiState) {
+        case 'chase':
+          if (playerX !== undefined && playerY !== undefined) {
+            this.moveToward(playerX, playerY, CREATURE_SPEED * 1.2 * speedMult, dt);
+          }
+          break;
+        case 'attack':
+          // Дальнобойные: держат дистанцию — отходят если игрок подошёл слишком близко
+          if (playerX !== undefined && playerY !== undefined) {
+            const weapon = WEAPONS[this.definition.weapon];
+            if (!weapon.isMelee) {
+              const dist2 = distance(this.x, this.y, playerX, playerY);
+              const preferred = weapon.range * 0.6;
+              if (dist2 < preferred * 0.7) {
+                this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 0.9 * speedMult, dt);
+              }
             }
           }
-        }
-        break;
-      case 'return':
-        this.moveToward(this.spawnX, this.spawnY, CREATURE_SPEED, dt);
-        break;
-      case 'idle':
-        this.wanderTimer -= dt;
-        if (this.wanderTimer <= 0) {
-          this.wanderTimer = 2 + Math.random() * 3;
-          this.wanderDirX = (Math.random() - 0.5) * 2;
-          this.wanderDirY = (Math.random() - 0.5) * 2;
-        }
-        this.x += this.wanderDirX * CREATURE_SPEED * 0.3 * dt;
-        this.y += this.wanderDirY * CREATURE_SPEED * 0.3 * dt;
-        break;
+          break;
+        case 'return':
+          this.moveToward(this.spawnX, this.spawnY, CREATURE_SPEED * speedMult, dt);
+          break;
+        case 'idle':
+          this.wanderTimer -= dt;
+          if (this.wanderTimer <= 0) {
+            this.wanderTimer = 2 + Math.random() * 3;
+            this.wanderDirX = (Math.random() - 0.5) * 2;
+            this.wanderDirY = (Math.random() - 0.5) * 2;
+          }
+          this.x += this.wanderDirX * CREATURE_SPEED * 0.3 * speedMult * dt;
+          this.y += this.wanderDirY * CREATURE_SPEED * 0.3 * speedMult * dt;
+          break;
+      }
     }
 
     // Hit flash
@@ -231,6 +241,8 @@ export class Creature extends Phaser.GameObjects.Container {
   takeDamage(amount: number): number {
     const actual = Math.min(this.currentHP, amount);
     this.currentHP -= actual;
+    // Сон снимается при получении урона
+    if (actual > 0) this.statusEffects.delete('sleep');
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);
@@ -240,6 +252,42 @@ export class Creature extends Phaser.GameObjects.Container {
       this.hitFlashTimer = 0.12;
     }
     return actual;
+  }
+
+  // ── Статус-эффекты ─────────────────────────────────────────────────────────
+
+  public applyStatus(id: StatusEffectId, stacks: number = 1): void {
+    const def = STATUS_DEFS[id];
+    if (!def || def.duration === 0) return; // Мгновенные эффекты обрабатываются снаружи
+    const existing = this.statusEffects.get(id);
+    if (existing) {
+      existing.timer = def.duration;
+      existing.stacks = Math.min(existing.stacks + stacks, def.maxStacks);
+    } else {
+      this.statusEffects.set(id, { id, stacks: Math.min(stacks, def.maxStacks), timer: def.duration });
+    }
+  }
+
+  public hasStatus(id: StatusEffectId): boolean {
+    return this.statusEffects.has(id);
+  }
+
+  public clearStatus(id: StatusEffectId): void {
+    this.statusEffects.delete(id);
+  }
+
+  /** Множитель скорости движения на основе активных статусов (0 = заблокировано) */
+  private getSpeedMult(): number {
+    if (this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root')) return 0;
+    let slow = 0;
+    if (this.hasStatus('slow'))   slow = Math.max(slow, STATUS_DEFS.slow.moveSlow ?? 0);
+    if (this.hasStatus('freeze')) slow = Math.max(slow, STATUS_DEFS.freeze.moveSlow ?? 0);
+    return Math.max(0, 1 - slow);
+  }
+
+  /** Все действия заблокированы (оглушение/сон) */
+  private isActionBlocked(): boolean {
+    return this.hasStatus('stun') || this.hasStatus('sleep');
   }
 
   /**

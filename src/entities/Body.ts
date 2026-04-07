@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BodyDefinition } from '../types/bodies';
 import { Stats, StatName } from '../types/stats';
 import { AbilitySlot, createEmptySlots } from '../types/abilities';
+import { StatusEffectId, ActiveStatusEffect, STATUS_DEFS } from '../types/statuses';
 import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/combat';
 import { BODY_SPEED, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
@@ -34,8 +35,8 @@ export class Body extends Phaser.GameObjects.Container {
   public isPlayerControlled: boolean = false;
   public isCasting: boolean = false;
   public attackCooldown: number = 0;
-  /** Оставшееся время рывка (сек); > 0 → скорость ×1.5 */
-  public dashTimer: number = 0;
+  /** Активные статус-эффекты игрока */
+  public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
 
   private bodySprite: Phaser.GameObjects.Sprite;
   private hpBar: Phaser.GameObjects.Rectangle;
@@ -137,6 +138,16 @@ export class Body extends Phaser.GameObjects.Container {
     }
   }
 
+  /** Вектор направления взгляда (для рывка вперёд) */
+  getFacingVector(): { x: number; y: number } {
+    switch (this.facingDir) {
+      case 'right': return { x: 1,  y: 0 };
+      case 'left':  return { x: -1, y: 0 };
+      case 'up':    return { x: 0,  y: -1 };
+      default:      return { x: 0,  y: 1 };  // down
+    }
+  }
+
   /** Запустить анимацию атаки (вызывается из GameScene при ударе) */
   playAttackAnim() {
     const animCfg = ANIMATED_BODIES[this.definition.id];
@@ -168,8 +179,21 @@ export class Body extends Phaser.GameObjects.Container {
     if (this.attackCooldown > 0) {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
-    if (this.dashTimer > 0) {
-      this.dashTimer = Math.max(0, this.dashTimer - dt);
+
+    // Статус-эффекты: тики и таймеры
+    for (const [id, status] of this.statusEffects) {
+      const def = STATUS_DEFS[id];
+      if (id === 'poison' && def.dotDpsPerStack) {
+        this.currentHP = Math.max(0, this.currentHP - def.dotDpsPerStack * status.stacks * dt);
+      } else if (id === 'burn' && def.dotPercentPerSec) {
+        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+        this.currentHP = Math.max(0, this.currentHP - dps * dt);
+      } else if (id === 'burn_mana' && def.dotPercentPerSec) {
+        const dps = Math.min(this.maxMana * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+        this.currentMana = Math.max(0, this.currentMana - dps * dt);
+      }
+      status.timer -= dt;
+      if (status.timer <= 0) this.statusEffects.delete(id);
     }
 
     for (const slot of this.abilitySlots) {
@@ -179,14 +203,22 @@ export class Body extends Phaser.GameObjects.Container {
     }
 
     if (!this.isDead) {
-      this.currentHP = clamp(this.currentHP + hpRegenPerSec(this.sphereStats) * dt, 0, this.maxHP);
-      this.currentMana = clamp(this.currentMana + manaRegenPerSec(this.sphereStats) * dt, 0, this.maxMana);
+      // Реген HP (с учётом кровотечения и бафа регена)
+      const healMult = this.hasStatus('bleed') ? (1 - (STATUS_DEFS.bleed.healReduction ?? 0)) : 1;
+      const hpRegenBonus = this.hasStatus('hp_regen_boost') ? (1 + (STATUS_DEFS.hp_regen_boost.regenHpBonus ?? 0)) : 1;
+      this.currentHP = clamp(this.currentHP + hpRegenPerSec(this.sphereStats) * healMult * hpRegenBonus * dt, 0, this.maxHP);
+      // Реген маны (с учётом блока и бафа)
+      let manaRegenMult = 1;
+      if (this.hasStatus('mana_regen_block')) manaRegenMult += STATUS_DEFS.mana_regen_block.regenManaBonus ?? 0; // -0.5
+      if (this.hasStatus('mana_regen_boost')) manaRegenMult += STATUS_DEFS.mana_regen_boost.regenManaBonus ?? 0; // +0.5
+      this.currentMana = clamp(this.currentMana + manaRegenPerSec(this.sphereStats) * Math.max(0, manaRegenMult) * dt, 0, this.maxMana);
     }
 
     let vx = 0;
     let vy = 0;
 
-    if (this.isPlayerControlled && this.keys && !this.isCasting) {
+    const movementBlocked = this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root');
+    if (this.isPlayerControlled && this.keys && !this.isCasting && !movementBlocked) {
       if (this.keys.A.isDown) vx = -1;
       if (this.keys.D.isDown) vx = 1;
       if (this.keys.W.isDown) vy = -1;
@@ -198,7 +230,7 @@ export class Body extends Phaser.GameObjects.Container {
         vy *= norm;
       }
 
-      const speedMult = this.dashTimer > 0 ? 1.5 : 1.0;
+      const speedMult = this.getSpeedMult();
       this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * speedMult * dt));
       this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * speedMult * dt));
     }
@@ -233,8 +265,40 @@ export class Body extends Phaser.GameObjects.Container {
   takeDamage(amount: number): number {
     const actual = Math.min(this.currentHP, amount);
     this.currentHP -= actual;
+    // Сон снимается при получении урона
+    if (actual > 0) this.statusEffects.delete('sleep');
     this.bodySprite.setTint(0xff4444);
     this.hitFlashTimer = 0.15;
     return actual;
+  }
+
+  // ── Статус-эффекты ─────────────────────────────────────────────────────────
+
+  public applyStatus(id: StatusEffectId, stacks: number = 1): void {
+    const def = STATUS_DEFS[id];
+    if (!def || def.duration === 0) return;
+    const existing = this.statusEffects.get(id);
+    if (existing) {
+      existing.timer = def.duration;
+      existing.stacks = Math.min(existing.stacks + stacks, def.maxStacks);
+    } else {
+      this.statusEffects.set(id, { id, stacks: Math.min(stacks, def.maxStacks), timer: def.duration });
+    }
+  }
+
+  public hasStatus(id: StatusEffectId): boolean {
+    return this.statusEffects.has(id);
+  }
+
+  public clearStatus(id: StatusEffectId): void {
+    this.statusEffects.delete(id);
+  }
+
+  private getSpeedMult(): number {
+    if (this.hasStatus('acceleration')) return 1 + Math.abs(STATUS_DEFS.acceleration.moveSlow ?? 0.5);
+    let slow = 0;
+    if (this.hasStatus('slow'))   slow = Math.max(slow, STATUS_DEFS.slow.moveSlow ?? 0);
+    if (this.hasStatus('freeze')) slow = Math.max(slow, STATUS_DEFS.freeze.moveSlow ?? 0);
+    return Math.max(0, 1 - slow);
   }
 }

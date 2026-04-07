@@ -9,7 +9,7 @@ import {
   MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH_TILES, MAP_HEIGHT_TILES,
   TILE_SIZE, CAPTURE_RANGE,
 } from '../utils/constants';
-import { distance } from '../utils/math';
+import { distance, clamp } from '../utils/math';
 import { calcMeleeDamage, calcRangedDamage, calcMagicDamage } from '../systems/combat';
 import { WEAPONS } from '../data/weapons';
 import {
@@ -1127,9 +1127,12 @@ export class GameScene extends Phaser.Scene {
     this.playerBody.currentMana -= spell.manaCost;
     slot.cooldownRemaining = spell.cooldown;
 
-    // ── Рывок: бафф на тело, цель не нужна ────────────────────────────────
-    if (spell.effectType === 'dash') {
-      this.playerBody.dashTimer = 5;
+    // ── Рывок: бросок вперёд ──────────────────────────────────────────────
+    if (spell.effectType === 'dash_forward') {
+      const dist = spell.dashDistance ?? 180;
+      const dir = this.playerBody.getFacingVector();
+      this.playerBody.x = clamp(this.playerBody.x + dir.x * dist, 16, MAP_WIDTH  - 16);
+      this.playerBody.y = clamp(this.playerBody.y + dir.y * dist, 16, MAP_HEIGHT - 16);
       this.events.emit('ability-used', spell.nameRu);
       return;
     }
@@ -1162,22 +1165,50 @@ export class GameScene extends Phaser.Scene {
     const result = spell.damageType === 'melee'  ? calcMeleeDamage(this.sphere.stats, target.stats, spell.baseDamage)
                  : spell.damageType === 'ranged' ? calcRangedDamage(this.sphere.stats, target.stats, spell.baseDamage)
                  :                                  calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
-    const dmg = this.sphere.deathDebuffRemaining > 0
+
+    // Двойной урон (школа ветра и др.)
+    const isDouble = spell.doubleDamageChance && Math.random() < spell.doubleDamageChance;
+    let dmg = this.sphere.deathDebuffRemaining > 0
       ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
+    if (isDouble) dmg *= 2;
+
     target.takeDamage(dmg);
     this.aggroCreature(target);
 
     this.damageTexts.push(
-      new DamageText(this, target.x, target.y - 10, dmg, result.crit, false)
+      new DamageText(this, target.x, target.y - 10, dmg, result.crit || !!isDouble, false)
     );
 
-    // ── Укол: 20% шанс яда ────────────────────────────────────────────────
-    if (spell.effectType === 'poison_strike' && result.hit && Math.random() < 0.2) {
-      target.poisonDps = spell.poisonDps ?? 2;
-      target.poisonTimer = spell.poisonDuration ?? 5;
-      this.damageTexts.push(
-        new DamageText(this, target.x, target.y - 24, 0, false, false, '☠')
-      );
+    // ── Статус-эффект умения ──────────────────────────────────────────────
+    if (spell.statusEffect && result.hit) {
+      const chance = spell.statusChance ?? 1.0;
+      if (Math.random() < chance) {
+        // Мгновенные эффекты (interrupt, knockback) — обрабатываем отдельно
+        if (spell.statusEffect === 'interrupt') {
+          // Сбитие концентрации: сбрасываем таймер каста (без кулдауна)
+          if (target.castTimer > 0 && target.castingSpell) {
+            target.castTimer = target.castingSpell.castTime ?? 0;
+          }
+        } else if (spell.statusEffect === 'knockback') {
+          // Отбрасывание: толкаем от игрока
+          const kbDist = 180;
+          const dx = target.x - this.playerBody.x;
+          const dy = target.y - this.playerBody.y;
+          const len = Math.sqrt(dx * dx + dy * dy) || 1;
+          target.x += (dx / len) * kbDist;
+          target.y += (dy / len) * kbDist;
+          target.applyStatus('stun'); // 0.5 сек потеря контроля — используем stun с коротким таймером
+        } else {
+          target.applyStatus(spell.statusEffect);
+        }
+      }
+    }
+
+    // ── Сброс кулдауна (длинный лук) ─────────────────────────────────────
+    if (spell.effectType === 'reset_cooldown' && result.hit) {
+      if (Math.random() < (spell.resetCooldownChance ?? 0)) {
+        slot.cooldownRemaining = 0;
+      }
     }
 
     if (target.isDead) this.onCreatureKilled(target);
