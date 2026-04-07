@@ -23,7 +23,8 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
-import { ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH } from '../data/specialAbilities';
+import { ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT } from '../data/specialAbilities';
+import { MOB_WATER_T1 } from '../data/elementalSpells';
 import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
@@ -135,7 +136,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Сфера ───────────────────────────────────────
     this.sphere = new Sphere(this, VILLAGE_CENTER.x, VILLAGE_CENTER.y);
-    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
     if (loaded) this.events.emit('save-loaded');
 
     // ─── Стартовые тела (визуальные маркеры) ─────────
@@ -192,7 +193,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         ids.push(questId);
       }
-      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
     });
 
     // Назначение заклинания в слот из spell picker (из UIScene)
@@ -204,7 +205,7 @@ export class GameScene extends Phaser.Scene {
       slot.cooldownRemaining = 0;
       // Сохраняем назначение в Сферу
       this.sphere.savedSlotIds[data.slotIndex] = data.spell?.id ?? null;
-      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
     });
 
     // ─── Клик ────────────────────────────────────────
@@ -864,7 +865,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Автосохранение
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
 
     // Пульсация — тело доступно для захвата
     this.tweens.add({
@@ -909,7 +910,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody = null;
     }
     this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
 
@@ -936,7 +937,7 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('achievement-unlocked', ach);
     }
 
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
 
     // Квест — засчитать захват
     const captureCompleted = this.questTracker.onCapture(def.id);
@@ -966,7 +967,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */

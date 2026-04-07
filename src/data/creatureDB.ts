@@ -13,6 +13,7 @@ import {
   ABILITY_SWORD_STRIKE,
   ABILITY_MACE_STRIKE,
   ABILITY_SLASH,
+  ABILITY_BOW_SHOT,
 } from './specialAbilities';
 
 /** Заклинание Огненный Шар (AoE) */
@@ -131,6 +132,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 7,  [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.ShortBow, color: 0x88aa55, abilityName: 'Прицельный выстрел',
+    signatureSpell: ABILITY_BOW_SHOT,
   },
 
   shaman: {
@@ -142,7 +144,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 4,
       [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Искра',
+    weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Ледышка',
+    signatureSpell: MOB_WATER_T1,
+    npcSpells: [MOB_WATER_T1],
   },
 
   // ─── Глава 1: Элементали Огня ───────────────────────────────────────────────

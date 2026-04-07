@@ -73,3 +73,17 @@ export const ABILITY_SLASH: AbilityDef = {
   baseDamage: 30,
   description: 'Рубящий удар двуручником. Урон: 30 × (1 + Сила/100)',
 };
+
+// ─── Короткий лук (обучает Разведчик) ──────────────────────────────────────
+
+/** Прицельный выстрел — точный дальний выстрел */
+export const ABILITY_BOW_SHOT: AbilityDef = {
+  id: 'bow_shot',
+  nameRu: 'Прицельный выстрел',
+  damageType: 'ranged',
+  cooldown: 4,
+  manaCost: 0,
+  range: 240,
+  baseDamage: 16,
+  description: 'Прицельный выстрел из лука. Урон: 16 × (1 + Точность/100)',
+};
