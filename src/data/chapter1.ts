@@ -132,11 +132,14 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     id: 'grey_forest',
     label: 'Серый лес',
     spawnGroups: [
-      { x: 700,  y: 1850, creatureId: 'wolf', count: 3 },
-      { x: 900,  y: 1900, creatureId: 'wolf', count: 2 },
-      { x: 800,  y: 2000, creatureId: 'bear', count: 2 },
-      { x: 1050, y: 1880, creatureId: 'wolf', count: 2 },
-      { x: 980,  y: 2050, creatureId: 'bear', count: 1 },
+      { x: 700,  y: 1850, creatureId: 'wolf',         count: 3 },
+      { x: 900,  y: 1900, creatureId: 'wolf',         count: 2 },
+      { x: 800,  y: 2000, creatureId: 'bear',         count: 2 },
+      { x: 1050, y: 1880, creatureId: 'wolf',         count: 2 },
+      { x: 980,  y: 2050, creatureId: 'bear',         count: 1 },
+      // Ветераны — глубже в лесу
+      { x: 620,  y: 2100, creatureId: 'wolf_veteran', count: 1 },
+      { x: 750,  y: 2200, creatureId: 'bear_veteran', count: 1 },
     ],
   },
 
@@ -145,11 +148,13 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     id: 'orc_camp',
     label: 'Лагерь орков',
     spawnGroups: [
-      { x: 1850, y: 1900, creatureId: 'orc',    count: 3 },
-      { x: 2050, y: 1930, creatureId: 'orc',    count: 2 },
-      { x: 1950, y: 2020, creatureId: 'shaman', count: 2 },
-      { x: 2150, y: 1950, creatureId: 'orc',    count: 2 },
-      { x: 2000, y: 2080, creatureId: 'shaman', count: 1 },
+      { x: 1850, y: 1900, creatureId: 'orc',         count: 3 },
+      { x: 2050, y: 1930, creatureId: 'orc',         count: 2 },
+      { x: 1950, y: 2020, creatureId: 'shaman',      count: 2 },
+      { x: 2150, y: 1950, creatureId: 'orc',         count: 2 },
+      { x: 2000, y: 2080, creatureId: 'shaman',      count: 1 },
+      // Военачальник — в центре лагеря
+      { x: 1970, y: 2000, creatureId: 'orc_veteran', count: 1 },
     ],
   },
 
@@ -159,9 +164,11 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     id: 'farmstead',
     label: 'Крестьянский хутор',
     spawnGroups: [
-      { x: 2650, y: 940,  creatureId: 'scout', count: 2 },
-      { x: 2850, y: 970,  creatureId: 'scout', count: 3 },
-      { x: 2750, y: 1020, creatureId: 'scout', count: 2 },
+      { x: 2650, y: 940,  creatureId: 'scout',         count: 2 },
+      { x: 2850, y: 970,  creatureId: 'scout',         count: 3 },
+      { x: 2750, y: 1020, creatureId: 'scout',         count: 2 },
+      // Капитан — командует разведчиками
+      { x: 2950, y: 990,  creatureId: 'scout_veteran', count: 1 },
     ],
   },
 
@@ -172,17 +179,22 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     label: 'Лагерь разбойников',
     spawnGroups: [
       // Громилы — ближняя охрана лагеря
-      { x: 860,  y: 800,  creatureId: 'bandit_brute',    count: 2 },
-      { x: 950,  y: 760,  creatureId: 'bandit_brute',    count: 1 },
+      { x: 860,  y: 800,  creatureId: 'bandit_brute',           count: 2 },
+      { x: 950,  y: 760,  creatureId: 'bandit_brute',           count: 1 },
       // Копейщики — средний периметр
-      { x: 760,  y: 720,  creatureId: 'bandit_spear',    count: 2 },
-      { x: 1000, y: 740,  creatureId: 'bandit_spear',    count: 2 },
+      { x: 760,  y: 720,  creatureId: 'bandit_spear',           count: 2 },
+      { x: 1000, y: 740,  creatureId: 'bandit_spear',           count: 2 },
       // Лучники — дальний периметр / вышки
-      { x: 700,  y: 660,  creatureId: 'bandit_archer',   count: 2 },
-      { x: 1060, y: 670,  creatureId: 'bandit_archer',   count: 2 },
+      { x: 700,  y: 660,  creatureId: 'bandit_archer',          count: 2 },
+      { x: 1060, y: 670,  creatureId: 'bandit_archer',          count: 2 },
       // Арбалетчики — с укрытий
-      { x: 830,  y: 640,  creatureId: 'bandit_crossbow', count: 2 },
-      { x: 970,  y: 650,  creatureId: 'bandit_crossbow', count: 1 },
+      { x: 830,  y: 640,  creatureId: 'bandit_crossbow',        count: 2 },
+      { x: 970,  y: 650,  creatureId: 'bandit_crossbow',        count: 1 },
+      // Ветераны — элита лагеря, у штабного шатра
+      { x: 880,  y: 700,  creatureId: 'bandit_brute_veteran',   count: 1 },
+      { x: 840,  y: 680,  creatureId: 'bandit_spear_veteran',   count: 1 },
+      { x: 920,  y: 690,  creatureId: 'bandit_archer_veteran',  count: 1 },
+      { x: 900,  y: 660,  creatureId: 'bandit_crossbow_veteran',count: 1 },
     ],
   },
 ];
@@ -199,9 +211,11 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
   { x: 1820, y: 1100, creatureId: 'forest_spirit', count: 3 },
   // Первые враги — чётко восточнее деревни (village x2=2176 + 300px зазор)
   // x=2500 гарантирует что с джиттером ±100px враги минимум на 224px от деревни
-  { x: 2500, y: 1220, creatureId: 'goblin', count: 3 },
-  { x: 2500, y: 1340, creatureId: 'goblin', count: 2 },
-  { x: 2620, y: 1280, creatureId: 'wolf',   count: 3 },
+  { x: 2500, y: 1220, creatureId: 'goblin',         count: 3 },
+  { x: 2500, y: 1340, creatureId: 'goblin',         count: 2 },
+  { x: 2620, y: 1280, creatureId: 'wolf',           count: 3 },
+  // Гоблин-ветеран — чуть дальше от деревни, охраняет стаю
+  { x: 2750, y: 1280, creatureId: 'goblin_veteran', count: 1 },
 ];
 
 /** Village Eshworth — safe zone, player start point */

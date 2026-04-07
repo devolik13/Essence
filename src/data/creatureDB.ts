@@ -10,14 +10,23 @@ import {
 import {
   ABILITY_DASH,
   ABILITY_STING,
+  ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE,
+  ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE,
+  ABILITY_MACE_BASH,
   ABILITY_SLASH,
+  ABILITY_SLASH_SWEEP,
   ABILITY_BOW_SHOT,
+  ABILITY_BOW_BACKSHOT,
   ABILITY_LONGBOW_SHOT,
+  ABILITY_ARROW_RAIN,
   ABILITY_CROSSBOW_BOLT,
+  ABILITY_CROSSBOW_SNARE,
   ABILITY_SPEAR_THRUST,
+  ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE,
+  ABILITY_HAMMER_SMASH,
   ABILITY_SUMMON_WOLF,
 } from './specialAbilities';
 
@@ -324,6 +333,135 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Hammer, color: 0x664444, abilityName: 'Сокрушительный удар',
     signatureSpell: ABILITY_HAMMER_STRIKE,  spellXPThreshold: 50,
+  },
+
+  // ─── Ветераны (учат T2 умениям оружия) ────────────────────────────────────
+
+  goblin_veteran: {
+    ...GOBLIN,
+    id: 'goblin_veteran', name: 'Goblin Veteran', nameRu: 'Гоблин-ветеран',
+    damageType: 'melee',
+    caps: { [StatName.Agility]: 18, [StatName.Evasion]: 14, [StatName.Accuracy]: 12 },
+    xpReward: 90,
+    npcStats: {
+      [StatName.Strength]: 7,  [StatName.Accuracy]: 9,  [StatName.Evasion]: 10,
+      [StatName.Health]: 11,   [StatName.Armor]: 3,     [StatName.Luck]: 5,
+    },
+    weapon: WeaponType.Dagger, color: 0xaa5500, abilityName: 'Бросок кинжала',
+    npcSpells: [ABILITY_STING, ABILITY_KNIFE_THROW],
+    signatureSpell: ABILITY_KNIFE_THROW,   spellXPThreshold: 100,
+  },
+
+  wolf_veteran: {
+    id: 'wolf_veteran', name: 'Wolf Alpha', nameRu: 'Волк-вожак',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Agility]: 28, [StatName.Strength]: 18, [StatName.Health]: 14 },
+    xpReward: 110,
+    npcStats: {
+      [StatName.Strength]: 13, [StatName.Accuracy]: 11, [StatName.Evasion]: 12,
+      [StatName.Health]: 14,   [StatName.Armor]: 4,     [StatName.Luck]: 4,
+    },
+    weapon: WeaponType.Sword, color: 0x555555, abilityName: 'Двойной удар',
+    npcSpells: [ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE],
+    signatureSpell: ABILITY_DOUBLE_STRIKE, spellXPThreshold: 100,
+  },
+
+  bear_veteran: {
+    id: 'bear_veteran', name: 'Elder Bear', nameRu: 'Медведь-старейшина',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 50, [StatName.Health]: 36, [StatName.Armor]: 24 },
+    xpReward: 150,
+    npcStats: {
+      [StatName.Strength]: 26, [StatName.Accuracy]: 8,  [StatName.Evasion]: 2,
+      [StatName.Health]: 36,   [StatName.Armor]: 16,    [StatName.Luck]: 1,
+    },
+    weapon: WeaponType.Mace, color: 0x442200, abilityName: 'Удар плашмя',
+    npcSpells: [ABILITY_MACE_STRIKE, ABILITY_MACE_BASH],
+    signatureSpell: ABILITY_MACE_BASH,     spellXPThreshold: 100,
+  },
+
+  orc_veteran: {
+    id: 'orc_veteran', name: 'Orc Warchief', nameRu: 'Орк-военачальник',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 55, [StatName.Health]: 30, [StatName.Armor]: 18 },
+    xpReward: 140,
+    npcStats: {
+      [StatName.Strength]: 22, [StatName.Accuracy]: 11, [StatName.Evasion]: 5,
+      [StatName.Health]: 28,   [StatName.Armor]: 12,    [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Greatsword, color: 0x224411, abilityName: 'Размах',
+    npcSpells: [ABILITY_SLASH, ABILITY_SLASH_SWEEP],
+    signatureSpell: ABILITY_SLASH_SWEEP,   spellXPThreshold: 100,
+  },
+
+  scout_veteran: {
+    id: 'scout_veteran', name: 'Scout Captain', nameRu: 'Капитан разведчиков',
+    type: BodyType.Combat, damageType: 'ranged',
+    caps: { [StatName.Agility]: 36, [StatName.Accuracy]: 28, [StatName.Evasion]: 18 },
+    xpReward: 100,
+    npcStats: {
+      [StatName.Agility]: 14, [StatName.Accuracy]: 16, [StatName.Evasion]: 10,
+      [StatName.Health]: 12,  [StatName.Armor]: 3,     [StatName.Luck]: 5,
+    },
+    weapon: WeaponType.ShortBow, color: 0x557722, abilityName: 'Выстрел с отскоком',
+    npcSpells: [ABILITY_BOW_SHOT, ABILITY_BOW_BACKSHOT],
+    signatureSpell: ABILITY_BOW_BACKSHOT,  spellXPThreshold: 100,
+  },
+
+  bandit_archer_veteran: {
+    id: 'bandit_archer_veteran', name: 'Bandit Sniper', nameRu: 'Разбойник-снайпер',
+    type: BodyType.Combat, damageType: 'ranged',
+    caps: { [StatName.Accuracy]: 36, [StatName.Agility]: 30, [StatName.Evasion]: 20 },
+    xpReward: 115,
+    npcStats: {
+      [StatName.Agility]: 15, [StatName.Accuracy]: 18, [StatName.Evasion]: 10,
+      [StatName.Health]: 13,  [StatName.Armor]: 3,     [StatName.Luck]: 5,
+    },
+    weapon: WeaponType.LongBow, color: 0x334422, abilityName: 'Дождь стрел',
+    npcSpells: [ABILITY_LONGBOW_SHOT, ABILITY_ARROW_RAIN],
+    signatureSpell: ABILITY_ARROW_RAIN,    spellXPThreshold: 100,
+  },
+
+  bandit_crossbow_veteran: {
+    id: 'bandit_crossbow_veteran', name: 'Bandit Marksman', nameRu: 'Арбалетчик-мастер',
+    type: BodyType.Combat, damageType: 'ranged',
+    caps: { [StatName.Accuracy]: 38, [StatName.Strength]: 24, [StatName.Health]: 24 },
+    xpReward: 120,
+    npcStats: {
+      [StatName.Strength]: 13, [StatName.Accuracy]: 22, [StatName.Evasion]: 4,
+      [StatName.Health]: 18,   [StatName.Armor]: 7,     [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Crossbow, color: 0x442211, abilityName: 'Удерживающий болт',
+    npcSpells: [ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE],
+    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 100,
+  },
+
+  bandit_spear_veteran: {
+    id: 'bandit_spear_veteran', name: 'Bandit Lancer', nameRu: 'Копейщик-ветеран',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 30, [StatName.Accuracy]: 26, [StatName.Health]: 26 },
+    xpReward: 118,
+    npcStats: {
+      [StatName.Strength]: 17, [StatName.Accuracy]: 14, [StatName.Evasion]: 8,
+      [StatName.Health]: 20,   [StatName.Armor]: 8,     [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Spear, color: 0x223344, abilityName: 'Удар древком',
+    npcSpells: [ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT],
+    signatureSpell: ABILITY_SPEAR_BUTT,    spellXPThreshold: 100,
+  },
+
+  bandit_brute_veteran: {
+    id: 'bandit_brute_veteran', name: 'Bandit Berserker', nameRu: 'Громила-берсерк',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 40, [StatName.Health]: 38, [StatName.Armor]: 26 },
+    xpReward: 145,
+    npcStats: {
+      [StatName.Strength]: 22, [StatName.Accuracy]: 8,  [StatName.Evasion]: 3,
+      [StatName.Health]: 28,   [StatName.Armor]: 12,    [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Hammer, color: 0x441111, abilityName: 'Сильный удар',
+    npcSpells: [ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH],
+    signatureSpell: ABILITY_HAMMER_SMASH,  spellXPThreshold: 100,
   },
 };
 
