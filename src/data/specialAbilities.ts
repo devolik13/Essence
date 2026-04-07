@@ -131,7 +131,7 @@ export const ABILITY_SUMMON_WOLF: AbilityDef = {
 
 // ─── Короткий лук (обучает Разведчик) ──────────────────────────────────────
 
-/** Прицельный выстрел — урон от Ловкости + Уязвимость */
+/** Прицельный выстрел — урон от Ловкости + 20% Уязвимость */
 export const ABILITY_BOW_SHOT: AbilityDef = {
   id: 'bow_shot',
   nameRu: 'Прицельный выстрел',
@@ -141,19 +141,19 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   range: 240,
   baseDamage: 16,
   statusEffect: 'vulnerability',
-  statusChance: 1.0,
-  description: 'Прицельный выстрел (урон от Ловкости). Накладывает Уязвимость (+5% урон по цели).',
+  statusChance: 0.2,
+  description: 'Прицельный выстрел (урон от Ловкости). 20% шанс Уязвимости (+5% урон по цели).',
 };
 
 // ─── Длинный лук (обучает bandit_archer) ──────────────────────────────────
 
-/** Дальний выстрел — урон от Ловкости, 50% шанс сброса кулдауна */
+/** Дальний выстрел — урон от Ловкости, 20% шанс сброса кулдауна */
 export const ABILITY_LONGBOW_SHOT: AbilityDef = {
   id: 'longbow_shot',
   nameRu: 'Дальний выстрел',
   damageType: 'ranged',
   effectType: 'reset_cooldown',
-  resetCooldownChance: 0.5,
+  resetCooldownChance: 0.2,
   cooldown: 1,
   manaCost: 0,
   range: 320,
@@ -163,7 +163,7 @@ export const ABILITY_LONGBOW_SHOT: AbilityDef = {
 
 // ─── Арбалет (обучает bandit_crossbow) ────────────────────────────────────
 
-/** Пробивающий болт — урон от Ловкости, проходит сквозь до 3 целей */
+/** Пробивающий болт — урон от Ловкости, проходит сквозь до 3 целей, 20% Корни */
 export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   id: 'crossbow_bolt',
   nameRu: 'Пробивающий болт',
@@ -174,7 +174,9 @@ export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   manaCost: 0,
   range: 290,
   baseDamage: 24,
-  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей насквозь.',
+  statusEffect: 'root',
+  statusChance: 0.2,
+  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей насквозь. 20% Корни.',
 };
 
 // ─── Копьё (обучает bandit_spear) ─────────────────────────────────────────
@@ -223,4 +225,106 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
   statusEffect: 'armor_break',
   statusChance: 0.2,
   description: 'Мощный удар молотом (урон от Силы). 20% шанс Пробития брони (-50%).',
+};
+
+// ─── Булава T2 ──────────────────────────────────────────────────────────────
+
+/** Удар плашмя — 50% шанс Сбития концентрации */
+export const ABILITY_MACE_BASH: AbilityDef = {
+  id: 'mace_bash',
+  nameRu: 'Удар плашмя',
+  damageType: 'melee',
+  cooldown: 2,
+  manaCost: 0,
+  range: 48,
+  baseDamage: 22,
+  statusEffect: 'interrupt',
+  statusChance: 0.5,
+  description: 'Удар плашмя (урон от Силы). 50% шанс Сбития концентрации.',
+};
+
+// ─── Двуручник T2 ───────────────────────────────────────────────────────────
+
+/** Размах — конус AoE 80px 90°, 20% шанс Кровотечения на каждую цель */
+export const ABILITY_SLASH_SWEEP: AbilityDef = {
+  id: 'slash_sweep',
+  nameRu: 'Размах',
+  damageType: 'melee',
+  effectType: 'cone_aoe',
+  coneAngle: 90,
+  cooldown: 2,
+  manaCost: 0,
+  range: 80,
+  baseDamage: 30,
+  statusEffect: 'bleed',
+  statusChance: 0.2,
+  description: 'Размах двуручником (урон от Силы), конус 90°, радиус 80. 20% шанс Кровотечения на каждую цель.',
+};
+
+// ─── Копьё T2 ───────────────────────────────────────────────────────────────
+
+/** Удар древком — ближний удар, 100% Отбрасывание */
+export const ABILITY_SPEAR_BUTT: AbilityDef = {
+  id: 'spear_butt',
+  nameRu: 'Удар древком',
+  damageType: 'melee',
+  cooldown: 2,
+  manaCost: 0,
+  range: 44,
+  baseDamage: 20,
+  statusEffect: 'knockback',
+  statusChance: 1.0,
+  description: 'Удар древком копья (урон от Силы), дальность 44. 100% Отбрасывание.',
+};
+
+// ─── Короткий лук T2 ────────────────────────────────────────────────────────
+
+/** Выстрел с отскоком — выстрел + бросок назад 180px, 20% Уязвимость */
+export const ABILITY_BOW_BACKSHOT: AbilityDef = {
+  id: 'bow_backshot',
+  nameRu: 'Выстрел с отскоком',
+  damageType: 'ranged',
+  effectType: 'dash_backward',
+  dashDistance: 180,
+  cooldown: 2,
+  manaCost: 0,
+  range: 240,
+  baseDamage: 16,
+  statusEffect: 'vulnerability',
+  statusChance: 0.2,
+  description: 'Выстрел (урон от Ловкости) + бросок назад 180px. 20% шанс Уязвимости.',
+};
+
+// ─── Длинный лук T2 ─────────────────────────────────────────────────────────
+
+/** Дождь стрел — AoE, 20% шанс сброса кулдауна */
+export const ABILITY_ARROW_RAIN: AbilityDef = {
+  id: 'arrow_rain',
+  nameRu: 'Дождь стрел',
+  damageType: 'ranged',
+  effectType: 'reset_cooldown',
+  resetCooldownChance: 0.2,
+  cooldown: 2,
+  manaCost: 0,
+  range: 320,
+  baseDamage: 20,
+  isAoe: true,
+  aoeRadius: 80,
+  description: 'Дождь стрел (урон от Ловкости), AoE радиус 80. 20% шанс сброса кулдауна.',
+};
+
+// ─── Арбалет T2 ─────────────────────────────────────────────────────────────
+
+/** Укрепляющий болт — одиночный выстрел, 20% Корни */
+export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
+  id: 'crossbow_snare',
+  nameRu: 'Удерживающий болт',
+  damageType: 'ranged',
+  cooldown: 2,
+  manaCost: 0,
+  range: 290,
+  baseDamage: 24,
+  statusEffect: 'root',
+  statusChance: 0.2,
+  description: 'Одиночный болт (урон от Ловкости). 20% шанс Корней (3 сек).',
 };

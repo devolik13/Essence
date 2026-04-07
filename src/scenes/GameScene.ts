@@ -1137,6 +1137,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // ── Выстрел с отскоком: атака + бросок назад (обрабатывается ниже после урона)
+    // dash_backward — не return здесь, падаем в обычный поток атаки
+
     // ── Призыв волка ───────────────────────────────────────────────────────
     if (spell.effectType === 'summon_wolf') {
       // Пока волк жив — повторный призыв заблокирован
@@ -1251,6 +1254,42 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'reset_cooldown' && result.hit) {
       if (Math.random() < (spell.resetCooldownChance ?? 0)) {
         slot.cooldownRemaining = 0;
+      }
+    }
+
+    // ── Dash backward: бросок назад после выстрела ───────────────────────
+    if (spell.effectType === 'dash_backward') {
+      const dist = spell.dashDistance ?? 180;
+      const dir = this.playerBody.getFacingVector();
+      this.playerBody.x = clamp(this.playerBody.x - dir.x * dist, 16, MAP_WIDTH  - 16);
+      this.playerBody.y = clamp(this.playerBody.y - dir.y * dist, 16, MAP_HEIGHT - 16);
+    }
+
+    // ── Cone AoE: удар по всем в конусе перед игроком ────────────────────
+    if (spell.effectType === 'cone_aoe' && result.hit) {
+      const halfAngle = ((spell.coneAngle ?? 90) / 2) * (Math.PI / 180);
+      const dir = this.playerBody.getFacingVector();
+      const coneDir = Math.atan2(dir.y, dir.x);
+      for (const c of this.creatures) {
+        if (c === target || c.isDead || c.isSummoned) continue;
+        const dx = c.x - this.playerBody.x;
+        const dy = c.y - this.playerBody.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > spell.range) continue;
+        const angle = Math.atan2(dy, dx);
+        let diff = Math.abs(angle - coneDir);
+        if (diff > Math.PI) diff = Math.PI * 2 - diff;
+        if (diff > halfAngle) continue;
+        const r2 = calcMeleeDamage(this.sphere.stats, c.stats, spell.baseDamage);
+        if (r2.hit) {
+          const d2 = this.sphere.deathDebuffRemaining > 0 ? Math.round(r2.final * DEATH_DEBUFF_MULT) : r2.final;
+          c.takeDamage(d2);
+          this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d2, r2.crit, false));
+          if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) {
+            c.applyStatus(spell.statusEffect);
+          }
+          if (c.isDead) this.onCreatureKilled(c);
+        }
       }
     }
 
