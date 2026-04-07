@@ -56,7 +56,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 4, [StatName.Accuracy]: 5, [StatName.Evasion]: 6,
       [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 3,
     },
-    signatureSpell: ABILITY_STING,
+    signatureSpell: ABILITY_STING,          spellXPThreshold: 50,
     npcSpells: [ABILITY_STING],
   },
 
@@ -70,7 +70,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Рывок',
-    signatureSpell: ABILITY_DASH,
+    signatureSpell: ABILITY_DASH,           spellXPThreshold: 50,
   },
 
   wolf: {
@@ -83,7 +83,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 8,   [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Удар мечом',
-    signatureSpell: ABILITY_SWORD_STRIKE,
+    signatureSpell: ABILITY_SWORD_STRIKE,   spellXPThreshold: 50,
   },
 
   bear: {
@@ -96,7 +96,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 24,   [StatName.Armor]: 10,   [StatName.Luck]: 2,
     },
     weapon: WeaponType.Mace, color: 0x664422, abilityName: 'Дробящий удар',
-    signatureSpell: ABILITY_MACE_STRIKE,
+    signatureSpell: ABILITY_MACE_STRIKE,    spellXPThreshold: 50,
   },
 
   orc: {
@@ -109,7 +109,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Рубящий удар',
-    signatureSpell: ABILITY_SLASH,
+    signatureSpell: ABILITY_SLASH,          spellXPThreshold: 50,
   },
 
   forest_spirit: {
@@ -117,8 +117,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     type: BodyType.Passive, damageType: 'magic',
     caps: { [StatName.Mana]: 12, [StatName.Intellect]: 8 },
     xpReward: 15,
-    signatureSpell: SPELL_SPARK,
-    spellXPThreshold: 75,
+    signatureSpell: SPELL_SPARK,            spellXPThreshold: 50,
     npcStats: {
       [StatName.Intellect]: 4, [StatName.Accuracy]: 3, [StatName.Evasion]: 2,
       [StatName.Health]: 3,    [StatName.Mana]: 10,    [StatName.Luck]: 1,
@@ -137,7 +136,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 7,  [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.ShortBow, color: 0x88aa55, abilityName: 'Прицельный выстрел',
-    signatureSpell: ABILITY_BOW_SHOT,
+    signatureSpell: ABILITY_BOW_SHOT,       spellXPThreshold: 50,
   },
 
   shaman: {
@@ -150,7 +149,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
     },
     weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Призыв волка',
-    signatureSpell: ABILITY_SUMMON_WOLF,
+    signatureSpell: ABILITY_SUMMON_WOLF,    spellXPThreshold: 50,
   },
 
   // ─── Глава 1: Элементали Огня ───────────────────────────────────────────────
@@ -180,7 +179,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0xaa4400, abilityName: 'Огненная стрела',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2],
-    signatureSpell: MOB_FIRE_T2, spellXPThreshold: 80,
+    signatureSpell: MOB_FIRE_T2, spellXPThreshold: 100,
   },
 
   // ─── Глава 1: Элементали Воды ───────────────────────────────────────────────
@@ -210,7 +209,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0x88ccee, abilityName: 'Лед. стрела',
     npcSpells: [MOB_WATER_T1, MOB_WATER_T2],
-    signatureSpell: MOB_WATER_T2, spellXPThreshold: 80,
+    signatureSpell: MOB_WATER_T2, spellXPThreshold: 100,
   },
 
   // ─── Глава 1: Элементали Земли ──────────────────────────────────────────────
@@ -226,7 +225,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Mace, color: 0x887755, abilityName: 'Камешек',
     npcSpells: [MOB_EARTH_T1],
-    signatureSpell: MOB_EARTH_T1, spellXPThreshold: 60,
+    signatureSpell: MOB_EARTH_T1, spellXPThreshold: 50,
   },
 
   mudder: {
@@ -240,7 +239,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0x665533, abilityName: 'Зем. удар',
     npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2],
-    signatureSpell: MOB_EARTH_T2, spellXPThreshold: 90,
+    signatureSpell: MOB_EARTH_T2, spellXPThreshold: 100,
   },
 
   // ─── Глава 1: Элементали Ветра ──────────────────────────────────────────────
@@ -270,7 +269,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.ShortBow, color: 0x99ddcc, abilityName: 'Ветрорез',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2],
-    signatureSpell: MOB_WIND_T2, spellXPThreshold: 80,
+    signatureSpell: MOB_WIND_T2, spellXPThreshold: 100,
   },
 
   // ─── Лагерь разбойников ────────────────────────────────────────────────────
@@ -285,7 +284,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 9,    [StatName.Armor]: 2,     [StatName.Luck]: 4,
     },
     weapon: WeaponType.LongBow, color: 0x556633, abilityName: 'Дальний выстрел',
-    signatureSpell: ABILITY_LONGBOW_SHOT,
+    signatureSpell: ABILITY_LONGBOW_SHOT,   spellXPThreshold: 50,
   },
 
   bandit_crossbow: {
@@ -298,7 +297,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 11,   [StatName.Armor]: 4,     [StatName.Luck]: 3,
     },
     weapon: WeaponType.Crossbow, color: 0x664433, abilityName: 'Пробивающий болт',
-    signatureSpell: ABILITY_CROSSBOW_BOLT,
+    signatureSpell: ABILITY_CROSSBOW_BOLT,  spellXPThreshold: 50,
   },
 
   bandit_spear: {
@@ -311,7 +310,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 12,   [StatName.Armor]: 5,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.Spear, color: 0x445566, abilityName: 'Выпад',
-    signatureSpell: ABILITY_SPEAR_THRUST,
+    signatureSpell: ABILITY_SPEAR_THRUST,   spellXPThreshold: 50,
   },
 
   bandit_brute: {
@@ -324,7 +323,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 18,   [StatName.Armor]: 8,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.Hammer, color: 0x664444, abilityName: 'Сокрушительный удар',
-    signatureSpell: ABILITY_HAMMER_STRIKE,
+    signatureSpell: ABILITY_HAMMER_STRIKE,  spellXPThreshold: 50,
   },
 };
 
