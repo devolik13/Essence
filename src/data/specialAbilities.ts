@@ -102,3 +102,61 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   baseDamage: 16,
   description: 'Прицельный выстрел из лука. Урон: 16 × (1 + Точность/100)',
 };
+
+// ─── Длинный лук (не реализован на моб-учителе) ───────────────────────────
+
+/** Дальний выстрел — мощный выстрел на предельную дистанцию */
+export const ABILITY_LONGBOW_SHOT: AbilityDef = {
+  id: 'longbow_shot',
+  nameRu: 'Дальний выстрел',
+  damageType: 'ranged',
+  cooldown: 5,
+  manaCost: 0,
+  range: 320,
+  baseDamage: 20,
+  description: 'Мощный выстрел из длинного лука. Урон: 20 × (1 + Точность/100)',
+};
+
+// ─── Арбалет (не реализован на моб-учителе) ───────────────────────────────
+
+/** Болт — пробивающий выстрел из арбалета */
+export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
+  id: 'crossbow_bolt',
+  nameRu: 'Пробивающий болт',
+  damageType: 'ranged',
+  cooldown: 6,
+  manaCost: 0,
+  range: 290,
+  baseDamage: 24,
+  description: 'Пробивающий выстрел из арбалета. Урон: 24 × (1 + Точность/100)',
+};
+
+// ─── Копьё (не реализован на моб-учителе) ─────────────────────────────────
+
+/** Выпад — дистанционный колющий удар копьём */
+export const ABILITY_SPEAR_THRUST: AbilityDef = {
+  id: 'spear_thrust',
+  nameRu: 'Выпад',
+  damageType: 'melee',
+  cooldown: 5,
+  manaCost: 0,
+  range: 80,
+  baseDamage: 20,
+  description: 'Выпад копьём с увеличенной дистанцией. Урон: 20 × (1 + Сила/100)',
+};
+
+// ─── Молот (не реализован на моб-учителе) ─────────────────────────────────
+
+/** Сокрушительный удар — мощный удар молотом с AoE */
+export const ABILITY_HAMMER_STRIKE: AbilityDef = {
+  id: 'hammer_strike',
+  nameRu: 'Сокрушительный удар',
+  damageType: 'melee',
+  cooldown: 8,
+  manaCost: 0,
+  range: 56,
+  baseDamage: 36,
+  isAoe: true,
+  aoeRadius: 60,
+  description: 'Удар молотом по земле. Урон: 36 × (1 + Сила/100), AoE радиус 60',
+};
