@@ -166,6 +166,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0xff6600, abilityName: 'Искра',
     npcSpells: [MOB_FIRE_T1],
+    signatureSpell: MOB_FIRE_T1, spellXPThreshold: 50,
   },
 
   asher: {
@@ -179,6 +180,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0xaa4400, abilityName: 'Огненная стрела',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2],
+    signatureSpell: MOB_FIRE_T2, spellXPThreshold: 80,
   },
 
   // ─── Глава 1: Элементали Воды ───────────────────────────────────────────────
@@ -194,6 +196,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0x44aaff, abilityName: 'Ледышка',
     npcSpells: [MOB_WATER_T1],
+    signatureSpell: MOB_WATER_T1, spellXPThreshold: 50,
   },
 
   fogger: {
@@ -207,6 +210,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0x88ccee, abilityName: 'Лед. стрела',
     npcSpells: [MOB_WATER_T1, MOB_WATER_T2],
+    signatureSpell: MOB_WATER_T2, spellXPThreshold: 80,
   },
 
   // ─── Глава 1: Элементали Земли ──────────────────────────────────────────────
@@ -222,6 +226,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Mace, color: 0x887755, abilityName: 'Камешек',
     npcSpells: [MOB_EARTH_T1],
+    signatureSpell: MOB_EARTH_T1, spellXPThreshold: 60,
   },
 
   mudder: {
@@ -235,6 +240,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Staff, color: 0x665533, abilityName: 'Зем. удар',
     npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2],
+    signatureSpell: MOB_EARTH_T2, spellXPThreshold: 90,
   },
 
   // ─── Глава 1: Элементали Ветра ──────────────────────────────────────────────
@@ -250,6 +256,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Dagger, color: 0xcceeaa, abilityName: 'Порыв',
     npcSpells: [MOB_WIND_T1],
+    signatureSpell: MOB_WIND_T1, spellXPThreshold: 50,
   },
 
   whistler: {
@@ -263,6 +270,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.ShortBow, color: 0x99ddcc, abilityName: 'Ветрорез',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2],
+    signatureSpell: MOB_WIND_T2, spellXPThreshold: 80,
   },
 
   // ─── Лагерь разбойников ────────────────────────────────────────────────────

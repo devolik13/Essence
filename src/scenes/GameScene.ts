@@ -30,7 +30,12 @@ import {
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
 } from '../data/specialAbilities';
-import { MOB_WATER_T1 } from '../data/elementalSpells';
+import {
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
+} from '../data/elementalSpells';
 import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
@@ -149,7 +154,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
     if (loaded) this.events.emit('save-loaded');
 
@@ -214,7 +222,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
     });
 
@@ -234,7 +245,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
     });
 
@@ -935,7 +949,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
 
     // Пульсация — тело доступно для захвата
@@ -988,7 +1005,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
@@ -1023,7 +1043,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
 
     // Квест — засчитать захват
@@ -1061,7 +1084,10 @@ export class GameScene extends Phaser.Scene {
   ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT, ABILITY_CROSSBOW_BOLT,
   ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
-  MOB_WATER_T1,
+  MOB_FIRE_T1, MOB_FIRE_T2,
+  MOB_WATER_T1, MOB_WATER_T2,
+  MOB_EARTH_T1, MOB_EARTH_T2,
+  MOB_WIND_T1, MOB_WIND_T2,
 ], this.questTracker);
   }
 
