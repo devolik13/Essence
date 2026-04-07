@@ -14,7 +14,7 @@ export interface AbilityDef {
   isAoe?: boolean;
   aoeRadius?: number;
   /** Особый эффект умения (не урон) */
-  effectType?: 'dash' | 'poison_strike';
+  effectType?: 'dash' | 'poison_strike' | 'summon_wolf';
   /** Урон яда в сек (для poison_strike) */
   poisonDps?: number;
   /** Длительность яда в сек (для poison_strike) */

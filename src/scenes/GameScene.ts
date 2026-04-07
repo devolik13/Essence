@@ -23,7 +23,7 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { SPELL_SPARK, SPELL_FIREBALL } from '../data/creatureDB';
-import { ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT } from '../data/specialAbilities';
+import { ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF } from '../data/specialAbilities';
 import { MOB_WATER_T1 } from '../data/elementalSpells';
 import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
@@ -136,7 +136,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Сфера ───────────────────────────────────────
     this.sphere = new Sphere(this, VILLAGE_CENTER.x, VILLAGE_CENTER.y);
-    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+    const loaded = loadSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
     if (loaded) this.events.emit('save-loaded');
 
     // ─── Стартовые тела (визуальные маркеры) ─────────
@@ -193,7 +193,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         ids.push(questId);
       }
-      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
     });
 
     // Назначение заклинания в слот из spell picker (из UIScene)
@@ -205,7 +205,7 @@ export class GameScene extends Phaser.Scene {
       slot.cooldownRemaining = 0;
       // Сохраняем назначение в Сферу
       this.sphere.savedSlotIds[data.slotIndex] = data.spell?.id ?? null;
-      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+      saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
     });
 
     // ─── Клик ────────────────────────────────────────
@@ -284,6 +284,30 @@ export class GameScene extends Phaser.Scene {
     const px = this.playerBody?.x ?? -9999;
     const py = this.playerBody?.y ?? -9999;
     for (const creature of this.creatures) {
+      // ── Призванный союзник — отдельная логика ──────────────────────────
+      if (creature.isSummoned) {
+        const dt = delta / 1000;
+        creature.summonTimer = Math.max(0, creature.summonTimer - dt);
+        if (creature.summonTimer <= 0) {
+          creature.destroy();
+          this.creatures = this.creatures.filter(c => c !== creature);
+          continue;
+        }
+        // Ищем ближайшего врага
+        let nearestEnemy: Creature | null = null;
+        let nearestDist = 600;
+        for (const c of this.creatures) {
+          if (c === creature || c.isDead || c.isSummoned) continue;
+          const d = distance(creature.x, creature.y, c.x, c.y);
+          if (d < nearestDist) { nearestDist = d; nearestEnemy = c; }
+        }
+        creature.update(time, delta, nearestEnemy?.x, nearestEnemy?.y);
+        if (nearestEnemy && creature.aiState === 'attack' && creature.attackCooldown <= 0) {
+          this.summonedWolfAttackEnemy(creature, nearestEnemy);
+        }
+        continue;
+      }
+
       creature.update(time, delta, px, py);
 
       // Моб атакует игрока — базовая атака оружием
@@ -659,7 +683,7 @@ export class GameScene extends Phaser.Scene {
     if (!closestCreature) {
       let closestDist = weapon.range;
       for (const creature of this.creatures) {
-        if (creature.isDead) continue;
+        if (creature.isDead || creature.isSummoned) continue;
         const dist = distance(this.playerBody.x, this.playerBody.y, creature.x, creature.y);
         if (dist < closestDist) {
           closestDist = dist;
@@ -801,6 +825,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onCreatureKilled(creature: Creature) {
+    // Призванный союзник не даёт XP и не возрождается
+    if (creature.isSummoned) return;
+
     const xpTotal = creature.definition.xpReward;
 
     if (this.playerBody) {
@@ -865,7 +892,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Автосохранение
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
 
     // Пульсация — тело доступно для захвата
     this.tweens.add({
@@ -910,7 +937,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody = null;
     }
     this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
 
@@ -937,7 +964,7 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('achievement-unlocked', ach);
     }
 
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
 
     // Квест — засчитать захват
     const captureCompleted = this.questTracker.onCapture(def.id);
@@ -967,7 +994,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
-    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, MOB_WATER_T1], this.questTracker);
+    saveSphere(this.sphere, [SPELL_SPARK, SPELL_FIREBALL, ABILITY_DASH, ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE, ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_SUMMON_WOLF, MOB_WATER_T1], this.questTracker);
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */
@@ -1013,12 +1040,19 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // ── Призыв волка ───────────────────────────────────────────────────────
+    if (spell.effectType === 'summon_wolf') {
+      this.spawnSummonedWolf(this.playerBody.x + 40, this.playerBody.y);
+      this.events.emit('ability-used', spell.nameRu);
+      return;
+    }
+
     // Найти цель для атакующих умений
     let target = this.selectedTarget && !this.selectedTarget.isDead ? this.selectedTarget : null;
     if (!target) {
       let closestDist = spell.range;
       for (const c of this.creatures) {
-        if (c.isDead) continue;
+        if (c.isDead || c.isSummoned) continue;
         const d = distance(this.playerBody.x, this.playerBody.y, c.x, c.y);
         if (d < closestDist) { closestDist = d; target = c; }
       }
@@ -1248,5 +1282,32 @@ export class GameScene extends Phaser.Scene {
       const creature = new Creature(this, entry.x, entry.y, def);
       this.creatures.push(creature);
     }
+  }
+
+  // ─── Призыв ───────────────────────────────────────────
+
+  private spawnSummonedWolf(x: number, y: number) {
+    const def = CREATURE_DB['wolf'];
+    if (!def) return;
+    const wolf = new Creature(this, x, y, def);
+    wolf.isSummoned = true;
+    wolf.summonTimer = 30;
+    // Зелёный оттенок чтобы отличить от врагов
+    wolf.setAlpha(0.85);
+    this.creatures.push(wolf);
+  }
+
+  /** Призванный волк атакует существо */
+  private summonedWolfAttackEnemy(wolf: Creature, target: Creature) {
+    const weapon = WEAPONS[wolf.definition.weapon];
+    const result = calcMeleeDamage(wolf.stats, target.stats, weapon.baseDamage);
+    if (result.hit) {
+      target.takeDamage(result.final);
+      this.damageTexts.push(
+        new DamageText(this, target.x, target.y - 10, result.final, result.crit, false)
+      );
+      if (target.isDead) this.onCreatureKilled(target);
+    }
+    wolf.attackCooldown = WEAPON_COOLDOWNS[wolf.definition.weapon];
   }
 }

@@ -14,6 +14,7 @@ import {
   ABILITY_MACE_STRIKE,
   ABILITY_SLASH,
   ABILITY_BOW_SHOT,
+  ABILITY_SUMMON_WOLF,
 } from './specialAbilities';
 
 /** Заклинание Огненный Шар (AoE) */
@@ -144,9 +145,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 4,
       [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Ледышка',
-    signatureSpell: MOB_WATER_T1,
-    npcSpells: [MOB_WATER_T1],
+    weapon: WeaponType.Staff, color: 0x9944aa, abilityName: 'Призыв волка',
+    signatureSpell: ABILITY_SUMMON_WOLF,
   },
 
   // ─── Глава 1: Элементали Огня ───────────────────────────────────────────────
@@ -189,7 +189,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 6,    [StatName.Mana]: 6,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.Staff, color: 0x44aaff, abilityName: 'Ледышка',
-    npcSpells: [MOB_WATER_T1, MOB_WATER_T2],
+    npcSpells: [MOB_WATER_T1],
   },
 
   fogger: {
@@ -201,8 +201,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 6, [StatName.Accuracy]: 5, [StatName.Evasion]: 4,
       [StatName.Health]: 8,    [StatName.Will]: 5,     [StatName.Mana]: 10, [StatName.Luck]: 1,
     },
-    weapon: WeaponType.Staff, color: 0x88ccee, abilityName: 'Лед. дождь',
-    npcSpells: [MOB_WATER_T1, MOB_WATER_T3],
+    weapon: WeaponType.Staff, color: 0x88ccee, abilityName: 'Лед. стрела',
+    npcSpells: [MOB_WATER_T1, MOB_WATER_T2],
   },
 
   // ─── Глава 1: Элементали Земли ──────────────────────────────────────────────
@@ -217,7 +217,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 1,
     },
     weapon: WeaponType.Mace, color: 0x887755, abilityName: 'Камешек',
-    npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2],
+    npcSpells: [MOB_EARTH_T1],
   },
 
   mudder: {
@@ -230,7 +230,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 14,   [StatName.Armor]: 5,    [StatName.Luck]: 1,
     },
     weapon: WeaponType.Staff, color: 0x665533, abilityName: 'Зем. удар',
-    npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3],
+    npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2],
   },
 
   // ─── Глава 1: Элементали Ветра ──────────────────────────────────────────────

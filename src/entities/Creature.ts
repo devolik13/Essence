@@ -28,6 +28,10 @@ export class Creature extends Phaser.GameObjects.Container {
   /** Яд: урон в сек и оставшееся время */
   public poisonDps: number = 0;
   public poisonTimer: number = 0;
+  /** Призванное существо (союзник игрока) */
+  public isSummoned: boolean = false;
+  /** Оставшееся время призыва (сек) */
+  public summonTimer: number = 0;
 
   public spawnX: number;
   public spawnY: number;
