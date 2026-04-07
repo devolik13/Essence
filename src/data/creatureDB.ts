@@ -7,6 +7,13 @@ import {
   MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3,
   MOB_WIND_T1, MOB_WIND_T2,
 } from './elementalSpells';
+import {
+  ABILITY_DASH,
+  ABILITY_STING,
+  ABILITY_SWORD_STRIKE,
+  ABILITY_MACE_STRIKE,
+  ABILITY_SLASH,
+} from './specialAbilities';
 
 /** Заклинание Огненный Шар (AoE) */
 export const SPELL_FIREBALL: AbilityDef = {
@@ -43,6 +50,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 4, [StatName.Accuracy]: 5, [StatName.Evasion]: 6,
       [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 3,
     },
+    signatureSpell: ABILITY_STING,
+    npcSpells: [ABILITY_STING],
   },
 
   rabbit: {
@@ -55,8 +64,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Рывок',
-    signatureSpell: SPELL_FIREBALL,
-    spellXPThreshold: 30,  // легко учится для теста
+    signatureSpell: ABILITY_DASH,
   },
 
   wolf: {
@@ -68,7 +76,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 8, [StatName.Accuracy]: 7, [StatName.Evasion]: 8,
       [StatName.Health]: 8,   [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
-    weapon: WeaponType.Dagger, color: 0x888888, abilityName: 'Кровотечение',
+    weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Удар мечом',
+    signatureSpell: ABILITY_SWORD_STRIKE,
   },
 
   bear: {
@@ -80,7 +89,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 18, [StatName.Accuracy]: 6, [StatName.Evasion]: 3,
       [StatName.Health]: 24,   [StatName.Armor]: 10,   [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Mace, color: 0x664422, abilityName: 'Рёв',
+    weapon: WeaponType.Mace, color: 0x664422, abilityName: 'Дробящий удар',
+    signatureSpell: ABILITY_MACE_STRIKE,
   },
 
   orc: {
@@ -92,7 +102,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 15, [StatName.Accuracy]: 8, [StatName.Evasion]: 4,
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 3,
     },
-    weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Рассечение',
+    weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Рубящий удар',
+    signatureSpell: ABILITY_SLASH,
   },
 
   forest_spirit: {
@@ -107,6 +118,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 3,    [StatName.Mana]: 10,    [StatName.Luck]: 1,
     },
     weapon: WeaponType.Staff, color: 0x88eecc, abilityName: 'Искра',
+    npcSpells: [SPELL_SPARK],
   },
 
   scout: {

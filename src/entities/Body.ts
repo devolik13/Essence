@@ -34,6 +34,8 @@ export class Body extends Phaser.GameObjects.Container {
   public isPlayerControlled: boolean = false;
   public isCasting: boolean = false;
   public attackCooldown: number = 0;
+  /** Оставшееся время рывка (сек); > 0 → скорость ×1.5 */
+  public dashTimer: number = 0;
 
   private bodySprite: Phaser.GameObjects.Sprite;
   private hpBar: Phaser.GameObjects.Rectangle;
@@ -166,6 +168,9 @@ export class Body extends Phaser.GameObjects.Container {
     if (this.attackCooldown > 0) {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
+    if (this.dashTimer > 0) {
+      this.dashTimer = Math.max(0, this.dashTimer - dt);
+    }
 
     for (const slot of this.abilitySlots) {
       if (slot.cooldownRemaining > 0) {
@@ -193,8 +198,9 @@ export class Body extends Phaser.GameObjects.Container {
         vy *= norm;
       }
 
-      this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * dt));
-      this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * dt));
+      const speedMult = this.dashTimer > 0 ? 1.5 : 1.0;
+      this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * speedMult * dt));
+      this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * speedMult * dt));
     }
 
     // Обновление анимации воина

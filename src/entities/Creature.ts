@@ -25,6 +25,9 @@ export class Creature extends Phaser.GameObjects.Container {
   /** Таймер каста текущего заклинания (>0 = идёт каст) */
   public castTimer: number = 0;
   public castingSpell: AbilityDef | null = null;
+  /** Яд: урон в сек и оставшееся время */
+  public poisonDps: number = 0;
+  public poisonTimer: number = 0;
 
   public spawnX: number;
   public spawnY: number;
@@ -111,6 +114,17 @@ export class Creature extends Phaser.GameObjects.Container {
     // Таймер каста
     if (this.castTimer > 0) {
       this.castTimer = Math.max(0, this.castTimer - dt);
+    }
+
+    // Яд
+    if (this.poisonTimer > 0) {
+      this.currentHP = Math.max(0, this.currentHP - this.poisonDps * dt);
+      this.poisonTimer = Math.max(0, this.poisonTimer - dt);
+      if (this.poisonTimer <= 0) this.poisonDps = 0;
+      if (this.currentHP <= 0) {
+        this.aiState = 'dead';
+        this.setAlpha(0.3);
+      }
     }
 
     // AI

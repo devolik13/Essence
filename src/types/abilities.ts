@@ -13,6 +13,12 @@ export interface AbilityDef {
   baseDamage: number;
   isAoe?: boolean;
   aoeRadius?: number;
+  /** Особый эффект умения (не урон) */
+  effectType?: 'dash' | 'poison_strike';
+  /** Урон яда в сек (для poison_strike) */
+  poisonDps?: number;
+  /** Длительность яда в сек (для poison_strike) */
+  poisonDuration?: number;
   description: string;
 }
 

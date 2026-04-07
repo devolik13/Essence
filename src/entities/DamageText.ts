@@ -8,9 +8,9 @@ export class DamageText extends Phaser.GameObjects.Text {
   private lifetime: number = 0;
   private duration: number;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, damage: number, isCrit: boolean, isMiss: boolean) {
-    const text = isMiss ? 'Промах' : `${damage}`;
-    const color = isMiss ? '#888888' : isCrit ? '#ffaa00' : '#ffffff';
+  constructor(scene: Phaser.Scene, x: number, y: number, damage: number, isCrit: boolean, isMiss: boolean, label?: string) {
+    const text = label ?? (isMiss ? 'Промах' : `${damage}`);
+    const color = label ? '#55ff55' : isMiss ? '#888888' : isCrit ? '#ffaa00' : '#ffffff';
     const size = isCrit ? '16px' : '12px';
 
     super(scene, x, y - 20, text, {
