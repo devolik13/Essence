@@ -44,6 +44,21 @@ export const ITEMS: Record<string, ItemDef> = {
     descRu: 'Частица магической сущности лесного духа.',
     icon: '◉',
   },
+  bandit_coin: {
+    id: 'bandit_coin', nameRu: 'Монета разбойника', rarity: 'common', type: 'material',
+    descRu: 'Монета со скрещёнными кинжалами — знак разбойничьей гильдии.',
+    icon: '¤',
+  },
+  bandit_quiver: {
+    id: 'bandit_quiver', nameRu: 'Колчан разбойника', rarity: 'uncommon', type: 'material',
+    descRu: 'Хорошо сделанный колчан. Стрелы подобраны с умом.',
+    icon: '↑',
+  },
+  bandit_bolt: {
+    id: 'bandit_bolt', nameRu: 'Арбалетный болт', rarity: 'uncommon', type: 'material',
+    descRu: 'Тяжёлый болт с бронебойным наконечником.',
+    icon: '→',
+  },
   // Consumables
   health_potion: {
     id: 'health_potion', nameRu: 'Зелье здоровья', rarity: 'common', type: 'consumable',
@@ -93,6 +108,24 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
   forest_spirit: [
     { itemId: 'spirit_essence', chance: 0.5, minQty: 1, maxQty: 1 },
     { itemId: 'mana_potion',    chance: 0.3, minQty: 1, maxQty: 1 },
+  ],
+  bandit_archer: [
+    { itemId: 'bandit_coin',   chance: 0.8, minQty: 1, maxQty: 3 },
+    { itemId: 'bandit_quiver', chance: 0.4, minQty: 1, maxQty: 1 },
+    { itemId: 'health_potion', chance: 0.15, minQty: 1, maxQty: 1 },
+  ],
+  bandit_crossbow: [
+    { itemId: 'bandit_coin', chance: 0.8, minQty: 1, maxQty: 3 },
+    { itemId: 'bandit_bolt', chance: 0.5, minQty: 1, maxQty: 2 },
+    { itemId: 'mana_potion', chance: 0.15, minQty: 1, maxQty: 1 },
+  ],
+  bandit_spear: [
+    { itemId: 'bandit_coin',   chance: 0.8, minQty: 1, maxQty: 3 },
+    { itemId: 'health_potion', chance: 0.2,  minQty: 1, maxQty: 1 },
+  ],
+  bandit_brute: [
+    { itemId: 'bandit_coin',   chance: 0.9, minQty: 2, maxQty: 5 },
+    { itemId: 'health_potion', chance: 0.4,  minQty: 1, maxQty: 2 },
   ],
 };
 

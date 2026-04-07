@@ -635,6 +635,119 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture('body_whistler', 28, 28);
     g.clear();
 
+    // ── Bandit Archer (body_bandit_archer) ─────────────────
+    // Лесной лучник в тёмно-зелёном плаще, длинный лук
+    g.fillStyle(0x334422, 1);
+    g.fillRect(9, 20, 4, 7);
+    g.fillRect(15, 20, 4, 7);
+    g.fillStyle(0x556633, 1);
+    g.fillRect(5, 8, 18, 14);
+    g.fillStyle(0x445522, 1);
+    g.fillRect(9, 10, 10, 8);
+    // Длинный лук (слева, высокий)
+    g.fillStyle(0x773311, 1);
+    g.fillRect(2, 4, 3, 20);
+    g.fillStyle(0xcc9955, 1);
+    g.fillRect(3, 5, 1, 18);
+    // Стрела
+    g.fillStyle(0xccccaa, 1);
+    g.fillRect(4, 11, 6, 1);
+    g.fillStyle(skin, 1);
+    g.fillRect(9, 2, 10, 7);
+    g.fillStyle(0x445522, 1);
+    g.fillRect(8, 0, 12, 5);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(11, 4, 2, 2);
+    g.fillRect(15, 4, 2, 2);
+    g.generateTexture('body_bandit_archer', 28, 28);
+    g.clear();
+
+    // ── Bandit Crossbowman (body_bandit_crossbow) ──────────
+    // Наёмник в кожаном доспехе, арбалет перед собой
+    g.fillStyle(0x443322, 1);
+    g.fillRect(9, 20, 4, 7);
+    g.fillRect(15, 20, 4, 7);
+    g.fillStyle(0x664433, 1);
+    g.fillRect(5, 8, 18, 14);
+    // Нагрудник
+    g.fillStyle(0x553322, 1);
+    g.fillRect(8, 10, 12, 9);
+    // Арбалет (горизонтальный, перед телом)
+    g.fillStyle(0x554433, 1);
+    g.fillRect(4, 16, 20, 4);
+    g.fillStyle(0x885544, 1);
+    g.fillRect(4, 17, 20, 2);
+    g.fillStyle(0x442211, 1);
+    g.fillRect(12, 14, 4, 8);
+    // Болт
+    g.fillStyle(0xccbbaa, 1);
+    g.fillRect(4, 17, 8, 1);
+    g.fillStyle(skin, 1);
+    g.fillRect(9, 2, 10, 7);
+    g.fillStyle(0x553322, 1);
+    g.fillRect(8, 1, 12, 4);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(11, 4, 2, 2);
+    g.fillRect(15, 4, 2, 2);
+    g.generateTexture('body_bandit_crossbow', 28, 28);
+    g.clear();
+
+    // ── Bandit Spearman (body_bandit_spear) ────────────────
+    // Воин в синевато-серых доспехах, копьё
+    g.fillStyle(0x334455, 1);
+    g.fillRect(9, 20, 4, 7);
+    g.fillRect(15, 20, 4, 7);
+    g.fillStyle(0x445566, 1);
+    g.fillRect(5, 8, 18, 14);
+    g.fillStyle(0x556677, 1);
+    g.fillRect(8, 10, 12, 9);
+    // Копьё (вертикальное, справа)
+    g.fillStyle(0x885533, 1);
+    g.fillRect(23, 0, 3, 28);
+    // Наконечник копья
+    g.fillStyle(0xcccccc, 1);
+    g.fillRect(22, 0, 5, 4);
+    g.fillStyle(skin, 1);
+    g.fillRect(9, 2, 10, 7);
+    g.fillStyle(0x445566, 1);
+    g.fillRect(8, 1, 12, 4);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(11, 4, 2, 2);
+    g.fillRect(15, 4, 2, 2);
+    g.generateTexture('body_bandit_spear', 28, 28);
+    g.clear();
+
+    // ── Bandit Brute (body_bandit_brute) ───────────────────
+    // Громила в тёмно-красных доспехах, молот
+    g.fillStyle(0x442222, 1);
+    g.fillRect(8, 20, 5, 7);
+    g.fillRect(15, 20, 5, 7);
+    g.fillStyle(0x664444, 1);
+    g.fillRect(4, 8, 20, 14);
+    g.fillStyle(0x775555, 1);
+    g.fillRect(7, 10, 14, 9);
+    // Молот (крупный, правая сторона)
+    g.fillStyle(0x553322, 1);
+    g.fillRect(20, 8, 4, 16);
+    g.fillStyle(0x888888, 1);
+    g.fillRect(17, 6, 10, 7);
+    g.fillStyle(0xaaaaaa, 1);
+    g.fillRect(18, 7, 8, 5);
+    // Шипы на плечах
+    g.fillStyle(0x999999, 1);
+    g.fillRect(4, 8, 3, 3);
+    g.fillRect(21, 8, 3, 3);
+    g.fillStyle(skin, 1);
+    g.fillRect(8, 1, 12, 8);
+    // Шлем
+    g.fillStyle(0x553333, 1);
+    g.fillRect(7, 0, 14, 5);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(10, 4, 3, 2);
+    g.fillRect(15, 4, 3, 2);
+    g.generateTexture('body_bandit_brute', 28, 28);
+    g.clear();
+
     // ── Warrior spritesheets (256×256 per frame, 5×5 = 25 frames) ────────────
     const W = 256;
     this.load.spritesheet('warrior_idle_down',   'assets/warrior/warrior_idle_down.png',   { frameWidth: W, frameHeight: W });

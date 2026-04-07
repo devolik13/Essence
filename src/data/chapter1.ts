@@ -164,6 +164,27 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
       { x: 2750, y: 1020, creatureId: 'scout', count: 2 },
     ],
   },
+
+  // Лагерь разбойников — северо-запад, далеко от деревни (village x1=1664, y1=1056)
+  // Центр ~(900, 780), безопасный разрыв ~764px на запад и ~276px на север
+  {
+    id: 'bandit_camp',
+    label: 'Лагерь разбойников',
+    spawnGroups: [
+      // Громилы — ближняя охрана лагеря
+      { x: 860,  y: 800,  creatureId: 'bandit_brute',    count: 2 },
+      { x: 950,  y: 760,  creatureId: 'bandit_brute',    count: 1 },
+      // Копейщики — средний периметр
+      { x: 760,  y: 720,  creatureId: 'bandit_spear',    count: 2 },
+      { x: 1000, y: 740,  creatureId: 'bandit_spear',    count: 2 },
+      // Лучники — дальний периметр / вышки
+      { x: 700,  y: 660,  creatureId: 'bandit_archer',   count: 2 },
+      { x: 1060, y: 670,  creatureId: 'bandit_archer',   count: 2 },
+      // Арбалетчики — с укрытий
+      { x: 830,  y: 640,  creatureId: 'bandit_crossbow', count: 2 },
+      { x: 970,  y: 650,  creatureId: 'bandit_crossbow', count: 1 },
+    ],
+  },
 ];
 
 // ─── Стартовая зона (вокруг деревни) ──────────────────────────────────────────

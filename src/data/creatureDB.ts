@@ -14,6 +14,10 @@ import {
   ABILITY_MACE_STRIKE,
   ABILITY_SLASH,
   ABILITY_BOW_SHOT,
+  ABILITY_LONGBOW_SHOT,
+  ABILITY_CROSSBOW_BOLT,
+  ABILITY_SPEAR_THRUST,
+  ABILITY_HAMMER_STRIKE,
   ABILITY_SUMMON_WOLF,
 } from './specialAbilities';
 
@@ -259,6 +263,60 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.ShortBow, color: 0x99ddcc, abilityName: 'Ветрорез',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2],
+  },
+
+  // ─── Лагерь разбойников ────────────────────────────────────────────────────
+
+  bandit_archer: {
+    id: 'bandit_archer', name: 'Bandit Archer', nameRu: 'Разбойник-лучник',
+    type: BodyType.Combat, damageType: 'ranged',
+    caps: { [StatName.Accuracy]: 24, [StatName.Agility]: 22, [StatName.Evasion]: 14 },
+    xpReward: 45,
+    npcStats: {
+      [StatName.Agility]: 10,  [StatName.Accuracy]: 12, [StatName.Evasion]: 7,
+      [StatName.Health]: 9,    [StatName.Armor]: 2,     [StatName.Luck]: 4,
+    },
+    weapon: WeaponType.LongBow, color: 0x556633, abilityName: 'Дальний выстрел',
+    signatureSpell: ABILITY_LONGBOW_SHOT,
+  },
+
+  bandit_crossbow: {
+    id: 'bandit_crossbow', name: 'Bandit Crossbowman', nameRu: 'Арбалетчик',
+    type: BodyType.Combat, damageType: 'ranged',
+    caps: { [StatName.Accuracy]: 26, [StatName.Strength]: 16, [StatName.Health]: 16 },
+    xpReward: 50,
+    npcStats: {
+      [StatName.Strength]: 8,  [StatName.Accuracy]: 15, [StatName.Evasion]: 3,
+      [StatName.Health]: 11,   [StatName.Armor]: 4,     [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Crossbow, color: 0x664433, abilityName: 'Пробивающий болт',
+    signatureSpell: ABILITY_CROSSBOW_BOLT,
+  },
+
+  bandit_spear: {
+    id: 'bandit_spear', name: 'Bandit Spearman', nameRu: 'Копейщик',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 20, [StatName.Accuracy]: 18, [StatName.Health]: 18 },
+    xpReward: 48,
+    npcStats: {
+      [StatName.Strength]: 11, [StatName.Accuracy]: 9,  [StatName.Evasion]: 6,
+      [StatName.Health]: 12,   [StatName.Armor]: 5,     [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Spear, color: 0x445566, abilityName: 'Выпад',
+    signatureSpell: ABILITY_SPEAR_THRUST,
+  },
+
+  bandit_brute: {
+    id: 'bandit_brute', name: 'Bandit Brute', nameRu: 'Громила',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 28, [StatName.Health]: 26, [StatName.Armor]: 18 },
+    xpReward: 65,
+    npcStats: {
+      [StatName.Strength]: 15, [StatName.Accuracy]: 6,  [StatName.Evasion]: 2,
+      [StatName.Health]: 18,   [StatName.Armor]: 8,     [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Hammer, color: 0x664444, abilityName: 'Сокрушительный удар',
+    signatureSpell: ABILITY_HAMMER_STRIKE,
   },
 };
 
