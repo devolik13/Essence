@@ -17,13 +17,15 @@ export interface AbilityDef {
   aoeRadius?: number;
 
   /** Особый механический эффект умения */
-  effectType?: 'dash_forward' | 'summon_wolf' | 'reset_cooldown' | 'pierce';
+  effectType?: 'dash_forward' | 'summon_wolf' | 'reset_cooldown' | 'pierce' | 'multi_hit';
   /** Дальность броска вперёд (dash_forward), пикс */
   dashDistance?: number;
   /** Количество целей насквозь (pierce) */
   pierceCount?: number;
   /** Шанс сбросить кулдаун (reset_cooldown), 0-1 */
   resetCooldownChance?: number;
+  /** Количество ударов (multi_hit) */
+  hitCount?: number;
 
   /** Статус-эффект накладываемый на цель */
   statusEffect?: StatusEffectId;

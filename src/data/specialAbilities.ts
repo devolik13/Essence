@@ -23,13 +23,13 @@ export const ABILITY_STING: AbilityDef = {
   id: 'sting',
   nameRu: 'Укол',
   damageType: 'melee',
-  cooldown: 5,
+  cooldown: 1,
   manaCost: 0,
   range: 44,
   baseDamage: 12,
   statusEffect: 'poison',
-  statusChance: 1.0,
-  description: 'Укол кинжалом (урон от Ловкости). Гарантированно 1 стак яда.',
+  statusChance: 0.2,
+  description: 'Укол кинжалом (урон от Ловкости). 20% шанс 1 стака яда.',
 };
 
 // ─── Одноручный меч (обучает Волк) ─────────────────────────────────────────
@@ -39,13 +39,29 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
   id: 'sword_strike',
   nameRu: 'Удар мечом',
   damageType: 'melee',
-  cooldown: 5,
+  cooldown: 1,
   manaCost: 0,
   range: 52,
   baseDamage: 18,
   statusEffect: 'slow',
+  statusChance: 0.2,
+  description: 'Удар мечом (урон от Силы). 20% шанс Замедления.',
+};
+
+// ─── Кинжал T2 ─────────────────────────────────────────────────────────────
+
+/** Бросок кинжала — дистанционный удар от Ловкости + гарантированный яд */
+export const ABILITY_KNIFE_THROW: AbilityDef = {
+  id: 'knife_throw',
+  nameRu: 'Бросок кинжала',
+  damageType: 'ranged',
+  cooldown: 2,
+  manaCost: 0,
+  range: 160,
+  baseDamage: 12,
+  statusEffect: 'poison',
   statusChance: 1.0,
-  description: 'Удар мечом (урон от Силы). Накладывает Замедление.',
+  description: 'Бросок кинжала (урон от Ловкости, дальность 160). 20% шанс 1 стака яда.',
 };
 
 // ─── Булава (обучает Медведь) ───────────────────────────────────────────────
@@ -55,13 +71,31 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   id: 'mace_strike',
   nameRu: 'Дробящий удар',
   damageType: 'melee',
-  cooldown: 6,
+  cooldown: 1,
   manaCost: 0,
   range: 48,
   baseDamage: 22,
   statusEffect: 'interrupt',
   statusChance: 1.0,
   description: 'Удар булавой (урон от Силы). Сбивает каст (без кулдауна).',
+};
+
+// ─── Меч T2 ────────────────────────────────────────────────────────────────
+
+/** Двойной удар — 2 удара, полный урон, замедление на каждый */
+export const ABILITY_DOUBLE_STRIKE: AbilityDef = {
+  id: 'double_strike',
+  nameRu: 'Двойной удар',
+  damageType: 'melee',
+  effectType: 'multi_hit',
+  hitCount: 2,
+  cooldown: 2,
+  manaCost: 0,
+  range: 52,
+  baseDamage: 18,
+  statusEffect: 'slow',
+  statusChance: 0.2,
+  description: 'Два быстрых удара мечом (урон от Силы). 20% шанс Замедления на каждый удар.',
 };
 
 // ─── Двуручный меч (обучает Орк) ───────────────────────────────────────────
@@ -71,7 +105,7 @@ export const ABILITY_SLASH: AbilityDef = {
   id: 'slash',
   nameRu: 'Рубящий удар',
   damageType: 'melee',
-  cooldown: 7,
+  cooldown: 1,
   manaCost: 0,
   range: 60,
   baseDamage: 30,
@@ -102,7 +136,7 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   id: 'bow_shot',
   nameRu: 'Прицельный выстрел',
   damageType: 'ranged',
-  cooldown: 4,
+  cooldown: 1,
   manaCost: 0,
   range: 240,
   baseDamage: 16,
@@ -120,7 +154,7 @@ export const ABILITY_LONGBOW_SHOT: AbilityDef = {
   damageType: 'ranged',
   effectType: 'reset_cooldown',
   resetCooldownChance: 0.5,
-  cooldown: 5,
+  cooldown: 1,
   manaCost: 0,
   range: 320,
   baseDamage: 20,
@@ -136,7 +170,7 @@ export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   damageType: 'ranged',
   effectType: 'pierce',
   pierceCount: 3,
-  cooldown: 6,
+  cooldown: 1,
   manaCost: 0,
   range: 290,
   baseDamage: 24,
@@ -150,7 +184,7 @@ export const ABILITY_SPEAR_THRUST: AbilityDef = {
   id: 'spear_thrust',
   nameRu: 'Выпад',
   damageType: 'melee',
-  cooldown: 5,
+  cooldown: 1,
   manaCost: 0,
   range: 80,
   baseDamage: 20,
@@ -166,7 +200,7 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   id: 'hammer_strike',
   nameRu: 'Сокрушительный удар',
   damageType: 'melee',
-  cooldown: 8,
+  cooldown: 1,
   manaCost: 0,
   range: 56,
   baseDamage: 36,
