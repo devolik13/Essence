@@ -36,6 +36,8 @@ export interface AbilityDef {
 
   /** Шанс нанести двойной урон (крит школы ветра), 0-1 */
   doubleDamageChance?: number;
+  /** ID умения-prerequisite (нельзя выучить без него) */
+  prerequisiteId?: string;
 
   description: string;
 }

@@ -30,6 +30,7 @@ export const MOB_FIRE_T1: AbilityDef = {
 /** T2 — Огненная стрела (Fire Arrow) */
 export const MOB_FIRE_T2: AbilityDef = {
   id: 'mob_fire_t2',
+  prerequisiteId: 'mob_fire_t1',
   nameRu: 'Огн. стрела',
   damageType: 'magic',
   cooldown: 3.5,
@@ -77,6 +78,7 @@ export const MOB_WATER_T1: AbilityDef = {
 /** T2 — Ледяная стрела (Ice Arrow): splash */
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_water_t2',
+  prerequisiteId: 'mob_water_t1',
   nameRu: 'Лед. стрела',
   damageType: 'magic',
   cooldown: 4.0,
@@ -126,6 +128,7 @@ export const MOB_EARTH_T1: AbilityDef = {
 /** T2 — Каменный шип (Stone Spike): AoE */
 export const MOB_EARTH_T2: AbilityDef = {
   id: 'mob_earth_t2',
+  prerequisiteId: 'mob_earth_t1',
   nameRu: 'Кам. шип',
   damageType: 'magic',
   cooldown: 5.0,
@@ -174,6 +177,7 @@ export const MOB_WIND_T1: AbilityDef = {
 /** T2 — Ветрорез (Wind Cutter) */
 export const MOB_WIND_T2: AbilityDef = {
   id: 'mob_wind_t2',
+  prerequisiteId: 'mob_wind_t1',
   nameRu: 'Ветрорез',
   damageType: 'magic',
   cooldown: 5.0,

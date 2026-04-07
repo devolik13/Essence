@@ -918,15 +918,23 @@ export class GameScene extends Phaser.Scene {
         const alreadyLearned = this.sphere.learnedSpells.some(s => s.id === spell.id);
 
         if (!alreadyLearned) {
-          const next = prev + xpTotal;
-          this.sphere.spellProgress[spell.id] = next;
+          // Проверка prerequisite — нельзя выучить T2 без T1
+          const prereqId = spell.prerequisiteId;
+          const hasPrereq = !prereqId || this.sphere.learnedSpells.some(s => s.id === prereqId);
 
-          if (next >= threshold) {
-            // Заклинание выучено!
-            this.sphere.learnedSpells.push(spell);
-            this.events.emit('spell-learned', spell);
+          if (!hasPrereq) {
+            this.events.emit('spell-locked', { spell, prereqId });
           } else {
-            this.events.emit('spell-progress', { spell, current: next, threshold });
+            const next = prev + xpTotal;
+            this.sphere.spellProgress[spell.id] = next;
+
+            if (next >= threshold) {
+              // Заклинание выучено!
+              this.sphere.learnedSpells.push(spell);
+              this.events.emit('spell-learned', spell);
+            } else {
+              this.events.emit('spell-progress', { spell, current: next, threshold });
+            }
           }
         }
       }

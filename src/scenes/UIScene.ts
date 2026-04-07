@@ -252,6 +252,9 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`★ Изучено: ${spell.nameRu}`);
     });
+    gs.events.on('spell-locked', (data: { spell: import('../types/abilities').AbilityDef; prereqId: string }) => {
+      this.addLog(`✗ ${data.spell.nameRu} — сначала выучи базовое умение`);
+    });
     gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
       this.addLog(`✦ КВЕСТ: ${data.name}  +${data.xp} XP`);
     });

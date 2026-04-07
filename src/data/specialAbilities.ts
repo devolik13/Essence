@@ -53,6 +53,7 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
 /** Бросок кинжала — дистанционный удар от Ловкости + гарантированный яд */
 export const ABILITY_KNIFE_THROW: AbilityDef = {
   id: 'knife_throw',
+  prerequisiteId: 'sting',
   nameRu: 'Бросок кинжала',
   damageType: 'ranged',
   cooldown: 2,
@@ -85,6 +86,7 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
 /** Двойной удар — 2 удара, полный урон, замедление на каждый */
 export const ABILITY_DOUBLE_STRIKE: AbilityDef = {
   id: 'double_strike',
+  prerequisiteId: 'sword_strike',
   nameRu: 'Двойной удар',
   damageType: 'melee',
   effectType: 'multi_hit',
@@ -216,6 +218,7 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
 /** Сильный удар — одиночный мощный удар, 20% шанс Пробития брони */
 export const ABILITY_HAMMER_SMASH: AbilityDef = {
   id: 'hammer_smash',
+  prerequisiteId: 'hammer_strike',
   nameRu: 'Сильный удар',
   damageType: 'melee',
   cooldown: 2,
@@ -232,6 +235,7 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
 /** Удар плашмя — 50% шанс Сбития концентрации */
 export const ABILITY_MACE_BASH: AbilityDef = {
   id: 'mace_bash',
+  prerequisiteId: 'mace_strike',
   nameRu: 'Удар плашмя',
   damageType: 'melee',
   cooldown: 2,
@@ -248,6 +252,7 @@ export const ABILITY_MACE_BASH: AbilityDef = {
 /** Размах — конус AoE 80px 90°, 20% шанс Кровотечения на каждую цель */
 export const ABILITY_SLASH_SWEEP: AbilityDef = {
   id: 'slash_sweep',
+  prerequisiteId: 'slash',
   nameRu: 'Размах',
   damageType: 'melee',
   effectType: 'cone_aoe',
@@ -266,6 +271,7 @@ export const ABILITY_SLASH_SWEEP: AbilityDef = {
 /** Удар древком — ближний удар, 100% Отбрасывание */
 export const ABILITY_SPEAR_BUTT: AbilityDef = {
   id: 'spear_butt',
+  prerequisiteId: 'spear_thrust',
   nameRu: 'Удар древком',
   damageType: 'melee',
   cooldown: 2,
@@ -282,6 +288,7 @@ export const ABILITY_SPEAR_BUTT: AbilityDef = {
 /** Выстрел с отскоком — выстрел + бросок назад 180px, 20% Уязвимость */
 export const ABILITY_BOW_BACKSHOT: AbilityDef = {
   id: 'bow_backshot',
+  prerequisiteId: 'bow_shot',
   nameRu: 'Выстрел с отскоком',
   damageType: 'ranged',
   effectType: 'dash_backward',
@@ -300,6 +307,7 @@ export const ABILITY_BOW_BACKSHOT: AbilityDef = {
 /** Дождь стрел — AoE, 20% шанс сброса кулдауна */
 export const ABILITY_ARROW_RAIN: AbilityDef = {
   id: 'arrow_rain',
+  prerequisiteId: 'longbow_shot',
   nameRu: 'Дождь стрел',
   damageType: 'ranged',
   effectType: 'reset_cooldown',
@@ -315,9 +323,10 @@ export const ABILITY_ARROW_RAIN: AbilityDef = {
 
 // ─── Арбалет T2 ─────────────────────────────────────────────────────────────
 
-/** Укрепляющий болт — одиночный выстрел, 20% Корни */
+/** Удерживающий болт — одиночный выстрел, 20% Корни */
 export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   id: 'crossbow_snare',
+  prerequisiteId: 'crossbow_bolt',
   nameRu: 'Удерживающий болт',
   damageType: 'ranged',
   cooldown: 2,
