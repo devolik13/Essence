@@ -44,6 +44,19 @@ interface GroundZone {
   gfx: Phaser.GameObjects.Graphics;
 }
 
+// ── Призванная стена (summon_wall) ───────────────────────
+interface SummonedWall {
+  x: number;
+  y: number;
+  radius: number;           // радиус блокировки
+  hp: number;               // текущие HP
+  maxHP: number;
+  ownerIsPlayer: boolean;
+  gfx: Phaser.GameObjects.Graphics;
+  hpBar: Phaser.GameObjects.Rectangle;
+  hpBarBg: Phaser.GameObjects.Rectangle;
+}
+
 // ── Штраф за смерть ──────────────────────────────────────
 // TODO: подобрать значения после тестирования баланса
 const DEATH_XP_LOSS_PCT    = 0.10;  // 10% накопленного XP в текущих статах
@@ -89,6 +102,7 @@ export class GameScene extends Phaser.Scene {
   private creatures: Creature[] = [];
   private damageTexts: DamageText[] = [];
   private groundZones: GroundZone[] = [];
+  private summonedWalls: SummonedWall[] = [];
   private starterBodies: Phaser.GameObjects.Arc[] = [];
 
   // Очередь респауна: { definitionId, x, y, delay (мс осталось) }
@@ -849,6 +863,17 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Summon wall от NPC: ставит стену перед собой (между собой и игроком)
+    if (spell.effectType === 'summon_wall') {
+      const int = creature.stats[StatName.Intellect] ?? 1;
+      const hp = Math.round((spell.wallHP ?? 50) * (1 + int / 100));
+      // Ставим стену на полпути между мобом и игроком
+      const mx = (creature.x + this.playerBody.x) / 2;
+      const my = (creature.y + this.playerBody.y) / 2;
+      this.spawnWall(mx, my, spell.aoeRadius ?? 24, hp, false);
+      return;
+    }
+
     if (result.hit) {
       if (spell.isAoe) {
         // AOE: урон всем телам в радиусе вокруг игрока (сейчас только игрок)
@@ -1536,6 +1561,14 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // ── Summon Wall: призыв стены ────────────────────────────────────────
+    if (spell.effectType === 'summon_wall') {
+      const int = this.sphere.stats[StatName.Intellect] ?? 1;
+      const hp = Math.round((spell.wallHP ?? 50) * (1 + int / 100));
+      this.spawnWall(worldX, worldY, spell.aoeRadius ?? 24, hp, true);
+      return;
+    }
+
     this.spawnAoeFlash(worldX, worldY, radius);
 
     for (const c of this.creatures) {
@@ -1691,6 +1724,65 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  /** Создаёт разрушаемую стену (summon_wall) — универсальная механика */
+  private spawnWall(wx: number, wy: number, radius: number, hp: number, isPlayer: boolean) {
+    const gfx = this.add.graphics().setDepth(10);
+    const color = isPlayer ? 0x886633 : 0x664422;
+    gfx.fillStyle(color, 0.8);
+    gfx.fillCircle(wx, wy, radius);
+    gfx.lineStyle(2, 0xaa8844, 1);
+    gfx.strokeCircle(wx, wy, radius);
+
+    // HP бар над стеной
+    const barW = radius * 2;
+    const barH = 4;
+    const hpBarBg = this.add.rectangle(wx, wy - radius - 8, barW, barH, 0x333333).setDepth(11).setOrigin(0.5);
+    const hpBar = this.add.rectangle(wx - barW / 2, wy - radius - 8, barW, barH, 0x44aa44).setDepth(12).setOrigin(0, 0.5);
+
+    this.summonedWalls.push({ x: wx, y: wy, radius, hp, maxHP: hp, ownerIsPlayer: isPlayer, gfx, hpBar, hpBarBg });
+  }
+
+  /** Проверяет столкновение точки со стенами, возвращает стену или null */
+  public getWallAt(x: number, y: number): SummonedWall | null {
+    for (const w of this.summonedWalls) {
+      if (distance(x, y, w.x, w.y) <= w.radius) return w;
+    }
+    return null;
+  }
+
+  /** Наносит урон стене, уничтожает при HP≤0 */
+  public damageWall(wall: SummonedWall, amount: number) {
+    wall.hp -= amount;
+    const ratio = Math.max(0, wall.hp / wall.maxHP);
+    wall.hpBar.width = wall.radius * 2 * ratio;
+    // Цвет HP бара
+    if (ratio > 0.5) wall.hpBar.setFillStyle(0x44aa44);
+    else if (ratio > 0.25) wall.hpBar.setFillStyle(0xaaaa44);
+    else wall.hpBar.setFillStyle(0xaa4444);
+
+    if (wall.hp <= 0) {
+      this.destroyWall(wall);
+    }
+  }
+
+  private destroyWall(wall: SummonedWall) {
+    wall.gfx.destroy();
+    wall.hpBar.destroy();
+    wall.hpBarBg.destroy();
+    const idx = this.summonedWalls.indexOf(wall);
+    if (idx >= 0) this.summonedWalls.splice(idx, 1);
+  }
+
+  /** Блокировка движения — вызывается из update тела/существа */
+  public isBlockedByWall(x: number, y: number, excludePlayer: boolean): boolean {
+    for (const w of this.summonedWalls) {
+      // Стена игрока не блокирует игрока, стена NPC не блокирует NPC
+      if (w.ownerIsPlayer === excludePlayer) continue;
+      if (distance(x, y, w.x, w.y) <= w.radius) return true;
+    }
+    return false;
   }
 
   /** Летящий снаряд: визуальный, урон уже применён */

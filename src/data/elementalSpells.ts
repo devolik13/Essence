@@ -193,8 +193,10 @@ export const MOB_EARTH_T3: AbilityDef = {
   manaCost: 15,
   range: 120,
   baseDamage: 0,
+  isAoe: true,
+  aoeRadius: 24,
   wallHP: 50,
-  description: 'Призывает каменную стену (HP = 50 × (1+Инт/100)). Блокирует движение и снаряды.',
+  description: 'Призывает каменную стену (HP = 50 × (1+Инт/100)). Блокирует движение.',
 };
 
 /** Enchant — Зачарование землёй: toggle-аура */
