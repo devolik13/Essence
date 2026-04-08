@@ -240,7 +240,7 @@ export class Creature extends Phaser.GameObjects.Container {
     burn:         { icon: '🔥', color: '#ff6600' },
     burn_mana:    { icon: '💧', color: '#6644ff' },
     slow:         { icon: '❄', color: '#88ccff' },
-    root:         { icon: '⌇', color: '#886633' },
+    root:         { icon: '⚓', color: '#cc8833' },
     stun:         { icon: '★', color: '#ffff00' },
     silence:      { icon: '✕', color: '#ff44ff' },
     chill:        { icon: '❅', color: '#aaddff' },
