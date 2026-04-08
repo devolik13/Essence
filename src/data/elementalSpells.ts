@@ -220,7 +220,7 @@ export const MOB_NATURE_T1: AbilityDef = {
   damageType: 'magic',
   effectType: 'summon_wolf',
   cooldown: 5,
-  manaCost: 20,
+  manaCost: 5,
   range: 0,
   baseDamage: 0,
   description: 'Призывает волка-союзника. HP и атака волка масштабируются от Интеллекта. Пока волк жив — повторный призыв невозможен.',
