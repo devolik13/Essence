@@ -136,7 +136,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 10, [StatName.Accuracy]: 8, [StatName.Evasion]: 6,
       [StatName.Health]: 14,    [StatName.Will]: 6,     [StatName.Mana]: 12, [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Staff, color: 0x88cc88, abilityName: 'Лечение',
+    weapon: WeaponType.Staff, color: 0x88cc88, abilityName: 'Древесная кора',
     npcSpells: [MOB_NATURE_T1, MOB_NATURE_T2],
     signatureSpell: MOB_NATURE_T2,           spellXPThreshold: 100,
   },

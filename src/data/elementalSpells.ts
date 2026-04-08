@@ -220,23 +220,23 @@ export const MOB_NATURE_T1: AbilityDef = {
   damageType: 'magic',
   effectType: 'summon_wolf',
   cooldown: 5,
-  manaCost: 20,
+  manaCost: 5,
   range: 0,
   baseDamage: 0,
   description: 'Призывает волка-союзника. HP и атака волка масштабируются от Интеллекта. Пока волк жив — повторный призыв невозможен.',
 };
 
-/** T2 — Природное лечение: исцеляет себя, зависит от Интеллекта */
+/** T2 — Древесная кора: самобафф +Стойкость на 8 сек */
 export const MOB_NATURE_T2: AbilityDef = {
   id: 'mob_nature_t2',
   prerequisiteId: 'mob_nature_t1',
-  nameRu: 'Лечение',
+  nameRu: 'Древесная кора',
   damageType: 'magic',
-  effectType: 'self_heal',
-  castTime: 1.5,
+  effectType: 'self_buff',
+  statusEffect: 'bark_armor',
   cooldown: 8,
   manaCost: 10,
   range: 0,
-  baseDamage: 20,
-  description: 'Лечит себя на 20 × (1 + Интеллект/100) HP.',
+  baseDamage: 0,
+  description: 'Мгновенно даёт +20 Стойкость на 8 сек.',
 };

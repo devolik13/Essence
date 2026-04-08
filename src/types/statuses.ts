@@ -16,6 +16,7 @@ export type StatusEffectId =
   // Баффы движения/каста
   | 'acceleration'     // Ускорение
   | 'inspiration'      // Вдохновение
+  | 'bark_armor'       // Древесная кора (бафф брони)
   // Контроль действий
   | 'stun'             // Оглушение
   | 'sleep'            // Сон
@@ -105,6 +106,8 @@ export interface StatusEffectDef {
   regenManaBonus?: number;
   /** Бонус регена HP (1.0 = +100%) */
   regenHpBonus?: number;
+  /** Бонус к Стойкости (абсолютное значение, напр. 20 = +20 Armor) */
+  armorBonus?: number;
 }
 
 /** Активный статус на существе/игроке */
@@ -257,6 +260,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'hp_regen_boost', nameRu: 'Регенерация HP',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenHpBonus: 1.0,
+  },
+  bark_armor: {
+    id: 'bark_armor', nameRu: 'Древесная кора',
+    maxStacks: 1, duration: 8, stackBehavior: 'refresh',
+    armorBonus: 20,
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',

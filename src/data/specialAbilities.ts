@@ -109,7 +109,7 @@ export const ABILITY_SUMMON_WOLF: AbilityDef = {
   damageType: 'magic',
   effectType: 'summon_wolf',
   cooldown: 5,   // кулдаун после смерти волка; пока жив — блокируется логикой
-  manaCost: 20,
+  manaCost: 5,
   range: 0,
   baseDamage: 0,
   description: 'Призывает волка-союзника на 30 сек. HP и атака волка масштабируются от Интеллекта. Пока волк жив — повторный призыв невозможен.',
