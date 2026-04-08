@@ -172,6 +172,15 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     ],
   },
 
+  // Одинокая могила — глубокий юго-восток, вдали от всех локаций
+  {
+    id: 'lonely_grave',
+    label: 'Одинокая могила',
+    spawnGroups: [
+      { x: 3400, y: 2200, creatureId: 'spirit', count: 1 },
+    ],
+  },
+
   // Лагерь разбойников — северо-запад, далеко от деревни (village x1=1664, y1=1056)
   // Центр ~(900, 780), безопасный разрыв ~764px на запад и ~276px на север
   {
@@ -206,8 +215,6 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
   // Кролики — юго-западный угол деревни, джиттер ±40px
   { x: 1720, y: 1440, creatureId: 'rabbit',        count: 4 },
   { x: 1820, y: 1460, creatureId: 'rabbit',        count: 3 },
-  // Спирит — редкий, чуть дальше от деревни
-  { x: 1650, y: 1480, creatureId: 'spirit',        count: 1 },
   // Волки-духи — северо-западный угол деревни
   { x: 1700, y: 1120, creatureId: 'spirit_wolf', count: 2 },
   { x: 1820, y: 1100, creatureId: 'spirit_wolf', count: 2 },
