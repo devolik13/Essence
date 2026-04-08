@@ -309,6 +309,13 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 1770, y: 1590, creatureId: 't_ench_earth', count: 1 },
   { x: 1670, y: 1560, creatureId: 't_ench_wind',  count: 1 },
   // Оружейные T1 (юго-запад → запад)
+  // T3 тестовые (южнее деревни)
+  { x: 1720, y: 1620, creatureId: 't_fire_t3',    count: 1 },
+  { x: 1820, y: 1640, creatureId: 't_water_t3',   count: 1 },
+  { x: 1920, y: 1650, creatureId: 't_earth_t3',   count: 1 },
+  { x: 2020, y: 1640, creatureId: 't_wind_t3',    count: 1 },
+  { x: 2120, y: 1620, creatureId: 't_nature_t3b', count: 1 },
+  // Остальные
   { x: 1670, y: 930,  creatureId: 't_xbow_t1',    count: 1 },
   // Оружейные T2 (внутренний круг, радиус ~250px)
   { x: 1720, y: 1460, creatureId: 't_xbow_t2',    count: 1 },

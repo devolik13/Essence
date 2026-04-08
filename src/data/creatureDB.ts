@@ -541,6 +541,12 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   t_xbow_t1:     { id: 't_xbow_t1',     name: 'Crossbow T1', nameRu: 'Арбалет T1',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 5 },   xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x664422, abilityName: 'Пробивающий болт',     signatureSpell: ABILITY_CROSSBOW_BOLT,  spellXPThreshold: 1 },
   // Оружейные T2
   t_xbow_t2:     { id: 't_xbow_t2',     name: 'Crossbow T2', nameRu: 'Арбалет T2',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x885533, abilityName: 'Удерживающий болт',    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 1 },
+  // T3 тестовые
+  t_fire_t3:   { id: 't_fire_t3',   name: 'Fire T3',    nameRu: 'Огонь T3',    type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffFire,   color: 0xaa2200, abilityName: 'Огн. стена',     signatureSpell: MOB_FIRE_T3,    spellXPThreshold: 1 },
+  t_water_t3:  { id: 't_water_t3',  name: 'Water T3',   nameRu: 'Вода T3',     type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffWater,  color: 0x2266aa, abilityName: 'Лед. дождь',     signatureSpell: MOB_WATER_T3,   spellXPThreshold: 1 },
+  t_earth_t3:  { id: 't_earth_t3',  name: 'Earth T3',   nameRu: 'Земля T3',    type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffEarth,  color: 0x554422, abilityName: 'Зем. стена',     signatureSpell: MOB_EARTH_T3,   spellXPThreshold: 1 },
+  t_wind_t3:   { id: 't_wind_t3',   name: 'Wind T3',    nameRu: 'Ветер T3',    type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffWind,   color: 0x88bbaa, abilityName: 'Ветр. стена',    signatureSpell: MOB_WIND_T3,    spellXPThreshold: 1 },
+  t_nature_t3b:{ id: 't_nature_t3b', name: 'Nature T3',  nameRu: 'Природа T3b', type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x115511, abilityName: 'Покров листвы',  signatureSpell: MOB_NATURE_T3,  spellXPThreshold: 1 },
 };
 
 export function getCreature(id: string): BodyDefinition | undefined {
