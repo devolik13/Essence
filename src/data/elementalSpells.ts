@@ -328,7 +328,7 @@ export const MOB_NATURE_T3: AbilityDef = {
   effectType: 'self_buff',
   statusEffect: 'leaf_regen',
   castTime: 0.5,
-  cooldown: 15,
+  cooldown: 25,
   manaCost: 15,
   range: 0,
   baseDamage: 0,
