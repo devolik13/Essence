@@ -295,7 +295,6 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
 
 export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   // Стихии T1 (север)
-  { x: 1770, y: 930, creatureId: 't_fire_t1',  count: 1 },
   // Стихии T2 (северо-восток)
   { x: 2300, y: 1050, creatureId: 't_water_t2', count: 1 },
   // Природа (восток)
@@ -303,7 +302,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 2330, y: 1370, creatureId: 't_nature_t2', count: 1 },
   { x: 2300, y: 1440, creatureId: 't_nature_t3', count: 1 },
   // Нейтральная (юго-восток)
-  { x: 2170, y: 1560, creatureId: 't_dash',  count: 1 },
   { x: 2070, y: 1590, creatureId: 't_heal',  count: 1 },
   // Зачарования (юг)
   { x: 1970, y: 1600, creatureId: 't_ench_fire',  count: 1 },
@@ -314,7 +312,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 1670, y: 930,  creatureId: 't_xbow_t1',    count: 1 },
   // Оружейные T2 (внутренний круг, радиус ~250px)
   { x: 1920, y: 1030, creatureId: 't_sword_t2',   count: 1 },
-  { x: 2170, y: 1360, creatureId: 't_hammer_t2',  count: 1 },
   { x: 1720, y: 1460, creatureId: 't_xbow_t2',    count: 1 },
 ];
 
