@@ -108,22 +108,25 @@ export const MOB_WATER_T2: AbilityDef = {
   description: 'Снаряд в цель + взрыв 45px вокруг неё.',
 };
 
-/** T3 — Ледяной дождь: AoE + шанс заморозки (оригинал Archimage) */
+/** T3 — Ледяной дождь: зона ледяного дождя, урон + охлаждение 3 сек */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_water_t3',
   nameRu: 'Лед. дождь',
   school: 'water',
   damageType: 'magic',
+  effectType: 'ground_zone',
   castTime: 1.0,
   cooldown: 10,
   manaCost: 15,
   range: 240,
-  baseDamage: 16,
+  baseDamage: 0,
   isAoe: true,
   aoeRadius: 80,
+  zoneDuration: 3,
+  zoneDps: 16,
   statusEffect: 'chill',
   statusChance: 0.3,
-  description: 'AoE ледяной дождь (r80). 30% шанс Охлаждения на каждую цель.',
+  description: 'Зона ледяного дождя (r80, 3 сек). 16 урона/сек. 30% Охлаждение.',
 };
 
 /** Enchant — Зачарование водой: toggle-аура */
