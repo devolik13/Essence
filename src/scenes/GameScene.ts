@@ -611,6 +611,7 @@ export class GameScene extends Phaser.Scene {
     const def = STARTER_BODIES[index];
     const pos = this.starterPositions[index];
     this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
+    this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
     this.playerBody.possess(this);
     this.fillBodySlots(this.playerBody);
     this.sphere.enterBody();
@@ -711,6 +712,10 @@ export class GameScene extends Phaser.Scene {
     // Малый джиттер ±40px — пассивные мобы не вылезают за границы деревни
     spawnGroups(VILLAGE_STARTER_SPAWNS, 40);
     spawnGroups(TEST_SPELL_SPAWNS, 10);
+
+    // Подключаем проверку стен ко всем существам
+    const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);
+    for (const c of this.creatures) c.wallCheckFn = wallCheck;
   }
 
   // ─── Атака ────────────────────────────────────────────
@@ -1071,6 +1076,7 @@ export class GameScene extends Phaser.Scene {
   private completeCaptureCreature(creature: Creature) {
     const def = creature.definition;
     this.playerBody = new Body(this, creature.x, creature.y, def, this.sphere.stats);
+    this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
     this.playerBody.possess(this);
     this.fillBodySlots(this.playerBody);
     this.sphere.enterBody();

@@ -39,10 +39,14 @@ export class Creature extends Phaser.GameObjects.Container {
   private bodySprite: Phaser.GameObjects.Image;
   private hpBar: Phaser.GameObjects.Rectangle;
   private hpBarBg: Phaser.GameObjects.Rectangle;
+  private statusText: Phaser.GameObjects.Text;
   private nameText: Phaser.GameObjects.Text;
 
   // Hit flash
   private hitFlashTimer: number = 0;
+
+  /** Внешний callback для проверки блокировки движения стенами */
+  public wallCheckFn?: (x: number, y: number) => boolean;
 
   // Wander
   private wanderTimer: number = 0;
@@ -91,6 +95,10 @@ export class Creature extends Phaser.GameObjects.Container {
     this.add(this.hpBarBg);
     this.hpBar = scene.add.rectangle(-18, -20, 36, 5, 0xcc3333).setOrigin(0, 0.5);
     this.add(this.hpBar);
+
+    // Иконки статусов под HP баром
+    this.statusText = scene.add.text(0, -28, '', { fontSize: '8px', color: '#ffffff' }).setOrigin(0.5, 0.5);
+    this.add(this.statusText);
 
     scene.add.existing(this);
   }
@@ -217,6 +225,44 @@ export class Creature extends Phaser.GameObjects.Container {
     const hpRatio = clamp(this.currentHP / this.maxHP, 0, 1);
     this.hpBar.width = 36 * hpRatio;
     this.hpBar.setFillStyle(hpRatio > 0.5 ? 0x44cc44 : hpRatio > 0.25 ? 0xddaa00 : 0xcc3333);
+
+    // Иконки статусов
+    this.updateStatusIcons();
+  }
+
+  private static STATUS_ICONS: Record<string, { icon: string; color: string }> = {
+    poison:       { icon: '☠', color: '#66ff00' },
+    bleed:        { icon: '🩸', color: '#ff4444' },
+    burn:         { icon: '🔥', color: '#ff6600' },
+    burn_mana:    { icon: '💧', color: '#6644ff' },
+    slow:         { icon: '❄', color: '#88ccff' },
+    root:         { icon: '⌇', color: '#886633' },
+    stun:         { icon: '★', color: '#ffff00' },
+    silence:      { icon: '✕', color: '#ff44ff' },
+    chill:        { icon: '❅', color: '#aaddff' },
+    freeze:       { icon: '❆', color: '#44aaff' },
+    armor_reduce: { icon: '↓', color: '#aa8844' },
+    armor_break:  { icon: '⇊', color: '#ff8800' },
+    vulnerability:{ icon: '◇', color: '#ff6666' },
+    acceleration: { icon: '»', color: '#ffff88' },
+    bark_armor:   { icon: '🛡', color: '#886633' },
+    leaf_regen:   { icon: '❤', color: '#44ff44' },
+  };
+
+  private updateStatusIcons() {
+    if (this.statusEffects.size === 0) {
+      this.statusText.setText('');
+      return;
+    }
+    const parts: string[] = [];
+    for (const [id, status] of this.statusEffects) {
+      const info = Creature.STATUS_ICONS[id];
+      if (info) {
+        const stacks = status.stacks > 1 ? `${status.stacks}` : '';
+        parts.push(`${info.icon}${stacks}`);
+      }
+    }
+    this.statusText.setText(parts.join(' '));
   }
 
   private moveAwayFrom(tx: number, ty: number, speed: number, dt: number) {
@@ -234,8 +280,14 @@ export class Creature extends Phaser.GameObjects.Container {
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 2) return;
 
-    this.x += (dx / dist) * speed * dt;
-    this.y += (dy / dist) * speed * dt;
+    const newX = this.x + (dx / dist) * speed * dt;
+    const newY = this.y + (dy / dist) * speed * dt;
+
+    // Блокировка стенами
+    if (this.wallCheckFn && this.wallCheckFn(newX, newY)) return;
+
+    this.x = newX;
+    this.y = newY;
   }
 
   takeDamage(amount: number): number {

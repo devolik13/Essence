@@ -39,6 +39,8 @@ export class Body extends Phaser.GameObjects.Container {
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
   /** Штраф регена маны от зачарования (0.3 = −30%) */
   public enchantRegenPenalty: number = 0;
+  /** Внешний callback для проверки блокировки стенами */
+  public wallCheckFn?: (x: number, y: number) => boolean;
 
   private bodySprite: Phaser.GameObjects.Sprite;
   private hpBar: Phaser.GameObjects.Rectangle;
@@ -233,8 +235,12 @@ export class Body extends Phaser.GameObjects.Container {
       }
 
       const speedMult = this.getSpeedMult();
-      this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * speedMult * dt));
-      this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * speedMult * dt));
+      const newX = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * speedMult * dt));
+      const newY = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * speedMult * dt));
+      if (!(this.wallCheckFn && this.wallCheckFn(newX, newY))) {
+        this.x = newX;
+        this.y = newY;
+      }
     }
 
     // Обновление направления по движению (для всех тел)
