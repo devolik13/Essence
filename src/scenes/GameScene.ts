@@ -1106,8 +1106,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Найти цель для атакующих умений
-    let target = this.selectedTarget && !this.selectedTarget.isDead ? this.selectedTarget : null;
+    // Найти цель для атакующих умений (проверка дальности обязательна)
+    let target: Creature | null = null;
+    if (this.selectedTarget && !this.selectedTarget.isDead) {
+      const d = distance(this.playerBody.x, this.playerBody.y, this.selectedTarget.x, this.selectedTarget.y);
+      if (d <= spell.range) target = this.selectedTarget;
+    }
     if (!target) {
       let closestDist = spell.range;
       for (const c of this.creatures) {
