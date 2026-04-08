@@ -546,7 +546,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   // Оружейные T2
   t_sword_t2:    { id: 't_sword_t2',    name: 'Sword T2',    nameRu: 'Меч T2',          type: BodyType.Passive, damageType: 'melee',  caps: { [StatName.Strength]: 10 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0xddbbbb, abilityName: 'Двойной удар',         signatureSpell: ABILITY_DOUBLE_STRIKE,  spellXPThreshold: 1 },
   t_hammer_t2:   { id: 't_hammer_t2',   name: 'Hammer T2',   nameRu: 'Молот T2',        type: BodyType.Passive, damageType: 'melee',  caps: { [StatName.Strength]: 10 }, xpReward: 5, weapon: WeaponType.Hammer,     color: 0x886666, abilityName: 'Сильный удар',         signatureSpell: ABILITY_HAMMER_SMASH,   spellXPThreshold: 1 },
-  t_lbow_t2:     { id: 't_lbow_t2',     name: 'LongBow T2',  nameRu: 'Дл. лук T2',      type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.LongBow,    color: 0xaa7755, abilityName: 'Дождь стрел',          signatureSpell: ABILITY_ARROW_RAIN,     spellXPThreshold: 1 },
   t_xbow_t2:     { id: 't_xbow_t2',     name: 'Crossbow T2', nameRu: 'Арбалет T2',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x885533, abilityName: 'Удерживающий болт',    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 1 },
 };
 
