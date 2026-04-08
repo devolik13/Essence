@@ -473,10 +473,28 @@ export class GameScene extends Phaser.Scene {
       const fillAlpha   = inRange ? 0.18 : 0.05;
       const strokeAlpha = inRange ? 0.9  : 0.25;
       const strokeColor = inRange ? 0xff8800 : 0x888888;
-      this.aoeIndicator.fillStyle(0xff6600, fillAlpha);
-      this.aoeIndicator.fillCircle(wx, wy, aoeR);
-      this.aoeIndicator.lineStyle(2, strokeColor, strokeAlpha);
-      this.aoeIndicator.strokeCircle(wx, wy, aoeR);
+
+      if (spell.isWallShape) {
+        // Прямоугольник стены перпендикулярно направлению
+        const wallW = spell.wallWidth ?? 140;
+        const wallT = spell.wallThickness ?? 30;
+        const dx = wx - this.playerBody.x;
+        const dy = wy - this.playerBody.y;
+        const angle = Math.atan2(dy, dx) + Math.PI / 2;
+        this.aoeIndicator.save();
+        this.aoeIndicator.translateCanvas(wx, wy);
+        this.aoeIndicator.rotateCanvas(angle);
+        this.aoeIndicator.fillStyle(0xff6600, fillAlpha);
+        this.aoeIndicator.fillRect(-wallW / 2, -wallT / 2, wallW, wallT);
+        this.aoeIndicator.lineStyle(2, strokeColor, strokeAlpha);
+        this.aoeIndicator.strokeRect(-wallW / 2, -wallT / 2, wallW, wallT);
+        this.aoeIndicator.restore();
+      } else {
+        this.aoeIndicator.fillStyle(0xff6600, fillAlpha);
+        this.aoeIndicator.fillCircle(wx, wy, aoeR);
+        this.aoeIndicator.lineStyle(2, strokeColor, strokeAlpha);
+        this.aoeIndicator.strokeCircle(wx, wy, aoeR);
+      }
     }
 
     // Каст AoE — тикаем таймер

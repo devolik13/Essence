@@ -845,29 +845,38 @@ export class UIScene extends Phaser.Scene {
   };
 
   private updatePlayerStatusBar(body: Body | null) {
-    // Скрываем все предыдущие
     for (const box of this.playerStatusBoxes) box.setVisible(false);
 
     if (!body) return;
 
-    const statuses = Array.from(body.statusEffects.values());
-    const boxSize = 32;
-    const gap = 4;
-    const skillBarY = GAME_HEIGHT - SKILL_SLOT_SIZE - 8;
-    const startY = skillBarY - boxSize - 8;
-    const startX = (GAME_WIDTH - statuses.length * (boxSize + gap)) / 2;
+    // Собираем все активные эффекты
+    const items: { icon: string; label: string; timer: number; color: number }[] = [];
 
-    for (let i = 0; i < statuses.length; i++) {
-      const s = statuses[i];
+    for (const [, s] of body.statusEffects) {
       const info = UIScene.PLAYER_STATUS_ICONS[s.id];
       if (!info) continue;
+      const stackStr = s.stacks > 1 ? `×${s.stacks}` : '';
+      items.push({ icon: `${info.icon}${stackStr}`, label: '', timer: s.timer, color: info.color });
+    }
 
-      // Переиспользуем или создаём
+    // Enchantment как постоянный статус
+    if (body.enchantRegenPenalty > 0) {
+      items.push({ icon: '⚔🔥', label: 'Зачар.', timer: -1, color: 0x664400 });
+    }
+
+    const boxSize = 48;
+    const gap = 6;
+    const startY = 40;
+    const startX = (GAME_WIDTH - items.length * (boxSize + gap)) / 2;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
       let poolEntry = this.playerStatusPool[i];
       if (!poolEntry) {
-        const bg = this.add.rectangle(0, 0, boxSize, boxSize, 0x222222, 0.85).setStrokeStyle(1, 0x555555).setScrollFactor(0).setDepth(1010);
-        const icon = this.add.text(0, -5, '', { fontSize: '14px' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
-        const timer = this.add.text(0, 10, '', { fontSize: '8px', color: '#cccccc' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+        const bg = this.add.rectangle(0, 0, boxSize, boxSize, 0x222222, 0.8).setStrokeStyle(2, 0x555555).setScrollFactor(0).setDepth(1010);
+        const icon = this.add.text(0, -6, '', { fontSize: '18px' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+        const timer = this.add.text(0, 14, '', { fontSize: '11px', color: '#cccccc', fontStyle: 'bold' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
         const container = this.add.container(0, 0, [bg, icon, timer]).setScrollFactor(0).setDepth(1010);
         this.playerStatusBoxes.push(container);
         poolEntry = { bg, icon, timer };
@@ -879,9 +888,9 @@ export class UIScene extends Phaser.Scene {
       container.setPosition(x, startY);
       container.setVisible(true);
 
-      poolEntry.bg.setFillStyle(info.color, 0.85);
-      poolEntry.icon.setText(s.stacks > 1 ? `${info.icon}×${s.stacks}` : info.icon);
-      poolEntry.timer.setText(s.timer > 0 ? `${s.timer.toFixed(1)}` : '');
+      poolEntry.bg.setFillStyle(item.color, 0.8);
+      poolEntry.icon.setText(item.icon);
+      poolEntry.timer.setText(item.timer > 0 ? `${item.timer.toFixed(1)}` : item.timer < 0 ? 'ON' : '');
     }
   }
 
