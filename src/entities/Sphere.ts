@@ -32,6 +32,9 @@ export class Sphere extends Phaser.GameObjects.Container {
   // Штраф смерти
   public deathDebuffRemaining: number = 0;  // сек осталось
 
+  // Зачарование оружия (toggle-аура)
+  public activeEnchant: AbilityDef | null = null;
+
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
   private keys!: {

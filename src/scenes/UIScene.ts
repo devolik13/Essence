@@ -36,6 +36,7 @@ interface UIData {
   target: Creature | null;
   quests: QuestProgress[];
   deathDebuff: number;
+  activeEnchantId: string | null;
   inCombat: boolean;
   aoeCast: { elapsed: number; duration: number; name: string } | null;
   creatures: CreatureMapDot[];
@@ -517,7 +518,7 @@ export class UIScene extends Phaser.Scene {
     }
 
     // ── Skill bar ─────────────────────────────────────────
-    this.updateSkillBar(body);
+    this.updateSkillBar(body, data.activeEnchantId);
 
     // ── Cast bar ──────────────────────────────────────────
     if (data.aoeCast) {
@@ -818,11 +819,13 @@ export class UIScene extends Phaser.Scene {
     this.spellPickerContainer.setVisible(false);
   }
 
-  private updateSkillBar(body: Body | null) {
+  private updateSkillBar(body: Body | null, activeEnchantId?: string | null) {
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
       const slot    = body?.abilitySlots[i];
       const ability = slot?.ability ?? null;
-      this.skillSlotsBg[i].setFillStyle(ability ? 0x1e2244 : 0x1a1a2e, 0.9);
+      const isActiveEnchant = ability && activeEnchantId && ability.id === activeEnchantId;
+      this.skillSlotsBg[i].setFillStyle(isActiveEnchant ? 0x664400 : ability ? 0x1e2244 : 0x1a1a2e, 0.9);
+      this.skillSlotsBg[i].setStrokeStyle(isActiveEnchant ? 2 : 1, isActiveEnchant ? 0xffaa00 : 0x334466);
       if (i === 0 && body) {
         this.skillSlotsIcon[i].setText('⚔').setColor('#ffdd66').setFontSize('16px');
       } else if (ability) {

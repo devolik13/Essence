@@ -418,6 +418,7 @@ export class GameScene extends Phaser.Scene {
       target: this.selectedTarget,
       quests: this.questTracker.getAll(),
       deathDebuff: this.sphere.deathDebuffRemaining,
+      activeEnchantId: this.sphere.activeEnchant?.id ?? null,
       inCombat: this.isInCombat,
       aoeCast: this.aoeCasting
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
@@ -743,6 +744,29 @@ export class GameScene extends Phaser.Scene {
       new DamageText(this, closestCreature.x, closestCreature.y, finalDmg, result.crit, !result.hit)
     );
 
+    // Доп. урон от зачарования оружия
+    if (result.hit && this.sphere.activeEnchant && !closestCreature.isDead) {
+      const ench = this.sphere.activeEnchant;
+      const enchBase = ench.enchantDamage ?? 8;
+      const enchResult = calcMagicDamage(this.sphere.stats, closestCreature.stats, enchBase);
+      if (enchResult.hit) {
+        const enchDmg = this.sphere.deathDebuffRemaining > 0
+          ? Math.round(enchResult.final * DEATH_DEBUFF_MULT) : enchResult.final;
+        closestCreature.takeDamage(enchDmg);
+        // Школьный эффект зачарования
+        if (ench.statusEffect) {
+          const chance = ench.statusChance ?? 0.1;
+          if (Math.random() < chance) closestCreature.applyStatus(ench.statusEffect);
+        }
+        // Доп. урон отображается с задержкой (как двойной удар)
+        this.time.delayedCall(150, () => {
+          if (closestCreature.active) {
+            this.damageTexts.push(new DamageText(this, closestCreature.x, closestCreature.y - 12, enchDmg, false, false));
+          }
+        });
+      }
+    }
+
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
 
@@ -1060,6 +1084,27 @@ export class GameScene extends Phaser.Scene {
     slot.cooldownRemaining = spell.cooldown;
 
     // ── Рывок: бросок вперёд ──────────────────────────────────────────────
+    // ── Weapon Enchant: toggle-аура ────────────────────────────────────────
+    if (spell.effectType === 'weapon_enchant') {
+      if (this.sphere.activeEnchant?.id === spell.id) {
+        // Деактивация
+        this.sphere.activeEnchant = null;
+        if (this.playerBody) this.playerBody.enchantRegenPenalty = 0;
+        this.events.emit('enchant-toggled', null);
+        this.events.emit('log', { text: `${spell.nameRu} — деактивировано`, color: '#aaaaaa' });
+      } else {
+        // Активация
+        this.sphere.activeEnchant = spell;
+        if (this.playerBody) this.playerBody.enchantRegenPenalty = spell.regenPenalty ?? 0.3;
+        this.events.emit('enchant-toggled', spell);
+        this.events.emit('log', { text: `${spell.nameRu} — активировано! Реген маны −30%`, color: '#ffaa00' });
+      }
+      // Не тратим ману и не запускаем кулдаун
+      slot.cooldownRemaining = 0;
+      this.playerBody.currentMana += spell.manaCost;
+      return;
+    }
+
     if (spell.effectType === 'dash_forward') {
       const dist = spell.dashDistance ?? 180;
       const dir = this.playerBody.getFacingVector();

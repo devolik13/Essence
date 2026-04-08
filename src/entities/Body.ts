@@ -37,6 +37,8 @@ export class Body extends Phaser.GameObjects.Container {
   public attackCooldown: number = 0;
   /** Активные статус-эффекты игрока */
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
+  /** Штраф регена маны от зачарования (0.3 = −30%) */
+  public enchantRegenPenalty: number = 0;
 
   private bodySprite: Phaser.GameObjects.Sprite;
   private hpBar: Phaser.GameObjects.Rectangle;
@@ -208,9 +210,9 @@ export class Body extends Phaser.GameObjects.Container {
       const hpRegenBonus = this.hasStatus('hp_regen_boost') ? (1 + (STATUS_DEFS.hp_regen_boost.regenHpBonus ?? 0)) : 1;
       this.currentHP = clamp(this.currentHP + hpRegenPerSec(this.sphereStats) * healMult * hpRegenBonus * dt, 0, this.maxHP);
       // Реген маны (с учётом блока и бафа)
-      let manaRegenMult = 1;
-      if (this.hasStatus('mana_regen_block')) manaRegenMult += STATUS_DEFS.mana_regen_block.regenManaBonus ?? 0; // -0.5
-      if (this.hasStatus('mana_regen_boost')) manaRegenMult += STATUS_DEFS.mana_regen_boost.regenManaBonus ?? 0; // +0.5
+      let manaRegenMult = 1 - this.enchantRegenPenalty; // enchant: −30%
+      if (this.hasStatus('mana_regen_block')) manaRegenMult += STATUS_DEFS.mana_regen_block.regenManaBonus ?? 0;
+      if (this.hasStatus('mana_regen_boost')) manaRegenMult += STATUS_DEFS.mana_regen_boost.regenManaBonus ?? 0;
       this.currentMana = clamp(this.currentMana + manaRegenPerSec(this.sphereStats) * Math.max(0, manaRegenMult) * dt, 0, this.maxMana);
     }
 
