@@ -174,6 +174,10 @@ export class Creature extends Phaser.GameObjects.Container {
         if (dist < AGGRO_RANGE && this.definition.type === 2) {
           this.aiState = 'chase';
         }
+        // Пассивные существа убегают при приближении игрока
+        if (dist < AGGRO_RANGE * 0.7 && this.definition.type === 1) {
+          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 1.5 * speedMult, dt);
+        }
       }
     }
 
