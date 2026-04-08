@@ -79,6 +79,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 8,   [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Удар мечом',
+    npcSpells: [ABILITY_SWORD_STRIKE],
     signatureSpell: ABILITY_SWORD_STRIKE,   spellXPThreshold: 50,
   },
 
@@ -92,6 +93,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 24,   [StatName.Armor]: 10,   [StatName.Luck]: 2,
     },
     weapon: WeaponType.Mace, color: 0x664422, abilityName: 'Дробящий удар',
+    npcSpells: [ABILITY_MACE_STRIKE],
     signatureSpell: ABILITY_MACE_STRIKE,    spellXPThreshold: 50,
   },
 
@@ -105,6 +107,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Рубящий удар',
+    npcSpells: [ABILITY_SLASH],
     signatureSpell: ABILITY_SLASH,          spellXPThreshold: 50,
   },
 
@@ -148,6 +151,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 7,  [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.ShortBow, color: 0x88aa55, abilityName: 'Прицельный выстрел',
+    npcSpells: [ABILITY_BOW_SHOT],
     signatureSpell: ABILITY_BOW_SHOT,       spellXPThreshold: 50,
   },
 

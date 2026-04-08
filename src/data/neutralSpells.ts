@@ -6,7 +6,7 @@ import { AbilityDef } from '../types/abilities';
 
 // ─── NEUTRAL SCHOOL ────────────────────────────────────────────────────────────
 
-/** T1 — Ускорение: самобафф +50% скорости на 3 сек */
+/** T1 — Ускорение: самобафф +50% скорости на 5 сек */
 export const MOB_NEUTRAL_T1: AbilityDef = {
   id: 'acceleration',
   nameRu: 'Ускорение',
@@ -14,10 +14,10 @@ export const MOB_NEUTRAL_T1: AbilityDef = {
   effectType: 'self_buff',
   statusEffect: 'acceleration',
   cooldown: 8,
-  manaCost: 5,
+  manaCost: 10,
   range: 0,
   baseDamage: 0,
-  description: 'Мгновенно даёт +50% скорости на 3 сек.',
+  description: 'Мгновенно даёт +50% скорости на 5 сек.',
 };
 
 /** T2 — Рывок: мгновенный бросок вперёд на 180px */
@@ -29,7 +29,7 @@ export const MOB_NEUTRAL_T2: AbilityDef = {
   effectType: 'dash_forward',
   dashDistance: 180,
   cooldown: 10,
-  manaCost: 10,
+  manaCost: 15,
   range: 0,
   baseDamage: 0,
   description: 'Мгновенный бросок вперёд на 180px. Требует Ускорение.',

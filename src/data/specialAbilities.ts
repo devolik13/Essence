@@ -45,7 +45,7 @@ export const ABILITY_KNIFE_THROW: AbilityDef = {
   range: 160,
   baseDamage: 12,
   statusEffect: 'poison',
-  statusChance: 1.0,
+  statusChance: 0.2,
   description: 'Бросок кинжала (урон от Ловкости, дальность 160). 20% шанс 1 стака яда.',
 };
 
@@ -61,8 +61,8 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   range: 48,
   baseDamage: 22,
   statusEffect: 'interrupt',
-  statusChance: 1.0,
-  description: 'Удар булавой (урон от Силы). Сбивает каст (без кулдауна).',
+  statusChance: 0.2,
+  description: 'Удар булавой (урон от Силы). 20% шанс Сбития концентрации.',
 };
 
 // ─── Меч T2 ────────────────────────────────────────────────────────────────
@@ -96,8 +96,8 @@ export const ABILITY_SLASH: AbilityDef = {
   range: 60,
   baseDamage: 30,
   statusEffect: 'bleed',
-  statusChance: 1.0,
-  description: 'Рубящий удар двуручником (урон от Силы). Накладывает Кровотечение.',
+  statusChance: 0.2,
+  description: 'Рубящий удар двуручником (урон от Силы). 20% шанс Кровотечения.',
 };
 
 // ─── Шаман (призыв) ────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ export const ABILITY_LONGBOW_SHOT: AbilityDef = {
   manaCost: 0,
   range: 320,
   baseDamage: 20,
-  description: 'Выстрел из длинного лука (урон от Ловкости). 50% шанс сброса кулдауна.',
+  description: 'Выстрел из длинного лука (урон от Ловкости). 20% шанс сброса кулдауна.',
 };
 
 // ─── Арбалет (обучает bandit_crossbow) ────────────────────────────────────

@@ -1,4 +1,5 @@
 import { Stats, StatName } from '../types/stats';
+import { LUCK_CONSTANT } from '../utils/constants';
 
 // ─── Ресурсы ───────────────────────────────────────────
 
@@ -56,9 +57,9 @@ export function hitChance(accuracy: number, evasion: number): number {
   return accuracy / (accuracy + evasion);
 }
 
-/** Шанс крита: Удача / (Удача + 500) — при капе 500 = 50% */
+/** Шанс крита: Удача / (Удача + 50) — при Удаче 50 = 50% */
 export function critChance(luck: number): number {
-  return luck / (luck + 500);
+  return luck / (luck + LUCK_CONSTANT);
 }
 
 export const CRIT_MULTIPLIER = 1.5;

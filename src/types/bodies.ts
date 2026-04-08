@@ -112,5 +112,5 @@ export const GOBLIN: BodyDefinition = {
   xpReward: 25,
   weapon: WeaponType.Dagger,
   color: 0x66aa44,
-  abilityName: 'Подлый удар',
+  abilityName: 'Укол',
 };
