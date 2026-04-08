@@ -490,14 +490,11 @@ export class GameScene extends Phaser.Scene {
         const dx = wx - this.playerBody.x;
         const dy = wy - this.playerBody.y;
         const angle = Math.atan2(dy, dx) + Math.PI / 2;
-        this.aoeIndicator.save();
-        this.aoeIndicator.translateCanvas(wx, wy);
-        this.aoeIndicator.rotateCanvas(angle);
+        const indPts = this.getRotatedRectPoints(wx, wy, wallW / 2, wallT / 2, angle);
         this.aoeIndicator.fillStyle(0xff6600, fillAlpha);
-        this.aoeIndicator.fillRect(-wallW / 2, -wallT / 2, wallW, wallT);
+        this.aoeIndicator.fillPoints(indPts, true);
         this.aoeIndicator.lineStyle(2, strokeColor, strokeAlpha);
-        this.aoeIndicator.strokeRect(-wallW / 2, -wallT / 2, wallW, wallT);
-        this.aoeIndicator.restore();
+        this.aoeIndicator.strokePoints(indPts, true);
       } else {
         this.aoeIndicator.fillStyle(0xff6600, fillAlpha);
         this.aoeIndicator.fillCircle(wx, wy, aoeR);
@@ -1697,6 +1694,22 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Возвращает 4 угла повёрнутого прямоугольника как Phaser.Geom.Point[] */
+  private getRotatedRectPoints(cx: number, cy: number, halfW: number, halfT: number, angle: number): Phaser.Geom.Point[] {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const corners = [
+      { lx: -halfW, ly: -halfT },
+      { lx:  halfW, ly: -halfT },
+      { lx:  halfW, ly:  halfT },
+      { lx: -halfW, ly:  halfT },
+    ];
+    return corners.map(c => new Phaser.Geom.Point(
+      cx + c.lx * cos - c.ly * sin,
+      cy + c.lx * sin + c.ly * cos,
+    ));
+  }
+
   private aggroCreature(creature: Creature) {
     if (!creature.isDead && (creature.aiState === 'idle' || creature.aiState === 'wander')) {
       creature.aiState = 'chase';
@@ -1767,14 +1780,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (isWall) {
-      gfx.save();
-      gfx.translateCanvas(wx, wy);
-      gfx.rotateCanvas(angle);
+      const pts = this.getRotatedRectPoints(wx, wy, wallW / 2, wallT / 2, angle);
       gfx.fillStyle(color, 0.4);
-      gfx.fillRect(-wallW / 2, -wallT / 2, wallW, wallT);
+      gfx.fillPoints(pts, true);
       gfx.lineStyle(2, color, 0.7);
-      gfx.strokeRect(-wallW / 2, -wallT / 2, wallW, wallT);
-      gfx.restore();
+      gfx.strokePoints(pts, true);
     } else {
       gfx.fillStyle(color, 0.35);
       gfx.fillCircle(wx, wy, radius);
@@ -1878,14 +1888,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (isWall) {
-      gfx.save();
-      gfx.translateCanvas(wx, wy);
-      gfx.rotateCanvas(angle);
+      const pts = this.getRotatedRectPoints(wx, wy, halfW, halfT, angle);
+      gfx.fillStyle(0xaaddff, 0.2);
+      gfx.fillPoints(pts, true);
       gfx.lineStyle(3, 0xaaddff, 0.6);
-      gfx.strokeRect(-halfW, -halfT, halfW * 2, halfT * 2);
-      gfx.fillStyle(0xaaddff, 0.15);
-      gfx.fillRect(-halfW, -halfT, halfW * 2, halfT * 2);
-      gfx.restore();
+      gfx.strokePoints(pts, true);
     } else {
       gfx.lineStyle(3, 0xaaddff, 0.6);
       gfx.strokeCircle(wx, wy, radius);
@@ -1966,14 +1973,11 @@ export class GameScene extends Phaser.Scene {
       angle = Math.atan2(dy, dx) + Math.PI / 2;
     }
 
-    gfx.save();
-    gfx.translateCanvas(wx, wy);
-    gfx.rotateCanvas(angle);
+    const pts = this.getRotatedRectPoints(wx, wy, halfW, halfT, angle);
     gfx.fillStyle(color, 0.85);
-    gfx.fillRect(-halfW, -halfT, halfW * 2, halfT * 2);
+    gfx.fillPoints(pts, true);
     gfx.lineStyle(2, 0xaa8844, 1);
-    gfx.strokeRect(-halfW, -halfT, halfW * 2, halfT * 2);
-    gfx.restore();
+    gfx.strokePoints(pts, true);
 
     // HP бар
     const barW = halfW * 2;
