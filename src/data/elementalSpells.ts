@@ -202,7 +202,8 @@ export const MOB_EARTH_T3: AbilityDef = {
   wallWidth: 120,
   wallThickness: 24,
   wallHP: 50,
-  description: 'Призывает каменную стену (120×24, HP = 50 × (1+Инт/100)). Блокирует движение.',
+  barrierDuration: 10,
+  description: 'Призывает каменную стену (120×24, 10 сек, HP = 50 × (1+Инт/100)).',
 };
 
 /** Enchant — Зачарование землёй: toggle-аура */

@@ -525,9 +525,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   // Стихийная магия T1
   // Стихийная магия T2
-  t_water_t2:  { id: 't_water_t2',  name: 'Water T2',      nameRu: 'Вода T2',            type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 10 }, xpReward: 5, weapon: WeaponType.StaffWater,  color: 0x4488cc, abilityName: 'Лед. стрела',          signatureSpell: MOB_WATER_T2,  spellXPThreshold: 1 },
   // Природа
-  t_nature_t1: { id: 't_nature_t1', name: 'Nature T1',     nameRu: 'Природа T1',         type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 5 },  xpReward: 5, weapon: WeaponType.StaffNature, color: 0x44aa44, abilityName: 'Призыв волка',         signatureSpell: MOB_NATURE_T1, spellXPThreshold: 1 },
   t_nature_t2: { id: 't_nature_t2', name: 'Nature T2',     nameRu: 'Природа T2',         type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 10 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x338833, abilityName: 'Древесная кора',       signatureSpell: MOB_NATURE_T2, spellXPThreshold: 1 },
   t_nature_t3: { id: 't_nature_t3', name: 'Nature T3',     nameRu: 'Природа T3',         type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x226622, abilityName: 'Покров листвы',        signatureSpell: MOB_NATURE_T3, spellXPThreshold: 1 },
   // Нейтральная
@@ -538,7 +536,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   t_ench_earth: { id: 't_ench_earth', name: 'Enchant Earth', nameRu: 'Зачар. Земля',     type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0x886600, abilityName: 'Зачарование: Земля',   signatureSpell: ENCHANT_EARTH, spellXPThreshold: 1 },
   t_ench_wind:  { id: 't_ench_wind',  name: 'Enchant Wind',  nameRu: 'Зачар. Ветер',     type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0xbbddff, abilityName: 'Зачарование: Ветер',   signatureSpell: ENCHANT_WIND,  spellXPThreshold: 1 },
   // Оружейные T1
-  t_xbow_t1:     { id: 't_xbow_t1',     name: 'Crossbow T1', nameRu: 'Арбалет T1',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 5 },   xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x664422, abilityName: 'Пробивающий болт',     signatureSpell: ABILITY_CROSSBOW_BOLT,  spellXPThreshold: 1 },
   // Оружейные T2
   t_xbow_t2:     { id: 't_xbow_t2',     name: 'Crossbow T2', nameRu: 'Арбалет T2',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x885533, abilityName: 'Удерживающий болт',    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 1 },
   // T3 тестовые

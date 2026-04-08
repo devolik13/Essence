@@ -39,6 +39,7 @@ interface GroundZone {
   school?: MagicSchool;
   statusEffect?: string;
   statusChance?: number;
+  spellId: string;
   casterStats: Stats;
   ownerIsPlayer: boolean;
   // Форма стены (прямоугольник)
@@ -53,11 +54,13 @@ interface GroundZone {
 interface SummonedWall {
   x: number;
   y: number;
-  halfW: number;            // половина ширины (длины стены)
-  halfT: number;            // половина толщины
-  angle: number;            // угол ориентации (рад)
+  halfW: number;
+  halfT: number;
+  angle: number;
   hp: number;
   maxHP: number;
+  remaining: number;        // секунд осталось (-1 = бессрочно)
+  spellId: string;          // для отмены повторным нажатием
   ownerIsPlayer: boolean;
   gfx: Phaser.GameObjects.Graphics;
   hpBar: Phaser.GameObjects.Rectangle;
@@ -71,6 +74,7 @@ interface WindBarrier {
   radius: number;
   damageReduction: number;
   remaining: number;
+  spellId: string;
   ownerIsPlayer: boolean;
   isWall: boolean;
   halfW: number;
@@ -448,6 +452,7 @@ export class GameScene extends Phaser.Scene {
     this.damageTexts = this.damageTexts.filter(dt => !dt.update(time, delta));
     this.updateGroundZones(delta);
     this.updateWindBarriers(delta);
+    this.updateSummonedWalls(delta);
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -1573,9 +1578,18 @@ export class GameScene extends Phaser.Scene {
     if (!this.playerBody) return;
     const slot = this.playerBody.abilitySlots[slotIndex];
     if (!slot?.ability) return;
-    if (slot.cooldownRemaining > 0) return;
 
     const spell = slot.ability;
+
+    // Повторное нажатие на стену/зону — досрочная отмена (даже во время КД)
+    const isPlaceable = spell.effectType === 'summon_wall' || spell.effectType === 'ground_zone' || spell.effectType === 'wind_barrier';
+    if (isPlaceable && this.cancelPlacedEffect(spell.id)) {
+      this.events.emit('log', { text: `${spell.nameRu} — отменено`, color: '#aaaaaa' });
+      return;
+    }
+
+    if (slot.cooldownRemaining > 0) return;
+
     if (spell.isAoe) {
       // Входим в режим прицеливания
       this.aoeTargeting = { slotIndex, spell };
@@ -1776,6 +1790,7 @@ export class GameScene extends Phaser.Scene {
       school: spell.school,
       statusEffect: spell.statusEffect,
       statusChance: spell.statusChance,
+      spellId: spell.id,
       casterStats: casterStats ?? { ...this.sphere.stats },
       ownerIsPlayer: isPlayer,
       isWall, wallWidth: wallW, wallThickness: wallT, angle,
@@ -1882,6 +1897,7 @@ export class GameScene extends Phaser.Scene {
       x: wx, y: wy, radius,
       damageReduction: spell.barrierDamageReduction ?? 0.25,
       remaining: spell.barrierDuration ?? 8,
+      spellId: spell.id,
       ownerIsPlayer: isPlayer,
       isWall, halfW, halfT, angle,
       gfx,
@@ -1965,7 +1981,8 @@ export class GameScene extends Phaser.Scene {
     const hpBarBg = this.add.rectangle(wx, wy - halfT - 8, barW, barH, 0x333333).setDepth(11).setOrigin(0.5);
     const hpBar = this.add.rectangle(wx - barW / 2, wy - halfT - 8, barW, barH, 0x44aa44).setDepth(12).setOrigin(0, 0.5);
 
-    this.summonedWalls.push({ x: wx, y: wy, halfW, halfT, angle, hp, maxHP: hp, ownerIsPlayer: isPlayer, gfx, hpBar, hpBarBg });
+    const remaining = spell.barrierDuration ?? -1;
+    this.summonedWalls.push({ x: wx, y: wy, halfW, halfT, angle, hp, maxHP: hp, remaining, spellId: spell.id, ownerIsPlayer: isPlayer, gfx, hpBar, hpBarBg });
   }
 
   /** Проверяет столкновение точки со стенами, возвращает стену или null */
@@ -1989,6 +2006,49 @@ export class GameScene extends Phaser.Scene {
     if (wall.hp <= 0) {
       this.destroyWall(wall);
     }
+  }
+
+  private updateSummonedWalls(delta: number) {
+    const dt = delta / 1000;
+    for (let i = this.summonedWalls.length - 1; i >= 0; i--) {
+      const w = this.summonedWalls[i];
+      if (w.remaining > 0) {
+        w.remaining -= dt;
+        if (w.remaining <= 0) {
+          this.destroyWall(w);
+        }
+      }
+    }
+  }
+
+  /** Отменяет стену/зону/барьер по spellId (повторное нажатие) */
+  private cancelPlacedEffect(spellId: string): boolean {
+    // Стены
+    for (const w of this.summonedWalls) {
+      if (w.spellId === spellId && w.ownerIsPlayer) {
+        this.destroyWall(w);
+        return true;
+      }
+    }
+    // Зоны
+    for (let i = this.groundZones.length - 1; i >= 0; i--) {
+      const z = this.groundZones[i];
+      if (z.spellId === spellId && z.ownerIsPlayer) {
+        z.gfx.destroy();
+        this.groundZones.splice(i, 1);
+        return true;
+      }
+    }
+    // Барьеры
+    for (let i = this.windBarriers.length - 1; i >= 0; i--) {
+      const b = this.windBarriers[i];
+      if (b.spellId === spellId && b.ownerIsPlayer) {
+        b.gfx.destroy();
+        this.windBarriers.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
   }
 
   private destroyWall(wall: SummonedWall) {
