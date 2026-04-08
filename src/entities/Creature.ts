@@ -299,6 +299,10 @@ export class Creature extends Phaser.GameObjects.Container {
     this.currentHP -= actual;
     // Сон снимается при получении урона
     if (actual > 0) this.statusEffects.delete('sleep');
+    // Пассивные агрятся при получении урона
+    if (actual > 0 && this.definition.type === 1 && (this.aiState === 'idle' || this.aiState === 'wander')) {
+      this.aiState = 'chase';
+    }
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);
