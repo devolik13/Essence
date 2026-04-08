@@ -92,20 +92,20 @@ export const MOB_WATER_T1: AbilityDef = {
   description: 'Ледяной осколок.',
 };
 
-/** T2 — Ледяная стрела: удар по цели + взрыв AoE 45px */
+/** T2 — Ледяная стрела: снаряд в цель + взрыв AoE 45px вокруг неё */
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_water_t2',
   prerequisiteId: 'mob_water_t1',
   nameRu: 'Лед. стрела',
   school: 'water',
   damageType: 'magic',
+  effectType: 'projectile_aoe',
   cooldown: 4.0,
   manaCost: 10,
   range: 240,
   baseDamage: 13,
-  isAoe: true,
   aoeRadius: 45,
-  description: 'Удар по цели + взрыв 45px.',
+  description: 'Снаряд в цель + взрыв 45px вокруг неё.',
 };
 
 /** T3 — Ледяной дождь: AoE + шанс заморозки (оригинал Archimage) */

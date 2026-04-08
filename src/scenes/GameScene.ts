@@ -1321,6 +1321,25 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // ── Projectile AoE: снаряд в цель + взрыв вокруг (Ледяная стрела) ────
+    if (spell.effectType === 'projectile_aoe' && result.hit) {
+      const aoeR = spell.aoeRadius ?? 45;
+      this.spawnAoeFlash(target.x, target.y, aoeR);
+      for (const c of this.creatures) {
+        if (c === target || c.isDead || c.isSummoned) continue;
+        if (distance(c.x, c.y, target.x, target.y) > aoeR) continue;
+        const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+        if (r.hit) {
+          const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
+          c.takeDamage(d);
+          this.aggroCreature(c);
+          this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d, r.crit, false));
+          if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
+          if (c.isDead) this.onCreatureKilled(c);
+        }
+      }
+    }
+
     // ── Multi-projectile: 5 снарядов в случайные цели (Огненная стрела) ──
     if (spell.effectType === 'multi_projectile') {
       const radius = spell.projectileRadius ?? 150;
