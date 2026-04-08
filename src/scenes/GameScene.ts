@@ -1404,6 +1404,7 @@ export class GameScene extends Phaser.Scene {
         if (r2.hit) {
           const d2 = this.sphere.deathDebuffRemaining > 0 ? Math.round(r2.final * DEATH_DEBUFF_MULT) : r2.final;
           c.takeDamage(d2);
+          this.aggroCreature(c);
           this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d2, r2.crit, false));
           if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) {
             c.applyStatus(spell.statusEffect);
@@ -1426,6 +1427,7 @@ export class GameScene extends Phaser.Scene {
           if (r.hit) {
             const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
             target.takeDamage(d);
+            this.aggroCreature(target);
             this.damageTexts.push(new DamageText(this, target.x, target.y - 10, d, r.crit, false));
             if (spell.statusEffect) {
               const chance = spell.statusChance ?? 1.0;
@@ -1471,6 +1473,7 @@ export class GameScene extends Phaser.Scene {
           if (r.hit) {
             const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
             c.takeDamage(d);
+            this.aggroCreature(c);
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10 - i * 6, d, r.crit, false));
             if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
             if (c.isDead) this.onCreatureKilled(c);
@@ -1497,6 +1500,7 @@ export class GameScene extends Phaser.Scene {
           if (r.hit) {
             const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
             c.takeDamage(d);
+            this.aggroCreature(c);
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d, r.crit, false));
             if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
             if (c.isDead) this.onCreatureKilled(c);
@@ -1531,6 +1535,7 @@ export class GameScene extends Phaser.Scene {
             const isDouble = spell.doubleDamageChance && Math.random() < spell.doubleDamageChance;
             const d = (this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final) * (isDouble ? 2 : 1);
             c.takeDamage(d);
+            this.aggroCreature(c);
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d, r.crit || !!isDouble, false));
             if (c.isDead) this.onCreatureKilled(c);
           }
