@@ -23,7 +23,7 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
-import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER } from '../data/chapter1';
+import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER, VILLAGE_BOUNDS } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 
@@ -602,11 +602,22 @@ export class GameScene extends Phaser.Scene {
 
   // ─── Выход из тела ────────────────────────────────────
 
+  private isInSafeZone(x: number, y: number): boolean {
+    return x >= VILLAGE_BOUNDS.x1 && x <= VILLAGE_BOUNDS.x2
+        && y >= VILLAGE_BOUNDS.y1 && y <= VILLAGE_BOUNDS.y2;
+  }
+
   private exitBody() {
     if (!this.playerBody) return;
 
     const x = this.playerBody.x;
     const y = this.playerBody.y;
+
+    // Добровольный выход из тела — только в безопасной зоне
+    if (!this.isInSafeZone(x, y)) {
+      this.events.emit('log', { text: 'Выйти из тела можно только в безопасной зоне', color: '#ff6666' });
+      return;
+    }
 
     this.playerBody.release();
     this.playerBody.destroy();
@@ -942,13 +953,15 @@ export class GameScene extends Phaser.Scene {
     // Дебафф урона (TODO: применять в боевых формулах после тестирования)
     this.sphere.deathDebuffRemaining = DEATH_DEBUFF_DURATION;
 
-    // ── Выход из тела ─────────────────────────────────────
+    // ── Телепорт к камню возрождения в том же теле ─────────
     if (this.playerBody) {
-      this.playerBody.release();
-      this.playerBody.destroy();
-      this.playerBody = null;
+      this.playerBody.x = VILLAGE_CENTER.x;
+      this.playerBody.y = VILLAGE_CENTER.y;
+      this.playerBody.currentHP = this.playerBody.maxHP;
+      this.playerBody.currentMana = this.playerBody.maxMana;
+    } else {
+      this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
     }
-    this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
