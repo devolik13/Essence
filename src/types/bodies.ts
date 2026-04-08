@@ -17,7 +17,11 @@ export enum WeaponType {
   ShortBow = 'shortbow',
   LongBow = 'longbow',
   Crossbow = 'crossbow',
-  Staff = 'staff',
+  StaffFire = 'staff_fire',
+  StaffWater = 'staff_water',
+  StaffEarth = 'staff_earth',
+  StaffWind = 'staff_wind',
+  StaffNature = 'staff_nature',
 }
 
 /** Тип урона — определяет формулу расчёта и стат-источник */
@@ -33,7 +37,11 @@ export const WEAPON_COOLDOWNS: Record<WeaponType, number> = {
   [WeaponType.ShortBow]: 1.0,
   [WeaponType.LongBow]: 1.8,
   [WeaponType.Crossbow]: 2.5,
-  [WeaponType.Staff]: 1.5,
+  [WeaponType.StaffFire]: 1.5,
+  [WeaponType.StaffWater]: 1.5,
+  [WeaponType.StaffEarth]: 1.5,
+  [WeaponType.StaffWind]: 1.5,
+  [WeaponType.StaffNature]: 1.5,
 };
 
 export interface BodyDefinition {
@@ -94,7 +102,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     damageType: 'magic',
     caps: { [StatName.Intellect]: 30, [StatName.Mana]: 15, [StatName.Will]: 5 },
     xpReward: 40,
-    weapon: WeaponType.Staff,
+    weapon: WeaponType.StaffFire,
     color: 0x3366ff,
     abilityName: 'Искра',
   },

@@ -19,5 +19,9 @@ export const WEAPONS: Record<WeaponType, WeaponDef> = {
   [WeaponType.ShortBow]:   { type: WeaponType.ShortBow,   nameRu: 'Короткий лук', cooldown: WEAPON_COOLDOWNS[WeaponType.ShortBow],   range: 200, isMelee: false, baseDamage: 10 },
   [WeaponType.LongBow]:    { type: WeaponType.LongBow,    nameRu: 'Длинный лук',  cooldown: WEAPON_COOLDOWNS[WeaponType.LongBow],    range: 300, isMelee: false, baseDamage: 15 },
   [WeaponType.Crossbow]:   { type: WeaponType.Crossbow,   nameRu: 'Арбалет',      cooldown: WEAPON_COOLDOWNS[WeaponType.Crossbow],   range: 280, isMelee: false, baseDamage: 18 },
-  [WeaponType.Staff]:      { type: WeaponType.Staff,      nameRu: 'Посох',        cooldown: WEAPON_COOLDOWNS[WeaponType.Staff],      range: 180, isMelee: false, baseDamage: 9  },
+  [WeaponType.StaffFire]:   { type: WeaponType.StaffFire,   nameRu: 'Огненный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffFire],   range: 180, isMelee: false, baseDamage: 9 },
+  [WeaponType.StaffWater]:  { type: WeaponType.StaffWater,  nameRu: 'Ледяной посох',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWater],  range: 180, isMelee: false, baseDamage: 9 },
+  [WeaponType.StaffEarth]:  { type: WeaponType.StaffEarth,  nameRu: 'Каменный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffEarth],  range: 180, isMelee: false, baseDamage: 9 },
+  [WeaponType.StaffWind]:   { type: WeaponType.StaffWind,   nameRu: 'Штормовой посох', cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWind],   range: 180, isMelee: false, baseDamage: 9 },
+  [WeaponType.StaffNature]: { type: WeaponType.StaffNature, nameRu: 'Посох природы',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffNature], range: 180, isMelee: false, baseDamage: 9 },
 };
