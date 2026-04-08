@@ -745,27 +745,7 @@ export class GameScene extends Phaser.Scene {
     );
 
     // Доп. урон от зачарования оружия
-    if (result.hit && this.sphere.activeEnchant && !closestCreature.isDead) {
-      const ench = this.sphere.activeEnchant;
-      const enchBase = ench.enchantDamage ?? 8;
-      const enchResult = calcMagicDamage(this.sphere.stats, closestCreature.stats, enchBase);
-      if (enchResult.hit) {
-        const enchDmg = this.sphere.deathDebuffRemaining > 0
-          ? Math.round(enchResult.final * DEATH_DEBUFF_MULT) : enchResult.final;
-        closestCreature.takeDamage(enchDmg);
-        // Школьный эффект зачарования
-        if (ench.statusEffect) {
-          const chance = ench.statusChance ?? 0.1;
-          if (Math.random() < chance) closestCreature.applyStatus(ench.statusEffect);
-        }
-        // Доп. урон отображается с задержкой (как двойной удар)
-        this.time.delayedCall(150, () => {
-          if (closestCreature.active) {
-            this.damageTexts.push(new DamageText(this, closestCreature.x, closestCreature.y - 12, enchDmg, false, false));
-          }
-        });
-      }
-    }
+    this.applyEnchantDamage(closestCreature, result.hit);
 
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
@@ -1190,7 +1170,10 @@ export class GameScene extends Phaser.Scene {
       new DamageText(this, target.x, target.y - 10, dmg, result.crit || !!isDouble, false)
     );
 
-    // ── Статус-эффект умения ──────────────────────────────────────────────
+    // Доп. урон от зачарования (только для физ. атак, не магии)
+    if (spell.damageType !== 'magic') {
+      this.applyEnchantDamage(target, result.hit);
+    }
     if (spell.statusEffect && result.hit) {
       const chance = spell.statusChance ?? 1.0;
       if (Math.random() < chance) {
@@ -1521,6 +1504,29 @@ export class GameScene extends Phaser.Scene {
   private aggroCreature(creature: Creature) {
     if (!creature.isDead && (creature.aiState === 'idle' || creature.aiState === 'wander')) {
       creature.aiState = 'chase';
+    }
+  }
+
+  /** Доп. урон от зачарования оружия (если активно) */
+  private applyEnchantDamage(target: Creature, didHit: boolean) {
+    if (!didHit || !this.sphere.activeEnchant || target.isDead || !this.playerBody) return;
+    const ench = this.sphere.activeEnchant;
+    const enchBase = ench.enchantDamage ?? 8;
+    const enchResult = calcMagicDamage(this.sphere.stats, target.stats, enchBase);
+    if (enchResult.hit) {
+      const enchDmg = this.sphere.deathDebuffRemaining > 0
+        ? Math.round(enchResult.final * DEATH_DEBUFF_MULT) : enchResult.final;
+      target.takeDamage(enchDmg);
+      if (ench.statusEffect) {
+        const chance = ench.statusChance ?? 0.1;
+        if (Math.random() < chance) target.applyStatus(ench.statusEffect);
+      }
+      this.time.delayedCall(150, () => {
+        if (target.active) {
+          this.damageTexts.push(new DamageText(this, target.x, target.y - 12, enchDmg, false, false));
+        }
+      });
+      if (target.isDead) this.onCreatureKilled(target);
     }
   }
 
