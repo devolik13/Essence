@@ -7,7 +7,7 @@ import {
   MOB_WIND_T1, MOB_WIND_T2,
   MOB_NATURE_T1, MOB_NATURE_T2,
 } from './elementalSpells';
-import { MOB_NEUTRAL_T2, MOB_NEUTRAL_T3 } from './neutralSpells';
+import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2 } from './neutralSpells';
 import {
   ABILITY_STING,
   ABILITY_KNIFE_THROW,
@@ -52,7 +52,21 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Ускорение',
-    signatureSpell: MOB_NEUTRAL_T2,         spellXPThreshold: 50,
+    signatureSpell: MOB_NEUTRAL_T1,         spellXPThreshold: 50,
+  },
+
+  spirit: {
+    id: 'spirit', name: 'Spirit', nameRu: 'Спирит',
+    type: BodyType.Passive, damageType: 'melee',
+    caps: { [StatName.Agility]: 40, [StatName.Evasion]: 30, [StatName.Luck]: 20 },
+    xpReward: 60,
+    npcStats: {
+      [StatName.Agility]: 20, [StatName.Accuracy]: 5, [StatName.Evasion]: 18,
+      [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 8,
+    },
+    weapon: WeaponType.Dagger, color: 0xeeeeff, abilityName: 'Рывок',
+    npcSpells: [MOB_NEUTRAL_T1, MOB_NEUTRAL_T2],
+    signatureSpell: MOB_NEUTRAL_T2,         spellXPThreshold: 100,
   },
 
   wolf: {
