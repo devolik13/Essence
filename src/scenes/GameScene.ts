@@ -17,7 +17,7 @@ import {
   startCapture, updateCapture, interruptCapture,
 } from '../systems/capture';
 import { addXP, isFirstCapReached } from '../systems/progression';
-import { StatName } from '../types/stats';
+import { Stats, StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
@@ -26,6 +26,21 @@ import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, TEST_SPELL_SPAWNS, VILLAGE_CENTER, VILLAGE_BOUNDS } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
+import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
+
+// ── Зона на карте (ground_zone) ─────────────────────────────
+interface GroundZone {
+  x: number;
+  y: number;
+  radius: number;
+  dps: number;              // урон в секунду
+  remaining: number;        // секунд осталось
+  tickTimer: number;        // таймер тика (1 раз в сек)
+  school?: MagicSchool;     // для школьного бонуса
+  casterStats: Stats;       // статы кастера для масштабирования
+  ownerIsPlayer: boolean;   // чья зона (для определения целей)
+  gfx: Phaser.GameObjects.Graphics;
+}
 
 // ── Штраф за смерть ──────────────────────────────────────
 // TODO: подобрать значения после тестирования баланса
@@ -71,6 +86,7 @@ export class GameScene extends Phaser.Scene {
   private playerBody: Body | null = null;
   private creatures: Creature[] = [];
   private damageTexts: DamageText[] = [];
+  private groundZones: GroundZone[] = [];
   private starterBodies: Phaser.GameObjects.Arc[] = [];
 
   // Очередь респауна: { definitionId, x, y, delay (мс осталось) }
@@ -348,6 +364,7 @@ export class GameScene extends Phaser.Scene {
 
     // Обновляем текст урона
     this.damageTexts = this.damageTexts.filter(dt => !dt.update(time, delta));
+    this.updateGroundZones(delta);
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -805,6 +822,28 @@ export class GameScene extends Phaser.Scene {
     const projColor = elementColors[creature.definition.element ?? 'fire'] ?? 0xcc66ff;
 
     const result = calcMagicDamage(creature.stats, this.sphere.stats, spell.baseDamage);
+
+    // Ground zone от NPC: создаёт зону на позиции игрока
+    if (spell.effectType === 'ground_zone') {
+      const radius = spell.aoeRadius ?? 60;
+      const gfx = this.add.graphics().setDepth(5).setAlpha(0.6);
+      const color = elementColors[creature.definition.element ?? 'fire'] ?? 0xff6600;
+      gfx.fillStyle(color, 0.35);
+      gfx.fillCircle(this.playerBody.x, this.playerBody.y, radius);
+      gfx.lineStyle(2, color, 0.7);
+      gfx.strokeCircle(this.playerBody.x, this.playerBody.y, radius);
+      this.groundZones.push({
+        x: this.playerBody.x, y: this.playerBody.y, radius,
+        dps: spell.zoneDps ?? 10,
+        remaining: spell.zoneDuration ?? 5,
+        tickTimer: 0,
+        school: spell.school,
+        casterStats: { ...creature.stats },
+        ownerIsPlayer: false,
+        gfx,
+      });
+      return;
+    }
 
     if (result.hit) {
       if (spell.isAoe) {
@@ -1486,6 +1525,13 @@ export class GameScene extends Phaser.Scene {
     slot.cooldownRemaining = spell.cooldown;
 
     const radius = spell.aoeRadius ?? 60;
+
+    // ── Ground Zone: создаём зону вместо мгновенного урона ──────────────
+    if (spell.effectType === 'ground_zone') {
+      this.spawnGroundZone(worldX, worldY, radius, spell);
+      return;
+    }
+
     this.spawnAoeFlash(worldX, worldY, radius);
 
     for (const c of this.creatures) {
@@ -1497,6 +1543,7 @@ export class GameScene extends Phaser.Scene {
       c.takeDamage(aoeDmg);
       this.aggroCreature(c);
       this.damageTexts.push(new DamageText(this, c.x, c.y - 10, aoeDmg, result.crit, false));
+      if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
       if (c.isDead) this.onCreatureKilled(c);
     }
   }
@@ -1548,6 +1595,82 @@ export class GameScene extends Phaser.Scene {
       ease: 'Power2',
       onComplete: () => gfx.destroy(),
     });
+  }
+
+  /** Создаёт зону на карте (ground_zone) — универсальная механика */
+  private spawnGroundZone(wx: number, wy: number, radius: number, spell: AbilityDef) {
+    const gfx = this.add.graphics().setDepth(5).setAlpha(0.6);
+    // Цвет по школе
+    const schoolColors: Record<string, number> = {
+      fire: 0xff4400, water: 0x4488ff, earth: 0x886633, wind: 0xaaddcc,
+      nature: 0x44aa44, poison: 0x66aa00, darkness: 0x440066,
+    };
+    const color = schoolColors[spell.school ?? ''] ?? 0xff6600;
+    gfx.fillStyle(color, 0.35);
+    gfx.fillCircle(wx, wy, radius);
+    gfx.lineStyle(2, color, 0.7);
+    gfx.strokeCircle(wx, wy, radius);
+
+    this.groundZones.push({
+      x: wx, y: wy, radius,
+      dps: spell.zoneDps ?? 10,
+      remaining: spell.zoneDuration ?? 5,
+      tickTimer: 0,
+      school: spell.school,
+      casterStats: { ...this.sphere.stats },
+      ownerIsPlayer: true,
+      gfx,
+    });
+  }
+
+  /** Обновляет все ground_zone: тик урона, удаление истёкших */
+  private updateGroundZones(delta: number) {
+    const dt = delta / 1000;
+    for (let i = this.groundZones.length - 1; i >= 0; i--) {
+      const zone = this.groundZones[i];
+      zone.remaining -= dt;
+      zone.tickTimer -= dt;
+
+      if (zone.remaining <= 0) {
+        zone.gfx.destroy();
+        this.groundZones.splice(i, 1);
+        continue;
+      }
+
+      // Пульсация альфы
+      zone.gfx.setAlpha(0.3 + 0.2 * Math.sin(zone.remaining * 3));
+
+      // Тик урона раз в секунду
+      if (zone.tickTimer <= 0) {
+        zone.tickTimer = 1;
+
+        if (zone.ownerIsPlayer) {
+          // Зона игрока → бьёт мобов
+          for (const c of this.creatures) {
+            if (c.isDead) continue;
+            if (distance(c.x, c.y, zone.x, zone.y) > zone.radius) continue;
+            const r = calcMagicDamage(zone.casterStats, c.stats, zone.dps);
+            c.takeDamage(r.final);
+            this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, false, false));
+            if (zone.school) {
+              const bonus = SCHOOL_BONUSES[zone.school];
+              if (bonus?.statusEffect && Math.random() < (bonus.statusChance ?? 0)) {
+                c.applyStatus(bonus.statusEffect);
+              }
+            }
+            if (c.isDead) this.onCreatureKilled(c);
+          }
+        } else if (this.playerBody && !this.playerBody.isDead) {
+          // Зона NPC → бьёт игрока
+          if (distance(this.playerBody.x, this.playerBody.y, zone.x, zone.y) <= zone.radius) {
+            const r = calcMagicDamage(zone.casterStats, this.sphere.stats, zone.dps);
+            this.playerBody.takeDamage(r.final);
+            this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, r.final, false, false));
+            if (this.playerBody.isDead) this.onPlayerDeath();
+          }
+        }
+      }
+    }
   }
 
   /** Летящий снаряд: визуальный, урон уже применён */
