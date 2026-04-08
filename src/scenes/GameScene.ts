@@ -1214,12 +1214,14 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // ── Dash backward: бросок назад после выстрела ───────────────────────
-    if (spell.effectType === 'dash_backward') {
+    // ── Dash backward: бросок назад ОТ ЦЕЛИ после выстрела ─────────────────
+    if (spell.effectType === 'dash_backward' && target) {
       const dist = spell.dashDistance ?? 180;
-      const dir = this.playerBody.getFacingVector();
-      this.playerBody.x = clamp(this.playerBody.x - dir.x * dist, 16, MAP_WIDTH  - 16);
-      this.playerBody.y = clamp(this.playerBody.y - dir.y * dist, 16, MAP_HEIGHT - 16);
+      const dx = this.playerBody.x - target.x;
+      const dy = this.playerBody.y - target.y;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      this.playerBody.x = clamp(this.playerBody.x + (dx / len) * dist, 16, MAP_WIDTH  - 16);
+      this.playerBody.y = clamp(this.playerBody.y + (dy / len) * dist, 16, MAP_HEIGHT - 16);
     }
 
     // ── Cone AoE: удар по всем в конусе перед игроком ────────────────────
