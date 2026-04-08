@@ -1,35 +1,5 @@
 import { AbilityDef } from '../types/abilities';
 
-// ─── Кролик ────────────────────────────────────────────────────────────────
-
-/** Ускорение — самобафф: +50% скорости на 3 сек */
-export const ABILITY_ACCELERATION: AbilityDef = {
-  id: 'acceleration',
-  nameRu: 'Ускорение',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'acceleration',
-  cooldown: 8,
-  manaCost: 0,
-  range: 0,
-  baseDamage: 0,
-  description: 'Мгновенно даёт +50% скорости на 3 сек.',
-};
-
-/** Рывок — мгновенный бросок вперёд на 180px */
-export const ABILITY_DASH: AbilityDef = {
-  id: 'dash',
-  nameRu: 'Рывок',
-  damageType: 'melee',
-  effectType: 'dash_forward',
-  dashDistance: 180,
-  cooldown: 10,
-  manaCost: 0,
-  range: 0,
-  baseDamage: 0,
-  description: 'Мгновенный бросок вперёд на 180px.',
-};
-
 // ─── Гоблин ────────────────────────────────────────────────────────────────
 
 /** Укол — удар кинжалом от Ловкости, гарантированно 1 стак яда */
@@ -38,7 +8,7 @@ export const ABILITY_STING: AbilityDef = {
   nameRu: 'Укол',
   damageType: 'melee',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 44,
   baseDamage: 12,
   statusEffect: 'poison',
@@ -54,7 +24,7 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
   nameRu: 'Удар мечом',
   damageType: 'melee',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 52,
   baseDamage: 18,
   statusEffect: 'slow',
@@ -71,7 +41,7 @@ export const ABILITY_KNIFE_THROW: AbilityDef = {
   nameRu: 'Бросок кинжала',
   damageType: 'ranged',
   cooldown: 2,
-  manaCost: 0,
+  manaCost: 6,
   range: 160,
   baseDamage: 12,
   statusEffect: 'poison',
@@ -87,7 +57,7 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   nameRu: 'Дробящий удар',
   damageType: 'melee',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 48,
   baseDamage: 22,
   statusEffect: 'interrupt',
@@ -122,7 +92,7 @@ export const ABILITY_SLASH: AbilityDef = {
   nameRu: 'Рубящий удар',
   damageType: 'melee',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 60,
   baseDamage: 30,
   statusEffect: 'bleed',
@@ -153,7 +123,7 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   nameRu: 'Прицельный выстрел',
   damageType: 'ranged',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 240,
   baseDamage: 16,
   statusEffect: 'vulnerability',
@@ -203,7 +173,7 @@ export const ABILITY_SPEAR_THRUST: AbilityDef = {
   nameRu: 'Выпад',
   damageType: 'melee',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 80,
   baseDamage: 20,
   statusEffect: 'knockback',
@@ -219,7 +189,7 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   nameRu: 'Сокрушительный удар',
   damageType: 'melee',
   cooldown: 1,
-  manaCost: 0,
+  manaCost: 3,
   range: 56,
   baseDamage: 36,
   isAoe: true,
@@ -236,7 +206,7 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
   nameRu: 'Сильный удар',
   damageType: 'melee',
   cooldown: 2,
-  manaCost: 0,
+  manaCost: 6,
   range: 56,
   baseDamage: 36,
   statusEffect: 'armor_break',
@@ -344,7 +314,7 @@ export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   nameRu: 'Удерживающий болт',
   damageType: 'ranged',
   cooldown: 2,
-  manaCost: 0,
+  manaCost: 6,
   range: 290,
   baseDamage: 24,
   statusEffect: 'root',

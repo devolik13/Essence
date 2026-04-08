@@ -7,9 +7,8 @@ import {
   MOB_WIND_T1, MOB_WIND_T2,
   MOB_NATURE_T1, MOB_NATURE_T2,
 } from './elementalSpells';
+import { MOB_NEUTRAL_T2, MOB_NEUTRAL_T3 } from './neutralSpells';
 import {
-  ABILITY_DASH,
-  ABILITY_ACCELERATION,
   ABILITY_STING,
   ABILITY_KNIFE_THROW,
   ABILITY_SWORD_STRIKE,
@@ -53,7 +52,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Ускорение',
-    signatureSpell: ABILITY_ACCELERATION,   spellXPThreshold: 50,
+    signatureSpell: MOB_NEUTRAL_T2,         spellXPThreshold: 50,
   },
 
   wolf: {
