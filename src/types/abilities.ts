@@ -20,7 +20,7 @@ export interface AbilityDef {
   aoeRadius?: number;
 
   /** Особый механический эффект умения */
-  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant';
+  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'summon_wall' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant' | 'ground_zone';
   /** Дальность броска вперёд (dash_forward), пикс */
   dashDistance?: number;
   /** Количество целей насквозь (pierce) */
@@ -39,6 +39,16 @@ export interface AbilityDef {
   crossArmWidth?: number;
   /** Длина луча крестового AoE (cross_aoe) */
   crossArmLength?: number;
+
+  // --- Ground Zone (ground_zone) ---
+  /** Длительность зоны в секундах */
+  zoneDuration?: number;
+  /** Урон в секунду для стоящих в зоне */
+  zoneDps?: number;
+
+  // --- Summon Wall (summon_wall) ---
+  /** HP стены-призыва */
+  wallHP?: number;
 
   /** Статус-эффект накладываемый на цель */
   statusEffect?: StatusEffectId;

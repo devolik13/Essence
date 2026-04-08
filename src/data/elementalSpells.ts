@@ -40,20 +40,23 @@ export const MOB_FIRE_T2: AbilityDef = {
   description: '5 огненных снарядов в случайные цели в радиусе 150px.',
 };
 
-/** T3 — Огненная стена: AOE (NPC only) */
+/** T3 — Огненная стена: зона на земле, урон стоящим в ней (оригинал Archimage) */
 export const MOB_FIRE_T3: AbilityDef = {
   id: 'mob_fire_t3',
   nameRu: 'Огн. стена',
   school: 'fire',
   damageType: 'magic',
+  effectType: 'ground_zone',
   castTime: 1.2,
   cooldown: 12,
   manaCost: 15,
   range: 220,
-  baseDamage: 18,
+  baseDamage: 0,
   isAoe: true,
   aoeRadius: 70,
-  description: 'Огненная зона вокруг цели.',
+  zoneDuration: 5,
+  zoneDps: 12,
+  description: 'Создаёт зону огня (r70, 5 сек). Враги в зоне получают 12 урона/сек.',
 };
 
 /** Enchant — Зачарование огнём: toggle-аура */
@@ -105,7 +108,7 @@ export const MOB_WATER_T2: AbilityDef = {
   description: 'Удар по цели + взрыв 45px.',
 };
 
-/** T3 — Ледяной дождь: AOE (NPC only) */
+/** T3 — Ледяной дождь: AoE + шанс заморозки (оригинал Archimage) */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_water_t3',
   nameRu: 'Лед. дождь',
@@ -118,7 +121,9 @@ export const MOB_WATER_T3: AbilityDef = {
   baseDamage: 16,
   isAoe: true,
   aoeRadius: 80,
-  description: 'Зона ледяного дождя.',
+  statusEffect: 'freeze',
+  statusChance: 0.3,
+  description: 'AoE ледяной дождь (r80). 30% шанс Заморозки на каждую цель.',
 };
 
 /** Enchant — Зачарование водой: toggle-аура */
@@ -173,22 +178,20 @@ export const MOB_EARTH_T2: AbilityDef = {
   description: 'Удар по цели + 4 шипа крестом (260px). 20% Пробитие брони (-50%).',
 };
 
-/** T3 — Земляной удар: AOE (NPC only), Пробитие брони (spell-specific) */
+/** T3 — Земляная стена: призыв стены с HP (оригинал Archimage) */
 export const MOB_EARTH_T3: AbilityDef = {
   id: 'mob_earth_t3',
-  nameRu: 'Зем. удар',
+  nameRu: 'Зем. стена',
   school: 'earth',
   damageType: 'magic',
+  effectType: 'summon_wall',
   castTime: 1.0,
   cooldown: 15,
   manaCost: 15,
-  range: 180,
-  baseDamage: 22,
-  isAoe: true,
-  aoeRadius: 65,
-  statusEffect: 'armor_break',
-  statusChance: 0.2,
-  description: 'Мощный удар землёй. 20% Пробитие брони.',
+  range: 120,
+  baseDamage: 0,
+  wallHP: 50,
+  description: 'Призывает каменную стену (50 HP). Блокирует движение и снаряды.',
 };
 
 /** Enchant — Зачарование землёй: toggle-аура */
@@ -241,20 +244,20 @@ export const MOB_WIND_T2: AbilityDef = {
   description: '3 смерча конусом 45° (160px).',
 };
 
-/** T3 — Грозовая туча: AOE (NPC only) */
+/** T3 — Ветряная стена: бафф, снижение входящего урона (оригинал Archimage) */
 export const MOB_WIND_T3: AbilityDef = {
   id: 'mob_wind_t3',
-  nameRu: 'Гроз. туча',
+  nameRu: 'Ветр. стена',
   school: 'wind',
   damageType: 'magic',
-  castTime: 1.0,
+  effectType: 'self_buff',
+  statusEffect: 'wind_shield',
+  castTime: 0.5,
   cooldown: 18,
   manaCost: 15,
-  range: 250,
-  baseDamage: 14,
-  isAoe: true,
-  aoeRadius: 90,
-  description: 'Молнии по случайным целям в зоне.',
+  range: 0,
+  baseDamage: 0,
+  description: 'Ветряной щит: входящий урон −25% на 8 сек.',
 };
 
 /** Enchant — Зачарование ветром: toggle-аура */
@@ -305,4 +308,21 @@ export const MOB_NATURE_T2: AbilityDef = {
   range: 0,
   baseDamage: 0,
   description: 'Мгновенно даёт +20 Стойкость на 8 сек.',
+};
+
+/** T3 — Покров листвы: аура регена HP (оригинал Archimage) */
+export const MOB_NATURE_T3: AbilityDef = {
+  id: 'mob_nature_t3',
+  prerequisiteId: 'mob_nature_t2',
+  nameRu: 'Покров листвы',
+  school: 'nature',
+  damageType: 'magic',
+  effectType: 'self_buff',
+  statusEffect: 'leaf_regen',
+  castTime: 0.5,
+  cooldown: 15,
+  manaCost: 15,
+  range: 0,
+  baseDamage: 0,
+  description: 'Покров листвы: +100% реген HP на 10 сек.',
 };

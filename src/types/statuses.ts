@@ -17,6 +17,8 @@ export type StatusEffectId =
   | 'acceleration'     // Ускорение
   | 'inspiration'      // Вдохновение
   | 'bark_armor'       // Древесная кора (бафф брони)
+  | 'wind_shield'      // Ветряная стена (снижение входящего урона)
+  | 'leaf_regen'       // Покров листвы (реген HP аура)
   // Контроль действий
   | 'stun'             // Оглушение
   | 'sleep'            // Сон
@@ -86,6 +88,8 @@ export interface StatusEffectDef {
   outgoingDamageReduction?: number;
   /** Увеличение получаемого урона (0.05 = +5%) */
   incomingDamageIncrease?: number;
+  /** Снижение получаемого урона (0.2 = −20%) */
+  incomingDamageReduction?: number;
   /** Снижение брони цели (0.5 = −50%) */
   armorReduction?: number;
   /** Снижение силы (0.2 = −20%) */
@@ -260,6 +264,16 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'hp_regen_boost', nameRu: 'Регенерация HP',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenHpBonus: 1.0,
+  },
+  leaf_regen: {
+    id: 'leaf_regen', nameRu: 'Покров листвы',
+    maxStacks: 1, duration: 10, stackBehavior: 'refresh',
+    regenHpBonus: 1.0, // +100% реген HP (≈5% HP/2 сек при 60 сек полного бара)
+  },
+  wind_shield: {
+    id: 'wind_shield', nameRu: 'Ветряная стена',
+    maxStacks: 1, duration: 8, stackBehavior: 'refresh',
+    incomingDamageReduction: 0.25,
   },
   bark_armor: {
     id: 'bark_armor', nameRu: 'Древесная кора',
