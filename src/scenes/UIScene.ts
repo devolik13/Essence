@@ -57,6 +57,8 @@ export class UIScene extends Phaser.Scene {
   private targetPanel!: Phaser.GameObjects.Text;
   private resourceText!:Phaser.GameObjects.Text;
   private statusBarText!:Phaser.GameObjects.Text;
+  private playerStatusBoxes: Phaser.GameObjects.Container[] = [];
+  private playerStatusPool: { bg: Phaser.GameObjects.Rectangle; icon: Phaser.GameObjects.Text; timer: Phaser.GameObjects.Text; }[] = [];
   private bodyInfoText!:Phaser.GameObjects.Text;
   private hintText!:    Phaser.GameObjects.Text;
   private logText!:     Phaser.GameObjects.Text;
@@ -519,6 +521,7 @@ export class UIScene extends Phaser.Scene {
 
     // ── Skill bar ─────────────────────────────────────────
     this.updateSkillBar(body, data.activeEnchantId);
+    this.updatePlayerStatusBar(body);
 
     // ── Cast bar ──────────────────────────────────────────
     if (data.aoeCast) {
@@ -817,6 +820,69 @@ export class UIScene extends Phaser.Scene {
   private closeSpellPicker() {
     this.spellPickerSlot = -1;
     this.spellPickerContainer.setVisible(false);
+  }
+
+  // ── Панель статусов игрока (квадратики над скилл-баром) ──
+
+  private static PLAYER_STATUS_ICONS: Record<string, { icon: string; color: number }> = {
+    poison:       { icon: '☠',  color: 0x336600 },
+    bleed:        { icon: '🩸', color: 0x660022 },
+    burn:         { icon: '🔥', color: 0x662200 },
+    burn_mana:    { icon: '💧', color: 0x220066 },
+    slow:         { icon: '❄',  color: 0x224466 },
+    root:         { icon: '⌇',  color: 0x443311 },
+    stun:         { icon: '★',  color: 0x666600 },
+    chill:        { icon: '❅',  color: 0x334466 },
+    freeze:       { icon: '❆',  color: 0x224488 },
+    armor_reduce: { icon: '↓',  color: 0x443322 },
+    armor_break:  { icon: '⇊',  color: 0x664400 },
+    vulnerability:{ icon: '◇',  color: 0x662222 },
+    acceleration: { icon: '»',  color: 0x446622 },
+    bark_armor:   { icon: '🛡', color: 0x443311 },
+    leaf_regen:   { icon: '❤',  color: 0x226622 },
+    hp_regen_boost:{ icon: '❤', color: 0x226622 },
+    mana_regen_boost:{ icon: '💎', color: 0x222266 },
+  };
+
+  private updatePlayerStatusBar(body: Body | null) {
+    // Скрываем все предыдущие
+    for (const box of this.playerStatusBoxes) box.setVisible(false);
+
+    if (!body) return;
+
+    const statuses = Array.from(body.statusEffects.values());
+    const boxSize = 32;
+    const gap = 4;
+    const skillBarY = GAME_HEIGHT - SKILL_SLOT_SIZE - 8;
+    const startY = skillBarY - boxSize - 8;
+    const startX = (GAME_WIDTH - statuses.length * (boxSize + gap)) / 2;
+
+    for (let i = 0; i < statuses.length; i++) {
+      const s = statuses[i];
+      const info = UIScene.PLAYER_STATUS_ICONS[s.id];
+      if (!info) continue;
+
+      // Переиспользуем или создаём
+      let poolEntry = this.playerStatusPool[i];
+      if (!poolEntry) {
+        const bg = this.add.rectangle(0, 0, boxSize, boxSize, 0x222222, 0.85).setStrokeStyle(1, 0x555555).setScrollFactor(0).setDepth(1010);
+        const icon = this.add.text(0, -5, '', { fontSize: '14px' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+        const timer = this.add.text(0, 10, '', { fontSize: '8px', color: '#cccccc' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+        const container = this.add.container(0, 0, [bg, icon, timer]).setScrollFactor(0).setDepth(1010);
+        this.playerStatusBoxes.push(container);
+        poolEntry = { bg, icon, timer };
+        this.playerStatusPool.push(poolEntry);
+      }
+
+      const container = this.playerStatusBoxes[i];
+      const x = startX + i * (boxSize + gap) + boxSize / 2;
+      container.setPosition(x, startY);
+      container.setVisible(true);
+
+      poolEntry.bg.setFillStyle(info.color, 0.85);
+      poolEntry.icon.setText(s.stacks > 1 ? `${info.icon}×${s.stacks}` : info.icon);
+      poolEntry.timer.setText(s.timer > 0 ? `${s.timer.toFixed(1)}` : '');
+    }
   }
 
   private updateSkillBar(body: Body | null, activeEnchantId?: string | null) {
