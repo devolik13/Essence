@@ -33,14 +33,19 @@ interface GroundZone {
   x: number;
   y: number;
   radius: number;
-  dps: number;              // урон в секунду
-  remaining: number;        // секунд осталось
-  tickTimer: number;        // таймер тика (1 раз в сек)
-  school?: MagicSchool;     // для школьного бонуса
-  statusEffect?: string;    // спелл-специфичный эффект (перекрывает школьный)
-  statusChance?: number;    // шанс спелл-эффекта
-  casterStats: Stats;       // статы кастера для масштабирования
-  ownerIsPlayer: boolean;   // чья зона (для определения целей)
+  dps: number;
+  remaining: number;
+  tickTimer: number;
+  school?: MagicSchool;
+  statusEffect?: string;
+  statusChance?: number;
+  casterStats: Stats;
+  ownerIsPlayer: boolean;
+  // Форма стены (прямоугольник)
+  isWall: boolean;
+  wallWidth: number;        // длина стены
+  wallThickness: number;    // толщина
+  angle: number;            // угол ориентации (рад)
   gfx: Phaser.GameObjects.Graphics;
 }
 
@@ -48,8 +53,10 @@ interface GroundZone {
 interface SummonedWall {
   x: number;
   y: number;
-  radius: number;           // радиус блокировки
-  hp: number;               // текущие HP
+  halfW: number;            // половина ширины (длины стены)
+  halfT: number;            // половина толщины
+  angle: number;            // угол ориентации (рад)
+  hp: number;
   maxHP: number;
   ownerIsPlayer: boolean;
   gfx: Phaser.GameObjects.Graphics;
@@ -66,6 +73,17 @@ interface WindBarrier {
   remaining: number;        // секунд осталось
   ownerIsPlayer: boolean;
   gfx: Phaser.GameObjects.Graphics;
+}
+
+/** Проверяет попадание точки в повёрнутый прямоугольник */
+function pointInRotatedRect(px: number, py: number, cx: number, cy: number, halfW: number, halfT: number, angle: number): boolean {
+  const cos = Math.cos(-angle);
+  const sin = Math.sin(-angle);
+  const dx = px - cx;
+  const dy = py - cy;
+  const lx = Math.abs(dx * cos - dy * sin);
+  const ly = Math.abs(dx * sin + dy * cos);
+  return lx <= halfW && ly <= halfT;
 }
 
 // ── Штраф за смерть ──────────────────────────────────────
@@ -895,25 +913,7 @@ export class GameScene extends Phaser.Scene {
 
     // Ground zone от NPC: создаёт зону на позиции игрока
     if (spell.effectType === 'ground_zone') {
-      const radius = spell.aoeRadius ?? 60;
-      const gfx = this.add.graphics().setDepth(5).setAlpha(0.6);
-      const color = elementColors[creature.definition.element ?? 'fire'] ?? 0xff6600;
-      gfx.fillStyle(color, 0.35);
-      gfx.fillCircle(this.playerBody.x, this.playerBody.y, radius);
-      gfx.lineStyle(2, color, 0.7);
-      gfx.strokeCircle(this.playerBody.x, this.playerBody.y, radius);
-      this.groundZones.push({
-        x: this.playerBody.x, y: this.playerBody.y, radius,
-        dps: spell.zoneDps ?? 10,
-        remaining: spell.zoneDuration ?? 5,
-        tickTimer: 0,
-        school: spell.school,
-        statusEffect: spell.statusEffect,
-        statusChance: spell.statusChance,
-        casterStats: { ...creature.stats },
-        ownerIsPlayer: false,
-        gfx,
-      });
+      this.spawnGroundZone(this.playerBody.x, this.playerBody.y, spell.aoeRadius ?? 60, spell, false, { ...creature.stats });
       return;
     }
 
@@ -932,7 +932,7 @@ export class GameScene extends Phaser.Scene {
       // Ставим стену на полпути между мобом и игроком
       const mx = (creature.x + this.playerBody.x) / 2;
       const my = (creature.y + this.playerBody.y) / 2;
-      this.spawnWall(mx, my, spell.aoeRadius ?? 24, hp, false);
+      this.spawnWall(mx, my, spell, hp, false);
       return;
     }
 
@@ -1641,7 +1641,7 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'summon_wall') {
       const int = this.sphere.stats[StatName.Intellect] ?? 1;
       const hp = Math.round((spell.wallHP ?? 50) * (1 + int / 100));
-      this.spawnWall(worldX, worldY, spell.aoeRadius ?? 24, hp, true);
+      this.spawnWall(worldX, worldY, spell, hp, true);
       return;
     }
 
@@ -1711,18 +1711,40 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Создаёт зону на карте (ground_zone) — универсальная механика */
-  private spawnGroundZone(wx: number, wy: number, radius: number, spell: AbilityDef) {
+  private spawnGroundZone(wx: number, wy: number, radius: number, spell: AbilityDef, isPlayer = true, casterStats?: Stats) {
     const gfx = this.add.graphics().setDepth(5).setAlpha(0.6);
-    // Цвет по школе
     const schoolColors: Record<string, number> = {
       fire: 0xff4400, water: 0x4488ff, earth: 0x886633, wind: 0xaaddcc,
       nature: 0x44aa44, poison: 0x66aa00, darkness: 0x440066,
     };
     const color = schoolColors[spell.school ?? ''] ?? 0xff6600;
-    gfx.fillStyle(color, 0.35);
-    gfx.fillCircle(wx, wy, radius);
-    gfx.lineStyle(2, color, 0.7);
-    gfx.strokeCircle(wx, wy, radius);
+
+    const isWall = spell.isWallShape ?? false;
+    const wallW = spell.wallWidth ?? 140;
+    const wallT = spell.wallThickness ?? 30;
+    // Угол: перпендикулярно линии кастер→точка
+    let angle = 0;
+    if (isWall && this.playerBody) {
+      const dx = wx - this.playerBody.x;
+      const dy = wy - this.playerBody.y;
+      angle = Math.atan2(dy, dx) + Math.PI / 2; // перпендикуляр
+    }
+
+    if (isWall) {
+      gfx.save();
+      gfx.translateCanvas(wx, wy);
+      gfx.rotateCanvas(angle);
+      gfx.fillStyle(color, 0.4);
+      gfx.fillRect(-wallW / 2, -wallT / 2, wallW, wallT);
+      gfx.lineStyle(2, color, 0.7);
+      gfx.strokeRect(-wallW / 2, -wallT / 2, wallW, wallT);
+      gfx.restore();
+    } else {
+      gfx.fillStyle(color, 0.35);
+      gfx.fillCircle(wx, wy, radius);
+      gfx.lineStyle(2, color, 0.7);
+      gfx.strokeCircle(wx, wy, radius);
+    }
 
     this.groundZones.push({
       x: wx, y: wy, radius,
@@ -1732,8 +1754,9 @@ export class GameScene extends Phaser.Scene {
       school: spell.school,
       statusEffect: spell.statusEffect,
       statusChance: spell.statusChance,
-      casterStats: { ...this.sphere.stats },
-      ownerIsPlayer: true,
+      casterStats: casterStats ?? { ...this.sphere.stats },
+      ownerIsPlayer: isPlayer,
+      isWall, wallWidth: wallW, wallThickness: wallT, angle,
       gfx,
     });
   }
@@ -1773,11 +1796,14 @@ export class GameScene extends Phaser.Scene {
           }
         }
 
+        const inZone = (tx: number, ty: number) => zone.isWall
+          ? pointInRotatedRect(tx, ty, zone.x, zone.y, zone.wallWidth / 2, zone.wallThickness / 2, zone.angle)
+          : distance(tx, ty, zone.x, zone.y) <= zone.radius;
+
         if (zone.ownerIsPlayer) {
-          // Зона игрока → бьёт мобов
           for (const c of this.creatures) {
             if (c.isDead) continue;
-            if (distance(c.x, c.y, zone.x, zone.y) > zone.radius) continue;
+            if (!inZone(c.x, c.y)) continue;
             const r = calcMagicDamage(zone.casterStats, c.stats, zone.dps);
             c.takeDamage(r.final);
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, false, false));
@@ -1787,8 +1813,7 @@ export class GameScene extends Phaser.Scene {
             if (c.isDead) this.onCreatureKilled(c);
           }
         } else if (this.playerBody && !this.playerBody.isDead) {
-          // Зона NPC → бьёт игрока
-          if (distance(this.playerBody.x, this.playerBody.y, zone.x, zone.y) <= zone.radius) {
+          if (inZone(this.playerBody.x, this.playerBody.y)) {
             const r = calcMagicDamage(zone.casterStats, this.sphere.stats, zone.dps);
             this.playerBody.takeDamage(r.final);
             this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, r.final, false, false));
@@ -1867,27 +1892,42 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Создаёт разрушаемую стену (summon_wall) — универсальная механика */
-  private spawnWall(wx: number, wy: number, radius: number, hp: number, isPlayer: boolean) {
+  private spawnWall(wx: number, wy: number, spell: AbilityDef, hp: number, isPlayer: boolean) {
     const gfx = this.add.graphics().setDepth(10);
     const color = isPlayer ? 0x886633 : 0x664422;
-    gfx.fillStyle(color, 0.8);
-    gfx.fillCircle(wx, wy, radius);
+    const halfW = (spell.wallWidth ?? 120) / 2;
+    const halfT = (spell.wallThickness ?? 24) / 2;
+
+    // Угол: перпендикулярно кастер→точка
+    let angle = 0;
+    if (this.playerBody) {
+      const dx = wx - this.playerBody.x;
+      const dy = wy - this.playerBody.y;
+      angle = Math.atan2(dy, dx) + Math.PI / 2;
+    }
+
+    gfx.save();
+    gfx.translateCanvas(wx, wy);
+    gfx.rotateCanvas(angle);
+    gfx.fillStyle(color, 0.85);
+    gfx.fillRect(-halfW, -halfT, halfW * 2, halfT * 2);
     gfx.lineStyle(2, 0xaa8844, 1);
-    gfx.strokeCircle(wx, wy, radius);
+    gfx.strokeRect(-halfW, -halfT, halfW * 2, halfT * 2);
+    gfx.restore();
 
-    // HP бар над стеной
-    const barW = radius * 2;
+    // HP бар
+    const barW = halfW * 2;
     const barH = 4;
-    const hpBarBg = this.add.rectangle(wx, wy - radius - 8, barW, barH, 0x333333).setDepth(11).setOrigin(0.5);
-    const hpBar = this.add.rectangle(wx - barW / 2, wy - radius - 8, barW, barH, 0x44aa44).setDepth(12).setOrigin(0, 0.5);
+    const hpBarBg = this.add.rectangle(wx, wy - halfT - 8, barW, barH, 0x333333).setDepth(11).setOrigin(0.5);
+    const hpBar = this.add.rectangle(wx - barW / 2, wy - halfT - 8, barW, barH, 0x44aa44).setDepth(12).setOrigin(0, 0.5);
 
-    this.summonedWalls.push({ x: wx, y: wy, radius, hp, maxHP: hp, ownerIsPlayer: isPlayer, gfx, hpBar, hpBarBg });
+    this.summonedWalls.push({ x: wx, y: wy, halfW, halfT, angle, hp, maxHP: hp, ownerIsPlayer: isPlayer, gfx, hpBar, hpBarBg });
   }
 
   /** Проверяет столкновение точки со стенами, возвращает стену или null */
   public getWallAt(x: number, y: number): SummonedWall | null {
     for (const w of this.summonedWalls) {
-      if (distance(x, y, w.x, w.y) <= w.radius) return w;
+      if (pointInRotatedRect(x, y, w.x, w.y, w.halfW, w.halfT, w.angle)) return w;
     }
     return null;
   }
@@ -1896,7 +1936,7 @@ export class GameScene extends Phaser.Scene {
   public damageWall(wall: SummonedWall, amount: number) {
     wall.hp -= amount;
     const ratio = Math.max(0, wall.hp / wall.maxHP);
-    wall.hpBar.width = wall.radius * 2 * ratio;
+    wall.hpBar.width = wall.halfW * 2 * ratio;
     // Цвет HP бара
     if (ratio > 0.5) wall.hpBar.setFillStyle(0x44aa44);
     else if (ratio > 0.25) wall.hpBar.setFillStyle(0xaaaa44);
@@ -1918,9 +1958,8 @@ export class GameScene extends Phaser.Scene {
   /** Блокировка движения — вызывается из update тела/существа */
   public isBlockedByWall(x: number, y: number, excludePlayer: boolean): boolean {
     for (const w of this.summonedWalls) {
-      // Стена игрока не блокирует игрока, стена NPC не блокирует NPC
       if (w.ownerIsPlayer === excludePlayer) continue;
-      if (distance(x, y, w.x, w.y) <= w.radius) return true;
+      if (pointInRotatedRect(x, y, w.x, w.y, w.halfW, w.halfT + 4, w.angle)) return true;
     }
     return false;
   }

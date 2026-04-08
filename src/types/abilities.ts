@@ -45,6 +45,12 @@ export interface AbilityDef {
   zoneDuration?: number;
   /** Урон в секунду для стоящих в зоне */
   zoneDps?: number;
+  /** true = зона-полоса (стена), false/undefined = круг */
+  isWallShape?: boolean;
+  /** Ширина полосы (длина стены) в пикселях */
+  wallWidth?: number;
+  /** Толщина полосы в пикселях */
+  wallThickness?: number;
 
   // --- Summon Wall (summon_wall) ---
   /** HP стены-призыва (масштабируется: wallHP × (1 + Int/100)) */

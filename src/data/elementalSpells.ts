@@ -53,10 +53,13 @@ export const MOB_FIRE_T3: AbilityDef = {
   range: 220,
   baseDamage: 0,
   isAoe: true,
-  aoeRadius: 70,
+  aoeRadius: 60,
+  isWallShape: true,
+  wallWidth: 140,
+  wallThickness: 30,
   zoneDuration: 5,
   zoneDps: 12,
-  description: 'Создаёт зону огня (r70, 5 сек). Враги в зоне получают 12 урона/сек.',
+  description: 'Стена огня (140×30, 5 сек). Враги в зоне получают 12 урона/сек.',
 };
 
 /** Enchant — Зачарование огнём: toggle-аура */
@@ -194,9 +197,12 @@ export const MOB_EARTH_T3: AbilityDef = {
   range: 120,
   baseDamage: 0,
   isAoe: true,
-  aoeRadius: 24,
+  aoeRadius: 60,
+  isWallShape: true,
+  wallWidth: 120,
+  wallThickness: 24,
   wallHP: 50,
-  description: 'Призывает каменную стену (HP = 50 × (1+Инт/100)). Блокирует движение.',
+  description: 'Призывает каменную стену (120×24, HP = 50 × (1+Инт/100)). Блокирует движение.',
 };
 
 /** Enchant — Зачарование землёй: toggle-аура */
