@@ -540,7 +540,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   // Оружейные T1
   t_xbow_t1:     { id: 't_xbow_t1',     name: 'Crossbow T1', nameRu: 'Арбалет T1',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 5 },   xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x664422, abilityName: 'Пробивающий болт',     signatureSpell: ABILITY_CROSSBOW_BOLT,  spellXPThreshold: 1 },
   // Оружейные T2
-  t_sword_t2:    { id: 't_sword_t2',    name: 'Sword T2',    nameRu: 'Меч T2',          type: BodyType.Passive, damageType: 'melee',  caps: { [StatName.Strength]: 10 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0xddbbbb, abilityName: 'Двойной удар',         signatureSpell: ABILITY_DOUBLE_STRIKE,  spellXPThreshold: 1 },
   t_xbow_t2:     { id: 't_xbow_t2',     name: 'Crossbow T2', nameRu: 'Арбалет T2',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x885533, abilityName: 'Удерживающий болт',    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 1 },
 };
 

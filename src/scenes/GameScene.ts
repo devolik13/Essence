@@ -1256,19 +1256,23 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'multi_hit' && result.hit && !target.isDead) {
       const extraHits = (spell.hitCount ?? 2) - 1;
       for (let h = 0; h < extraHits; h++) {
-        if (target.isDead) break;
-        const r = spell.damageType === 'melee'  ? calcMeleeDamage(this.sphere.stats, target.stats, spell.baseDamage)
-                : spell.damageType === 'ranged' ? calcRangedDamage(this.sphere.stats, target.stats, spell.baseDamage)
-                :                                  calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
-        if (r.hit) {
-          const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
-          target.takeDamage(d);
-          this.damageTexts.push(new DamageText(this, target.x, target.y - 10 - h * 14, d, r.crit, false));
-          if (spell.statusEffect) {
-            const chance = spell.statusChance ?? 1.0;
-            if (Math.random() < chance) target.applyStatus(spell.statusEffect);
+        const hitIndex = h;
+        this.time.delayedCall(250 * (hitIndex + 1), () => {
+          if (!this.playerBody || target.isDead) return;
+          const r = spell.damageType === 'melee'  ? calcMeleeDamage(this.sphere.stats, target.stats, spell.baseDamage)
+                  : spell.damageType === 'ranged' ? calcRangedDamage(this.sphere.stats, target.stats, spell.baseDamage)
+                  :                                  calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
+          if (r.hit) {
+            const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
+            target.takeDamage(d);
+            this.damageTexts.push(new DamageText(this, target.x, target.y - 10, d, r.crit, false));
+            if (spell.statusEffect) {
+              const chance = spell.statusChance ?? 1.0;
+              if (Math.random() < chance) target.applyStatus(spell.statusEffect);
+            }
+            if (target.isDead) this.onCreatureKilled(target);
           }
-        }
+        });
       }
     }
 

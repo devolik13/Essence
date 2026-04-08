@@ -311,7 +311,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   // Оружейные T1 (юго-запад → запад)
   { x: 1670, y: 930,  creatureId: 't_xbow_t1',    count: 1 },
   // Оружейные T2 (внутренний круг, радиус ~250px)
-  { x: 1920, y: 1030, creatureId: 't_sword_t2',   count: 1 },
   { x: 1720, y: 1460, creatureId: 't_xbow_t2',    count: 1 },
 ];
 
