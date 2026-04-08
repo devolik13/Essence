@@ -235,16 +235,17 @@ export class Body extends Phaser.GameObjects.Container {
       this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * speedMult * dt));
     }
 
+    // Обновление направления по движению (для всех тел)
+    const moving = vx !== 0 || vy !== 0;
+    if (moving) {
+      if      (vy > 0)  this.facingDir = 'down';
+      else if (vy < 0)  this.facingDir = 'up';
+      else if (vx < 0)  this.facingDir = 'left';
+      else if (vx > 0)  this.facingDir = 'right';
+    }
+
     // Обновление анимации воина
     if (ANIMATED_BODIES[this.definition.id] && !this.isAttackPlaying) {
-      const moving = vx !== 0 || vy !== 0;
-      // Определяем направление по движению
-      if (moving) {
-        if      (vy > 0)  this.facingDir = 'down';
-        else if (vy < 0)  this.facingDir = 'up';
-        else if (vx < 0)  this.facingDir = 'left';
-        else if (vx > 0)  this.facingDir = 'right';
-      }
       this.playAnim(moving ? 'walk' : 'idle');
     }
 
