@@ -1,10 +1,10 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
 import {
-  MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3,
-  MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3,
-  MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3,
-  MOB_WIND_T1, MOB_WIND_T2,
+  MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, ENCHANT_FIRE,
+  MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, ENCHANT_WATER,
+  MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, ENCHANT_EARTH,
+  MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, ENCHANT_WIND,
   MOB_NATURE_T1, MOB_NATURE_T2,
 } from './elementalSpells';
 import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2 } from './neutralSpells';
@@ -457,6 +457,68 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Hammer, color: 0x441111, abilityName: 'Сильный удар',
     npcSpells: [ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH],
     signatureSpell: ABILITY_HAMMER_SMASH,  spellXPThreshold: 100,
+  },
+
+  // ─── Боссы Главы 1: Стражи стихий ──────────────────────────────────────────
+
+  ignis: {
+    id: 'ignis', name: 'Ignis', nameRu: 'Игнис — Страж Огня',
+    type: BodyType.Combat, damageType: 'magic', element: 'fire',
+    caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
+    xpReward: 200,
+    npcStats: {
+      [StatName.Intellect]: 35, [StatName.Accuracy]: 10, [StatName.Evasion]: 5,
+      [StatName.Health]: 30,    [StatName.Armor]: 8,     [StatName.Will]: 15,
+      [StatName.Mana]: 40,      [StatName.Luck]: 5,
+    },
+    weapon: WeaponType.Staff, color: 0xff3300, abilityName: 'Зачарование: Огонь',
+    npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3],
+    signatureSpell: ENCHANT_FIRE,            spellXPThreshold: 150,
+  },
+
+  aquaris: {
+    id: 'aquaris', name: 'Aquaris', nameRu: 'Акварис — Страж Воды',
+    type: BodyType.Combat, damageType: 'magic', element: 'water',
+    caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
+    xpReward: 200,
+    npcStats: {
+      [StatName.Intellect]: 35, [StatName.Accuracy]: 10, [StatName.Evasion]: 8,
+      [StatName.Health]: 28,    [StatName.Armor]: 6,     [StatName.Will]: 18,
+      [StatName.Mana]: 40,      [StatName.Luck]: 5,
+    },
+    weapon: WeaponType.Staff, color: 0x0066ff, abilityName: 'Зачарование: Вода',
+    npcSpells: [MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3],
+    signatureSpell: ENCHANT_WATER,           spellXPThreshold: 150,
+  },
+
+  terra: {
+    id: 'terra', name: 'Terra', nameRu: 'Терра — Страж Земли',
+    type: BodyType.Combat, damageType: 'magic', element: 'earth',
+    caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
+    xpReward: 200,
+    npcStats: {
+      [StatName.Intellect]: 30, [StatName.Accuracy]: 10, [StatName.Evasion]: 3,
+      [StatName.Health]: 35,    [StatName.Armor]: 15,    [StatName.Will]: 12,
+      [StatName.Mana]: 40,      [StatName.Luck]: 5,
+    },
+    weapon: WeaponType.Staff, color: 0x886622, abilityName: 'Зачарование: Земля',
+    npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3],
+    signatureSpell: ENCHANT_EARTH,           spellXPThreshold: 150,
+  },
+
+  aeros: {
+    id: 'aeros', name: 'Aeros', nameRu: 'Аэрос — Страж Ветра',
+    type: BodyType.Combat, damageType: 'magic', element: 'wind',
+    caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
+    xpReward: 200,
+    npcStats: {
+      [StatName.Intellect]: 32, [StatName.Accuracy]: 10, [StatName.Evasion]: 12,
+      [StatName.Health]: 25,    [StatName.Armor]: 5,     [StatName.Will]: 14,
+      [StatName.Mana]: 40,      [StatName.Luck]: 8,
+    },
+    weapon: WeaponType.Staff, color: 0xccddff, abilityName: 'Зачарование: Ветер',
+    npcSpells: [MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3],
+    signatureSpell: ENCHANT_WIND,            spellXPThreshold: 150,
   },
 };
 

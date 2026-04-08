@@ -17,7 +17,7 @@ export interface AbilityDef {
   aoeRadius?: number;
 
   /** Особый механический эффект умения */
-  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal';
+  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant';
   /** Дальность броска вперёд (dash_forward), пикс */
   dashDistance?: number;
   /** Количество целей насквозь (pierce) */
@@ -44,6 +44,14 @@ export interface AbilityDef {
 
   /** Шанс нанести двойной урон (крит школы ветра), 0-1 */
   doubleDamageChance?: number;
+
+  // --- Weapon Enchant (toggle aura) ---
+  /** true = это переключаемая аура (toggle), не расходует ману за каст */
+  isToggle?: boolean;
+  /** Снижение регена маны пока аура активна (0.3 = −30%) */
+  regenPenalty?: number;
+  /** Базовый доп. урон стихией при атаке оружием */
+  enchantDamage?: number;
   /** ID умения-prerequisite (нельзя выучить без него) */
   prerequisiteId?: string;
 

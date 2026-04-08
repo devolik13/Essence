@@ -52,7 +52,7 @@ export const CHAPTER1_ZONES: ZoneConfig[] = [
       { x: 3200, y: 1100, creatureId: 'spark',  count: 2 },
       { x: 3000, y: 1500, creatureId: 'asher',  count: 2 },
     ],
-    bossId: null, // TODO: 'ignis'
+    bossId: 'ignis',
     bossX: 3456, bossY: 1472,
   },
 
@@ -74,7 +74,7 @@ export const CHAPTER1_ZONES: ZoneConfig[] = [
       { x: 3200, y: 300,  creatureId: 'splasher', count: 2 },
       { x: 1900, y: 500,  creatureId: 'fogger',   count: 2 },
     ],
-    bossId: null, // TODO: 'aquaris'
+    bossId: 'aquaris',
     bossX: 1920, bossY: 320,
   },
 
@@ -96,7 +96,7 @@ export const CHAPTER1_ZONES: ZoneConfig[] = [
       { x: 300,  y: 1500, creatureId: 'mudder', count: 2 },
       { x: 900,  y: 1100, creatureId: 'pebble', count: 2 },
     ],
-    bossId: null, // TODO: 'terra'
+    bossId: 'terra',
     bossX: 384, bossY: 1472,
   },
 
@@ -118,7 +118,7 @@ export const CHAPTER1_ZONES: ZoneConfig[] = [
       { x: 3200, y: 1800, creatureId: 'gusty',    count: 2 },
       { x: 1900, y: 2100, creatureId: 'whistler', count: 2 },
     ],
-    bossId: null, // TODO: 'aeros'
+    bossId: 'aeros',
     bossX: 1920, bossY: 2240,
   },
 ];

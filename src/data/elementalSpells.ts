@@ -62,6 +62,25 @@ export const MOB_FIRE_T3: AbilityDef = {
   description: 'Огненная зона вокруг цели. 10% шанс Горения.',
 };
 
+/** Enchant — Зачарование огнём: toggle-аура, оружие наносит доп. маг. урон огнём */
+export const ENCHANT_FIRE: AbilityDef = {
+  id: 'enchant_fire',
+  prerequisiteId: 'mob_fire_t2',
+  nameRu: 'Зачарование: Огонь',
+  damageType: 'magic',
+  effectType: 'weapon_enchant',
+  isToggle: true,
+  cooldown: 0,
+  manaCost: 0,
+  range: 0,
+  baseDamage: 0,
+  enchantDamage: 8,
+  regenPenalty: 0.3,
+  statusEffect: 'burn',
+  statusChance: 0.1,
+  description: 'Аура: оружие наносит доп. урон огнём (от Интеллекта). 10% Горение. Реген маны −30%.',
+};
+
 // ─── WATER SCHOOL ──────────────────────────────────────────────────────────────
 
 /** T1 — Ледышка: одиночный выстрел, 20% охлаждение */
@@ -110,6 +129,25 @@ export const MOB_WATER_T3: AbilityDef = {
   statusEffect: 'chill',
   statusChance: 0.2,
   description: 'Зона ледяного дождя. 20% шанс Охлаждения.',
+};
+
+/** Enchant — Зачарование водой: toggle-аура, оружие наносит доп. маг. урон водой */
+export const ENCHANT_WATER: AbilityDef = {
+  id: 'enchant_water',
+  prerequisiteId: 'mob_water_t2',
+  nameRu: 'Зачарование: Вода',
+  damageType: 'magic',
+  effectType: 'weapon_enchant',
+  isToggle: true,
+  cooldown: 0,
+  manaCost: 0,
+  range: 0,
+  baseDamage: 0,
+  enchantDamage: 8,
+  regenPenalty: 0.3,
+  statusEffect: 'chill',
+  statusChance: 0.2,
+  description: 'Аура: оружие наносит доп. урон водой (от Интеллекта). 20% Охлаждение. Реген маны −30%.',
 };
 
 // ─── EARTH SCHOOL ──────────────────────────────────────────────────────────────
@@ -163,6 +201,25 @@ export const MOB_EARTH_T3: AbilityDef = {
   description: 'Мощный удар землёй. 20% шанс Пробития брони.',
 };
 
+/** Enchant — Зачарование землёй: toggle-аура, оружие наносит доп. маг. урон землёй */
+export const ENCHANT_EARTH: AbilityDef = {
+  id: 'enchant_earth',
+  prerequisiteId: 'mob_earth_t2',
+  nameRu: 'Зачарование: Земля',
+  damageType: 'magic',
+  effectType: 'weapon_enchant',
+  isToggle: true,
+  cooldown: 0,
+  manaCost: 0,
+  range: 0,
+  baseDamage: 0,
+  enchantDamage: 8,
+  regenPenalty: 0.3,
+  statusEffect: 'armor_reduce',
+  statusChance: 0.2,
+  description: 'Аура: оружие наносит доп. урон землёй (от Интеллекта). 20% Сокрушение брони. Реген маны −30%.',
+};
+
 // ─── WIND SCHOOL ───────────────────────────────────────────────────────────────
 
 /** T1 — Порыв: одиночный выстрел, 20% двойной урон */
@@ -209,6 +266,24 @@ export const MOB_WIND_T3: AbilityDef = {
   aoeRadius: 90,
   doubleDamageChance: 0.2,
   description: 'Молнии по случайным целям в зоне. 20% шанс двойного урона.',
+};
+
+/** Enchant — Зачарование ветром: toggle-аура, оружие наносит доп. маг. урон ветром */
+export const ENCHANT_WIND: AbilityDef = {
+  id: 'enchant_wind',
+  prerequisiteId: 'mob_wind_t2',
+  nameRu: 'Зачарование: Ветер',
+  damageType: 'magic',
+  effectType: 'weapon_enchant',
+  isToggle: true,
+  cooldown: 0,
+  manaCost: 0,
+  range: 0,
+  baseDamage: 0,
+  enchantDamage: 8,
+  regenPenalty: 0.3,
+  doubleDamageChance: 0.2,
+  description: 'Аура: оружие наносит доп. урон ветром (от Интеллекта). 20% двойной урон. Реген маны −30%.',
 };
 
 // ─── NATURE SCHOOL ─────────────────────────────────────────────────────────────
