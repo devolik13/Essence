@@ -296,7 +296,6 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
 export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   // Стихии T1 (север)
   { x: 1770, y: 930, creatureId: 't_fire_t1',  count: 1 },
-  { x: 1870, y: 930, creatureId: 't_water_t1', count: 1 },
   // Стихии T2 (северо-восток)
   { x: 2250, y: 980,  creatureId: 't_fire_t2',  count: 1 },
   { x: 2300, y: 1050, creatureId: 't_water_t2', count: 1 },
@@ -319,7 +318,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 1920, y: 1030, creatureId: 't_sword_t2',   count: 1 },
   { x: 2120, y: 1100, creatureId: 't_gsword_t2',  count: 1 },
   { x: 2170, y: 1360, creatureId: 't_hammer_t2',  count: 1 },
-  { x: 2120, y: 1460, creatureId: 't_sbow_t2',    count: 1 },
   { x: 1920, y: 1510, creatureId: 't_lbow_t2',    count: 1 },
   { x: 1720, y: 1460, creatureId: 't_xbow_t2',    count: 1 },
 ];
