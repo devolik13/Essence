@@ -69,9 +69,13 @@ interface WindBarrier {
   x: number;
   y: number;
   radius: number;
-  damageReduction: number;  // 0.25 = -25% урона
-  remaining: number;        // секунд осталось
+  damageReduction: number;
+  remaining: number;
   ownerIsPlayer: boolean;
+  isWall: boolean;
+  halfW: number;
+  halfT: number;
+  angle: number;
   gfx: Phaser.GameObjects.Graphics;
 }
 
@@ -1848,17 +1852,38 @@ export class GameScene extends Phaser.Scene {
   /** Создаёт ветряной барьер (wind_barrier) — универсальная механика */
   private spawnWindBarrier(wx: number, wy: number, radius: number, spell: AbilityDef, isPlayer: boolean) {
     const gfx = this.add.graphics().setDepth(4).setAlpha(0.4);
-    gfx.lineStyle(3, 0xaaddff, 0.6);
-    gfx.strokeCircle(wx, wy, radius);
-    gfx.lineStyle(1, 0xcceeFF, 0.3);
-    gfx.strokeCircle(wx, wy, radius * 0.7);
-    gfx.strokeCircle(wx, wy, radius * 0.4);
+    const isWall = spell.isWallShape ?? false;
+    const halfW = (spell.wallWidth ?? 160) / 2;
+    const halfT = (spell.wallThickness ?? 20) / 2;
+    let angle = 0;
+    if (isWall && this.playerBody) {
+      const dx = wx - this.playerBody.x;
+      const dy = wy - this.playerBody.y;
+      angle = Math.atan2(dy, dx) + Math.PI / 2;
+    }
+
+    if (isWall) {
+      gfx.save();
+      gfx.translateCanvas(wx, wy);
+      gfx.rotateCanvas(angle);
+      gfx.lineStyle(3, 0xaaddff, 0.6);
+      gfx.strokeRect(-halfW, -halfT, halfW * 2, halfT * 2);
+      gfx.fillStyle(0xaaddff, 0.15);
+      gfx.fillRect(-halfW, -halfT, halfW * 2, halfT * 2);
+      gfx.restore();
+    } else {
+      gfx.lineStyle(3, 0xaaddff, 0.6);
+      gfx.strokeCircle(wx, wy, radius);
+      gfx.lineStyle(1, 0xcceeFF, 0.3);
+      gfx.strokeCircle(wx, wy, radius * 0.7);
+    }
 
     this.windBarriers.push({
       x: wx, y: wy, radius,
       damageReduction: spell.barrierDamageReduction ?? 0.25,
       remaining: spell.barrierDuration ?? 8,
       ownerIsPlayer: isPlayer,
+      isWall, halfW, halfT, angle,
       gfx,
     });
   }
@@ -1891,18 +1916,19 @@ export class GameScene extends Phaser.Scene {
     let reduction = 0;
     for (const b of this.windBarriers) {
       if (b.ownerIsPlayer !== protectsPlayer) continue;
-      // Проверяем пересекает ли линия (from→to) окружность барьера
-      // Упрощённо: если центр барьера близко к линии и между from/to
+      // Проверяем пересекает ли линия (from→to) барьер
       const dx = toX - fromX;
       const dy = toY - fromY;
       const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      // Проекция центра барьера на линию
       const t = ((b.x - fromX) * dx + (b.y - fromY) * dy) / (len * len);
-      if (t < 0 || t > 1) continue; // барьер не на пути
+      if (t < 0 || t > 1) continue;
       const closestX = fromX + t * dx;
       const closestY = fromY + t * dy;
-      const dist = distance(closestX, closestY, b.x, b.y);
-      if (dist <= b.radius) {
+      // Проверка: ближайшая точка линии внутри барьера?
+      const inside = b.isWall
+        ? pointInRotatedRect(closestX, closestY, b.x, b.y, b.halfW, b.halfT + 10, b.angle)
+        : distance(closestX, closestY, b.x, b.y) <= b.radius;
+      if (inside) {
         reduction = Math.max(reduction, b.damageReduction);
       }
     }

@@ -269,9 +269,12 @@ export const MOB_WIND_T3: AbilityDef = {
   baseDamage: 0,
   isAoe: true,
   aoeRadius: 80,
+  isWallShape: true,
+  wallWidth: 160,
+  wallThickness: 20,
   barrierDamageReduction: 0.25,
   barrierDuration: 8,
-  description: 'Размещает ветряную стену (r80, 8 сек). Снаряды пролетая через неё теряют 25% урона.',
+  description: 'Ветряной барьер (160×20, 8 сек). Снаряды пролетая через него теряют 25% урона.',
 };
 
 /** Enchant — Зачарование ветром: toggle-аура */
