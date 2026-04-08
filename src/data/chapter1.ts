@@ -221,16 +221,16 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     ],
   },
 
-  // Разрушенный мост — север деревни, переход к Туманному озеру
-  // Концепт: x:52-68, y:26-34 → пиксели: x:1664-2176, y:832-1088
+  // Разрушенный мост — севернее деревни, переход к Туманному озеру
+  // Концепт: x:52-68, y:26-34 → отодвинуты подальше от village (y1=1056)
   {
     id: 'broken_bridge',
     label: 'Разрушенный мост',
     spawnGroups: [
-      { x: 1750, y: 870,  creatureId: 'splasher',  count: 2 },
-      { x: 1900, y: 900,  creatureId: 'fogger',    count: 2 },
-      { x: 2050, y: 880,  creatureId: 'splasher',  count: 2 },
-      { x: 1850, y: 950,  creatureId: 'fogger',    count: 1 },
+      { x: 1750, y: 700,  creatureId: 'splasher',  count: 2 },
+      { x: 1900, y: 680,  creatureId: 'fogger',    count: 2 },
+      { x: 2050, y: 710,  creatureId: 'splasher',  count: 2 },
+      { x: 1850, y: 750,  creatureId: 'fogger',    count: 1 },
     ],
   },
 
@@ -280,16 +280,15 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
   // Кролики — юго-западный угол деревни, джиттер ±40px
   { x: 1720, y: 1440, creatureId: 'rabbit',        count: 4 },
   { x: 1820, y: 1460, creatureId: 'rabbit',        count: 3 },
-  // Волки-духи — северо-западный угол деревни
-  { x: 1700, y: 1120, creatureId: 'spirit_wolf', count: 2 },
-  { x: 1820, y: 1100, creatureId: 'spirit_wolf', count: 2 },
   // Первые враги — чётко восточнее деревни (village x2=2176 + 300px зазор)
-  // x=2500 гарантирует что с джиттером ±100px враги минимум на 224px от деревни
   { x: 2500, y: 1220, creatureId: 'goblin',         count: 3 },
   { x: 2500, y: 1340, creatureId: 'goblin',         count: 2 },
   { x: 2620, y: 1280, creatureId: 'wolf',           count: 3 },
-  // Гоблин-ветеран — чуть дальше от деревни, охраняет стаю
+  // Гоблин-ветеран — чуть дальше от деревни
   { x: 2750, y: 1280, creatureId: 'goblin_veteran', count: 1 },
+  // Волки-духи — восточнее деревни, рядом с гоблинами
+  { x: 2400, y: 1100, creatureId: 'spirit_wolf', count: 2 },
+  { x: 2400, y: 1400, creatureId: 'spirit_wolf', count: 2 },
 ];
 
 // ─── Тестовые сферы (по кругу вокруг деревни, радиус ~350px) ──────────────────
