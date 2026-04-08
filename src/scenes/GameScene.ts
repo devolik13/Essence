@@ -57,6 +57,17 @@ interface SummonedWall {
   hpBarBg: Phaser.GameObjects.Rectangle;
 }
 
+// ── Ветряной барьер (wind_barrier) ───────────────────────
+interface WindBarrier {
+  x: number;
+  y: number;
+  radius: number;
+  damageReduction: number;  // 0.25 = -25% урона
+  remaining: number;        // секунд осталось
+  ownerIsPlayer: boolean;
+  gfx: Phaser.GameObjects.Graphics;
+}
+
 // ── Штраф за смерть ──────────────────────────────────────
 // TODO: подобрать значения после тестирования баланса
 const DEATH_XP_LOSS_PCT    = 0.10;  // 10% накопленного XP в текущих статах
@@ -103,6 +114,7 @@ export class GameScene extends Phaser.Scene {
   private damageTexts: DamageText[] = [];
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
+  private windBarriers: WindBarrier[] = [];
   private starterBodies: Phaser.GameObjects.Arc[] = [];
 
   // Очередь респауна: { definitionId, x, y, delay (мс осталось) }
@@ -381,6 +393,7 @@ export class GameScene extends Phaser.Scene {
     // Обновляем текст урона
     this.damageTexts = this.damageTexts.filter(dt => !dt.update(time, delta));
     this.updateGroundZones(delta);
+    this.updateWindBarriers(delta);
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -803,7 +816,11 @@ export class GameScene extends Phaser.Scene {
                  :                    calcMeleeDamage(creature.stats, this.sphere.stats, cwb);
 
     if (result.hit) {
-      this.playerBody.takeDamage(result.final);
+      let finalDmg = result.final;
+      // Ветряной барьер снижает урон если снаряд пролетает через него
+      const barrierRed = this.getWindBarrierReduction(creature.x, creature.y, this.playerBody.x, this.playerBody.y, true);
+      if (barrierRed > 0) finalDmg = Math.round(finalDmg * (1 - barrierRed));
+      this.playerBody.takeDamage(finalDmg);
     }
 
     // Снаряд моба
@@ -863,6 +880,14 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Wind barrier от NPC: ставит перед собой как щит
+    if (spell.effectType === 'wind_barrier') {
+      const mx = (creature.x + this.playerBody.x) / 2;
+      const my = (creature.y + this.playerBody.y) / 2;
+      this.spawnWindBarrier(mx, my, spell.aoeRadius ?? 80, spell, false);
+      return;
+    }
+
     // Summon wall от NPC: ставит стену перед собой (между собой и игроком)
     if (spell.effectType === 'summon_wall') {
       const int = creature.stats[StatName.Intellect] ?? 1;
@@ -874,11 +899,13 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Ветряной барьер снижает урон
+    const barrierRed = this.getWindBarrierReduction(creature.x, creature.y, this.playerBody.x, this.playerBody.y, true);
+    const npcDmg = barrierRed > 0 ? Math.round(result.final * (1 - barrierRed)) : result.final;
+
     if (result.hit) {
       if (spell.isAoe) {
-        // AOE: урон всем телам в радиусе вокруг игрока (сейчас только игрок)
-        this.playerBody.takeDamage(result.final);
-        // Визуал AOE — несколько снарядов по кругу
+        this.playerBody.takeDamage(npcDmg);
         for (let i = 0; i < 4; i++) {
           const angle = (Math.PI * 2 * i) / 4;
           const r = (spell.aoeRadius ?? 60) * 0.6;
@@ -890,7 +917,7 @@ export class GameScene extends Phaser.Scene {
           );
         }
       } else {
-        this.playerBody.takeDamage(result.final);
+        this.playerBody.takeDamage(npcDmg);
         this.spawnProjectile(
           creature.x, creature.y,
           this.playerBody.x, this.playerBody.y,
@@ -900,7 +927,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.damageTexts.push(
-      new DamageText(this, this.playerBody.x, this.playerBody.y - 10, result.final, result.crit, !result.hit)
+      new DamageText(this, this.playerBody.x, this.playerBody.y - 10, result.hit ? npcDmg : 0, result.crit, !result.hit)
     );
 
     if (this.playerBody.isDead) {
@@ -1561,6 +1588,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // ── Wind Barrier: ветряной барьер ──────────────────────────────────────
+    if (spell.effectType === 'wind_barrier') {
+      this.spawnWindBarrier(worldX, worldY, radius, spell, true);
+      return;
+    }
+
     // ── Summon Wall: призыв стены ────────────────────────────────────────
     if (spell.effectType === 'summon_wall') {
       const int = this.sphere.stats[StatName.Intellect] ?? 1;
@@ -1724,6 +1757,70 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  /** Создаёт ветряной барьер (wind_barrier) — универсальная механика */
+  private spawnWindBarrier(wx: number, wy: number, radius: number, spell: AbilityDef, isPlayer: boolean) {
+    const gfx = this.add.graphics().setDepth(4).setAlpha(0.4);
+    gfx.lineStyle(3, 0xaaddff, 0.6);
+    gfx.strokeCircle(wx, wy, radius);
+    gfx.lineStyle(1, 0xcceeFF, 0.3);
+    gfx.strokeCircle(wx, wy, radius * 0.7);
+    gfx.strokeCircle(wx, wy, radius * 0.4);
+
+    this.windBarriers.push({
+      x: wx, y: wy, radius,
+      damageReduction: spell.barrierDamageReduction ?? 0.25,
+      remaining: spell.barrierDuration ?? 8,
+      ownerIsPlayer: isPlayer,
+      gfx,
+    });
+  }
+
+  /** Обновляет ветряные барьеры: таймер, удаление */
+  private updateWindBarriers(delta: number) {
+    const dt = delta / 1000;
+    for (let i = this.windBarriers.length - 1; i >= 0; i--) {
+      const b = this.windBarriers[i];
+      b.remaining -= dt;
+      if (b.remaining <= 0) {
+        b.gfx.destroy();
+        this.windBarriers.splice(i, 1);
+        continue;
+      }
+      // Пульсация + вращение визуала
+      b.gfx.setAlpha(0.25 + 0.15 * Math.sin(b.remaining * 4));
+      b.gfx.setRotation(b.gfx.rotation + dt * 0.5);
+    }
+  }
+
+  /**
+   * Проверяет снижение урона от ветряных барьеров.
+   * Если снаряд/урон пролетает через зону барьера — урон снижается.
+   * @param fromX - откуда летит урон
+   * @param toX - куда летит (позиция цели)
+   * @param protectsPlayer - true = проверяем барьеры защищающие игрока
+   */
+  public getWindBarrierReduction(fromX: number, fromY: number, toX: number, toY: number, protectsPlayer: boolean): number {
+    let reduction = 0;
+    for (const b of this.windBarriers) {
+      if (b.ownerIsPlayer !== protectsPlayer) continue;
+      // Проверяем пересекает ли линия (from→to) окружность барьера
+      // Упрощённо: если центр барьера близко к линии и между from/to
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      // Проекция центра барьера на линию
+      const t = ((b.x - fromX) * dx + (b.y - fromY) * dy) / (len * len);
+      if (t < 0 || t > 1) continue; // барьер не на пути
+      const closestX = fromX + t * dx;
+      const closestY = fromY + t * dy;
+      const dist = distance(closestX, closestY, b.x, b.y);
+      if (dist <= b.radius) {
+        reduction = Math.max(reduction, b.damageReduction);
+      }
+    }
+    return reduction;
   }
 
   /** Создаёт разрушаемую стену (summon_wall) — универсальная механика */
