@@ -1,4 +1,5 @@
 import { StatusEffectId } from './statuses';
+import { MagicSchool } from '../data/magicSchools';
 
 export const MAX_ABILITY_SLOTS = 8;
 
@@ -7,6 +8,8 @@ export type DamageType = 'melee' | 'ranged' | 'magic';
 export interface AbilityDef {
   id: string;
   nameRu: string;
+  /** Школа магии — бонус школы применяется автоматически движком */
+  school?: MagicSchool;
   damageType: DamageType;
   cooldown: number;       // сек (после выстрела)
   castTime?: number;      // сек (время каста; 0/undefined = мгновенно)

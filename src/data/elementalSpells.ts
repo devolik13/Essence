@@ -1,11 +1,8 @@
 /**
- * Elemental spells — T1/T2 for player learning and mob use.
+ * Elemental spells — T1/T2/T3 for player learning and mob use.
  *
- * Школьные эффекты:
- *   Огонь  — 10% шанс Горение
- *   Вода   — 20% шанс Охлаждение
- *   Земля  — 20% шанс Сокрушение/Пробитие брони
- *   Ветер  — 20% шанс двойной урон
+ * Школьные бонусы вынесены в magicSchools.ts — движок применяет их автоматически.
+ * Если у заклинания есть собственный statusEffect — он перекрывает школьный.
  *
  * T1 дальность: 240px (как короткий лук)
  */
@@ -13,18 +10,17 @@ import { AbilityDef } from '../types/abilities';
 
 // ─── FIRE SCHOOL ───────────────────────────────────────────────────────────────
 
-/** T1 — Искра: одиночный выстрел, 10% горение */
+/** T1 — Искра: одиночный выстрел */
 export const MOB_FIRE_T1: AbilityDef = {
   id: 'mob_fire_t1',
   nameRu: 'Искра',
+  school: 'fire',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
   baseDamage: 6,
-  statusEffect: 'burn',
-  statusChance: 0.1,
-  description: 'Быстрый магический разряд огня. 10% шанс Горения.',
+  description: 'Быстрый магический разряд огня.',
 };
 
 /** T2 — Огненная стрела: 5 снарядов в случайные цели в радиусе 150px */
@@ -32,6 +28,7 @@ export const MOB_FIRE_T2: AbilityDef = {
   id: 'mob_fire_t2',
   prerequisiteId: 'mob_fire_t1',
   nameRu: 'Огн. стрела',
+  school: 'fire',
   damageType: 'magic',
   effectType: 'multi_projectile',
   projectileCount: 5,
@@ -40,15 +37,14 @@ export const MOB_FIRE_T2: AbilityDef = {
   manaCost: 10,
   range: 240,
   baseDamage: 11,
-  statusEffect: 'burn',
-  statusChance: 0.1,
-  description: '5 огненных снарядов в случайные цели в радиусе 150px. 10% горение каждый.',
+  description: '5 огненных снарядов в случайные цели в радиусе 150px.',
 };
 
-/** T3 — Огненная стена: AOE */
+/** T3 — Огненная стена: AOE (NPC only) */
 export const MOB_FIRE_T3: AbilityDef = {
   id: 'mob_fire_t3',
   nameRu: 'Огн. стена',
+  school: 'fire',
   damageType: 'magic',
   castTime: 1.2,
   cooldown: 12,
@@ -57,16 +53,15 @@ export const MOB_FIRE_T3: AbilityDef = {
   baseDamage: 18,
   isAoe: true,
   aoeRadius: 70,
-  statusEffect: 'burn',
-  statusChance: 0.1,
-  description: 'Огненная зона вокруг цели. 10% шанс Горения.',
+  description: 'Огненная зона вокруг цели.',
 };
 
-/** Enchant — Зачарование огнём: toggle-аура, оружие наносит доп. маг. урон огнём */
+/** Enchant — Зачарование огнём: toggle-аура */
 export const ENCHANT_FIRE: AbilityDef = {
   id: 'enchant_fire',
   prerequisiteId: 'mob_fire_t2',
   nameRu: 'Зачарование: Огонь',
+  school: 'fire',
   damageType: 'magic',
   effectType: 'weapon_enchant',
   isToggle: true,
@@ -76,32 +71,30 @@ export const ENCHANT_FIRE: AbilityDef = {
   baseDamage: 0,
   enchantDamage: 8,
   regenPenalty: 0.3,
-  statusEffect: 'burn',
-  statusChance: 0.1,
-  description: 'Аура: оружие наносит доп. урон огнём (от Интеллекта). 10% Горение. Реген маны −30%.',
+  description: 'Аура: оружие наносит доп. урон огнём (от Интеллекта). Реген маны −30%.',
 };
 
 // ─── WATER SCHOOL ──────────────────────────────────────────────────────────────
 
-/** T1 — Ледышка: одиночный выстрел, 20% охлаждение */
+/** T1 — Ледышка: одиночный выстрел */
 export const MOB_WATER_T1: AbilityDef = {
   id: 'mob_water_t1',
   nameRu: 'Ледышка',
+  school: 'water',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
   baseDamage: 7,
-  statusEffect: 'chill',
-  statusChance: 0.2,
-  description: 'Ледяной осколок. 20% шанс Охлаждения.',
+  description: 'Ледяной осколок.',
 };
 
-/** T2 — Ледяная стрела: удар по цели + взрыв AoE 45px, 20% охлаждение */
+/** T2 — Ледяная стрела: удар по цели + взрыв AoE 45px */
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_water_t2',
   prerequisiteId: 'mob_water_t1',
   nameRu: 'Лед. стрела',
+  school: 'water',
   damageType: 'magic',
   cooldown: 4.0,
   manaCost: 10,
@@ -109,15 +102,14 @@ export const MOB_WATER_T2: AbilityDef = {
   baseDamage: 13,
   isAoe: true,
   aoeRadius: 45,
-  statusEffect: 'chill',
-  statusChance: 0.2,
-  description: 'Удар по цели + взрыв 45px. 20% охлаждение на каждую цель.',
+  description: 'Удар по цели + взрыв 45px.',
 };
 
-/** T3 — Ледяной дождь: AOE */
+/** T3 — Ледяной дождь: AOE (NPC only) */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_water_t3',
   nameRu: 'Лед. дождь',
+  school: 'water',
   damageType: 'magic',
   castTime: 1.0,
   cooldown: 10,
@@ -126,16 +118,15 @@ export const MOB_WATER_T3: AbilityDef = {
   baseDamage: 16,
   isAoe: true,
   aoeRadius: 80,
-  statusEffect: 'chill',
-  statusChance: 0.2,
-  description: 'Зона ледяного дождя. 20% шанс Охлаждения.',
+  description: 'Зона ледяного дождя.',
 };
 
-/** Enchant — Зачарование водой: toggle-аура, оружие наносит доп. маг. урон водой */
+/** Enchant — Зачарование водой: toggle-аура */
 export const ENCHANT_WATER: AbilityDef = {
   id: 'enchant_water',
   prerequisiteId: 'mob_water_t2',
   nameRu: 'Зачарование: Вода',
+  school: 'water',
   damageType: 'magic',
   effectType: 'weapon_enchant',
   isToggle: true,
@@ -145,32 +136,30 @@ export const ENCHANT_WATER: AbilityDef = {
   baseDamage: 0,
   enchantDamage: 8,
   regenPenalty: 0.3,
-  statusEffect: 'chill',
-  statusChance: 0.2,
-  description: 'Аура: оружие наносит доп. урон водой (от Интеллекта). 20% Охлаждение. Реген маны −30%.',
+  description: 'Аура: оружие наносит доп. урон водой (от Интеллекта). Реген маны −30%.',
 };
 
 // ─── EARTH SCHOOL ──────────────────────────────────────────────────────────────
 
-/** T1 — Камешек: одиночный выстрел, 20% Сокрушение брони (-20%) */
+/** T1 — Камешек: одиночный выстрел */
 export const MOB_EARTH_T1: AbilityDef = {
   id: 'mob_earth_t1',
   nameRu: 'Камешек',
+  school: 'earth',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
   baseDamage: 9,
-  statusEffect: 'armor_reduce',
-  statusChance: 0.2,
-  description: 'Каменный снаряд. 20% шанс Сокрушения брони (-20%).',
+  description: 'Каменный снаряд.',
 };
 
-/** T2 — Каменный шип: удар по цели + 4 шипа крестом по 260px, 20% Пробитие брони (-50%) */
+/** T2 — Каменный шип: удар + 4 шипа крестом, Пробитие брони (spell-specific: armor_break вместо школьного armor_reduce) */
 export const MOB_EARTH_T2: AbilityDef = {
   id: 'mob_earth_t2',
   prerequisiteId: 'mob_earth_t1',
   nameRu: 'Кам. шип',
+  school: 'earth',
   damageType: 'magic',
   effectType: 'cross_aoe',
   crossArmLength: 260,
@@ -181,13 +170,14 @@ export const MOB_EARTH_T2: AbilityDef = {
   baseDamage: 15,
   statusEffect: 'armor_break',
   statusChance: 0.2,
-  description: 'Удар по цели + 4 шипа крестом (260px). 20% Пробитие брони (-50%) на каждую цель.',
+  description: 'Удар по цели + 4 шипа крестом (260px). 20% Пробитие брони (-50%).',
 };
 
-/** T3 — Земляной удар: AOE */
+/** T3 — Земляной удар: AOE (NPC only), Пробитие брони (spell-specific) */
 export const MOB_EARTH_T3: AbilityDef = {
   id: 'mob_earth_t3',
   nameRu: 'Зем. удар',
+  school: 'earth',
   damageType: 'magic',
   castTime: 1.0,
   cooldown: 15,
@@ -198,14 +188,15 @@ export const MOB_EARTH_T3: AbilityDef = {
   aoeRadius: 65,
   statusEffect: 'armor_break',
   statusChance: 0.2,
-  description: 'Мощный удар землёй. 20% шанс Пробития брони.',
+  description: 'Мощный удар землёй. 20% Пробитие брони.',
 };
 
-/** Enchant — Зачарование землёй: toggle-аура, оружие наносит доп. маг. урон землёй */
+/** Enchant — Зачарование землёй: toggle-аура */
 export const ENCHANT_EARTH: AbilityDef = {
   id: 'enchant_earth',
   prerequisiteId: 'mob_earth_t2',
   nameRu: 'Зачарование: Земля',
+  school: 'earth',
   damageType: 'magic',
   effectType: 'weapon_enchant',
   isToggle: true,
@@ -215,31 +206,30 @@ export const ENCHANT_EARTH: AbilityDef = {
   baseDamage: 0,
   enchantDamage: 8,
   regenPenalty: 0.3,
-  statusEffect: 'armor_reduce',
-  statusChance: 0.2,
-  description: 'Аура: оружие наносит доп. урон землёй (от Интеллекта). 20% Сокрушение брони. Реген маны −30%.',
+  description: 'Аура: оружие наносит доп. урон землёй (от Интеллекта). Реген маны −30%.',
 };
 
 // ─── WIND SCHOOL ───────────────────────────────────────────────────────────────
 
-/** T1 — Порыв: одиночный выстрел, 20% двойной урон */
+/** T1 — Порыв: одиночный выстрел */
 export const MOB_WIND_T1: AbilityDef = {
   id: 'mob_wind_t1',
   nameRu: 'Порыв',
+  school: 'wind',
   damageType: 'magic',
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
   baseDamage: 5,
-  doubleDamageChance: 0.2,
-  description: 'Порыв ветра. 20% шанс двойного урона.',
+  description: 'Порыв ветра.',
 };
 
-/** T2 — Ветрорез: 3 смерча конусом 45°, дальность 160px, 20% двойной урон */
+/** T2 — Ветрорез: 3 смерча конусом 45°, дальность 160px */
 export const MOB_WIND_T2: AbilityDef = {
   id: 'mob_wind_t2',
   prerequisiteId: 'mob_wind_t1',
   nameRu: 'Ветрорез',
+  school: 'wind',
   damageType: 'magic',
   effectType: 'cone_projectiles',
   projectileCount: 3,
@@ -248,14 +238,14 @@ export const MOB_WIND_T2: AbilityDef = {
   manaCost: 10,
   range: 160,
   baseDamage: 12,
-  doubleDamageChance: 0.2,
-  description: '3 смерча конусом 45° (160px). 20% двойной урон на каждый.',
+  description: '3 смерча конусом 45° (160px).',
 };
 
-/** T3 — Грозовая туча: AOE */
+/** T3 — Грозовая туча: AOE (NPC only) */
 export const MOB_WIND_T3: AbilityDef = {
   id: 'mob_wind_t3',
   nameRu: 'Гроз. туча',
+  school: 'wind',
   damageType: 'magic',
   castTime: 1.0,
   cooldown: 18,
@@ -264,15 +254,15 @@ export const MOB_WIND_T3: AbilityDef = {
   baseDamage: 14,
   isAoe: true,
   aoeRadius: 90,
-  doubleDamageChance: 0.2,
-  description: 'Молнии по случайным целям в зоне. 20% шанс двойного урона.',
+  description: 'Молнии по случайным целям в зоне.',
 };
 
-/** Enchant — Зачарование ветром: toggle-аура, оружие наносит доп. маг. урон ветром */
+/** Enchant — Зачарование ветром: toggle-аура */
 export const ENCHANT_WIND: AbilityDef = {
   id: 'enchant_wind',
   prerequisiteId: 'mob_wind_t2',
   nameRu: 'Зачарование: Ветер',
+  school: 'wind',
   damageType: 'magic',
   effectType: 'weapon_enchant',
   isToggle: true,
@@ -282,8 +272,7 @@ export const ENCHANT_WIND: AbilityDef = {
   baseDamage: 0,
   enchantDamage: 8,
   regenPenalty: 0.3,
-  doubleDamageChance: 0.2,
-  description: 'Аура: оружие наносит доп. урон ветром (от Интеллекта). 20% двойной урон. Реген маны −30%.',
+  description: 'Аура: оружие наносит доп. урон ветром (от Интеллекта). Реген маны −30%.',
 };
 
 // ─── NATURE SCHOOL ─────────────────────────────────────────────────────────────
@@ -292,13 +281,14 @@ export const ENCHANT_WIND: AbilityDef = {
 export const MOB_NATURE_T1: AbilityDef = {
   id: 'mob_nature_t1',
   nameRu: 'Призыв волка',
+  school: 'nature',
   damageType: 'magic',
   effectType: 'summon_wolf',
   cooldown: 5,
   manaCost: 5,
   range: 0,
   baseDamage: 0,
-  description: 'Призывает волка-союзника. HP и атака волка масштабируются от Интеллекта. Пока волк жив — повторный призыв невозможен.',
+  description: 'Призывает волка-союзника. HP и атака масштабируются от Интеллекта.',
 };
 
 /** T2 — Древесная кора: самобафф +Стойкость на 8 сек */
@@ -306,6 +296,7 @@ export const MOB_NATURE_T2: AbilityDef = {
   id: 'mob_nature_t2',
   prerequisiteId: 'mob_nature_t1',
   nameRu: 'Древесная кора',
+  school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',
   statusEffect: 'bark_armor',

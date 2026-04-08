@@ -10,6 +10,7 @@ import { AbilityDef } from '../types/abilities';
 export const MOB_NEUTRAL_T1: AbilityDef = {
   id: 'acceleration',
   nameRu: 'Ускорение',
+  school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
   statusEffect: 'acceleration',
@@ -24,6 +25,7 @@ export const MOB_NEUTRAL_T1: AbilityDef = {
 export const MOB_NEUTRAL_HEAL: AbilityDef = {
   id: 'neutral_heal',
   nameRu: 'Лечение',
+  school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
   castTime: 1.5,
@@ -39,6 +41,7 @@ export const MOB_NEUTRAL_T2: AbilityDef = {
   id: 'dash',
   prerequisiteId: 'acceleration',
   nameRu: 'Рывок',
+  school: 'neutral',
   damageType: 'melee',
   effectType: 'dash_forward',
   dashDistance: 180,
