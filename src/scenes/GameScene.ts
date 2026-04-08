@@ -328,7 +328,6 @@ export class GameScene extends Phaser.Scene {
     for (const creature of this.creatures) {
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
-        // Убит игроком — onCreatureKilled уже удалит, просто пропускаем
         if (creature.isDead) continue;
         const dt = delta / 1000;
         creature.summonTimer = Math.max(0, creature.summonTimer - dt);
@@ -337,26 +336,59 @@ export class GameScene extends Phaser.Scene {
           this.creatures = this.creatures.filter(c => c !== creature);
           continue;
         }
-        // Ищем ближайшего врага
-        let nearestEnemy: Creature | null = null;
-        let nearestDist = 600;
-        for (const c of this.creatures) {
-          if (c === creature || c.isDead || c.isSummoned) continue;
-          const d = distance(creature.x, creature.y, c.x, c.y);
-          if (d < nearestDist) { nearestDist = d; nearestEnemy = c; }
+
+        // Приоритет: цель игрока > ближайший враг > следовать за игроком
+        let wolfTarget: Creature | null = null;
+
+        // 1. Атакуем цель игрока если она есть и жива
+        if (this.selectedTarget && !this.selectedTarget.isDead && !this.selectedTarget.isSummoned) {
+          wolfTarget = this.selectedTarget;
         }
-        creature.update(time, delta, nearestEnemy?.x, nearestEnemy?.y);
-        if (nearestEnemy && creature.aiState === 'attack' && creature.attackCooldown <= 0) {
-          this.summonedWolfAttackEnemy(creature, nearestEnemy);
+
+        // 2. Иначе ближайший враг в радиусе 300px
+        if (!wolfTarget) {
+          let nearestDist = 300;
+          for (const c of this.creatures) {
+            if (c === creature || c.isDead || c.isSummoned) continue;
+            const d = distance(creature.x, creature.y, c.x, c.y);
+            if (d < nearestDist) { nearestDist = d; wolfTarget = c; }
+          }
+        }
+
+        // 3. Если игрок далеко (>250px) — бежим к нему, бросаем цель
+        const distToPlayer = distance(creature.x, creature.y, px, py);
+        if (distToPlayer > 250) {
+          wolfTarget = null; // бросаем врага, бежим к хозяину
+          creature.update(time, delta, px, py);
+        } else if (wolfTarget) {
+          creature.update(time, delta, wolfTarget.x, wolfTarget.y);
+        } else {
+          // Стоим рядом с игроком
+          creature.update(time, delta, px, py);
+        }
+
+        if (wolfTarget && creature.aiState === 'attack' && creature.attackCooldown <= 0) {
+          this.summonedWolfAttackEnemy(creature, wolfTarget);
         }
         continue;
       }
 
       creature.update(time, delta, px, py);
 
-      // Моб атакует игрока — базовая атака оружием
+      // Моб атакует игрока или призванного волка — базовая атака оружием
       if (creature.aiState === 'attack' && this.playerBody && creature.attackCooldown <= 0) {
-        this.creatureAttackPlayer(creature);
+        // Если рядом призванный волк — может атаковать его
+        let wolfNearby: Creature | null = null;
+        for (const c of this.creatures) {
+          if (!c.isSummoned || c.isDead) continue;
+          const d = distance(creature.x, creature.y, c.x, c.y);
+          if (d < WEAPONS[creature.definition.weapon].range * 1.2) { wolfNearby = c; break; }
+        }
+        if (wolfNearby) {
+          this.creatureAttackWolf(creature, wolfNearby);
+        } else {
+          this.creatureAttackPlayer(creature);
+        }
       }
 
       // Моб кастует заклинание (мгновенное)
@@ -1982,6 +2014,22 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Призванный волк атакует существо */
+  private creatureAttackWolf(creature: Creature, wolf: Creature) {
+    const cwb = WEAPONS[creature.definition.weapon].baseDamage;
+    const result = calcMeleeDamage(creature.stats, wolf.stats, cwb);
+    if (result.hit) {
+      wolf.takeDamage(result.final);
+      this.damageTexts.push(new DamageText(this, wolf.x, wolf.y - 10, result.final, result.crit, false));
+      if (wolf.isDead) {
+        wolf.destroy();
+        this.creatures = this.creatures.filter(c => c !== wolf);
+      }
+    } else {
+      this.damageTexts.push(new DamageText(this, wolf.x, wolf.y - 10, 0, false, true));
+    }
+    creature.attackCooldown = WEAPON_COOLDOWNS[creature.definition.weapon];
+  }
+
   private summonedWolfAttackEnemy(wolf: Creature, target: Creature) {
     const weapon = WEAPONS[wolf.definition.weapon];
     const result = calcMeleeDamage(wolf.stats, target.stats, weapon.baseDamage);
