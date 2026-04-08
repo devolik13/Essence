@@ -320,7 +320,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 1520, y: 1440, creatureId: 't_sword_t1',   count: 1 },
   { x: 1670, y: 930,  creatureId: 't_xbow_t1',    count: 1 },
   // Оружейные T2 (внутренний круг, радиус ~250px)
-  { x: 1820, y: 1030, creatureId: 't_dagger_t2',  count: 1 },
   { x: 1920, y: 1030, creatureId: 't_sword_t2',   count: 1 },
   { x: 2020, y: 1030, creatureId: 't_mace_t2',    count: 1 },
   { x: 2120, y: 1100, creatureId: 't_gsword_t2',  count: 1 },
