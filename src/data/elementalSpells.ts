@@ -121,9 +121,9 @@ export const MOB_WATER_T3: AbilityDef = {
   baseDamage: 16,
   isAoe: true,
   aoeRadius: 80,
-  statusEffect: 'freeze',
+  statusEffect: 'chill',
   statusChance: 0.3,
-  description: 'AoE ледяной дождь (r80). 30% шанс Заморозки на каждую цель.',
+  description: 'AoE ледяной дождь (r80). 30% шанс Охлаждения на каждую цель.',
 };
 
 /** Enchant — Зачарование водой: toggle-аура */
@@ -191,7 +191,7 @@ export const MOB_EARTH_T3: AbilityDef = {
   range: 120,
   baseDamage: 0,
   wallHP: 50,
-  description: 'Призывает каменную стену (50 HP). Блокирует движение и снаряды.',
+  description: 'Призывает каменную стену (HP = 50 × (1+Инт/100)). Блокирует движение и снаряды.',
 };
 
 /** Enchant — Зачарование землёй: toggle-аура */
@@ -244,20 +244,23 @@ export const MOB_WIND_T2: AbilityDef = {
   description: '3 смерча конусом 45° (160px).',
 };
 
-/** T3 — Ветряная стена: бафф, снижение входящего урона (оригинал Archimage) */
+/** T3 — Ветряная стена: размещаемый барьер, снаряды теряют урон пролетая через (оригинал Archimage) */
 export const MOB_WIND_T3: AbilityDef = {
   id: 'mob_wind_t3',
   nameRu: 'Ветр. стена',
   school: 'wind',
   damageType: 'magic',
-  effectType: 'self_buff',
-  statusEffect: 'wind_shield',
+  effectType: 'wind_barrier',
   castTime: 0.5,
   cooldown: 18,
   manaCost: 15,
-  range: 0,
+  range: 200,
   baseDamage: 0,
-  description: 'Ветряной щит: входящий урон −25% на 8 сек.',
+  isAoe: true,
+  aoeRadius: 80,
+  barrierDamageReduction: 0.25,
+  barrierDuration: 8,
+  description: 'Размещает ветряную стену (r80, 8 сек). Снаряды пролетая через неё теряют 25% урона.',
 };
 
 /** Enchant — Зачарование ветром: toggle-аура */

@@ -17,7 +17,6 @@ export type StatusEffectId =
   | 'acceleration'     // Ускорение
   | 'inspiration'      // Вдохновение
   | 'bark_armor'       // Древесная кора (бафф брони)
-  | 'wind_shield'      // Ветряная стена (снижение входящего урона)
   | 'leaf_regen'       // Покров листвы (реген HP аура)
   // Контроль действий
   | 'stun'             // Оглушение
@@ -269,11 +268,6 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'leaf_regen', nameRu: 'Покров листвы',
     maxStacks: 1, duration: 10, stackBehavior: 'refresh',
     regenHpBonus: 1.0, // +100% реген HP (≈5% HP/2 сек при 60 сек полного бара)
-  },
-  wind_shield: {
-    id: 'wind_shield', nameRu: 'Ветряная стена',
-    maxStacks: 1, duration: 8, stackBehavior: 'refresh',
-    incomingDamageReduction: 0.25,
   },
   bark_armor: {
     id: 'bark_armor', nameRu: 'Древесная кора',

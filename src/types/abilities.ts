@@ -20,7 +20,7 @@ export interface AbilityDef {
   aoeRadius?: number;
 
   /** Особый механический эффект умения */
-  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'summon_wall' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant' | 'ground_zone';
+  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'summon_wall' | 'wind_barrier' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant' | 'ground_zone';
   /** Дальность броска вперёд (dash_forward), пикс */
   dashDistance?: number;
   /** Количество целей насквозь (pierce) */
@@ -47,8 +47,14 @@ export interface AbilityDef {
   zoneDps?: number;
 
   // --- Summon Wall (summon_wall) ---
-  /** HP стены-призыва */
+  /** HP стены-призыва (масштабируется: wallHP × (1 + Int/100)) */
   wallHP?: number;
+
+  // --- Wind Barrier (wind_barrier) ---
+  /** Снижение урона снарядов, пролетающих через барьер (0.25 = −25%) */
+  barrierDamageReduction?: number;
+  /** Длительность барьера в секундах */
+  barrierDuration?: number;
 
   /** Статус-эффект накладываемый на цель */
   statusEffect?: StatusEffectId;
