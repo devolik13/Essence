@@ -181,6 +181,71 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     ],
   },
 
+  // Старая башня мага — север, буфер между деревней и зоной воды
+  // Концепт: x:48-56, y:10-22 → пиксели: x:1536-1792, y:320-704
+  {
+    id: 'mage_tower',
+    label: 'Старая башня мага',
+    spawnGroups: [
+      { x: 1600, y: 420,  creatureId: 'shaman',       count: 2 },
+      { x: 1720, y: 480,  creatureId: 'spirit_wolf',  count: 2 },
+      { x: 1660, y: 560,  creatureId: 'shaman',       count: 1 },
+      { x: 1750, y: 600,  creatureId: 'spirit_wolf',  count: 1 },
+    ],
+  },
+
+  // Дом ведьмы — юго-восток, буфер между зоной огня и зоной ветра
+  // Концепт: x:72-82, y:52-62 → пиксели: x:2304-2624, y:1664-1984
+  {
+    id: 'witch_house',
+    label: 'Дом ведьмы',
+    spawnGroups: [
+      { x: 2380, y: 1750, creatureId: 'goblin',          count: 3 },
+      { x: 2500, y: 1800, creatureId: 'goblin',          count: 2 },
+      { x: 2450, y: 1880, creatureId: 'goblin_veteran',  count: 1 },
+    ],
+  },
+
+  // Заброшенная шахта — юго-запад, рядом с зоной земли
+  // Концепт: x:10-24, y:52-65 → пиксели: x:320-768, y:1664-2080
+  {
+    id: 'abandoned_mine',
+    label: 'Заброшенная шахта',
+    spawnGroups: [
+      { x: 400,  y: 1720, creatureId: 'pebble',   count: 3 },
+      { x: 550,  y: 1780, creatureId: 'mudder',   count: 2 },
+      { x: 450,  y: 1860, creatureId: 'pebble',   count: 2 },
+      { x: 600,  y: 1920, creatureId: 'mudder',   count: 2 },
+      { x: 500,  y: 2000, creatureId: 'pebble',   count: 2 },
+      { x: 650,  y: 1980, creatureId: 'mudder',   count: 1 },
+    ],
+  },
+
+  // Разрушенный мост — север деревни, переход к Туманному озеру
+  // Концепт: x:52-68, y:26-34 → пиксели: x:1664-2176, y:832-1088
+  {
+    id: 'broken_bridge',
+    label: 'Разрушенный мост',
+    spawnGroups: [
+      { x: 1750, y: 870,  creatureId: 'splasher',  count: 2 },
+      { x: 1900, y: 900,  creatureId: 'fogger',    count: 2 },
+      { x: 2050, y: 880,  creatureId: 'splasher',  count: 2 },
+      { x: 1850, y: 950,  creatureId: 'fogger',    count: 1 },
+    ],
+  },
+
+  // Поляна духов — юго-запад, между землёй и ветром, лор Пустоты
+  // Концепт: x:48-56, y:55-65 → пиксели: x:1536-1792, y:1760-2080
+  {
+    id: 'spirit_meadow',
+    label: 'Поляна духов',
+    spawnGroups: [
+      { x: 1580, y: 1820, creatureId: 'spirit',  count: 2 },
+      { x: 1700, y: 1900, creatureId: 'spirit',  count: 2 },
+      { x: 1640, y: 2000, creatureId: 'spirit',  count: 1 },
+    ],
+  },
+
   // Лагерь разбойников — северо-запад, далеко от деревни (village x1=1664, y1=1056)
   // Центр ~(900, 780), безопасный разрыв ~764px на запад и ~276px на север
   {
