@@ -306,7 +306,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 2330, y: 1370, creatureId: 't_nature_t2', count: 1 },
   { x: 2300, y: 1440, creatureId: 't_nature_t3', count: 1 },
   // Нейтральная (юго-восток)
-  { x: 2250, y: 1510, creatureId: 't_accel', count: 1 },
   { x: 2170, y: 1560, creatureId: 't_dash',  count: 1 },
   { x: 2070, y: 1590, creatureId: 't_heal',  count: 1 },
   // Зачарования (юг)
@@ -315,13 +314,11 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 1770, y: 1590, creatureId: 't_ench_earth', count: 1 },
   { x: 1670, y: 1560, creatureId: 't_ench_wind',  count: 1 },
   // Оружейные T1 (юго-запад → запад)
-  { x: 1520, y: 1440, creatureId: 't_sword_t1',   count: 1 },
   { x: 1670, y: 930,  creatureId: 't_xbow_t1',    count: 1 },
   // Оружейные T2 (внутренний круг, радиус ~250px)
   { x: 1920, y: 1030, creatureId: 't_sword_t2',   count: 1 },
   { x: 2020, y: 1030, creatureId: 't_mace_t2',    count: 1 },
   { x: 2120, y: 1100, creatureId: 't_gsword_t2',  count: 1 },
-  { x: 2170, y: 1200, creatureId: 't_spear_t2',   count: 1 },
   { x: 2170, y: 1360, creatureId: 't_hammer_t2',  count: 1 },
   { x: 2120, y: 1460, creatureId: 't_sbow_t2',    count: 1 },
   { x: 1920, y: 1510, creatureId: 't_lbow_t2',    count: 1 },
