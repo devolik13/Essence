@@ -292,6 +292,54 @@ export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
   { x: 2750, y: 1280, creatureId: 'goblin_veteran', count: 1 },
 ];
 
+// ─── Тестовые сферы (по кругу вокруг деревни, радиус ~350px) ──────────────────
+
+export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
+  // Стихии T1 (север)
+  { x: 1770, y: 930, creatureId: 't_fire_t1',  count: 1 },
+  { x: 1870, y: 930, creatureId: 't_water_t1', count: 1 },
+  { x: 1970, y: 930, creatureId: 't_earth_t1', count: 1 },
+  { x: 2070, y: 930, creatureId: 't_wind_t1',  count: 1 },
+  // Стихии T2 (северо-восток)
+  { x: 2250, y: 980,  creatureId: 't_fire_t2',  count: 1 },
+  { x: 2300, y: 1050, creatureId: 't_water_t2', count: 1 },
+  { x: 2330, y: 1130, creatureId: 't_earth_t2', count: 1 },
+  { x: 2340, y: 1210, creatureId: 't_wind_t2',  count: 1 },
+  // Природа (восток)
+  { x: 2340, y: 1290, creatureId: 't_nature_t1', count: 1 },
+  { x: 2330, y: 1370, creatureId: 't_nature_t2', count: 1 },
+  { x: 2300, y: 1440, creatureId: 't_nature_t3', count: 1 },
+  // Нейтральная (юго-восток)
+  { x: 2250, y: 1510, creatureId: 't_accel', count: 1 },
+  { x: 2170, y: 1560, creatureId: 't_dash',  count: 1 },
+  { x: 2070, y: 1590, creatureId: 't_heal',  count: 1 },
+  // Зачарования (юг)
+  { x: 1970, y: 1600, creatureId: 't_ench_fire',  count: 1 },
+  { x: 1870, y: 1600, creatureId: 't_ench_water', count: 1 },
+  { x: 1770, y: 1590, creatureId: 't_ench_earth', count: 1 },
+  { x: 1670, y: 1560, creatureId: 't_ench_wind',  count: 1 },
+  // Оружейные T1 (юго-запад → запад)
+  { x: 1580, y: 1510, creatureId: 't_dagger_t1',  count: 1 },
+  { x: 1520, y: 1440, creatureId: 't_sword_t1',   count: 1 },
+  { x: 1500, y: 1370, creatureId: 't_mace_t1',    count: 1 },
+  { x: 1490, y: 1290, creatureId: 't_gsword_t1',  count: 1 },
+  { x: 1500, y: 1210, creatureId: 't_spear_t1',   count: 1 },
+  { x: 1520, y: 1130, creatureId: 't_hammer_t1',  count: 1 },
+  { x: 1560, y: 1050, creatureId: 't_sbow_t1',    count: 1 },
+  { x: 1610, y: 980,  creatureId: 't_lbow_t1',    count: 1 },
+  { x: 1670, y: 930,  creatureId: 't_xbow_t1',    count: 1 },
+  // Оружейные T2 (внутренний круг, радиус ~250px)
+  { x: 1820, y: 1030, creatureId: 't_dagger_t2',  count: 1 },
+  { x: 1920, y: 1030, creatureId: 't_sword_t2',   count: 1 },
+  { x: 2020, y: 1030, creatureId: 't_mace_t2',    count: 1 },
+  { x: 2120, y: 1100, creatureId: 't_gsword_t2',  count: 1 },
+  { x: 2170, y: 1200, creatureId: 't_spear_t2',   count: 1 },
+  { x: 2170, y: 1360, creatureId: 't_hammer_t2',  count: 1 },
+  { x: 2120, y: 1460, creatureId: 't_sbow_t2',    count: 1 },
+  { x: 1920, y: 1510, creatureId: 't_lbow_t2',    count: 1 },
+  { x: 1720, y: 1460, creatureId: 't_xbow_t2',    count: 1 },
+];
+
 /** Village Eshworth — safe zone, player start point */
 export const VILLAGE_CENTER = { x: 1920, y: 1280 };
 

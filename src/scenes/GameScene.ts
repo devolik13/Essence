@@ -23,7 +23,7 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
-import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, VILLAGE_CENTER, VILLAGE_BOUNDS } from '../data/chapter1';
+import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, TEST_SPELL_SPAWNS, VILLAGE_CENTER, VILLAGE_BOUNDS } from '../data/chapter1';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 
@@ -663,6 +663,7 @@ export class GameScene extends Phaser.Scene {
     // ── Стартовая зона (вокруг деревни Эшворт) ───────────
     // Малый джиттер ±40px — пассивные мобы не вылезают за границы деревни
     spawnGroups(VILLAGE_STARTER_SPAWNS, 40);
+    spawnGroups(TEST_SPELL_SPAWNS, 10);
   }
 
   // ─── Атака ────────────────────────────────────────────
