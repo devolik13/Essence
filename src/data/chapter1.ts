@@ -297,9 +297,7 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   // Стихии T1 (север)
   { x: 1770, y: 930, creatureId: 't_fire_t1',  count: 1 },
   // Стихии T2 (северо-восток)
-  { x: 2250, y: 980,  creatureId: 't_fire_t2',  count: 1 },
   { x: 2300, y: 1050, creatureId: 't_water_t2', count: 1 },
-  { x: 2340, y: 1210, creatureId: 't_wind_t2',  count: 1 },
   // Природа (восток)
   { x: 2340, y: 1290, creatureId: 't_nature_t1', count: 1 },
   { x: 2330, y: 1370, creatureId: 't_nature_t2', count: 1 },
