@@ -14,6 +14,7 @@ export const MOB_NEUTRAL_T1: AbilityDef = {
   damageType: 'melee',
   effectType: 'self_buff',
   statusEffect: 'acceleration',
+  castTime: 1,
   cooldown: 8,
   manaCost: 5,
   range: 0,
