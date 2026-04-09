@@ -33,7 +33,7 @@ export const MOB_FIRE_T2: AbilityDef = {
   effectType: 'multi_projectile',
   projectileCount: 5,
   projectileRadius: 150,
-  cooldown: 3.5,
+  cooldown: 5,
   manaCost: 10,
   range: 240,
   baseDamage: 6,

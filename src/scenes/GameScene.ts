@@ -360,6 +360,7 @@ export class GameScene extends Phaser.Scene {
         if (creature.summonTimer <= 0) {
           creature.destroy();
           this.creatures = this.creatures.filter(c => c !== creature);
+          this.startWolfCooldown();
           continue;
         }
 
@@ -1281,8 +1282,11 @@ export class GameScene extends Phaser.Scene {
       if (this.creatures.some(c => c.isSummoned && !c.isDead)) {
         slot.cooldownRemaining = 0;
         this.playerBody.currentMana += spell.manaCost;
+        this.events.emit('log', { text: 'Волк ещё жив', color: '#aaaaaa' });
         return;
       }
+      // КД не ставим сейчас — запустится когда волк умрёт
+      slot.cooldownRemaining = 0;
       this.spawnSummonedWolf(this.playerBody.x + 40, this.playerBody.y);
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -2151,6 +2155,17 @@ export class GameScene extends Phaser.Scene {
 
   // ─── Призыв ───────────────────────────────────────────
 
+  /** Запускает КД волка на панели (после смерти волка) */
+  private startWolfCooldown() {
+    if (!this.playerBody) return;
+    for (const slot of this.playerBody.abilitySlots) {
+      if (slot.ability?.effectType === 'summon_wolf') {
+        slot.cooldownRemaining = slot.ability.cooldown;
+        break;
+      }
+    }
+  }
+
   private spawnSummonedWolf(x: number, y: number) {
     const def = CREATURE_DB['wolf'];
     if (!def) return;
@@ -2176,6 +2191,7 @@ export class GameScene extends Phaser.Scene {
       if (wolf.isDead) {
         wolf.destroy();
         this.creatures = this.creatures.filter(c => c !== wolf);
+        this.startWolfCooldown();
       }
     } else {
       this.damageTexts.push(new DamageText(this, wolf.x, wolf.y - 10, 0, false, true));
