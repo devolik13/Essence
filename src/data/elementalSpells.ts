@@ -58,7 +58,7 @@ export const MOB_FIRE_T3: AbilityDef = {
   wallWidth: 140,
   wallThickness: 30,
   zoneDuration: 5,
-  zoneDps: 12,
+  zoneDps: 35,
   description: 'Стена огня (140×30, 5 сек). Враги в зоне получают 12 урона/сек.',
 };
 
@@ -127,7 +127,7 @@ export const MOB_WATER_T3: AbilityDef = {
   isAoe: true,
   aoeRadius: 80,
   zoneDuration: 3,
-  zoneDps: 16,
+  zoneDps: 25,
   statusEffect: 'chill',
   statusChance: 0.3,
   description: 'Зона ледяного дождя (r80, 3 сек). 16 урона/сек. 30% Охлаждение.',
