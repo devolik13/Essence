@@ -18,6 +18,8 @@ export interface AbilityDef {
   baseDamage: number;
   isAoe?: boolean;
   aoeRadius?: number;
+  /** Урон от AoE взрыва (projectile_aoe) — если отличается от baseDamage */
+  splashDamage?: number;
 
   /** Особый механический эффект умения */
   effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'summon_wall' | 'wind_barrier' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant' | 'ground_zone' | 'projectile_aoe';

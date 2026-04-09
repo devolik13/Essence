@@ -19,7 +19,7 @@ export const MOB_FIRE_T1: AbilityDef = {
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
-  baseDamage: 6,
+  baseDamage: 20,
   description: 'Быстрый магический разряд огня.',
 };
 
@@ -36,8 +36,8 @@ export const MOB_FIRE_T2: AbilityDef = {
   cooldown: 3.5,
   manaCost: 10,
   range: 240,
-  baseDamage: 11,
-  description: '5 огненных снарядов в случайные цели в радиусе 150px.',
+  baseDamage: 6,
+  description: '5 снарядов по 6 урона в случайные цели (радиус 150px).',
 };
 
 /** T3 — Огненная стена: зона на земле, урон стоящим в ней (оригинал Archimage) */
@@ -91,7 +91,7 @@ export const MOB_WATER_T1: AbilityDef = {
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
-  baseDamage: 7,
+  baseDamage: 20,
   description: 'Ледяной осколок.',
 };
 
@@ -106,9 +106,10 @@ export const MOB_WATER_T2: AbilityDef = {
   cooldown: 4.0,
   manaCost: 10,
   range: 240,
-  baseDamage: 13,
+  baseDamage: 15,
+  splashDamage: 10,
   aoeRadius: 45,
-  description: 'Снаряд в цель + взрыв 45px вокруг неё.',
+  description: 'Снаряд 15 урона + взрыв 10 урона (r45).',
 };
 
 /** T3 — Ледяной дождь: зона ледяного дождя, урон + охлаждение 3 сек */
@@ -161,7 +162,7 @@ export const MOB_EARTH_T1: AbilityDef = {
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
-  baseDamage: 9,
+  baseDamage: 20,
   description: 'Каменный снаряд.',
 };
 
@@ -178,7 +179,7 @@ export const MOB_EARTH_T2: AbilityDef = {
   cooldown: 5.0,
   manaCost: 10,
   range: 240,
-  baseDamage: 15,
+  baseDamage: 20,
   statusEffect: 'armor_break',
   statusChance: 0.2,
   description: 'Удар по цели + 4 шипа крестом (260px). 20% Пробитие брони (-50%).',
@@ -235,7 +236,7 @@ export const MOB_WIND_T1: AbilityDef = {
   cooldown: 2.0,
   manaCost: 5,
   range: 240,
-  baseDamage: 5,
+  baseDamage: 20,
   description: 'Порыв ветра.',
 };
 
@@ -252,8 +253,8 @@ export const MOB_WIND_T2: AbilityDef = {
   cooldown: 5.0,
   manaCost: 10,
   range: 160,
-  baseDamage: 12,
-  description: '3 смерча конусом 45° (160px).',
+  baseDamage: 20,
+  description: '3 смерча по 20 урона конусом 45° (160px).',
 };
 
 /** T3 — Ветряная стена: размещаемый барьер, снаряды теряют урон пролетая через (оригинал Archimage) */
