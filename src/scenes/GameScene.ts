@@ -355,14 +355,6 @@ export class GameScene extends Phaser.Scene {
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
         if (creature.isDead) continue;
-        const dt = delta / 1000;
-        creature.summonTimer = Math.max(0, creature.summonTimer - dt);
-        if (creature.summonTimer <= 0) {
-          creature.destroy();
-          this.creatures = this.creatures.filter(c => c !== creature);
-          this.startWolfCooldown();
-          continue;
-        }
 
         // Приоритет: цель игрока > ближайший враг > следовать за игроком
         let wolfTarget: Creature | null = null;
@@ -2171,7 +2163,7 @@ export class GameScene extends Phaser.Scene {
     if (!def) return;
     const wolf = new Creature(this, x, y, def);
     wolf.isSummoned = true;
-    wolf.summonTimer = 30;
+    wolf.summonTimer = Infinity; // волк живёт пока не убьют
     // Масштабирование от Интеллекта призывателя
     const intel = this.sphere.stats.intellect ?? 0;
     wolf.currentHP = wolf.currentHP + intel;
