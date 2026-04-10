@@ -119,6 +119,14 @@ export interface AbilityDef {
   bonusDamagePerSelfDebuff?: number;
   /** Бонус % урона за каждый бафф на цели (0.1 = +10%) */
   bonusDamagePercentPerTargetBuff?: number;
+  /** Бонус % урона если у цели < 50% HP (0.5 = +50%) */
+  executeBonusPercent?: number;
+  /** Бонус % урона если нет активного зачарования (0.3 = +30%) */
+  bonusDamageIfNoEnchant?: number;
+  /** Исцеление за каждый активный статус-эффект на себе (HP) */
+  healPerStatusEffect?: number;
+  /** Целится в союзника вместо врага */
+  targetAlly?: boolean;
 
   description: string;
 }

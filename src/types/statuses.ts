@@ -42,6 +42,11 @@ export type StatusEffectId =
   | 'evasion_boost'    // Бонус уклонения (групповой)
   | 'block_next'       // Блок следующей атаки
   | 'shield_stance'    // Щитовая стойка (замедление + броня)
+  | 'stun_immune'      // Иммунитет к оглушению
+  | 'knockback_immune' // Иммунитет к отбрасыванию
+  | 'ranged_resist'    // Защита от стрелков
+  | 'regen_per_buff'   // Реген за каждый бафф
+  | 'regen_per_debuff' // Реген за каждый дебафф
   // Баффы
   | 'mana_regen_boost'  // Усиление регена маны
   | 'mana_regen_block'  // Блок регена маны
@@ -124,6 +129,16 @@ export interface StatusEffectDef {
   evasionBonus?: number;
   /** Блокирует следующую 1 атаку полностью (снимается при попадании) */
   blockNextAttack?: boolean;
+  /** Иммунитет к оглушению */
+  stunImmune?: boolean;
+  /** Иммунитет к отбрасыванию */
+  knockbackImmune?: boolean;
+  /** Снижение входящего дальнего урона (0.3 = −30%) */
+  rangedDamageReduction?: number;
+  /** Реген HP/сек за каждый активный бафф на себе */
+  regenPerBuff?: number;
+  /** Реген HP/сек за каждый активный дебафф на себе */
+  regenPerDebuff?: number;
   /** Добавить КД к следующей абилке цели (concussion: 10 сек) */
   addCooldownToNextAbility?: number;
 }
@@ -324,6 +339,31 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     moveSlow: 0.3, // −30% скорость
     armorBonus: 15, // +15 Armor
+  },
+  stun_immune: {
+    id: 'stun_immune', nameRu: 'Непоколебимость',
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    stunImmune: true,
+  },
+  knockback_immune: {
+    id: 'knockback_immune', nameRu: 'Твёрдая стойка',
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    knockbackImmune: true,
+  },
+  ranged_resist: {
+    id: 'ranged_resist', nameRu: 'Закалка',
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    rangedDamageReduction: 0.3, // −30% входящего дальнего урона
+  },
+  regen_per_buff: {
+    id: 'regen_per_buff', nameRu: 'Подпитка',
+    maxStacks: 1, duration: 8, stackBehavior: 'refresh',
+    regenPerBuff: 3, // +3 HP/сек за каждый бафф
+  },
+  regen_per_debuff: {
+    id: 'regen_per_debuff', nameRu: 'Стойкость духа',
+    maxStacks: 1, duration: 8, stackBehavior: 'refresh',
+    regenPerDebuff: 3, // +3 HP/сек за каждый дебафф
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',

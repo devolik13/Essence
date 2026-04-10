@@ -133,3 +133,172 @@ export const ABILITY_EXPOSE: AbilityDef = {
   bonusDamagePercentPerTargetBuff: 0.1,
   description: 'Удар. +10% урона за каждый бафф на противнике.',
 };
+
+/** Адаптация — при смене оружия следующий навык бесплатный */
+export const ABILITY_ADAPTATION: AbilityDef = {
+  id: 'adaptation',
+  nameRu: 'Адаптация',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  cooldown: 15,
+  manaCost: 5,
+  range: 0,
+  baseDamage: 0,
+  grantFreeNextCast: true,
+  description: 'Следующий навык не тратит ману. Идеально после смены оружия/тела.',
+};
+
+/** Подпитка — реген HP за каждый бафф на себе */
+export const ABILITY_SUSTAIN: AbilityDef = {
+  id: 'sustain',
+  nameRu: 'Подпитка',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'regen_per_buff',
+  cooldown: 15,
+  castTime: 1,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  description: '+3 HP/сек за каждый активный бафф на себе (8 сек).',
+};
+
+/** Стойкость духа — реген HP за каждый дебафф на себе */
+export const ABILITY_SPIRIT_RESILIENCE: AbilityDef = {
+  id: 'spirit_resilience',
+  nameRu: 'Стойкость духа',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'regen_per_debuff',
+  cooldown: 15,
+  castTime: 1,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  description: '+3 HP/сек за каждый активный дебафф на себе (8 сек).',
+};
+
+/** Закалка — защита от дальних атак */
+export const ABILITY_RANGED_RESIST: AbilityDef = {
+  id: 'ranged_resist',
+  nameRu: 'Закалка',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'ranged_resist',
+  cooldown: 12,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  description: '−30% входящего дальнего урона на 5 сек.',
+};
+
+/** Очищение — лечение за каждый статус на себе */
+export const ABILITY_PURIFY: AbilityDef = {
+  id: 'purify',
+  nameRu: 'Очищение',
+  school: 'neutral',
+  damageType: 'magic',
+  effectType: 'self_heal',
+  cooldown: 10,
+  castTime: 1.5,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  healPerStatusEffect: 10,
+  description: 'Лечит 10 HP за каждый активный статус (бафф или дебафф) на себе.',
+};
+
+/** Непоколебимость — иммунитет к оглушению */
+export const ABILITY_UNSHAKEABLE: AbilityDef = {
+  id: 'unshakeable',
+  nameRu: 'Непоколебимость',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'stun_immune',
+  cooldown: 15,
+  manaCost: 5,
+  range: 0,
+  baseDamage: 0,
+  description: 'Иммунитет к оглушению на 5 сек.',
+};
+
+/** Твёрдая стойка — иммунитет к отбрасыванию */
+export const ABILITY_FIRM_STANCE: AbilityDef = {
+  id: 'firm_stance',
+  nameRu: 'Твёрдая стойка',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'knockback_immune',
+  cooldown: 15,
+  manaCost: 5,
+  range: 0,
+  baseDamage: 0,
+  description: 'Иммунитет к отбрасыванию на 5 сек.',
+};
+
+/** Боевой марш — ускорение союзников */
+export const ABILITY_BATTLE_MARCH: AbilityDef = {
+  id: 'battle_march',
+  nameRu: 'Боевой марш',
+  school: 'neutral',
+  damageType: 'melee',
+  cooldown: 20,
+  castTime: 1,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  isAoe: true,
+  aoeRadius: 200,
+  statusEffect: 'acceleration',
+  description: 'Союзники в r200 получают +50% скорости на 5 сек.',
+};
+
+/** Добивание — бонус урон если у цели < 50% HP */
+export const ABILITY_EXECUTE: AbilityDef = {
+  id: 'execute',
+  nameRu: 'Добивание',
+  school: 'neutral',
+  damageType: 'melee',
+  cooldown: 8,
+  manaCost: 10,
+  range: 60,
+  baseDamage: 12,
+  executeBonusPercent: 0.5,
+  description: 'Удар. +50% урона если у цели менее 50% HP.',
+};
+
+/** Чистый удар — бонус урон если нет зачарования */
+export const ABILITY_PURE_STRIKE: AbilityDef = {
+  id: 'pure_strike',
+  nameRu: 'Чистый удар',
+  school: 'neutral',
+  damageType: 'melee',
+  cooldown: 6,
+  manaCost: 10,
+  range: 60,
+  baseDamage: 12,
+  bonusDamageIfNoEnchant: 0.3,
+  description: 'Удар. +30% урона если нет активного зачарования.',
+};
+
+/** Исцеление союзника — лечит выбранного союзника */
+export const ABILITY_ALLY_HEAL: AbilityDef = {
+  id: 'ally_heal',
+  nameRu: 'Исцеление союзника',
+  school: 'neutral',
+  damageType: 'magic',
+  effectType: 'self_heal',
+  targetAlly: true,
+  cooldown: 8,
+  castTime: 1.5,
+  manaCost: 10,
+  range: 150,
+  baseDamage: 20,
+  description: 'Лечит выбранного союзника на 20 × (1 + Интеллект/100) HP. Дальность 150.',
+};
