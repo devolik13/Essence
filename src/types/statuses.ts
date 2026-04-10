@@ -33,8 +33,10 @@ export type StatusEffectId =
   | 'drain'            // Иссушение
   | 'blind'            // Ослепление
   | 'vulnerability'    // Уязвимость
-  | 'stagger'          // Ошеломление
+  | 'stagger'          // Ошеломление (макс мана)
   | 'curse'            // Проклятие
+  | 'daze'             // Ошеломление кастетов (+30% каст)
+  | 'accuracy_reduce'  // Понижение точности
   // Баффы
   | 'mana_regen_boost'  // Усиление регена маны
   | 'mana_regen_block'  // Блок регена маны
@@ -95,6 +97,8 @@ export interface StatusEffectDef {
   strengthReduction?: number;
   /** Снижение ловкости (0.2 = −20%) */
   agilityReduction?: number;
+  /** Снижение точности (0.2 = −20%) */
+  accuracyReduction?: number;
   /** Шанс промаха в ближнем бою (0.5 = 50%) */
   meleeMissChance?: number;
   /** Снижение максимальной маны (0.5 = −50%) */
@@ -273,6 +277,16 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'bark_armor', nameRu: 'Древесная кора',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     armorBonus: 20,
+  },
+  daze: {
+    id: 'daze', nameRu: 'Ошеломление',
+    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
+    castTimeIncrease: 0.3, // +30% время каста
+  },
+  accuracy_reduce: {
+    id: 'accuracy_reduce', nameRu: 'Понижение точности',
+    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
+    accuracyReduction: 0.3, // −30% точность
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',

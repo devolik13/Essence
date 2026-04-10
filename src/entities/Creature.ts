@@ -248,6 +248,8 @@ export class Creature extends Phaser.GameObjects.Container {
     armor_reduce: { icon: '↓', color: '#aa8844' },
     armor_break:  { icon: '⇊', color: '#ff8800' },
     vulnerability:{ icon: '◇', color: '#ff6666' },
+    daze:         { icon: '💫', color: '#ffcc44' },
+    accuracy_reduce: { icon: '◎', color: '#ff8866' },
     acceleration: { icon: '»', color: '#ffff88' },
     bark_armor:   { icon: '🛡', color: '#886633' },
     leaf_regen:   { icon: '❤', color: '#44ff44' },
