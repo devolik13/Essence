@@ -29,6 +29,13 @@ export interface WeaponDef {
   weaponEffect?: StatusEffectId;
   /** Шанс фирменного эффекта (0-1) */
   weaponEffectChance?: number;
+  /** Шанс сброса КД при атаке (длинный лук) */
+  weaponResetCooldownChance?: number;
+  /** Шанс двойного урона при атаке (штормовой посох) */
+  weaponDoubleDamageChance?: number;
+  /** Шанс самоисцеления при атаке + % от макс HP (посох природы) */
+  weaponSelfHealChance?: number;
+  weaponSelfHealPercent?: number;
 }
 
 export const WEAPONS: Record<WeaponType, WeaponDef> = {
@@ -39,12 +46,12 @@ export const WEAPONS: Record<WeaponType, WeaponDef> = {
   [WeaponType.Mace]:       { type: WeaponType.Mace,       nameRu: 'Булава',       cooldown: WEAPON_COOLDOWNS[WeaponType.Mace],       range: 44,  isMelee: true,  baseDamage: 14, weaponEffect: 'interrupt',  weaponEffectChance: 0.2 },
   [WeaponType.Hammer]:     { type: WeaponType.Hammer,     nameRu: 'Молот',        cooldown: WEAPON_COOLDOWNS[WeaponType.Hammer],     range: 52,  isMelee: true,  baseDamage: 22, weaponEffect: 'armor_reduce', weaponEffectChance: 0.2 },
   [WeaponType.ShortBow]:   { type: WeaponType.ShortBow,   nameRu: 'Короткий лук', cooldown: WEAPON_COOLDOWNS[WeaponType.ShortBow],   range: 200, isMelee: false, baseDamage: 10, weaponEffect: 'vulnerability', weaponEffectChance: 0.2 },
-  [WeaponType.LongBow]:    { type: WeaponType.LongBow,    nameRu: 'Длинный лук',  cooldown: WEAPON_COOLDOWNS[WeaponType.LongBow],    range: 300, isMelee: false, baseDamage: 15 },
+  [WeaponType.LongBow]:    { type: WeaponType.LongBow,    nameRu: 'Длинный лук',  cooldown: WEAPON_COOLDOWNS[WeaponType.LongBow],    range: 300, isMelee: false, baseDamage: 15, weaponResetCooldownChance: 0.2 },
   [WeaponType.Crossbow]:   { type: WeaponType.Crossbow,   nameRu: 'Арбалет',      cooldown: WEAPON_COOLDOWNS[WeaponType.Crossbow],   range: 280, isMelee: false, baseDamage: 18, weaponEffect: 'root', weaponEffectChance: 0.2 },
-  [WeaponType.StaffFire]:   { type: WeaponType.StaffFire,   nameRu: 'Огненный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffFire],   range: 180, isMelee: false, baseDamage: 9 },
-  [WeaponType.StaffWater]:  { type: WeaponType.StaffWater,  nameRu: 'Ледяной посох',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWater],  range: 180, isMelee: false, baseDamage: 9 },
-  [WeaponType.StaffEarth]:  { type: WeaponType.StaffEarth,  nameRu: 'Каменный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffEarth],  range: 180, isMelee: false, baseDamage: 9 },
-  [WeaponType.StaffWind]:   { type: WeaponType.StaffWind,   nameRu: 'Штормовой посох', cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWind],   range: 180, isMelee: false, baseDamage: 9 },
-  [WeaponType.StaffNature]: { type: WeaponType.StaffNature, nameRu: 'Посох природы',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffNature], range: 180, isMelee: false, baseDamage: 9 },
+  [WeaponType.StaffFire]:   { type: WeaponType.StaffFire,   nameRu: 'Огненный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffFire],   range: 180, isMelee: false, baseDamage: 9, weaponEffect: 'burn',         weaponEffectChance: 0.1 },
+  [WeaponType.StaffWater]:  { type: WeaponType.StaffWater,  nameRu: 'Ледяной посох',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWater],  range: 180, isMelee: false, baseDamage: 9, weaponEffect: 'chill',        weaponEffectChance: 0.2 },
+  [WeaponType.StaffEarth]:  { type: WeaponType.StaffEarth,  nameRu: 'Каменный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffEarth],  range: 180, isMelee: false, baseDamage: 9, weaponEffect: 'armor_reduce', weaponEffectChance: 0.2 },
+  [WeaponType.StaffWind]:   { type: WeaponType.StaffWind,   nameRu: 'Штормовой посох', cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWind],   range: 180, isMelee: false, baseDamage: 9, weaponDoubleDamageChance: 0.2 },
+  [WeaponType.StaffNature]: { type: WeaponType.StaffNature, nameRu: 'Посох природы',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffNature], range: 180, isMelee: false, baseDamage: 9, weaponSelfHealChance: 0.2, weaponSelfHealPercent: 0.05 },
   [WeaponType.Fists]:       { type: WeaponType.Fists,       nameRu: 'Кастеты',         cooldown: WEAPON_COOLDOWNS[WeaponType.Fists],       range: 36,  isMelee: true,  baseDamage: 10, weaponEffect: 'daze', weaponEffectChance: 0.2 },
 };
