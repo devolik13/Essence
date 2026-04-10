@@ -442,13 +442,13 @@ export const ABILITY_POWER_SHOT: AbilityDef = {
   description: 'Полностью игнорирует броню + 20% сброс КД.',
 };
 
-/** T3 Арбалет — Поддерживающий болт: ускорение КД союзников в r200 на 50% (6 сек) */
+/** T3 Арбалет — Болт адреналина: ускорение КД умений от Ловкости союзников на 20% (6 сек) */
 export const ABILITY_SUPPORT_BOLT: AbilityDef = {
   id: 'support_bolt', prerequisiteId: 'crossbow_snare',
-  nameRu: 'Поддерживающий болт', damageType: 'ranged',
+  nameRu: 'Болт адреналина', damageType: 'ranged',
   cooldown: 15, castTime: 1, manaCost: 12, range: 200, baseDamage: 0,
   isAoe: true, aoeRadius: 200,
-  description: 'Ускорение КД всех союзников в r200 на 50% (6 сек).',
+  description: 'Ускорение КД умений от Ловкости всех союзников в r200 на 20% (6 сек).',
 };
 
 // ─── Универсальные навыки ────────────────────────────────────────────────────

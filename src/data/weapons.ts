@@ -1,5 +1,21 @@
 import { WeaponType, WEAPON_COOLDOWNS } from '../types/bodies';
 
+// ── Группы оружий по основному стату ──────────────────────
+export const STRENGTH_WEAPONS: WeaponType[] = [
+  WeaponType.Sword, WeaponType.Mace, WeaponType.Greatsword,
+  WeaponType.Spear, WeaponType.Hammer,
+];
+
+export const AGILITY_WEAPONS: WeaponType[] = [
+  WeaponType.Dagger, WeaponType.Fists,
+  WeaponType.ShortBow, WeaponType.LongBow, WeaponType.Crossbow,
+];
+
+export const INTELLECT_WEAPONS: WeaponType[] = [
+  WeaponType.StaffFire, WeaponType.StaffWater, WeaponType.StaffEarth,
+  WeaponType.StaffWind, WeaponType.StaffNature,
+];
+
 export interface WeaponDef {
   type: WeaponType;
   nameRu: string;
