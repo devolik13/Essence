@@ -133,7 +133,7 @@ export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   manaCost: 3,
   range: 290,
   baseDamage: 10,
-  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей. Эффект оружия: корни.',
+  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей. Эффект оружия: ослабление.',
 };
 
 // ─── Копьё (обучает bandit_spear) ─────────────────────────────────────────
@@ -276,7 +276,7 @@ export const ABILITY_ARROW_RAIN: AbilityDef = {
 
 // ─── Арбалет T2 ─────────────────────────────────────────────────────────────
 
-/** Удерживающий болт — одиночный выстрел, 20% Корни */
+/** Удерживающий болт — одиночный выстрел, корни (свой эффект) */
 export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   id: 'crossbow_snare',
   prerequisiteId: 'crossbow_bolt',
@@ -287,7 +287,9 @@ export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   manaCost: 6,
   range: 290,
   baseDamage: 10,
-  description: 'Одиночный болт (урон от Ловкости). Эффект оружия: корни.',
+  statusEffect: 'root',
+  statusChance: 0.2,
+  description: 'Одиночный болт (урон от Ловкости). 20% шанс Корни (3 сек, блок движения).',
 };
 
 // ─── Кастеты (обучает Монах) ─────────────────────────────────────────────
