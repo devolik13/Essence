@@ -242,8 +242,8 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   },
   vulnerability: {
     id: 'vulnerability', nameRu: 'Уязвимость',
-    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
-    incomingDamageIncrease: 0.05,
+    maxStacks: 1, duration: 4, stackBehavior: 'refresh',
+    incomingDamageIncrease: 0.10,
   },
   stagger: {
     id: 'stagger', nameRu: 'Ошеломление',

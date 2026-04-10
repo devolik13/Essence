@@ -71,6 +71,8 @@ export interface AbilityDef {
 
   /** Применить оружейный эффект в дополнение к собственному statusEffect */
   alsoApplyWeaponEffect?: boolean;
+  /** Множитель шанса оружейного эффекта (2 = двойной шанс) */
+  weaponEffectChanceMult?: number;
   /** Шанс нанести двойной урон (крит школы ветра), 0-1 */
   doubleDamageChance?: number;
 

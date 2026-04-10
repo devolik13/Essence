@@ -394,13 +394,14 @@ export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
 
 // ─── T3 Дальнобойные ─────────────────────────────────────────────────────────
 
-/** T3 Кор. лук — Ловушка: ставит ловушку, при наступлении −80% скорости 5 сек */
+/** T3 Кор. лук — Ловушка: ставит ловушку, при наступлении −80% скорости 5 сек + уязвимость 40% */
 export const ABILITY_TRAP: AbilityDef = {
   id: 'trap', prerequisiteId: 'bow_backshot',
   nameRu: 'Ловушка', damageType: 'ranged',
   cooldown: 15, castTime: 1.5, manaCost: 8, range: 60, baseDamage: 0,
   isAoe: true, aoeRadius: 60,
-  description: 'Ставит ловушку (4 сек). При наступлении: −80% скорость (5 сек), r60.',
+  alsoApplyWeaponEffect: true, weaponEffectChanceMult: 2,
+  description: 'Ставит ловушку (4 сек). При наступлении: −80% скорость (5 сек), r60. Эффект оружия: уязвимость (×2 шанс = 40%).',
 };
 
 /** T3 Дл. лук — Мощный выстрел: игнорирует броню + сброс КД */
