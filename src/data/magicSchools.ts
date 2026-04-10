@@ -24,6 +24,10 @@ export interface SchoolBonus {
   selfHealChance?: number;
   /** % от макс HP для самоисцеления */
   selfHealPercent?: number;
+  /** Шанс пробить % защиты на этот удар (земля) */
+  penetrationChance?: number;
+  /** % защиты игнорируемой при срабатывании (0.2 = 20%) */
+  penetrationPercent?: number;
 }
 
 export const SCHOOL_BONUSES: Partial<Record<MagicSchool, SchoolBonus>> = {
@@ -38,9 +42,9 @@ export const SCHOOL_BONUSES: Partial<Record<MagicSchool, SchoolBonus>> = {
     statusChance: 0.2,
   },
   earth: {
-    nameRu: 'Сокрушение брони',
-    statusEffect: 'armor_reduce',
-    statusChance: 0.2,
+    nameRu: 'Пробивание защиты',
+    penetrationChance: 0.2,
+    penetrationPercent: 0.2,
   },
   wind: {
     nameRu: 'Двойной урон',
