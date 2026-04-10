@@ -358,8 +358,7 @@ export const ABILITY_SPEAR_THROW: AbilityDef = {
   id: 'spear_throw', prerequisiteId: 'spear_butt',
   nameRu: 'Бросок копья', damageType: 'ranged',
   cooldown: 12, castTime: 1, manaCost: 8, range: 200, baseDamage: 30,
-  statusEffect: 'knockback', statusChance: 1.0,
-  description: 'Бросок копья (дальний). Отбрасывание 300px. Доп урон если цель иммунна к отбросу.',
+  description: 'Бросок копья (дальний, урон от Ловкости). Эффект оружия: отбрасывание.',
 };
 
 /** T3 Молот — Землетрясение: прыжок 200px, AoE, замедление + сокрушение брони */
