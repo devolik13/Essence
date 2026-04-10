@@ -22,6 +22,7 @@ export enum WeaponType {
   StaffEarth = 'staff_earth',
   StaffWind = 'staff_wind',
   StaffNature = 'staff_nature',
+  Fists = 'fists',
 }
 
 /** Тип урона — определяет формулу расчёта и стат-источник */
@@ -42,6 +43,7 @@ export const WEAPON_COOLDOWNS: Record<WeaponType, number> = {
   [WeaponType.StaffEarth]: 1.5,
   [WeaponType.StaffWind]: 1.5,
   [WeaponType.StaffNature]: 1.5,
+  [WeaponType.Fists]: 0.9,
 };
 
 export interface BodyDefinition {

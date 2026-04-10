@@ -24,4 +24,5 @@ export const WEAPONS: Record<WeaponType, WeaponDef> = {
   [WeaponType.StaffEarth]:  { type: WeaponType.StaffEarth,  nameRu: 'Каменный посох',  cooldown: WEAPON_COOLDOWNS[WeaponType.StaffEarth],  range: 180, isMelee: false, baseDamage: 9 },
   [WeaponType.StaffWind]:   { type: WeaponType.StaffWind,   nameRu: 'Штормовой посох', cooldown: WEAPON_COOLDOWNS[WeaponType.StaffWind],   range: 180, isMelee: false, baseDamage: 9 },
   [WeaponType.StaffNature]: { type: WeaponType.StaffNature, nameRu: 'Посох природы',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffNature], range: 180, isMelee: false, baseDamage: 9 },
+  [WeaponType.Fists]:       { type: WeaponType.Fists,       nameRu: 'Кастеты',         cooldown: WEAPON_COOLDOWNS[WeaponType.Fists],       range: 36,  isMelee: true,  baseDamage: 10 },
 };
