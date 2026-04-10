@@ -114,7 +114,7 @@ export const MOB_WATER_T2: AbilityDef = {
   description: 'Снаряд 15 урона + взрыв 10 урона (r45).',
 };
 
-/** T3 — Ледяной дождь: зона ледяного дождя, урон + охлаждение 3 сек */
+/** T3 — Ледяной дождь: зона ледяного дождя, урон + школьный бонус охлаждения */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_water_t3',
   nameRu: 'Лед. дождь',
@@ -130,9 +130,7 @@ export const MOB_WATER_T3: AbilityDef = {
   aoeRadius: 80,
   zoneDuration: 3,
   zoneDps: 25,
-  statusEffect: 'chill',
-  statusChance: 0.3,
-  description: 'Зона ледяного дождя (r80, 3 сек). 16 урона/сек. 30% Охлаждение.',
+  description: 'Зона ледяного дождя (r80, 3 сек). 25 урона/сек. Школьный бонус: 20% охлаждение.',
 };
 
 /** Enchant — Зачарование водой: toggle-аура */
