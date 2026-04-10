@@ -357,7 +357,7 @@ export const ABILITY_SWORD_REND: AbilityDef = {
   id: 'sword_rend', prerequisiteId: 'double_strike',
   nameRu: 'Рассечение', damageType: 'melee',
   cooldown: 12, castTime: 1, manaCost: 8, range: 52, baseDamage: 28,
-  statusEffect: 'slow', statusChance: 0.3,
+  conditionalBonusDmg: 1.5, conditionalOnStatus: 'slow', grantFreeNextCast: true,
   description: 'Если цель замедлена → +50% урона + следующий T1/T2 бесплатен.',
 };
 
@@ -367,6 +367,7 @@ export const ABILITY_MACE_CONCUSS: AbilityDef = {
   nameRu: 'Сотрясение', damageType: 'melee',
   cooldown: 15, castTime: 1, manaCost: 8, range: 48, baseDamage: 24,
   statusEffect: 'interrupt', statusChance: 1.0,
+  addEnemyCooldown: 10,
   description: 'Прерывание + следующий навык врага получает +10 сек КД.',
 };
 
@@ -377,6 +378,7 @@ export const ABILITY_BLOODY_SWEEP: AbilityDef = {
   effectType: 'cone_aoe', coneAngle: 90,
   cooldown: 12, castTime: 1.5, manaCost: 10, range: 80, baseDamage: 32,
   statusEffect: 'bleed', statusChance: 1.0,
+  lifestealPercent: 0.3,
   description: 'Конус 90°. Кровотечение −75% хила + лечение 30% от нанесённого урона.',
 };
 
@@ -394,6 +396,7 @@ export const ABILITY_EARTHQUAKE: AbilityDef = {
   id: 'earthquake', prerequisiteId: 'hammer_smash',
   nameRu: 'Землетрясение', damageType: 'melee',
   isAoe: true, aoeRadius: 80,
+  leapDistance: 200,
   cooldown: 15, castTime: 1.5, manaCost: 10, range: 200, baseDamage: 28,
   statusEffect: 'slow', statusChance: 1.0,
   description: 'Прыжок 200px, AoE r80. 100% замедление + 30% сокрушение брони.',
@@ -405,6 +408,7 @@ export const ABILITY_LETHAL_DOSE: AbilityDef = {
   nameRu: 'Смертельная доза', damageType: 'melee',
   cooldown: 12, castTime: 0.5, manaCost: 8, range: 44, baseDamage: 22,
   statusEffect: 'poison', statusChance: 1.0,
+  poisonBurstDamage: 50,
   description: 'Яд 10/сек. Если 5 стаков → мгновенный урон 50.',
 };
 
@@ -413,6 +417,7 @@ export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
   id: 'cleansing_strike', prerequisiteId: 'fist_strike',
   nameRu: 'Очищающий удар', damageType: 'melee',
   cooldown: 12, castTime: 0.5, manaCost: 6, range: 36, baseDamage: 18,
+  cleanseSelf: true, debuffImmunityDuration: 2,
   description: 'Урон + снимает все дебаффы + 2 сек иммунитет к дебаффам.',
 };
 
@@ -432,6 +437,7 @@ export const ABILITY_POWER_SHOT: AbilityDef = {
   id: 'power_shot', prerequisiteId: 'arrow_rain',
   nameRu: 'Мощный выстрел', damageType: 'ranged',
   effectType: 'reset_cooldown', resetCooldownChance: 0.2,
+  ignoreArmor: true,
   cooldown: 15, castTime: 2, manaCost: 10, range: 320, baseDamage: 24,
   description: 'Полностью игнорирует броню + 20% сброс КД.',
 };

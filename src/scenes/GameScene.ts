@@ -1210,7 +1210,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    this.playerBody.currentMana -= spell.manaCost;
+    // Бесплатный каст (от Рассечения)
+    if ((this.sphere as any)._freeNextCast) {
+      (this.sphere as any)._freeNextCast = false;
+    } else {
+      this.playerBody.currentMana -= spell.manaCost;
+    }
     slot.cooldownRemaining = spell.cooldown;
 
     // ── Рывок: бросок вперёд ──────────────────────────────────────────────
@@ -1310,14 +1315,76 @@ export class GameScene extends Phaser.Scene {
                  : spell.damageType === 'ranged' ? calcRangedDamage(this.sphere.stats, target.stats, spell.baseDamage)
                  :                                  calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
 
+    // ── Прыжок к цели (Землетрясение) ─────────────────────────────────────
+    if (spell.leapDistance && this.playerBody) {
+      const dx = target.x - this.playerBody.x;
+      const dy = target.y - this.playerBody.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const leap = Math.min(spell.leapDistance, dist);
+      this.playerBody.x += (dx / dist) * leap;
+      this.playerBody.y += (dy / dist) * leap;
+    }
+
+    // ── Игнорирование брони (Мощный выстрел) ────────────────────────────
+    let baseDmg = result.final;
+    if (spell.ignoreArmor) {
+      // Пересчитываем без защиты
+      const rawBase = spell.baseDamage * (1 + (this.sphere.stats[StatName.Agility] ?? 1) / 100);
+      baseDmg = Math.round(rawBase);
+    }
+
     // Двойной урон (школа ветра и др.)
     const isDouble = spell.doubleDamageChance && Math.random() < spell.doubleDamageChance;
     let dmg = this.sphere.deathDebuffRemaining > 0
-      ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
+      ? Math.round(baseDmg * DEATH_DEBUFF_MULT) : baseDmg;
     if (isDouble) dmg *= 2;
+
+    // ── Условный бонус (Рассечение: если замедлен +50%) ─────────────────
+    if (spell.conditionalBonusDmg && spell.conditionalOnStatus) {
+      if (target.hasStatus(spell.conditionalOnStatus as any)) {
+        dmg = Math.round(dmg * spell.conditionalBonusDmg);
+      }
+    }
+
+    // ── Бурст яда (Смертельная доза: 5 стаков → мгновенный урон) ────────
+    if (spell.poisonBurstDamage && target.hasStatus('poison')) {
+      const poisonStatus = target.statusEffects.get('poison');
+      if (poisonStatus && poisonStatus.stacks >= 5) {
+        const burstDmg = spell.poisonBurstDamage;
+        target.takeDamage(burstDmg);
+        target.statusEffects.delete('poison');
+        this.damageTexts.push(new DamageText(this, target.x, target.y - 20, burstDmg, true, false));
+      }
+    }
 
     target.takeDamage(dmg);
     this.aggroCreature(target);
+
+    // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────
+    if (spell.lifestealPercent && this.playerBody && result.hit) {
+      const healAmount = Math.round(dmg * spell.lifestealPercent);
+      this.playerBody.currentHP = Math.min(this.playerBody.currentHP + healAmount, this.playerBody.maxHP);
+    }
+
+    // ── Очищение дебаффов (Очищающий удар) ───────────────────────────────
+    if (spell.cleanseSelf && this.playerBody) {
+      this.playerBody.statusEffects.clear();
+      if (spell.debuffImmunityDuration) {
+        (this.playerBody as any)._debuffImmunity = spell.debuffImmunityDuration;
+      }
+    }
+
+    // ── Бесплатный следующий каст (Рассечение) ──────────────────────────
+    if (spell.grantFreeNextCast) {
+      (this.sphere as any)._freeNextCast = true;
+    }
+
+    // ── Доп. КД на врага (Сотрясение) ───────────────────────────────────
+    if (spell.addEnemyCooldown && target.spellCooldowns) {
+      for (const key of Object.keys(target.spellCooldowns)) {
+        target.spellCooldowns[key] = (target.spellCooldowns[key] ?? 0) + spell.addEnemyCooldown;
+      }
+    }
 
     this.damageTexts.push(
       new DamageText(this, target.x, target.y - 10, dmg, result.crit || !!isDouble, false)

@@ -206,6 +206,11 @@ export class Body extends Phaser.GameObjects.Container {
       }
     }
 
+    // Таймер иммунитета к дебаффам
+    if ((this as any)._debuffImmunity > 0) {
+      (this as any)._debuffImmunity -= dt;
+    }
+
     if (!this.isDead) {
       // Реген HP (с учётом кровотечения и бафа регена)
       const healMult = this.hasStatus('bleed') ? (1 - (STATUS_DEFS.bleed.healReduction ?? 0)) : 1;
@@ -284,6 +289,8 @@ export class Body extends Phaser.GameObjects.Container {
   // ── Статус-эффекты ─────────────────────────────────────────────────────────
 
   public applyStatus(id: StatusEffectId, stacks: number = 1): void {
+    // Иммунитет к дебаффам (от Очищающего удара)
+    if ((this as any)._debuffImmunity > 0) return;
     const def = STATUS_DEFS[id];
     if (!def || def.duration === 0) return;
     const existing = this.statusEffects.get(id);

@@ -72,6 +72,28 @@ export interface AbilityDef {
   /** Шанс нанести двойной урон (крит школы ветра), 0-1 */
   doubleDamageChance?: number;
 
+  // --- T3 механики ---
+  /** Условный бонус урона (1.5 = +50%) если цель имеет определённый статус */
+  conditionalBonusDmg?: number;
+  /** Статус цели для условного бонуса */
+  conditionalOnStatus?: string;
+  /** Следующий T1/T2 бесплатен (без маны) */
+  grantFreeNextCast?: boolean;
+  /** Игнорирует броню/защиту */
+  ignoreArmor?: boolean;
+  /** Лайфстил: % от нанесённого урона лечит кастера (0.3 = 30%) */
+  lifestealPercent?: number;
+  /** Расстояние прыжка к цели перед ударом (пикс) */
+  leapDistance?: number;
+  /** Снимает все дебаффы с кастера */
+  cleanseSelf?: boolean;
+  /** Длительность иммунитета к дебаффам (сек) */
+  debuffImmunityDuration?: number;
+  /** Доп. КД который навешивается на следующий навык врага */
+  addEnemyCooldown?: number;
+  /** Бурст урон при макс стаках яда */
+  poisonBurstDamage?: number;
+
   // --- Weapon Enchant (toggle aura) ---
   /** true = это переключаемая аура (toggle), не расходует ману за каст */
   isToggle?: boolean;
