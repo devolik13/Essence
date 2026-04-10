@@ -385,13 +385,13 @@ export const ABILITY_LETHAL_DOSE: AbilityDef = {
   description: 'Яд 10/сек. Если 5 стаков → мгновенный урон 50.',
 };
 
-/** T3 Кастеты — Очищающий удар: урон + 2 сек иммунитет к дебаффам */
+/** T3 Кастеты — Очищающий удар: урон + снимает 1 случайный дебафф + 2 сек иммунитет */
 export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
   id: 'cleansing_strike', prerequisiteId: 'fist_strike',
   nameRu: 'Очищающий удар', damageType: 'melee',
   cooldown: 12, castTime: 0.5, manaCost: 6, range: 36, baseDamage: 18,
-  cleanseSelf: true, debuffImmunityDuration: 2,
-  description: 'Урон + снимает все дебаффы + 2 сек иммунитет к дебаффам.',
+  cleanseCount: 1, debuffImmunityDuration: 2,
+  description: 'Урон + снимает 1 случайный дебафф + 2 сек иммунитет к новым дебаффам.',
 };
 
 // ─── T3 Дальнобойные ─────────────────────────────────────────────────────────

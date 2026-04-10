@@ -89,8 +89,10 @@ export interface AbilityDef {
   lifestealPercent?: number;
   /** Расстояние прыжка к цели перед ударом (пикс) */
   leapDistance?: number;
-  /** Снимает все дебаффы с кастера */
+  /** Снимает все дебаффы с кастера (устарело, использовать cleanseCount) */
   cleanseSelf?: boolean;
+  /** Количество случайных дебаффов снимаемых с кастера */
+  cleanseCount?: number;
   /** Длительность иммунитета к дебаффам (сек) */
   debuffImmunityDuration?: number;
   /** Доп. КД который навешивается на следующий навык врага */
