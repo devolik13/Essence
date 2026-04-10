@@ -361,7 +361,7 @@ export const ABILITY_SPEAR_THROW: AbilityDef = {
   description: 'Бросок копья (дальний, урон от Ловкости). Эффект оружия: отбрасывание.',
 };
 
-/** T3 Молот — Землетрясение: прыжок 200px, AoE, замедление + сокрушение брони */
+/** T3 Молот — Землетрясение: прыжок 200px, AoE, замедление 2 сек + оружейное сокрушение брони */
 export const ABILITY_EARTHQUAKE: AbilityDef = {
   id: 'earthquake', prerequisiteId: 'hammer_smash',
   nameRu: 'Землетрясение', damageType: 'melee',
@@ -369,7 +369,8 @@ export const ABILITY_EARTHQUAKE: AbilityDef = {
   leapDistance: 200,
   cooldown: 15, castTime: 1.5, manaCost: 10, range: 200, baseDamage: 28,
   statusEffect: 'slow', statusChance: 1.0,
-  description: 'Прыжок 200px, AoE r80. 100% замедление + 30% сокрушение брони.',
+  alsoApplyWeaponEffect: true,
+  description: 'Прыжок 200px, AoE r80. Замедление 2 сек + сокрушение брони от оружия.',
 };
 
 /** T3 Кинжал — Смертельная доза: яд 10/сек + если 5 стаков → мгновенный урон 50 */

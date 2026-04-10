@@ -69,6 +69,8 @@ export interface AbilityDef {
   /** Шанс наложить статус (0-1, default 1.0 = гарантированно) */
   statusChance?: number;
 
+  /** Применить оружейный эффект в дополнение к собственному statusEffect */
+  alsoApplyWeaponEffect?: boolean;
   /** Шанс нанести двойной урон (крит школы ветра), 0-1 */
   doubleDamageChance?: number;
 
