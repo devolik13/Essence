@@ -347,3 +347,120 @@ export const ABILITY_FIST_STRIKE: AbilityDef = {
   statusChance: 0.25,
   description: 'Сбивающий удар (урон от Ловкости). 25% понижение точности + ошеломление (3 сек).',
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// T3 ОРУЖЕЙНЫЕ СПОСОБНОСТИ (данные — механики требуют реализации в движке)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** T3 Меч — Рассечение: если цель замедлена → +50% урона + следующий T1/T2 бесплатен */
+export const ABILITY_SWORD_REND: AbilityDef = {
+  id: 'sword_rend', prerequisiteId: 'double_strike',
+  nameRu: 'Рассечение', damageType: 'melee',
+  cooldown: 12, castTime: 1, manaCost: 8, range: 52, baseDamage: 28,
+  statusEffect: 'slow', statusChance: 0.3,
+  description: 'Если цель замедлена → +50% урона + следующий T1/T2 бесплатен.',
+};
+
+/** T3 Булава — Сотрясение: прерывание + следующий навык врага +10 сек КД */
+export const ABILITY_MACE_CONCUSS: AbilityDef = {
+  id: 'mace_concuss', prerequisiteId: 'mace_bash',
+  nameRu: 'Сотрясение', damageType: 'melee',
+  cooldown: 15, castTime: 1, manaCost: 8, range: 48, baseDamage: 24,
+  statusEffect: 'interrupt', statusChance: 1.0,
+  description: 'Прерывание + следующий навык врага получает +10 сек КД.',
+};
+
+/** T3 Двуручник — Кровавый размах: кровотечение −75% хила + лечение 30% от урона */
+export const ABILITY_BLOODY_SWEEP: AbilityDef = {
+  id: 'bloody_sweep', prerequisiteId: 'slash_sweep',
+  nameRu: 'Кровавый размах', damageType: 'melee',
+  effectType: 'cone_aoe', coneAngle: 90,
+  cooldown: 12, castTime: 1.5, manaCost: 10, range: 80, baseDamage: 32,
+  statusEffect: 'bleed', statusChance: 1.0,
+  description: 'Конус 90°. Кровотечение −75% хила + лечение 30% от нанесённого урона.',
+};
+
+/** T3 Копьё — Бросок копья: отбрасывание 300px + доп урон при иммунитете */
+export const ABILITY_SPEAR_THROW: AbilityDef = {
+  id: 'spear_throw', prerequisiteId: 'spear_butt',
+  nameRu: 'Бросок копья', damageType: 'ranged',
+  cooldown: 12, castTime: 1, manaCost: 8, range: 200, baseDamage: 30,
+  statusEffect: 'knockback', statusChance: 1.0,
+  description: 'Бросок копья (дальний). Отбрасывание 300px. Доп урон если цель иммунна к отбросу.',
+};
+
+/** T3 Молот — Землетрясение: прыжок 200px, AoE, замедление + сокрушение брони */
+export const ABILITY_EARTHQUAKE: AbilityDef = {
+  id: 'earthquake', prerequisiteId: 'hammer_smash',
+  nameRu: 'Землетрясение', damageType: 'melee',
+  isAoe: true, aoeRadius: 80,
+  cooldown: 15, castTime: 1.5, manaCost: 10, range: 200, baseDamage: 28,
+  statusEffect: 'slow', statusChance: 1.0,
+  description: 'Прыжок 200px, AoE r80. 100% замедление + 30% сокрушение брони.',
+};
+
+/** T3 Кинжал — Смертельная доза: яд 10/сек + если 5 стаков → мгновенный урон 50 */
+export const ABILITY_LETHAL_DOSE: AbilityDef = {
+  id: 'lethal_dose', prerequisiteId: 'knife_throw',
+  nameRu: 'Смертельная доза', damageType: 'melee',
+  cooldown: 12, castTime: 0.5, manaCost: 8, range: 44, baseDamage: 22,
+  statusEffect: 'poison', statusChance: 1.0,
+  description: 'Яд 10/сек. Если 5 стаков → мгновенный урон 50.',
+};
+
+/** T3 Кастеты — Очищающий удар: урон + 2 сек иммунитет к дебаффам */
+export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
+  id: 'cleansing_strike', prerequisiteId: 'fist_strike',
+  nameRu: 'Очищающий удар', damageType: 'melee',
+  cooldown: 12, castTime: 0.5, manaCost: 6, range: 36, baseDamage: 18,
+  description: 'Урон + снимает все дебаффы + 2 сек иммунитет к дебаффам.',
+};
+
+// ─── T3 Дальнобойные ─────────────────────────────────────────────────────────
+
+/** T3 Кор. лук — Ловушка: ставит ловушку, при наступлении −80% скорости 5 сек */
+export const ABILITY_TRAP: AbilityDef = {
+  id: 'trap', prerequisiteId: 'bow_backshot',
+  nameRu: 'Ловушка', damageType: 'ranged',
+  cooldown: 15, castTime: 1.5, manaCost: 8, range: 60, baseDamage: 0,
+  isAoe: true, aoeRadius: 60,
+  description: 'Ставит ловушку (4 сек). При наступлении: −80% скорость (5 сек), r60.',
+};
+
+/** T3 Дл. лук — Мощный выстрел: игнорирует броню + сброс КД */
+export const ABILITY_POWER_SHOT: AbilityDef = {
+  id: 'power_shot', prerequisiteId: 'arrow_rain',
+  nameRu: 'Мощный выстрел', damageType: 'ranged',
+  effectType: 'reset_cooldown', resetCooldownChance: 0.2,
+  cooldown: 15, castTime: 2, manaCost: 10, range: 320, baseDamage: 24,
+  description: 'Полностью игнорирует броню + 20% сброс КД.',
+};
+
+/** T3 Арбалет — Поддерживающий болт: ускорение КД союзников в r200 на 50% (6 сек) */
+export const ABILITY_SUPPORT_BOLT: AbilityDef = {
+  id: 'support_bolt', prerequisiteId: 'crossbow_snare',
+  nameRu: 'Поддерживающий болт', damageType: 'ranged',
+  cooldown: 15, castTime: 1, manaCost: 12, range: 200, baseDamage: 0,
+  isAoe: true, aoeRadius: 200,
+  description: 'Ускорение КД всех союзников в r200 на 50% (6 сек).',
+};
+
+// ─── Универсальные навыки ────────────────────────────────────────────────────
+
+/** Фокусировка: следующая атака не может быть заблокирована */
+export const ABILITY_FOCUS: AbilityDef = {
+  id: 'focus',
+  nameRu: 'Фокусировка', damageType: 'melee',
+  effectType: 'self_buff',
+  cooldown: 10, manaCost: 3, range: 0, baseDamage: 0,
+  description: 'Следующая атака не может быть заблокирована.',
+};
+
+/** Боевой клич: союзники рядом +10% урона на 6 сек */
+export const ABILITY_WAR_CRY: AbilityDef = {
+  id: 'war_cry',
+  nameRu: 'Боевой клич', damageType: 'melee',
+  cooldown: 30, manaCost: 6, range: 0, baseDamage: 0,
+  isAoe: true, aoeRadius: 200,
+  description: 'Союзники в r200 +10% урона на 6 сек.',
+};
