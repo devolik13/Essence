@@ -11,9 +11,7 @@ export const ABILITY_STING: AbilityDef = {
   manaCost: 3,
   range: 44,
   baseDamage: 12,
-  statusEffect: 'poison',
-  statusChance: 0.2,
-  description: 'Укол кинжалом (урон от Ловкости). 20% шанс 1 стака яда.',
+  description: 'Укол кинжалом (урон от Ловкости). Эффект оружия: яд.',
 };
 
 // ─── Одноручный меч (обучает Волк) ─────────────────────────────────────────
@@ -27,9 +25,7 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
   manaCost: 3,
   range: 52,
   baseDamage: 12,
-  statusEffect: 'slow',
-  statusChance: 0.2,
-  description: 'Удар мечом (урон от Силы). 20% шанс Замедления.',
+  description: 'Удар мечом (урон от Силы). Эффект оружия: замедление.',
 };
 
 // ─── Кинжал T2 ─────────────────────────────────────────────────────────────
@@ -45,9 +41,7 @@ export const ABILITY_KNIFE_THROW: AbilityDef = {
   manaCost: 6,
   range: 160,
   baseDamage: 10,
-  statusEffect: 'poison',
-  statusChance: 0.2,
-  description: 'Бросок кинжала (урон от Ловкости, дальность 160). 20% шанс 1 стака яда.',
+  description: 'Бросок кинжала (урон от Ловкости, дальность 160). Эффект оружия: яд.',
 };
 
 // ─── Булава (обучает Медведь) ───────────────────────────────────────────────
@@ -61,9 +55,7 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   manaCost: 3,
   range: 48,
   baseDamage: 12,
-  statusEffect: 'interrupt',
-  statusChance: 0.2,
-  description: 'Удар булавой (урон от Силы). 20% шанс Сбития концентрации.',
+  description: 'Удар булавой (урон от Силы). Эффект оружия: прерывание.',
 };
 
 // ─── Меч T2 ────────────────────────────────────────────────────────────────
@@ -81,9 +73,7 @@ export const ABILITY_DOUBLE_STRIKE: AbilityDef = {
   manaCost: 6,
   range: 52,
   baseDamage: 12,
-  statusEffect: 'slow',
-  statusChance: 0.2,
-  description: 'Два быстрых удара мечом (урон от Силы). 20% шанс Замедления на каждый удар.',
+  description: 'Два быстрых удара мечом (урон от Силы). Эффект оружия: замедление на каждый удар.',
 };
 
 // ─── Двуручный меч (обучает Орк) ───────────────────────────────────────────
@@ -97,9 +87,7 @@ export const ABILITY_SLASH: AbilityDef = {
   manaCost: 3,
   range: 60,
   baseDamage: 20,
-  statusEffect: 'bleed',
-  statusChance: 0.2,
-  description: 'Рубящий удар двуручником (урон от Силы). 20% шанс Кровотечения.',
+  description: 'Рубящий удар двуручником (урон от Силы). Эффект оружия: кровотечение.',
 };
 
 // ─── Короткий лук (обучает Разведчик) ──────────────────────────────────────
@@ -113,9 +101,7 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   manaCost: 3,
   range: 240,
   baseDamage: 10,
-  statusEffect: 'vulnerability',
-  statusChance: 0.2,
-  description: 'Прицельный выстрел (урон от Ловкости). 20% шанс Уязвимости (+5% урон по цели).',
+  description: 'Прицельный выстрел (урон от Ловкости). Эффект оружия: уязвимость.',
 };
 
 // ─── Длинный лук (обучает bandit_archer) ──────────────────────────────────
@@ -147,9 +133,7 @@ export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   manaCost: 3,
   range: 290,
   baseDamage: 10,
-  statusEffect: 'root',
-  statusChance: 0.2,
-  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей насквозь. 20% Корни.',
+  description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей. Эффект оружия: корни.',
 };
 
 // ─── Копьё (обучает bandit_spear) ─────────────────────────────────────────
@@ -163,9 +147,7 @@ export const ABILITY_SPEAR_THRUST: AbilityDef = {
   manaCost: 3,
   range: 80,
   baseDamage: 20,
-  statusEffect: 'knockback',
-  statusChance: 0.3,
-  description: 'Выпад копьём (урон от Силы). 30% шанс Отбрасывания на 180px.',
+  description: 'Выпад копьём (урон от Силы). Эффект оружия: отбрасывание.',
 };
 
 // ─── Молот (обучает bandit_brute) ─────────────────────────────────────────
@@ -181,9 +163,7 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   baseDamage: 20,
   isAoe: true,
   aoeRadius: 60,
-  statusEffect: 'armor_reduce',
-  statusChance: 0.2,
-  description: 'Удар молотом (урон от Силы), AoE радиус 60. 20% шанс Сокрушения брони (-20%).',
+  description: 'Удар молотом (урон от Силы), AoE радиус 60. Эффект оружия: сокрушение брони.',
 };
 
 /** Сильный удар — одиночный мощный удар, 20% шанс Пробития брони */
@@ -199,7 +179,7 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
   baseDamage: 20,
   statusEffect: 'armor_break',
   statusChance: 0.2,
-  description: 'Мощный удар молотом (урон от Силы). 20% шанс Пробития брони (-50%).',
+  description: 'Мощный удар молотом (урон от Силы). 20% Пробитие брони −50% (перекрывает оружейный).',
 };
 
 // ─── Булава T2 ──────────────────────────────────────────────────────────────
@@ -235,9 +215,7 @@ export const ABILITY_SLASH_SWEEP: AbilityDef = {
   manaCost: 6,
   range: 80,
   baseDamage: 20,
-  statusEffect: 'bleed',
-  statusChance: 0.2,
-  description: 'Размах двуручником (урон от Силы), конус 90°, радиус 80. 20% шанс Кровотечения на каждую цель.',
+  description: 'Размах двуручником (урон от Силы), конус 90°, радиус 80. Эффект оружия: кровотечение.',
 };
 
 // ─── Копьё T2 ───────────────────────────────────────────────────────────────
@@ -273,9 +251,7 @@ export const ABILITY_BOW_BACKSHOT: AbilityDef = {
   manaCost: 6,
   range: 240,
   baseDamage: 10,
-  statusEffect: 'vulnerability',
-  statusChance: 0.2,
-  description: 'Выстрел (урон от Ловкости) + бросок назад 180px. 20% шанс Уязвимости.',
+  description: 'Выстрел (урон от Ловкости) + бросок назад 180px. Эффект оружия: уязвимость.',
 };
 
 // ─── Длинный лук T2 ─────────────────────────────────────────────────────────
@@ -311,9 +287,7 @@ export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   manaCost: 6,
   range: 290,
   baseDamage: 10,
-  statusEffect: 'root',
-  statusChance: 0.2,
-  description: 'Одиночный болт (урон от Ловкости). 20% шанс Корней (3 сек).',
+  description: 'Одиночный болт (урон от Ловкости). Эффект оружия: корни.',
 };
 
 // ─── Кастеты (обучает Монах) ─────────────────────────────────────────────
@@ -327,9 +301,7 @@ export const ABILITY_HOOK: AbilityDef = {
   manaCost: 3,
   range: 36,
   baseDamage: 10,
-  statusEffect: 'daze',
-  statusChance: 0.2,
-  description: 'Удар кастетами (урон от Ловкости). 20% ошеломление (+30% каст врага, 3 сек).',
+  description: 'Удар кастетами (урон от Ловкости). Эффект оружия: ошеломление.',
 };
 
 /** Сбивающий удар — одиночный + понижение точности + ошеломление */

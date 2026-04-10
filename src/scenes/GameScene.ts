@@ -1394,26 +1394,27 @@ export class GameScene extends Phaser.Scene {
     if (spell.damageType !== 'magic') {
       this.applyEnchantDamage(target, result.hit);
     }
-    if (spell.statusEffect && result.hit) {
-      const chance = spell.statusChance ?? 1.0;
+    // Статус-эффект: спелл > оружие
+    const weapon = this.playerBody ? WEAPONS[this.playerBody.definition.weapon] : null;
+    const effectId = spell.statusEffect ?? weapon?.weaponEffect;
+    const effectChance = spell.statusEffect ? (spell.statusChance ?? 1.0) : (weapon?.weaponEffectChance ?? 0.2);
+    if (effectId && result.hit) {
+      const chance = effectChance;
       if (Math.random() < chance) {
-        // Мгновенные эффекты (interrupt, knockback) — обрабатываем отдельно
-        if (spell.statusEffect === 'interrupt') {
-          // Сбитие концентрации: сбрасываем таймер каста (без кулдауна)
+        if (effectId === 'interrupt') {
           if (target.castTimer > 0 && target.castingSpell) {
             target.castTimer = target.castingSpell.castTime ?? 0;
           }
-        } else if (spell.statusEffect === 'knockback') {
-          // Отбрасывание: толкаем от игрока
+        } else if (effectId === 'knockback') {
           const kbDist = 180;
-          const dx = target.x - this.playerBody.x;
-          const dy = target.y - this.playerBody.y;
+          const dx = target.x - this.playerBody!.x;
+          const dy = target.y - this.playerBody!.y;
           const len = Math.sqrt(dx * dx + dy * dy) || 1;
           target.x += (dx / len) * kbDist;
           target.y += (dy / len) * kbDist;
-          target.applyStatus('stun'); // 0.5 сек потеря контроля — используем stun с коротким таймером
+          target.applyStatus('stun');
         } else {
-          target.applyStatus(spell.statusEffect);
+          target.applyStatus(effectId as any);
         }
       }
     }
