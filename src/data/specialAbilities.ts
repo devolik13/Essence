@@ -46,7 +46,7 @@ export const ABILITY_KNIFE_THROW: AbilityDef = {
 
 // ─── Булава (обучает Медведь) ───────────────────────────────────────────────
 
-/** Дробящий удар — урон от Силы + Сбитие концентрации */
+/** Дробящий удар — урон от Силы + Укрепление (стаки брони) */
 export const ABILITY_MACE_STRIKE: AbilityDef = {
   id: 'mace_strike',
   nameRu: 'Дробящий удар',
@@ -55,7 +55,7 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   manaCost: 3,
   range: 48,
   baseDamage: 12,
-  description: 'Удар булавой (урон от Силы). Эффект оружия: прерывание.',
+  description: 'Удар булавой (урон от Силы). Эффект оружия: укрепление (+3 Armor/стак).',
 };
 
 // ─── Меч T2 ────────────────────────────────────────────────────────────────
@@ -184,20 +184,20 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
 
 // ─── Булава T2 ──────────────────────────────────────────────────────────────
 
-/** Удар плашмя — 50% шанс Сбития концентрации */
+/** Стойкий удар — урон + временные HP (щит) */
 export const ABILITY_MACE_BASH: AbilityDef = {
   id: 'mace_bash',
   prerequisiteId: 'mace_strike',
-  nameRu: 'Удар плашмя',
+  nameRu: 'Стойкий удар',
   damageType: 'melee',
   cooldown: 2,
   castTime: 1,
   manaCost: 6,
   range: 48,
   baseDamage: 12,
-  statusEffect: 'interrupt',
-  statusChance: 0.5,
-  description: 'Удар плашмя (урон от Силы). 50% шанс Сбития концентрации.',
+  grantTempHP: 25,
+  tempHPDuration: 6,
+  description: 'Удар булавой (урон от Силы) + щит 25 временных HP на 6 сек.',
 };
 
 // ─── Двуручник T2 ───────────────────────────────────────────────────────────
@@ -333,14 +333,13 @@ export const ABILITY_SWORD_REND: AbilityDef = {
   description: 'Если цель замедлена → +50% урона + следующий T1/T2 бесплатен.',
 };
 
-/** T3 Булава — Сотрясение: прерывание + следующий навык врага +10 сек КД */
+/** T3 Булава — Сотрясение: следующий навык врага +10 сек КД */
 export const ABILITY_MACE_CONCUSS: AbilityDef = {
   id: 'mace_concuss', prerequisiteId: 'mace_bash',
   nameRu: 'Сотрясение', damageType: 'melee',
   cooldown: 15, castTime: 1, manaCost: 8, range: 48, baseDamage: 24,
-  statusEffect: 'interrupt', statusChance: 1.0,
-  addEnemyCooldown: 10,
-  description: 'Прерывание + следующий навык врага получает +10 сек КД.',
+  statusEffect: 'concussion', statusChance: 1.0,
+  description: 'Урон + дебафф Сотрясение (5 сек): следующая абилка врага получает +10 сек КД.',
 };
 
 /** T3 Двуручник — Кровавый размах: кровотечение −75% хила + лечение 30% от урона */

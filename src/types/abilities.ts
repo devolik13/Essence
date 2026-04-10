@@ -93,6 +93,10 @@ export interface AbilityDef {
   addEnemyCooldown?: number;
   /** Бурст урон при макс стаках яда */
   poisonBurstDamage?: number;
+  /** Временные HP при попадании (щит на кастера) */
+  grantTempHP?: number;
+  /** Длительность временных HP (сек) */
+  tempHPDuration?: number;
 
   // --- Weapon Enchant (toggle aura) ---
   /** true = это переключаемая аура (toggle), не расходует ману за каст */

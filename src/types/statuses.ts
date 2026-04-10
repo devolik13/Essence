@@ -37,6 +37,8 @@ export type StatusEffectId =
   | 'curse'            // Проклятие
   | 'daze'             // Ошеломление кастетов (+30% каст)
   | 'accuracy_reduce'  // Понижение точности
+  | 'fortify'          // Укрепление (стаки брони от булавы)
+  | 'concussion'       // Сотрясение (следующая абилка врага +КД)
   // Баффы
   | 'mana_regen_boost'  // Усиление регена маны
   | 'mana_regen_block'  // Блок регена маны
@@ -115,6 +117,8 @@ export interface StatusEffectDef {
   regenHpBonus?: number;
   /** Бонус к Стойкости (абсолютное значение, напр. 20 = +20 Armor) */
   armorBonus?: number;
+  /** Добавить КД к следующей абилке цели (concussion: 10 сек) */
+  addCooldownToNextAbility?: number;
 }
 
 /** Активный статус на существе/игроке */
@@ -287,6 +291,16 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'accuracy_reduce', nameRu: 'Понижение точности',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     accuracyReduction: 0.3, // −30% точность
+  },
+  fortify: {
+    id: 'fortify', nameRu: 'Укрепление',
+    maxStacks: 5, duration: 5, stackBehavior: 'refresh',
+    armorBonus: 3, // +3 Armor за стак, макс +15
+  },
+  concussion: {
+    id: 'concussion', nameRu: 'Сотрясение',
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    addCooldownToNextAbility: 10, // следующая абилка +10 сек КД
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',
