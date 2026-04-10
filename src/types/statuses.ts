@@ -39,6 +39,9 @@ export type StatusEffectId =
   | 'accuracy_reduce'  // Понижение точности
   | 'fortify'          // Укрепление (стаки брони от булавы)
   | 'concussion'       // Сотрясение (следующая абилка врага +КД)
+  | 'evasion_boost'    // Бонус уклонения (групповой)
+  | 'block_next'       // Блок следующей атаки
+  | 'shield_stance'    // Щитовая стойка (замедление + броня)
   // Баффы
   | 'mana_regen_boost'  // Усиление регена маны
   | 'mana_regen_block'  // Блок регена маны
@@ -117,6 +120,10 @@ export interface StatusEffectDef {
   regenHpBonus?: number;
   /** Бонус к Стойкости (абсолютное значение, напр. 20 = +20 Armor) */
   armorBonus?: number;
+  /** Бонус к Уклонению (абсолютное значение, напр. 10 = +10 Evasion) */
+  evasionBonus?: number;
+  /** Блокирует следующую 1 атаку полностью (снимается при попадании) */
+  blockNextAttack?: boolean;
   /** Добавить КД к следующей абилке цели (concussion: 10 сек) */
   addCooldownToNextAbility?: number;
 }
@@ -301,6 +308,22 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'concussion', nameRu: 'Сотрясение',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     addCooldownToNextAbility: 10, // следующая абилка +10 сек КД
+  },
+  evasion_boost: {
+    id: 'evasion_boost', nameRu: 'Маневр',
+    maxStacks: 1, duration: 3, stackBehavior: 'refresh',
+    evasionBonus: 10, // +10 Evasion
+  },
+  block_next: {
+    id: 'block_next', nameRu: 'Прикрытие',
+    maxStacks: 1, duration: 10, stackBehavior: 'refresh',
+    blockNextAttack: true, // поглощает 1 атаку, снимается при попадании
+  },
+  shield_stance: {
+    id: 'shield_stance', nameRu: 'Щитовая стойка',
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    moveSlow: 0.3, // −30% скорость
+    armorBonus: 15, // +15 Armor
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',

@@ -113,6 +113,12 @@ export interface AbilityDef {
   enchantDamage?: number;
   /** ID умения-prerequisite (нельзя выучить без него) */
   prerequisiteId?: string;
+  /** Ограничение по оружию — доступно только с указанными типами */
+  requiredWeapons?: string[];
+  /** Бонус плоского урона за каждый дебафф на кастере */
+  bonusDamagePerSelfDebuff?: number;
+  /** Бонус % урона за каждый бафф на цели (0.1 = +10%) */
+  bonusDamagePercentPerTargetBuff?: number;
 
   description: string;
 }
