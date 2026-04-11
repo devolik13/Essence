@@ -372,7 +372,14 @@ export class Creature extends Phaser.GameObjects.Container {
 
     // Случайный выбор из готовых
     const chosen = ready[Math.floor(Math.random() * ready.length)];
-    this.spellCooldowns[chosen.index] = chosen.spell.cooldown;
+    let extraCD = 0;
+    // Concussion: следующая абилка получает +КД, затем дебафф снимается
+    if (this.statusEffects.has('concussion')) {
+      const concDef = STATUS_DEFS['concussion'];
+      extraCD = concDef.addCooldownToNextAbility ?? 10;
+      this.statusEffects.delete('concussion');
+    }
+    this.spellCooldowns[chosen.index] = chosen.spell.cooldown + extraCD;
 
     if (chosen.spell.castTime && chosen.spell.castTime > 0) {
       // Начинаем каст — GameScene проверит castingSpell когда castTimer упадёт до 0

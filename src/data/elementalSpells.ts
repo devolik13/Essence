@@ -332,7 +332,7 @@ export const MOB_NATURE_T2: AbilityDef = {
   description: 'Мгновенно даёт +20 Стойкость на 8 сек.',
 };
 
-/** T3 — Покров листвы: аура регена HP (оригинал Archimage) */
+/** T3 — Покров листвы: групповая аура регена HP (оригинал Archimage) */
 export const MOB_NATURE_T3: AbilityDef = {
   id: 'mob_nature_t3',
   prerequisiteId: 'mob_nature_t2',
@@ -346,5 +346,7 @@ export const MOB_NATURE_T3: AbilityDef = {
   manaCost: 15,
   range: 0,
   baseDamage: 0,
-  description: 'Покров листвы: +100% реген HP на 10 сек.',
+  isAoe: true,
+  aoeRadius: 200,
+  description: 'Покров листвы: +100% реген HP на 10 сек. Групповой (r200).',
 };

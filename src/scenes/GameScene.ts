@@ -1296,6 +1296,16 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'self_buff') {
       if (spell.statusEffect) {
         this.playerBody.applyStatus(spell.statusEffect);
+        // Групповые баффы: применяем к союзникам в радиусе (волк и будущие союзники)
+        if (spell.isAoe && spell.aoeRadius) {
+          for (const c of this.creatures) {
+            if (!c.isSummoned || c.isDead) continue;
+            const d = distance(this.playerBody.x, this.playerBody.y, c.x, c.y);
+            if (d <= spell.aoeRadius) {
+              c.applyStatus(spell.statusEffect);
+            }
+          }
+        }
       }
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -1460,13 +1470,6 @@ export class GameScene extends Phaser.Scene {
     // ── Бесплатный следующий каст (Рассечение) ──────────────────────────
     if (spell.grantFreeNextCast) {
       (this.sphere as any)._freeNextCast = true;
-    }
-
-    // ── Доп. КД на врага (Сотрясение) ───────────────────────────────────
-    if (spell.addEnemyCooldown && target.spellCooldowns) {
-      for (const key of Object.keys(target.spellCooldowns)) {
-        target.spellCooldowns[key] = (target.spellCooldowns[key] ?? 0) + spell.addEnemyCooldown;
-      }
     }
 
     this.damageTexts.push(
