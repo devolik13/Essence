@@ -55,33 +55,25 @@ export const ZONE_VILLAGE: ZoneConfig = {
     // Пассивные — внутри деревни
     { x: PW / 2 - 200, y: PH / 2 + 160, creatureId: 'rabbit', count: 4 },
     { x: PW / 2 - 100, y: PH / 2 + 180, creatureId: 'rabbit', count: 3 },
-    // Первые враги — восточнее деревни
+    // Духи — рядом с деревней
+    { x: PW / 2 + 300, y: PH / 2 - 250, creatureId: 'spirit', count: 2 },
+    { x: PW / 2 - 350, y: PH / 2 - 200, creatureId: 'spirit', count: 1 },
+    // Гоблины — восточнее деревни (T1 кинжал)
     { x: PW / 2 + 500, y: PH / 2 - 60,  creatureId: 'goblin', count: 3 },
-    { x: PW / 2 + 500, y: PH / 2 + 60,  creatureId: 'goblin', count: 2 },
-    { x: PW / 2 + 620, y: PH / 2,       creatureId: 'wolf',   count: 3 },
-    { x: PW / 2 + 750, y: PH / 2,       creatureId: 'goblin_veteran', count: 1 },
-    // Волки-духи
-    { x: PW / 2 + 400, y: PH / 2 - 180, creatureId: 'spirit_wolf', count: 2 },
-    { x: PW / 2 + 400, y: PH / 2 + 180, creatureId: 'spirit_wolf', count: 2 },
-    // Западнее — медведи и волки
-    { x: PW / 2 - 600, y: PH / 2 + 200, creatureId: 'wolf', count: 3 },
-    { x: PW / 2 - 700, y: PH / 2 + 300, creatureId: 'bear', count: 2 },
-    { x: PW / 2 - 800, y: PH / 2 + 250, creatureId: 'wolf_veteran', count: 1 },
-    { x: PW / 2 - 650, y: PH / 2 + 400, creatureId: 'bear_veteran', count: 1 },
-    // Разведчики — северо-восток
-    { x: PW / 2 + 700, y: PH / 2 - 350, creatureId: 'scout', count: 2 },
-    { x: PW / 2 + 850, y: PH / 2 - 300, creatureId: 'scout', count: 3 },
-    { x: PW / 2 + 900, y: PH / 2 - 280, creatureId: 'scout_veteran', count: 1 },
-    // Лагерь разбойников — юго-запад
-    { x: PW / 2 - 900, y: PH / 2 + 600, creatureId: 'bandit_brute', count: 2 },
-    { x: PW / 2 - 800, y: PH / 2 + 650, creatureId: 'bandit_spear', count: 2 },
-    { x: PW / 2 - 850, y: PH / 2 + 700, creatureId: 'bandit_archer', count: 2 },
-    { x: PW / 2 - 750, y: PH / 2 + 680, creatureId: 'bandit_crossbow', count: 2 },
-    { x: PW / 2 - 830, y: PH / 2 + 660, creatureId: 'bandit_brute_veteran', count: 1 },
-    // Орки — южнее
+    { x: PW / 2 + 500, y: PH / 2 + 60,  creatureId: 'goblin', count: 3 },
+    { x: PW / 2 + 700, y: PH / 2,       creatureId: 'goblin', count: 2 },
+    // Волки — юго-восток (T1 меч)
+    { x: PW / 2 + 600, y: PH / 2 + 300, creatureId: 'wolf', count: 3 },
+    { x: PW / 2 + 500, y: PH / 2 + 400, creatureId: 'wolf', count: 2 },
+    // Медведи — западнее (T1 булава)
+    { x: PW / 2 - 600, y: PH / 2 + 200, creatureId: 'bear', count: 2 },
+    { x: PW / 2 - 700, y: PH / 2 + 350, creatureId: 'bear', count: 2 },
+    // Орки — южнее (T1 двуручник)
     { x: PW / 2 + 100, y: PH / 2 + 600, creatureId: 'orc', count: 3 },
-    { x: PW / 2 + 200, y: PH / 2 + 650, creatureId: 'shaman', count: 2 },
-    { x: PW / 2 + 150, y: PH / 2 + 700, creatureId: 'orc_veteran', count: 1 },
+    { x: PW / 2 + 250, y: PH / 2 + 700, creatureId: 'orc', count: 2 },
+    // Разведчики — северо-восток (T1 кор.лук)
+    { x: PW / 2 + 700, y: PH / 2 - 350, creatureId: 'scout', count: 3 },
+    { x: PW / 2 + 850, y: PH / 2 - 400, creatureId: 'scout', count: 2 },
   ],
   exits: [
     { edge: 'north', targetZone: 'water',  spawnX: PW / 2, spawnY: PH - 80 },
@@ -121,6 +113,9 @@ export const ZONE_WATER: ZoneConfig = {
     { x: PW / 2,       y: 500, creatureId: 'fogger',   count: 3 },
     { x: PW / 2 + 400, y: 600, creatureId: 'splasher', count: 2 },
     { x: PW / 2 + 200, y: 400, creatureId: 'fogger',   count: 2 },
+    // Ветераны T2 — глубже в зоне
+    { x: PW / 2 - 600, y: 400, creatureId: 'wolf_veteran', count: 1 },
+    { x: PW / 2 + 600, y: 450, creatureId: 'bear_veteran', count: 1 },
     // Босс Акварис (центр-север)
     // { x: PW / 2, y: 300, creatureId: 'aquaris', count: 1 },
   ],
@@ -156,6 +151,15 @@ export const ZONE_FIRE: ZoneConfig = {
     { x: PW / 2,       y: PH - 500, creatureId: 'asher', count: 3 },
     { x: PW / 2 + 400, y: PH - 600, creatureId: 'spark', count: 2 },
     { x: PW / 2 + 200, y: PH - 700, creatureId: 'asher', count: 2 },
+    // Лагерь разбойников (T1 молот, копьё, дл.лук, арбалет)
+    { x: PW / 2 - 700, y: PH / 2 + 500, creatureId: 'bandit_brute', count: 2 },
+    { x: PW / 2 - 600, y: PH / 2 + 550, creatureId: 'bandit_spear', count: 2 },
+    { x: PW / 2 - 500, y: PH / 2 + 500, creatureId: 'bandit_archer', count: 2 },
+    { x: PW / 2 - 650, y: PH / 2 + 600, creatureId: 'bandit_crossbow', count: 2 },
+    // Ветераны T2 — глубже
+    { x: PW / 2 - 600, y: PH - 400, creatureId: 'bandit_brute_veteran', count: 1 },
+    { x: PW / 2 - 500, y: PH - 350, creatureId: 'bandit_spear_veteran', count: 1 },
+    { x: PW / 2 + 500, y: PH - 400, creatureId: 'goblin_veteran', count: 1 },
     // Босс Игнис (центр-юг)
     // { x: PW / 2, y: PH - 300, creatureId: 'ignis', count: 1 },
   ],
@@ -191,6 +195,11 @@ export const ZONE_WIND: ZoneConfig = {
     { x: PW - 600, y: PH / 2 - 300, creatureId: 'gusty',    count: 3 },
     { x: PW - 500, y: PH / 2,       creatureId: 'whistler', count: 3 },
     { x: PW - 600, y: PH / 2 + 300, creatureId: 'gusty',    count: 2 },
+    // Ветераны T2 — глубже
+    { x: PW - 400, y: PH / 2 - 100, creatureId: 'scout_veteran', count: 1 },
+    { x: PW - 400, y: PH / 2 + 100, creatureId: 'orc_veteran',  count: 1 },
+    // Шаманы
+    { x: PW / 2 + 300, y: 400, creatureId: 'shaman', count: 2 },
     // Босс Аэрос (дальний восток)
     // { x: PW - 300, y: PH / 2, creatureId: 'aeros', count: 1 },
   ],
@@ -226,6 +235,12 @@ export const ZONE_EARTH: ZoneConfig = {
     { x: 600,  y: PH / 2 - 300, creatureId: 'pebble', count: 3 },
     { x: 500,  y: PH / 2,       creatureId: 'mudder', count: 3 },
     { x: 600,  y: PH / 2 + 300, creatureId: 'pebble', count: 2 },
+    // Ветераны T2
+    { x: 400,  y: PH / 2 - 100, creatureId: 'bandit_archer_veteran',   count: 1 },
+    { x: 400,  y: PH / 2 + 100, creatureId: 'bandit_crossbow_veteran', count: 1 },
+    // Волки-духи
+    { x: 500,  y: 600,  creatureId: 'spirit_wolf', count: 2 },
+    { x: 600,  y: 700,  creatureId: 'spirit_wolf', count: 2 },
     // Босс Терра (дальний запад)
     // { x: 300, y: PH / 2, creatureId: 'terra', count: 1 },
   ],
