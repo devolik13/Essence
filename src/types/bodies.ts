@@ -3,8 +3,9 @@ import { AbilityDef } from './abilities';
 import { LootEntry } from './items';
 
 export enum BodyType {
-  Passive = 1,
-  Combat = 2,
+  Passive = 1,  // Не атакует первым, но дерётся в ответ
+  Combat = 2,   // Агрессивный, атакует при приближении
+  Fleeing = 3,  // Всегда убегает, никогда не дерётся
 }
 
 export enum WeaponType {

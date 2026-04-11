@@ -3,7 +3,7 @@ import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
 import { DamageText } from '../entities/DamageText';
-import { STARTER_BODIES, GOBLIN, WEAPON_COOLDOWNS } from '../types/bodies';
+import { STARTER_BODIES, GOBLIN, WEAPON_COOLDOWNS, BodyType } from '../types/bodies';
 import { CREATURE_DB } from '../data/creatureDB';
 import {
   MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH_TILES, MAP_HEIGHT_TILES,
@@ -573,7 +573,7 @@ export class GameScene extends Phaser.Scene {
       creatures: this.creatures.map(c => ({
         x: c.x, y: c.y,
         isDead: c.isDead,
-        isPassive: c.definition.type === 1,
+        isPassive: c.definition.type !== BodyType.Combat,
         isAggro: c.aiState === 'chase' || c.aiState === 'attack',
       })),
       inventory: this.sphere.inventory,
@@ -689,8 +689,8 @@ export class GameScene extends Phaser.Scene {
     if (this.captureProcess?.state === CaptureState.Casting) return false;
 
     for (const creature of this.creatures) {
-      const isPassive = creature.definition.type === 1;
-      const eligible = isPassive ? true : creature.isDead;
+      const canCapturAlive = creature.definition.type === BodyType.Passive || creature.definition.type === BodyType.Fleeing;
+      const eligible = canCapturAlive ? true : creature.isDead;
       if (!eligible) continue;
 
       const dist = distance(this.sphere.x, this.sphere.y, creature.x, creature.y);

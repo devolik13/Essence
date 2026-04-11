@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BodyDefinition } from '../types/bodies';
+import { BodyDefinition, BodyType } from '../types/bodies';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { StatusEffectId, ActiveStatusEffect, STATUS_DEFS } from '../types/statuses';
@@ -171,11 +171,11 @@ export class Creature extends Phaser.GameObjects.Container {
         }
       } else {
         // idle / wander — проверяем агро
-        if (dist < AGGRO_RANGE && this.definition.type === 2) {
+        if (dist < AGGRO_RANGE && this.definition.type === BodyType.Combat) {
           this.aiState = 'chase';
         }
-        // Пассивные существа убегают при приближении игрока
-        if (dist < AGGRO_RANGE * 0.7 && this.definition.type === 1) {
+        // Убегающие (Fleeing) — всегда убегают, никогда не дерутся
+        if (dist < AGGRO_RANGE * 0.7 && this.definition.type === BodyType.Fleeing) {
           this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 1.5, dt);
         }
       }
@@ -301,10 +301,12 @@ export class Creature extends Phaser.GameObjects.Container {
     this.currentHP -= actual;
     // Сон снимается при получении урона
     if (actual > 0) this.statusEffects.delete('sleep');
-    // Пассивные агрятся при получении урона
-    if (actual > 0 && this.definition.type === 1 && (this.aiState === 'idle' || this.aiState === 'wander')) {
+    // Пассивные (type 1) дерутся в ответ при получении урона
+    if (actual > 0 && this.definition.type === BodyType.Passive && (this.aiState === 'idle' || this.aiState === 'wander')) {
       this.aiState = 'chase';
     }
+    // Убегающие (type 3) НЕ дерутся, только убегают быстрее
+    // (их aiState остаётся idle/wander → они просто убегают в update)
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);

@@ -57,7 +57,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   spirit: {
     id: 'spirit', name: 'Spirit', nameRu: 'Спирит',
-    type: BodyType.Passive, damageType: 'melee',
+    type: BodyType.Fleeing, damageType: 'melee',
     caps: { [StatName.Agility]: 40, [StatName.Evasion]: 30, [StatName.Luck]: 20 },
     xpReward: 60,
     npcStats: {
