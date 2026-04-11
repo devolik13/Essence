@@ -16,7 +16,7 @@ export const MOB_NEUTRAL_T1: AbilityDef = {
   effectType: 'self_buff',
   statusEffect: 'acceleration',
   castTime: 1,
-  cooldown: 8,
+  cooldown: 15,
   manaCost: 5,
   range: 0,
   baseDamage: 0,
