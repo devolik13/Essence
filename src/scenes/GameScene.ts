@@ -28,6 +28,7 @@ import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { STATUS_DEFS } from '../types/statuses';
+import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX } from '../systems/vfx';
 
 // ── Зона на карте (ground_zone) ─────────────────────────────
 interface GroundZone {
@@ -898,16 +899,24 @@ export class GameScene extends Phaser.Scene {
       if (closestCreature.aiState === 'idle' || closestCreature.aiState === 'wander') {
         closestCreature.aiState = 'chase';
       }
+      // VFX удара
+      if (dt === 'melee') {
+        spawnMeleeSwingVFX(this, this.playerBody.x, this.playerBody.y, closestCreature.x, closestCreature.y);
+      }
+      spawnHitVFX(this, closestCreature.x, closestCreature.y, 'neutral', result.crit);
     }
 
-    // Снаряд для дальнобойного и магического тела
+    // Снаряд для дальнобойного и магического тела (с VFX хвостом)
+    const bodyElement = this.playerBody.definition.element ?? 'neutral';
     if (dt === 'ranged') {
+      spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, closestCreature.x, closestCreature.y, 'neutral');
       this.spawnProjectile(
         this.playerBody.x, this.playerBody.y,
         closestCreature.x, closestCreature.y,
         0xddcc88, 10, 2,
       );
     } else if (dt === 'magic') {
+      spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, closestCreature.x, closestCreature.y, bodyElement);
       this.spawnProjectile(
         this.playerBody.x, this.playerBody.y,
         closestCreature.x, closestCreature.y,
@@ -1043,6 +1052,8 @@ export class GameScene extends Phaser.Scene {
         }
       } else {
         this.playerBody.takeDamage(npcDmg);
+        spawnProjectileVFX(this, creature.x, creature.y, this.playerBody.x, this.playerBody.y, creature.definition.element ?? 'neutral');
+        spawnHitVFX(this, this.playerBody.x, this.playerBody.y, creature.definition.element ?? 'neutral');
         this.spawnProjectile(
           creature.x, creature.y,
           this.playerBody.x, this.playerBody.y,
@@ -1348,6 +1359,8 @@ export class GameScene extends Phaser.Scene {
       if (spell.grantFreeNextCast) {
         (this.sphere as any)._freeNextCast = true;
       }
+      // VFX кастования баффа
+      spawnCastVFX(this, this.playerBody.x, this.playerBody.y, spell.school ?? 'neutral');
       this.events.emit('ability-used', spell.nameRu);
       return;
     }
@@ -1374,12 +1387,14 @@ export class GameScene extends Phaser.Scene {
         if (allyTarget && healAmount > 0) {
           allyTarget.currentHP = Math.min(allyTarget.currentHP + healAmount, allyTarget.maxHP);
           this.damageTexts.push(new DamageText(this, allyTarget.x, allyTarget.y - 10, healAmount, false, false));
+          spawnHealVFX(this, allyTarget.x, allyTarget.y);
         }
       } else if (healAmount > 0) {
         this.playerBody.currentHP = Math.min(
           this.playerBody.currentHP + healAmount,
           this.playerBody.maxHP,
         );
+        spawnHealVFX(this, this.playerBody.x, this.playerBody.y);
       }
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -1534,6 +1549,14 @@ export class GameScene extends Phaser.Scene {
 
     target.takeDamage(dmg);
     this.aggroCreature(target);
+
+    // VFX попадания способности
+    const spellSchool = spell.school ?? (spell.damageType === 'melee' ? 'neutral' : 'neutral');
+    if (spell.damageType === 'melee') {
+      spawnMeleeSwingVFX(this, this.playerBody.x, this.playerBody.y, target.x, target.y,
+        spell.school === 'fire' ? 0xff5500 : spell.school === 'water' ? 0x4499ff : 0xffffff);
+    }
+    spawnHitVFX(this, target.x, target.y, spellSchool, result.crit || !!isDouble);
 
     // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────
     if (spell.lifestealPercent && this.playerBody && result.hit) {

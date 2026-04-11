@@ -44,7 +44,33 @@ export class BootScene extends Phaser.Scene {
     // ── Персонажи (28×28) ─────────────────────────────────
     this.genCharTextures(gfx);
 
+    // ── VFX текстуры частиц ──────────────────────────────
+    this.genParticleTextures(gfx);
+
     gfx.destroy();
+  }
+
+  private genParticleTextures(g: Phaser.GameObjects.Graphics) {
+    // Круглая частица (мягкая, 16×16)
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(8, 8, 6);
+    g.fillStyle(0xffffff, 0.5);
+    g.fillCircle(8, 8, 8);
+    g.generateTexture('particle_circle', 16, 16);
+    g.clear();
+
+    // Квадратная искра (4×4)
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(0, 0, 4, 4);
+    g.generateTexture('particle_spark', 4, 4);
+    g.clear();
+
+    // Маленькая точка (2×2)
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(0, 0, 2, 2);
+    g.generateTexture('particle_dot', 2, 2);
+    g.clear();
   }
 
   private genCharTextures(g: Phaser.GameObjects.Graphics) {
