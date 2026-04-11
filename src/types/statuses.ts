@@ -47,6 +47,7 @@ export type StatusEffectId =
   | 'ranged_resist'    // Защита от стрелков
   | 'regen_per_buff'   // Реген за каждый бафф
   | 'regen_per_debuff' // Реген за каждый дебафф
+  | 'focus'            // Фокусировка (следующая атака 100% попадает)
   // Баффы
   | 'mana_regen_boost'  // Усиление регена маны
   | 'mana_regen_block'  // Блок регена маны
@@ -364,6 +365,10 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'regen_per_debuff', nameRu: 'Стойкость духа',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     regenPerDebuff: 3, // +3 HP/сек за каждый дебафф
+  },
+  focus: {
+    id: 'focus', nameRu: 'Фокусировка',
+    maxStacks: 1, duration: 10, stackBehavior: 'refresh',
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',

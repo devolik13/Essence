@@ -427,13 +427,14 @@ export const ABILITY_SUPPORT_BOLT: AbilityDef = {
 
 // ─── Универсальные навыки ────────────────────────────────────────────────────
 
-/** Фокусировка: следующая атака не может быть заблокирована */
+/** Фокусировка: следующая атака 100% попадает (игнорирует блок и уклонение) */
 export const ABILITY_FOCUS: AbilityDef = {
   id: 'focus',
   nameRu: 'Фокусировка', school: 'neutral', damageType: 'melee',
   effectType: 'self_buff',
-  cooldown: 10, manaCost: 3, range: 0, baseDamage: 0,
-  description: 'Следующая атака не может быть заблокирована.',
+  statusEffect: 'focus',
+  cooldown: 10, manaCost: 5, range: 0, baseDamage: 0,
+  description: 'Следующая атака 100% попадает (игнорирует блок и уклонение).',
 };
 
 /** Боевой клич: союзники рядом +10% урона на 6 сек */

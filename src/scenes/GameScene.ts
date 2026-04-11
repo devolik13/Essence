@@ -862,9 +862,28 @@ export class GameScene extends Phaser.Scene {
     // Расчёт урона по damageType тела
     const dt = this.playerBody.definition.damageType;
     const wb = weapon.baseDamage;
-    const result = dt === 'magic'  ? calcMagicDamage(this.sphere.stats, closestCreature.stats, wb)
-                 : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats, wb)
-                 :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats, wb);
+    const hasFocus = this.playerBody.hasStatus('focus');
+
+    // Фокусировка: 100% попадание (игнор блок + уклонение), потребляем статус
+    let result;
+    if (hasFocus) {
+      this.playerBody.clearStatus('focus');
+      // Гарантированное попадание — считаем урон напрямую без проверки hit
+      const raw = dt === 'magic' ? wb * (1 + (this.sphere.stats[StatName.Intellect] ?? 1) / 100)
+                : dt === 'ranged' ? wb * (1 + (this.sphere.stats[StatName.Agility] ?? 1) / 100)
+                :                   wb * (1 + (this.sphere.stats[StatName.Strength] ?? 1) / 100);
+      const stat = dt === 'magic' ? StatName.Will : StatName.Armor;
+      const defVal = closestCreature.stats[stat];
+      const reduction = Math.min(defVal / (defVal + 125), 0.8);
+      const reduced = raw * (1 - reduction);
+      const crit = Math.random() < (this.sphere.stats[StatName.Luck] / (this.sphere.stats[StatName.Luck] + 50));
+      const final_ = crit ? reduced * 1.5 : reduced;
+      result = { raw, reduced, hit: true, crit, final: Math.round(final_) };
+    } else {
+      result = dt === 'magic'  ? calcMagicDamage(this.sphere.stats, closestCreature.stats, wb)
+             : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats, wb)
+             :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats, wb);
+    }
 
     const finalDmg = (result.hit && this.sphere.deathDebuffRemaining > 0)
       ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
