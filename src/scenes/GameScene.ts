@@ -23,7 +23,7 @@ import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
-import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, TEST_SPELL_SPAWNS, VILLAGE_CENTER, VILLAGE_BOUNDS } from '../data/chapter1';
+import { ALL_ZONES, ZoneConfig } from '../data/zones';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
@@ -149,12 +149,15 @@ export class GameScene extends Phaser.Scene {
   private respawnQueue: { id: string; x: number; y: number; timer: number }[] = [];
   private readonly RESPAWN_DELAY = 15000; // 15 секунд
 
-  // Стартовые тела на камне возрождения
-  private starterPositions = [
-    { x: 1880, y: 1340 },  // Воин
-    { x: 1920, y: 1340 },  // Лучник
-    { x: 1960, y: 1340 },  // Маг
-  ];
+  // Стартовые тела — рассчитываются от точки респауна зоны
+  private get starterPositions() {
+    const rp = this.currentZone.respawnPoint;
+    return [
+      { x: rp.x - 40, y: rp.y + 60 },  // Воин
+      { x: rp.x,      y: rp.y + 60 },  // Лучник
+      { x: rp.x + 40, y: rp.y + 60 },  // Маг
+    ];
+  }
 
   // Захват
   private captureProcess: CaptureProcess | null = null;
@@ -163,8 +166,11 @@ export class GameScene extends Phaser.Scene {
   // Квесты
   private questTracker!: QuestTracker;
 
-  // NPC-квестодатель
-  private questGiverPos = { x: 2020, y: 1240 };
+  // NPC-квестодатель — рядом с респауном
+  private get questGiverPos() {
+    const rp = this.currentZone.respawnPoint;
+    return { x: rp.x + 100, y: rp.y - 40 };
+  }
 
   // Выбранная цель
   private selectedTarget: Creature | null = null;
@@ -193,8 +199,25 @@ export class GameScene extends Phaser.Scene {
   private key7!: Phaser.Input.Keyboard.Key;
   private key8!: Phaser.Input.Keyboard.Key;
 
+  /** Текущая зона */
+  private currentZone: ZoneConfig = ALL_ZONES['village'];
+  private spawnX?: number;
+  private spawnY?: number;
+
   constructor() {
     super({ key: 'GameScene' });
+  }
+
+  init(data?: { zoneId?: string; spawnX?: number; spawnY?: number }) {
+    this.currentZone = ALL_ZONES[data?.zoneId ?? 'village'] ?? ALL_ZONES['village'];
+    this.spawnX = data?.spawnX;
+    this.spawnY = data?.spawnY;
+    // Очищаем массивы при перезагрузке сцены
+    this.creatures = [];
+    this.damageTexts = [];
+    this.groundZones = [];
+    this.windBarriers = [];
+    this.summonedWalls = [];
   }
 
   create() {
@@ -205,7 +228,9 @@ export class GameScene extends Phaser.Scene {
     this.buildMap();
 
     // ─── Сфера ───────────────────────────────────────
-    this.sphere = new Sphere(this, VILLAGE_CENTER.x, VILLAGE_CENTER.y);
+    const startX = this.spawnX ?? this.currentZone.respawnPoint.x;
+    const startY = this.spawnY ?? this.currentZone.respawnPoint.y;
+    this.sphere = new Sphere(this, startX, startY);
     const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     if (loaded) this.events.emit('save-loaded');
 
@@ -216,7 +241,9 @@ export class GameScene extends Phaser.Scene {
     this.spawnCreatures();
 
     // ─── Камера ──────────────────────────────────────
-    this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
+    const zoneW = this.currentZone.widthTiles * TILE_SIZE;
+    const zoneH = this.currentZone.heightTiles * TILE_SIZE;
+    this.cameras.main.setBounds(0, 0, zoneW, zoneH);
     this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
 
     // ─── Индикатор выбранной цели ─────────────────────
@@ -308,6 +335,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
+    // ── Проверка перехода между зонами ──────────────────
+    this.checkZoneTransition();
+
     // Обновляем сферу
     this.sphere.update(time, delta);
 
@@ -556,62 +586,60 @@ export class GameScene extends Phaser.Scene {
   // ─── Карта ────────────────────────────────────────────
 
   private buildMap() {
-    // Трава
-    for (let ty = 0; ty < MAP_HEIGHT_TILES; ty++) {
-      for (let tx = 0; tx < MAP_WIDTH_TILES; tx++) {
-        this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 'tile_grass');
+    const zone = this.currentZone;
+    const wt = zone.widthTiles;
+    const ht = zone.heightTiles;
+
+    // Фоновые тайлы
+    for (let ty = 0; ty < ht; ty++) {
+      for (let tx = 0; tx < wt; tx++) {
+        const tile = this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, zone.baseTile);
+        if (zone.tint) tile.setTint(zone.tint);
       }
     }
 
-    // Деревня Эшворт — каменные тайлы вокруг центра карты (tx 56-64, ty 37-43)
-    // Центр карты тайл (60,40) = пиксель (1920, 1280)
-    for (let ty = 37; ty < 44; ty++) {
-      for (let tx = 56; tx < 65; tx++) {
-        this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 'tile_stone');
+    // Безопасная зона (каменные тайлы)
+    if (zone.safeBounds) {
+      const sb = zone.safeBounds;
+      const tx1 = Math.floor(sb.x1 / TILE_SIZE);
+      const ty1 = Math.floor(sb.y1 / TILE_SIZE);
+      const tx2 = Math.ceil(sb.x2 / TILE_SIZE);
+      const ty2 = Math.ceil(sb.y2 / TILE_SIZE);
+      for (let ty = ty1; ty < ty2; ty++) {
+        for (let tx = tx1; tx < tx2; tx++) {
+          this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 'tile_stone');
+        }
       }
     }
 
-    // Камень возрождения — в центре деревни
-    this.add.image(VILLAGE_CENTER.x, VILLAGE_CENTER.y - 80, 'respawn_stone');
-    this.add.text(VILLAGE_CENTER.x, VILLAGE_CENTER.y - 106, 'Камень возрождения', {
+    // Камень возрождения
+    const rp = zone.respawnPoint;
+    this.add.image(rp.x, rp.y - 80, 'respawn_stone');
+    this.add.text(rp.x, rp.y - 106, 'Камень возрождения', {
       fontSize: '11px', color: '#aaaaee', align: 'center',
     }).setOrigin(0.5);
 
-    // ─── Подписи зон ─────────────────────────────────────
-    this.add.text(3040, 1280, '🔥 Пепельная роща', {
-      fontSize: '14px', color: '#ff8844', align: 'center',
+    // Название зоны
+    this.add.text(wt * TILE_SIZE / 2, 40, zone.nameRu, {
+      fontSize: '16px', color: '#ffffff', align: 'center',
       stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5);
 
-    this.add.text(1920, 480, '🌊 Туманное озеро', {
-      fontSize: '14px', color: '#66aaff', align: 'center',
-      stroke: '#000000', strokeThickness: 3,
-    }).setOrigin(0.5);
-
-    this.add.text(800, 1280, '🪨 Каменные холмы', {
-      fontSize: '14px', color: '#aa8855', align: 'center',
-      stroke: '#000000', strokeThickness: 3,
-    }).setOrigin(0.5);
-
-    this.add.text(1920, 2080, '💨 Вершины ветров', {
-      fontSize: '14px', color: '#99ddaa', align: 'center',
-      stroke: '#000000', strokeThickness: 3,
-    }).setOrigin(0.5);
-
-    this.add.text(900, 1570, '🌲 Серый лес', {
-      fontSize: '12px', color: '#88aa66', align: 'center',
-      stroke: '#000000', strokeThickness: 2,
-    }).setOrigin(0.5);
-
-    this.add.text(2000, 1570, '⚔ Лагерь орков', {
-      fontSize: '12px', color: '#88aa55', align: 'center',
-      stroke: '#000000', strokeThickness: 2,
-    }).setOrigin(0.5);
-
-    this.add.text(2800, 720, '🏚 Крестьянский хутор', {
-      fontSize: '12px', color: '#ccaa77', align: 'center',
-      stroke: '#000000', strokeThickness: 2,
-    }).setOrigin(0.5);
+    // Подписи выходов
+    for (const exit of zone.exits) {
+      const targetZone = ALL_ZONES[exit.targetZone];
+      if (!targetZone) continue;
+      let ex = 0, ey = 0;
+      if (exit.edge === 'north') { ex = wt * TILE_SIZE / 2; ey = 20; }
+      if (exit.edge === 'south') { ex = wt * TILE_SIZE / 2; ey = ht * TILE_SIZE - 20; }
+      if (exit.edge === 'east')  { ex = wt * TILE_SIZE - 20; ey = ht * TILE_SIZE / 2; }
+      if (exit.edge === 'west')  { ex = 20; ey = ht * TILE_SIZE / 2; }
+      const arrow = exit.edge === 'north' ? '↑' : exit.edge === 'south' ? '↓' : exit.edge === 'east' ? '→' : '←';
+      this.add.text(ex, ey, `${arrow} ${targetZone.nameRu}`, {
+        fontSize: '12px', color: '#ffdd88', align: 'center',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(100);
+    }
   }
 
   // ─── Стартовые тела ───────────────────────────────────
@@ -720,8 +748,9 @@ export class GameScene extends Phaser.Scene {
   // ─── Выход из тела ────────────────────────────────────
 
   private isInSafeZone(x: number, y: number): boolean {
-    return x >= VILLAGE_BOUNDS.x1 && x <= VILLAGE_BOUNDS.x2
-        && y >= VILLAGE_BOUNDS.y1 && y <= VILLAGE_BOUNDS.y2;
+    const sb = this.currentZone.safeBounds;
+    if (!sb) return false;
+    return x >= sb.x1 && x <= sb.x2 && y >= sb.y1 && y <= sb.y2;
   }
 
   private exitBody() {
@@ -746,7 +775,7 @@ export class GameScene extends Phaser.Scene {
   // ─── Спавн мобов ─────────────────────────────────────
 
   private spawnCreatures() {
-    const spawnGroups = (
+    const spawnGroup = (
       groups: { x: number; y: number; creatureId: string; count: number }[],
       jitter = 100,
     ) => {
@@ -761,26 +790,8 @@ export class GameScene extends Phaser.Scene {
       }
     };
 
-    // ── Глава 1: элементали по зонам ─────────────────────
-    for (const zone of CHAPTER1_ZONES) {
-      spawnGroups(zone.spawnGroups);
-      // Босс зоны (null = ещё не реализован)
-      if (zone.bossId) {
-        const bossDef = CREATURE_DB[zone.bossId];
-        if (bossDef) this.creatures.push(new Creature(this, zone.bossX, zone.bossY, bossDef));
-      }
-    }
-
-    // ── Мини-ивент локации ────────────────────────────────
-    // Серый лес (волки + медведи), Лагерь орков, Крестьянский хутор (разведчики)
-    for (const loc of MINI_EVENT_LOCATIONS) {
-      spawnGroups(loc.spawnGroups);
-    }
-
-    // ── Стартовая зона (вокруг деревни Эшворт) ───────────
-    // Малый джиттер ±40px — пассивные мобы не вылезают за границы деревни
-    spawnGroups(VILLAGE_STARTER_SPAWNS, 40);
-    spawnGroups(TEST_SPELL_SPAWNS, 10);
+    // Спавним мобов текущей зоны
+    spawnGroup(this.currentZone.spawnGroups);
 
     // Подключаем проверку стен ко всем существам
     const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);
@@ -796,6 +807,31 @@ export class GameScene extends Phaser.Scene {
 
   private selectTarget(creature: Creature) {
     this.selectedTarget = creature;
+  }
+
+  /** Переход между зонами: если игрок у края карты → переход */
+  private checkZoneTransition() {
+    const entity = this.playerBody ?? this.sphere;
+    if (!entity) return;
+    const zoneW = this.currentZone.widthTiles * TILE_SIZE;
+    const zoneH = this.currentZone.heightTiles * TILE_SIZE;
+    const edge = 40; // пикселей от края для срабатывания
+
+    for (const exit of this.currentZone.exits) {
+      let trigger = false;
+      if (exit.edge === 'north' && entity.y < edge) trigger = true;
+      if (exit.edge === 'south' && entity.y > zoneH - edge) trigger = true;
+      if (exit.edge === 'east' && entity.x > zoneW - edge) trigger = true;
+      if (exit.edge === 'west' && entity.x < edge) trigger = true;
+
+      if (trigger) {
+        // Сохраняем перед переходом
+        saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+        // Перезапускаем сцену с новой зоной
+        this.scene.restart({ zoneId: exit.targetZone, spawnX: exit.spawnX, spawnY: exit.spawnY });
+        return;
+      }
+    }
   }
 
   /** Применить статус к цели с обработкой спец. эффектов (interrupt, knockback) */
@@ -1191,12 +1227,12 @@ export class GameScene extends Phaser.Scene {
 
     // ── Телепорт к камню возрождения в том же теле ─────────
     if (this.playerBody) {
-      this.playerBody.x = VILLAGE_CENTER.x;
-      this.playerBody.y = VILLAGE_CENTER.y;
+      this.playerBody.x = this.currentZone.respawnPoint.x;
+      this.playerBody.y = this.currentZone.respawnPoint.y;
       this.playerBody.currentHP = this.playerBody.maxHP;
       this.playerBody.currentMana = this.playerBody.maxMana;
     } else {
-      this.sphere.enterAstral(VILLAGE_CENTER.x, VILLAGE_CENTER.y);
+      this.sphere.enterAstral(this.currentZone.respawnPoint.x, this.currentZone.respawnPoint.y);
     }
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
