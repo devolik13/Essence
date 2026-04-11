@@ -1,7 +1,7 @@
 // ─── Размеры мира ──────────────────────────────────────
 export const TILE_SIZE = 32;
-export const MAP_WIDTH_TILES = 120;
-export const MAP_HEIGHT_TILES = 80;
+export const MAP_WIDTH_TILES = 240;
+export const MAP_HEIGHT_TILES = 160;
 export const MAP_WIDTH = MAP_WIDTH_TILES * TILE_SIZE;
 export const MAP_HEIGHT = MAP_HEIGHT_TILES * TILE_SIZE;
 
@@ -34,7 +34,7 @@ export const XP_GOBLIN_KILL = 25;
 
 // ─── Агро ──────────────────────────────────────────────
 export const AGGRO_RANGE = 200;        // пикс — дальность агра моба
-export const LEASH_RANGE = 400;        // пикс — макс расстояние от точки спавна
+export const LEASH_RANGE = 600;        // пикс — макс расстояние от точки спавна
 
 // ─── UI ────────────────────────────────────────────────
 export const UI_DEPTH = 1000;
