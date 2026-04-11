@@ -441,7 +441,9 @@ export const ABILITY_FOCUS: AbilityDef = {
 export const ABILITY_WAR_CRY: AbilityDef = {
   id: 'war_cry',
   nameRu: 'Боевой клич', school: 'neutral', damageType: 'melee',
-  cooldown: 30, manaCost: 6, range: 0, baseDamage: 0,
+  effectType: 'self_buff',
+  statusEffect: 'damage_boost',
+  cooldown: 30, manaCost: 10, range: 0, baseDamage: 0,
   isAoe: true, aoeRadius: 200,
   description: 'Союзники в r200 +10% урона на 6 сек.',
 };

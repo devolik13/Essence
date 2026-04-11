@@ -251,6 +251,27 @@ export class Body extends Phaser.GameObjects.Container {
       if (this.hasStatus('mana_regen_block')) manaRegenMult += STATUS_DEFS.mana_regen_block.regenManaBonus ?? 0;
       if (this.hasStatus('mana_regen_boost')) manaRegenMult += STATUS_DEFS.mana_regen_boost.regenManaBonus ?? 0;
       this.currentMana = clamp(this.currentMana + manaRegenPerSec(this.sphereStats) * Math.max(0, manaRegenMult) * dt, 0, this.maxMana);
+
+      // Подпитка: +3 HP/сек за каждый бафф
+      if (this.hasStatus('regen_per_buff')) {
+        const buffList = ['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
+          'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
+          'mana_regen_boost', 'stun_immune', 'knockback_immune',
+          'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'focus', 'damage_boost'];
+        const buffCount = [...this.statusEffects.keys()].filter(id => buffList.includes(id)).length;
+        const regen = (STATUS_DEFS.regen_per_buff.regenPerBuff ?? 3) * buffCount;
+        this.currentHP = clamp(this.currentHP + regen * dt, 0, this.maxHP);
+      }
+      // Стойкость духа: +3 HP/сек за каждый дебафф
+      if (this.hasStatus('regen_per_debuff')) {
+        const buffList = ['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
+          'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
+          'mana_regen_boost', 'stun_immune', 'knockback_immune',
+          'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'focus', 'damage_boost'];
+        const debuffCount = [...this.statusEffects.keys()].filter(id => !buffList.includes(id)).length;
+        const regen = (STATUS_DEFS.regen_per_debuff.regenPerDebuff ?? 3) * debuffCount;
+        this.currentHP = clamp(this.currentHP + regen * dt, 0, this.maxHP);
+      }
     }
 
     let vx = 0;

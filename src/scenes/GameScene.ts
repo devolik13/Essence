@@ -885,8 +885,13 @@ export class GameScene extends Phaser.Scene {
              :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats, wb);
     }
 
-    const finalDmg = (result.hit && this.sphere.deathDebuffRemaining > 0)
+    let finalDmg = (result.hit && this.sphere.deathDebuffRemaining > 0)
       ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
+    // Боевой клич: +10% исходящего урона
+    if (result.hit && this.playerBody.hasStatus('damage_boost')) {
+      const boost = STATUS_DEFS['damage_boost'].outgoingDamageIncrease ?? 0;
+      finalDmg = Math.round(finalDmg * (1 + boost));
+    }
 
     if (result.hit) {
       closestCreature.takeDamage(finalDmg);
@@ -1320,6 +1325,12 @@ export class GameScene extends Phaser.Scene {
 
     // ── Самобафф (ускорение и пр.) ─────────────────────────────────────────
     if (spell.effectType === 'self_buff') {
+      // Проверка requiredWeapons
+      if (spell.requiredWeapons && !spell.requiredWeapons.includes(this.playerBody.definition.weapon)) {
+        slot.cooldownRemaining = 0;
+        this.playerBody.currentMana += spell.manaCost;
+        return;
+      }
       if (spell.statusEffect) {
         this.playerBody.applyStatus(spell.statusEffect);
         // Групповые баффы: применяем к союзникам в радиусе (волк и будущие союзники)
@@ -1333,18 +1344,43 @@ export class GameScene extends Phaser.Scene {
           }
         }
       }
+      // Адаптация: следующий каст бесплатный
+      if (spell.grantFreeNextCast) {
+        (this.sphere as any)._freeNextCast = true;
+      }
       this.events.emit('ability-used', spell.nameRu);
       return;
     }
 
-    // ── Лечение себя (природа T2) ──────────────────────────────────────────
+    // ── Лечение (self_heal / targetAlly / healPerStatusEffect) ────────────
     if (spell.effectType === 'self_heal') {
       const intel = this.sphere.stats.intellect ?? 0;
-      const healAmount = Math.round(spell.baseDamage * (1 + intel / 100));
-      this.playerBody.currentHP = Math.min(
-        this.playerBody.currentHP + healAmount,
-        this.playerBody.maxHP,
-      );
+      let healAmount = spell.baseDamage > 0
+        ? Math.round(spell.baseDamage * (1 + intel / 100))
+        : 0;
+      // Очищение: +HP за каждый активный статус на себе
+      if (spell.healPerStatusEffect) {
+        healAmount += spell.healPerStatusEffect * this.playerBody.statusEffects.size;
+      }
+      if (spell.targetAlly) {
+        // Лечение союзника: ищем ближайшего союзника (волка) в радиусе
+        let allyTarget: Creature | null = null;
+        let allyDist = spell.range;
+        for (const c of this.creatures) {
+          if (!c.isSummoned || c.isDead) continue;
+          const d = distance(this.playerBody.x, this.playerBody.y, c.x, c.y);
+          if (d < allyDist) { allyDist = d; allyTarget = c; }
+        }
+        if (allyTarget && healAmount > 0) {
+          allyTarget.currentHP = Math.min(allyTarget.currentHP + healAmount, allyTarget.maxHP);
+          this.damageTexts.push(new DamageText(this, allyTarget.x, allyTarget.y - 10, healAmount, false, false));
+        }
+      } else if (healAmount > 0) {
+        this.playerBody.currentHP = Math.min(
+          this.playerBody.currentHP + healAmount,
+          this.playerBody.maxHP,
+        );
+      }
       this.events.emit('ability-used', spell.nameRu);
       return;
     }
@@ -1440,6 +1476,49 @@ export class GameScene extends Phaser.Scene {
       if (target.hasStatus(spell.conditionalOnStatus as any)) {
         dmg = Math.round(dmg * spell.conditionalBonusDmg);
       }
+    }
+
+    // ── Отчаяние: +10 урона за дебафф на себе ────────────────────────────
+    if (spell.bonusDamagePerSelfDebuff && this.playerBody) {
+      const debuffCount = [...this.playerBody.statusEffects.keys()].filter(id => {
+        return !['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
+                 'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
+                 'mana_regen_boost', 'stun_immune', 'knockback_immune',
+                 'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'focus', 'damage_boost'].includes(id);
+      }).length;
+      dmg += spell.bonusDamagePerSelfDebuff * debuffCount;
+    }
+
+    // ── Разоблачение: +10% урона за бафф на враге ────────────────────────
+    if (spell.bonusDamagePercentPerTargetBuff) {
+      const buffCount = [...target.statusEffects.keys()].filter(id => {
+        return ['fortify', 'evasion_boost', 'block_next', 'shield_stance',
+                'hp_regen_boost', 'mana_regen_boost', 'stun_immune', 'knockback_immune',
+                'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'acceleration',
+                'inspiration', 'bark_armor', 'leaf_regen', 'focus', 'damage_boost'].includes(id);
+      }).length;
+      dmg = Math.round(dmg * (1 + spell.bonusDamagePercentPerTargetBuff * buffCount));
+    }
+
+    // ── Добивание: +50% урона если цель < 50% HP ─────────────────────────
+    if (spell.executeBonusPercent) {
+      const hpRatio = target.currentHP / target.maxHP;
+      if (hpRatio < 0.5) {
+        dmg = Math.round(dmg * (1 + spell.executeBonusPercent));
+      }
+    }
+
+    // ── Чистый удар: +30% если нет зачарования ──────────────────────────
+    if (spell.bonusDamageIfNoEnchant && this.sphere) {
+      if (!(this.sphere as any).activeEnchant) {
+        dmg = Math.round(dmg * (1 + spell.bonusDamageIfNoEnchant));
+      }
+    }
+
+    // ── Боевой клич (damage_boost): +10% исходящего урона ────────────────
+    if (this.playerBody?.hasStatus('damage_boost')) {
+      const boost = STATUS_DEFS['damage_boost'].outgoingDamageIncrease ?? 0;
+      dmg = Math.round(dmg * (1 + boost));
     }
 
     // ── Бурст яда (Смертельная доза: 5 стаков → мгновенный урон) ────────

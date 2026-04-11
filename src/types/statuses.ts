@@ -48,6 +48,7 @@ export type StatusEffectId =
   | 'regen_per_buff'   // Реген за каждый бафф
   | 'regen_per_debuff' // Реген за каждый дебафф
   | 'focus'            // Фокусировка (следующая атака 100% попадает)
+  | 'damage_boost'     // Боевой клич (+10% исходящего урона)
   // Баффы
   | 'mana_regen_boost'  // Усиление регена маны
   | 'mana_regen_block'  // Блок регена маны
@@ -98,6 +99,8 @@ export interface StatusEffectDef {
   // --- Дебаффы ---
   /** Снижение исходящего урона (0.2 = −20%) */
   outgoingDamageReduction?: number;
+  /** Увеличение исходящего урона (0.1 = +10%) */
+  outgoingDamageIncrease?: number;
   /** Увеличение получаемого урона (0.05 = +5%) */
   incomingDamageIncrease?: number;
   /** Снижение получаемого урона (0.2 = −20%) */
@@ -369,6 +372,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   focus: {
     id: 'focus', nameRu: 'Фокусировка',
     maxStacks: 1, duration: 10, stackBehavior: 'refresh',
+  },
+  damage_boost: {
+    id: 'damage_boost', nameRu: 'Боевой клич',
+    maxStacks: 1, duration: 6, stackBehavior: 'refresh',
+    outgoingDamageIncrease: 0.1, // +10% исходящего урона
   },
   acceleration: {
     id: 'acceleration', nameRu: 'Ускорение',
