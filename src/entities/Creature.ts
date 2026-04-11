@@ -318,7 +318,19 @@ export class Creature extends Phaser.GameObjects.Container {
 
   // ── Статус-эффекты ─────────────────────────────────────────────────────────
 
+  /** Проверяет и потребляет блок (только melee/ranged). true = атака заблокирована */
+  public tryBlock(): boolean {
+    if (this.statusEffects.has('block_next')) {
+      this.statusEffects.delete('block_next');
+      return true;
+    }
+    return false;
+  }
+
   public applyStatus(id: StatusEffectId, stacks: number = 1): void {
+    // Иммунитет к оглушению / отбрасыванию
+    if (id === 'stun' && this.statusEffects.has('stun_immune')) return;
+    if (id === 'knockback' && this.statusEffects.has('knockback_immune')) return;
     const def = STATUS_DEFS[id];
     if (!def || def.duration === 0) return; // Мгновенные эффекты обрабатываются снаружи
     const existing = this.statusEffects.get(id);

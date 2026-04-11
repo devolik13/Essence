@@ -306,12 +306,16 @@ export class Body extends Phaser.GameObjects.Container {
     else                     this.hpBar.setFillStyle(0xcc3333);
   }
 
-  takeDamage(amount: number): number {
-    // block_next поглощает атаку полностью
+  /** Проверяет и потребляет блок (только melee/ranged). true = атака заблокирована */
+  public tryBlock(): boolean {
     if (this.hasStatus('block_next')) {
       this.clearStatus('block_next');
-      return 0;
+      return true;
     }
+    return false;
+  }
+
+  takeDamage(amount: number): number {
     let remaining = amount;
     // Сначала поглощается временными HP
     if (this.tempHP > 0) {
@@ -333,6 +337,10 @@ export class Body extends Phaser.GameObjects.Container {
   public applyStatus(id: StatusEffectId, stacks: number = 1): void {
     // Иммунитет к дебаффам (от Очищающего удара)
     if ((this as any)._debuffImmunity > 0) return;
+    // Иммунитет к оглушению
+    if (id === 'stun' && this.hasStatus('stun_immune')) return;
+    // Иммунитет к отбрасыванию
+    if (id === 'knockback' && this.hasStatus('knockback_immune')) return;
     const def = STATUS_DEFS[id];
     if (!def || def.duration === 0) return;
     const existing = this.statusEffects.get(id);

@@ -917,6 +917,14 @@ export class GameScene extends Phaser.Scene {
 
     const cdt = creature.definition.damageType;
     const cwb = WEAPONS[creature.definition.weapon].baseDamage;
+
+    // Блок: melee/ranged → проверка блока ДО попадания
+    if (cdt !== 'magic' && this.playerBody.tryBlock()) {
+      this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y, 0, false, false));
+      creature.attackCooldown = WEAPON_COOLDOWNS[creature.definition.weapon];
+      return;
+    }
+
     const defStats = this.getPlayerDefenseStats();
     const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, defStats, cwb)
                  : cdt === 'ranged' ? calcRangedDamage(creature.stats, defStats, cwb)
@@ -929,8 +937,7 @@ export class GameScene extends Phaser.Scene {
       if (barrierRed > 0) finalDmg = Math.round(finalDmg * (1 - barrierRed));
       // Закалка: −30% дальнего урона
       if (cdt === 'ranged' && this.playerBody.hasStatus('ranged_resist')) {
-        const reduction = (this.playerBody.statusEffects.get('ranged_resist')?.stacks ?? 1) > 0 ? 0.3 : 0;
-        finalDmg = Math.round(finalDmg * (1 - reduction));
+        finalDmg = Math.round(finalDmg * 0.7);
       }
       this.playerBody.takeDamage(finalDmg);
     }
