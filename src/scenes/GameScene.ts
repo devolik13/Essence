@@ -27,6 +27,7 @@ import { CHAPTER1_ZONES, MINI_EVENT_LOCATIONS, VILLAGE_STARTER_SPAWNS, TEST_SPEL
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
+import { STATUS_DEFS } from '../types/statuses';
 
 // ── Зона на карте (ground_zone) ─────────────────────────────
 interface GroundZone {
@@ -796,6 +797,39 @@ export class GameScene extends Phaser.Scene {
     this.selectedTarget = creature;
   }
 
+  /** Применить статус к цели с обработкой спец. эффектов (interrupt, knockback) */
+  private applyStatusToTarget(target: Creature, effectId: string) {
+    if (effectId === 'interrupt') {
+      if (target.castTimer > 0 && target.castingSpell) {
+        target.castTimer = target.castingSpell.castTime ?? 0;
+      }
+    } else if (effectId === 'knockback') {
+      if (this.playerBody) {
+        const kbDist = 180;
+        const dx = target.x - this.playerBody.x;
+        const dy = target.y - this.playerBody.y;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        target.x += (dx / len) * kbDist;
+        target.y += (dy / len) * kbDist;
+      }
+      target.applyStatus('stun');
+    } else if (effectId === 'fortify' && this.playerBody) {
+      // Fortify применяется на КАСТЕРА (бафф), не на цель
+      this.playerBody.applyStatus('fortify');
+    } else {
+      target.applyStatus(effectId as any);
+    }
+  }
+
+  /** Статы игрока с учётом статус-бонусов (fortify, evasion_boost и т.д.) */
+  private getPlayerDefenseStats(): Stats {
+    if (!this.playerBody) return { ...this.sphere.stats };
+    const s = { ...this.sphere.stats };
+    s[StatName.Armor] += this.playerBody.armorBonus;
+    s[StatName.Evasion] += this.playerBody.evasionBonus;
+    return s;
+  }
+
   private handleAttack() {
     if (!this.playerBody || this.playerBody.attackCooldown > 0) return;
 
@@ -883,15 +917,21 @@ export class GameScene extends Phaser.Scene {
 
     const cdt = creature.definition.damageType;
     const cwb = WEAPONS[creature.definition.weapon].baseDamage;
-    const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, this.sphere.stats, cwb)
-                 : cdt === 'ranged' ? calcRangedDamage(creature.stats, this.sphere.stats, cwb)
-                 :                    calcMeleeDamage(creature.stats, this.sphere.stats, cwb);
+    const defStats = this.getPlayerDefenseStats();
+    const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, defStats, cwb)
+                 : cdt === 'ranged' ? calcRangedDamage(creature.stats, defStats, cwb)
+                 :                    calcMeleeDamage(creature.stats, defStats, cwb);
 
     if (result.hit) {
       let finalDmg = result.final;
       // Ветряной барьер снижает урон если снаряд пролетает через него
       const barrierRed = this.getWindBarrierReduction(creature.x, creature.y, this.playerBody.x, this.playerBody.y, true);
       if (barrierRed > 0) finalDmg = Math.round(finalDmg * (1 - barrierRed));
+      // Закалка: −30% дальнего урона
+      if (cdt === 'ranged' && this.playerBody.hasStatus('ranged_resist')) {
+        const reduction = (this.playerBody.statusEffects.get('ranged_resist')?.stacks ?? 1) > 0 ? 0.3 : 0;
+        finalDmg = Math.round(finalDmg * (1 - reduction));
+      }
       this.playerBody.takeDamage(finalDmg);
     }
 
@@ -1325,8 +1365,28 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.y += (dy / dist) * leap;
     }
 
-    // ── Игнорирование брони (Мощный выстрел) ────────────────────────────
+    // ── Пробивание защиты (школа Земли: 20% шанс игнорировать 20% защиты) ──
     let baseDmg = result.final;
+    if (spell.school) {
+      const schoolBonus = SCHOOL_BONUSES[spell.school];
+      if (schoolBonus?.penetrationChance && schoolBonus?.penetrationPercent) {
+        if (Math.random() < schoolBonus.penetrationChance) {
+          // Пересчитываем урон с пониженной защитой
+          const stat = spell.damageType === 'magic' ? StatName.Will : StatName.Armor;
+          const origDef = target.stats[stat];
+          const reducedDef = origDef * (1 - schoolBonus.penetrationPercent);
+          const raw = result.raw;
+          const reduction = spell.damageType === 'magic'
+            ? Math.min(reducedDef / (reducedDef + 125), 0.8)
+            : Math.min(reducedDef / (reducedDef + 125), 0.8);
+          const reduced = raw * (1 - reduction);
+          const final_ = result.crit ? reduced * 1.5 : reduced;
+          baseDmg = Math.round(final_);
+        }
+      }
+    }
+
+    // ── Игнорирование брони (Мощный выстрел) ────────────────────────────
     if (spell.ignoreArmor) {
       // Пересчитываем без защиты
       const rawBase = spell.baseDamage * (1 + (this.sphere.stats[StatName.Agility] ?? 1) / 100);
@@ -1367,11 +1427,34 @@ export class GameScene extends Phaser.Scene {
     }
 
     // ── Очищение дебаффов (Очищающий удар) ───────────────────────────────
-    if (spell.cleanseSelf && this.playerBody) {
-      this.playerBody.statusEffects.clear();
+    if ((spell.cleanseCount || spell.cleanseSelf) && this.playerBody) {
+      const debuffIds = [...this.playerBody.statusEffects.keys()].filter(id => {
+        const def = STATUS_DEFS[id];
+        // Дебаффы — всё кроме баффов (acceleration, inspiration, bark_armor, etc.)
+        return !['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
+                 'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
+                 'mana_regen_boost', 'stun_immune', 'knockback_immune',
+                 'regen_per_buff', 'regen_per_debuff', 'ranged_resist'].includes(id);
+      });
+      if (spell.cleanseCount) {
+        // Снимаем N случайных дебаффов
+        for (let i = 0; i < spell.cleanseCount && debuffIds.length > 0; i++) {
+          const idx = Math.floor(Math.random() * debuffIds.length);
+          this.playerBody.statusEffects.delete(debuffIds.splice(idx, 1)[0]);
+        }
+      } else {
+        // cleanseSelf: снимаем все
+        for (const id of debuffIds) this.playerBody.statusEffects.delete(id);
+      }
       if (spell.debuffImmunityDuration) {
         (this.playerBody as any)._debuffImmunity = spell.debuffImmunityDuration;
       }
+    }
+
+    // ── Временные HP (Стойкий удар) ────────────────────────────────────
+    if (spell.grantTempHP && this.playerBody) {
+      this.playerBody.tempHP = spell.grantTempHP;
+      this.playerBody.tempHPTimer = spell.tempHPDuration ?? 6;
     }
 
     // ── Бесплатный следующий каст (Рассечение) ──────────────────────────
@@ -1394,28 +1477,20 @@ export class GameScene extends Phaser.Scene {
     if (spell.damageType !== 'magic') {
       this.applyEnchantDamage(target, result.hit);
     }
-    // Статус-эффект: спелл > оружие
+    // Статус-эффект: спелл > оружие (+ alsoApplyWeaponEffect для двойного)
     const weapon = this.playerBody ? WEAPONS[this.playerBody.definition.weapon] : null;
     const effectId = spell.statusEffect ?? weapon?.weaponEffect;
     const effectChance = spell.statusEffect ? (spell.statusChance ?? 1.0) : (weapon?.weaponEffectChance ?? 0.2);
     if (effectId && result.hit) {
-      const chance = effectChance;
-      if (Math.random() < chance) {
-        if (effectId === 'interrupt') {
-          if (target.castTimer > 0 && target.castingSpell) {
-            target.castTimer = target.castingSpell.castTime ?? 0;
-          }
-        } else if (effectId === 'knockback') {
-          const kbDist = 180;
-          const dx = target.x - this.playerBody!.x;
-          const dy = target.y - this.playerBody!.y;
-          const len = Math.sqrt(dx * dx + dy * dy) || 1;
-          target.x += (dx / len) * kbDist;
-          target.y += (dy / len) * kbDist;
-          target.applyStatus('stun');
-        } else {
-          target.applyStatus(effectId as any);
-        }
+      if (Math.random() < effectChance) {
+        this.applyStatusToTarget(target, effectId);
+      }
+    }
+    // alsoApplyWeaponEffect: свой эффект + оружейный отдельно
+    if (spell.alsoApplyWeaponEffect && spell.statusEffect && weapon?.weaponEffect && result.hit) {
+      const wepChance = (weapon.weaponEffectChance ?? 0.2) * (spell.weaponEffectChanceMult ?? 1);
+      if (Math.random() < wepChance) {
+        this.applyStatusToTarget(target, weapon.weaponEffect);
       }
     }
 

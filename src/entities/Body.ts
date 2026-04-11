@@ -104,6 +104,30 @@ export class Body extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
+  /** Бонус к Armor от статусов (fortify стаки, bark_armor, shield_stance) */
+  get armorBonus(): number {
+    let bonus = 0;
+    for (const [id, status] of this.statusEffects) {
+      const def = STATUS_DEFS[id];
+      if (def.armorBonus) bonus += def.armorBonus * status.stacks;
+    }
+    return bonus;
+  }
+
+  /** Бонус к Evasion от статусов (evasion_boost) */
+  get evasionBonus(): number {
+    let bonus = 0;
+    for (const [id, status] of this.statusEffects) {
+      const def = STATUS_DEFS[id];
+      if (def.evasionBonus) bonus += def.evasionBonus * status.stacks;
+    }
+    return bonus;
+  }
+
+  /** Временные HP (щит от Стойкого удара) */
+  public tempHP: number = 0;
+  public tempHPTimer: number = 0;
+
   get maxHP(): number { return maxHP(this.sphereStats); }
   get maxMana(): number { return maxMana(this.sphereStats); }
   get isDead(): boolean { return this.currentHP <= 0; }
@@ -206,6 +230,12 @@ export class Body extends Phaser.GameObjects.Container {
       }
     }
 
+    // Таймер временных HP
+    if (this.tempHP > 0) {
+      this.tempHPTimer -= dt;
+      if (this.tempHPTimer <= 0) this.tempHP = 0;
+    }
+
     // Таймер иммунитета к дебаффам
     if ((this as any)._debuffImmunity > 0) {
       (this as any)._debuffImmunity -= dt;
@@ -277,10 +307,22 @@ export class Body extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount: number): number {
-    const actual = Math.min(this.currentHP, amount);
+    // block_next поглощает атаку полностью
+    if (this.hasStatus('block_next')) {
+      this.clearStatus('block_next');
+      return 0;
+    }
+    let remaining = amount;
+    // Сначала поглощается временными HP
+    if (this.tempHP > 0) {
+      const absorbed = Math.min(this.tempHP, remaining);
+      this.tempHP -= absorbed;
+      remaining -= absorbed;
+    }
+    const actual = Math.min(this.currentHP, remaining);
     this.currentHP -= actual;
     // Сон снимается при получении урона
-    if (actual > 0) this.statusEffects.delete('sleep');
+    if (amount > 0) this.statusEffects.delete('sleep');
     this.bodySprite.setTint(0xff4444);
     this.hitFlashTimer = 0.15;
     return actual;
