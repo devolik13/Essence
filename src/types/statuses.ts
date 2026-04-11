@@ -331,8 +331,8 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   },
   block_next: {
     id: 'block_next', nameRu: 'Прикрытие',
-    maxStacks: 1, duration: 10, stackBehavior: 'refresh',
-    blockNextAttack: true, // поглощает 1 атаку, снимается при попадании
+    maxStacks: 5, duration: 10, stackBehavior: 'refresh',
+    blockNextAttack: true, // поглощает melee/ranged атаки, 1 стак = 1 блок
   },
   shield_stance: {
     id: 'shield_stance', nameRu: 'Щитовая стойка',

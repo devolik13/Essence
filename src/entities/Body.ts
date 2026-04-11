@@ -306,10 +306,12 @@ export class Body extends Phaser.GameObjects.Container {
     else                     this.hpBar.setFillStyle(0xcc3333);
   }
 
-  /** Проверяет и потребляет блок (только melee/ranged). true = атака заблокирована */
+  /** Проверяет и потребляет 1 стак блока (только melee/ranged). true = атака заблокирована */
   public tryBlock(): boolean {
-    if (this.hasStatus('block_next')) {
-      this.clearStatus('block_next');
+    const block = this.statusEffects.get('block_next');
+    if (block) {
+      block.stacks -= 1;
+      if (block.stacks <= 0) this.statusEffects.delete('block_next');
       return true;
     }
     return false;
