@@ -71,6 +71,37 @@ export class BootScene extends Phaser.Scene {
     g.fillRect(0, 0, 2, 2);
     g.generateTexture('particle_dot', 2, 2);
     g.clear();
+
+    // ── Дерево (24×32) ────────────────────────────────
+    g.clear();
+    // Ствол
+    g.fillStyle(0x664422, 1);
+    g.fillRect(9, 20, 6, 12);
+    // Крона
+    g.fillStyle(0x336622, 1);
+    g.fillCircle(12, 14, 10);
+    g.fillStyle(0x448833, 1);
+    g.fillCircle(12, 12, 8);
+    g.fillStyle(0x55aa44, 1);
+    g.fillCircle(12, 10, 5);
+    g.generateTexture('deco_tree', 24, 32);
+    g.clear();
+
+    // ── Камень (16×12) ────────────────────────────────
+    g.fillStyle(0x666677, 1);
+    g.fillRoundedRect(0, 2, 16, 10, 4);
+    g.fillStyle(0x777788, 1);
+    g.fillRoundedRect(2, 0, 12, 8, 3);
+    g.generateTexture('deco_rock', 16, 12);
+    g.clear();
+
+    // ── Куст (16×14) ──────────────────────────────────
+    g.fillStyle(0x2d5a1e, 1);
+    g.fillCircle(8, 8, 7);
+    g.fillStyle(0x3a7a2a, 1);
+    g.fillCircle(8, 6, 5);
+    g.generateTexture('deco_bush', 16, 14);
+    g.clear();
   }
 
   private genCharTextures(g: Phaser.GameObjects.Graphics) {

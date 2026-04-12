@@ -657,6 +657,55 @@ export class GameScene extends Phaser.Scene {
         stroke: '#000000', strokeThickness: 3,
       }).setOrigin(0.5).setDepth(100);
     }
+
+    // ── Декорации: деревья, камни, кусты ─────────────────
+    this.spawnDecorations(wt, ht);
+  }
+
+  /** Процедурно расставить деревья, камни и кусты по зоне */
+  private spawnDecorations(wt: number, ht: number) {
+    const zw = wt * TILE_SIZE;
+    const zh = ht * TILE_SIZE;
+    const sb = this.currentZone.safeBounds;
+    const rng = new Phaser.Math.RandomDataGenerator([this.currentZone.id]);
+
+    const isInSafe = (x: number, y: number) =>
+      sb && x > sb.x1 - 40 && x < sb.x2 + 40 && y > sb.y1 - 40 && y < sb.y2 + 40;
+
+    // Деревья (60-100 штук)
+    const treeCount = 60 + rng.between(0, 40);
+    for (let i = 0; i < treeCount; i++) {
+      const x = rng.between(40, zw - 40);
+      const y = rng.between(40, zh - 40);
+      if (isInSafe(x, y)) continue;
+      const tree = this.add.image(x, y, 'deco_tree').setDepth(1);
+      tree.setScale(0.8 + rng.frac() * 0.6);
+      tree.setAlpha(0.7 + rng.frac() * 0.3);
+      if (this.currentZone.tint) tree.setTint(this.currentZone.tint);
+    }
+
+    // Камни (30-50)
+    const rockCount = 30 + rng.between(0, 20);
+    for (let i = 0; i < rockCount; i++) {
+      const x = rng.between(40, zw - 40);
+      const y = rng.between(40, zh - 40);
+      if (isInSafe(x, y)) continue;
+      const rock = this.add.image(x, y, 'deco_rock').setDepth(1);
+      rock.setScale(0.7 + rng.frac() * 0.8);
+      rock.setAlpha(0.5 + rng.frac() * 0.3);
+    }
+
+    // Кусты (40-60)
+    const bushCount = 40 + rng.between(0, 20);
+    for (let i = 0; i < bushCount; i++) {
+      const x = rng.between(40, zw - 40);
+      const y = rng.between(40, zh - 40);
+      if (isInSafe(x, y)) continue;
+      const bush = this.add.image(x, y, 'deco_bush').setDepth(1);
+      bush.setScale(0.6 + rng.frac() * 0.6);
+      bush.setAlpha(0.5 + rng.frac() * 0.3);
+      if (this.currentZone.tint) bush.setTint(this.currentZone.tint);
+    }
   }
 
   // ─── Стартовые тела ───────────────────────────────────

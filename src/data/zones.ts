@@ -56,24 +56,34 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: PW / 2 - 200, y: PH / 2 + 160, creatureId: 'rabbit', count: 4 },
     { x: PW / 2 - 100, y: PH / 2 + 180, creatureId: 'rabbit', count: 3 },
     // Духи — рядом с деревней
-    { x: PW / 2 + 300, y: PH / 2 - 250, creatureId: 'spirit', count: 2 },
-    { x: PW / 2 - 350, y: PH / 2 - 200, creatureId: 'spirit', count: 1 },
-    // Гоблины — восточнее деревни (T1 кинжал)
-    { x: PW / 2 + 500, y: PH / 2 - 60,  creatureId: 'goblin', count: 3 },
-    { x: PW / 2 + 500, y: PH / 2 + 60,  creatureId: 'goblin', count: 3 },
-    { x: PW / 2 + 700, y: PH / 2,       creatureId: 'goblin', count: 2 },
-    // Волки — юго-восток (T1 меч)
-    { x: PW / 2 + 600, y: PH / 2 + 300, creatureId: 'wolf', count: 3 },
-    { x: PW / 2 + 500, y: PH / 2 + 400, creatureId: 'wolf', count: 2 },
-    // Медведи — западнее (T1 булава)
-    { x: PW / 2 - 600, y: PH / 2 + 200, creatureId: 'bear', count: 2 },
-    { x: PW / 2 - 700, y: PH / 2 + 350, creatureId: 'bear', count: 2 },
-    // Орки — южнее (T1 двуручник)
-    { x: PW / 2 + 100, y: PH / 2 + 600, creatureId: 'orc', count: 3 },
-    { x: PW / 2 + 250, y: PH / 2 + 700, creatureId: 'orc', count: 2 },
-    // Разведчики — северо-восток (T1 кор.лук)
-    { x: PW / 2 + 700, y: PH / 2 - 350, creatureId: 'scout', count: 3 },
-    { x: PW / 2 + 850, y: PH / 2 - 400, creatureId: 'scout', count: 2 },
+    { x: PW / 2 + 350, y: PH / 2 - 300, creatureId: 'spirit', count: 2 },
+    { x: PW / 2 - 400, y: PH / 2 - 250, creatureId: 'spirit', count: 1 },
+
+    // ── Тренировочные манекены (рядом с деревней, слева) ────
+    { x: PW / 2 - 350, y: PH / 2 + 50,  creatureId: 'dummy_xp', count: 5 },
+    { x: PW / 2 - 350, y: PH / 2 + 150, creatureId: 'dummy_xp', count: 5 },
+    // Обучатели заклинаниям (ниже манекенов)
+    { x: PW / 2 - 250, y: PH / 2 + 300, creatureId: 'dummy_fire_t1', count: 1 },
+    { x: PW / 2 - 350, y: PH / 2 + 300, creatureId: 'dummy_arrow_rain', count: 1 },
+    { x: PW / 2 - 450, y: PH / 2 + 300, creatureId: 'dummy_sweep', count: 1 },
+
+    // ── Боевые мобы (далеко от респауна) ─────────────────
+    // Гоблины — далеко восток (T1 кинжал)
+    { x: PW / 2 + 900, y: PH / 2 - 100, creatureId: 'goblin', count: 3 },
+    { x: PW / 2 + 900, y: PH / 2 + 100, creatureId: 'goblin', count: 3 },
+    { x: PW / 2 + 1100, y: PH / 2,      creatureId: 'goblin', count: 2 },
+    // Волки — далеко юго-восток (T1 меч)
+    { x: PW / 2 + 800, y: PH / 2 + 500, creatureId: 'wolf', count: 3 },
+    { x: PW / 2 + 700, y: PH / 2 + 650, creatureId: 'wolf', count: 2 },
+    // Медведи — далеко запад (T1 булава)
+    { x: PW / 2 - 900, y: PH / 2 + 300, creatureId: 'bear', count: 2 },
+    { x: PW / 2 - 1000, y: PH / 2 + 450, creatureId: 'bear', count: 2 },
+    // Орки — далеко юг (T1 двуручник)
+    { x: PW / 2 + 200, y: PH / 2 + 900, creatureId: 'orc', count: 3 },
+    { x: PW / 2 + 350, y: PH / 2 + 1000, creatureId: 'orc', count: 2 },
+    // Разведчики — далеко северо-восток (T1 кор.лук)
+    { x: PW / 2 + 1000, y: PH / 2 - 500, creatureId: 'scout', count: 3 },
+    { x: PW / 2 + 1150, y: PH / 2 - 550, creatureId: 'scout', count: 2 },
   ],
   exits: [
     { edge: 'north', targetZone: 'water',  spawnX: PW / 2, spawnY: PH - 80 },

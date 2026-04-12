@@ -544,6 +544,41 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   t_earth_t3:  { id: 't_earth_t3',  name: 'Earth T3',   nameRu: 'Earth T3',    type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffEarth,  color: 0x554422, abilityName: 'Earth Wall',     signatureSpell: MOB_EARTH_T3,   spellXPThreshold: 1 },
   t_wind_t3:   { id: 't_wind_t3',   name: 'Wind T3',    nameRu: 'Wind T3',    type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffWind,   color: 0x88bbaa, abilityName: 'Wind Barrier',    signatureSpell: MOB_WIND_T3,    spellXPThreshold: 1 },
   t_nature_t3b:{ id: 't_nature_t3b', name: 'Nature T3',  nameRu: 'Nature T3b', type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x115511, abilityName: 'Leaf Canopy',  signatureSpell: MOB_NATURE_T3,  spellXPThreshold: 1 },
+
+  // ── Тренировочные манекены (1 HP, XP дамми) ──────────────────────────────
+  dummy_xp: {
+    id: 'dummy_xp', name: 'XP Dummy', nameRu: 'XP Dummy',
+    type: BodyType.Passive, damageType: 'melee',
+    caps: { [StatName.Health]: 1 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 50, weapon: WeaponType.Dagger, color: 0x888888, abilityName: 'none',
+  },
+
+  // ── Тренировочные обучатели (1 HP, учат заклинания) ────────────────────────
+  dummy_fire_t1: {
+    id: 'dummy_fire_t1', name: 'T.Spark', nameRu: 'T.Spark',
+    type: BodyType.Passive, damageType: 'magic',
+    caps: { [StatName.Intellect]: 5 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.StaffFire, color: 0xff6600, abilityName: 'Spark',
+    signatureSpell: MOB_FIRE_T1, spellXPThreshold: 1,
+  },
+  dummy_arrow_rain: {
+    id: 'dummy_arrow_rain', name: 'T.ArrowRain', nameRu: 'T.ArrowRain',
+    type: BodyType.Passive, damageType: 'ranged',
+    caps: { [StatName.Agility]: 5 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.LongBow, color: 0x88aa44, abilityName: 'Arrow Rain',
+    signatureSpell: ABILITY_ARROW_RAIN, spellXPThreshold: 1,
+  },
+  dummy_sweep: {
+    id: 'dummy_sweep', name: 'T.Sweep', nameRu: 'T.Sweep',
+    type: BodyType.Passive, damageType: 'melee',
+    caps: { [StatName.Strength]: 5 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.Greatsword, color: 0xaa4444, abilityName: 'Sweep',
+    signatureSpell: ABILITY_SLASH_SWEEP, spellXPThreshold: 1,
+  },
 };
 
 export function getCreature(id: string): BodyDefinition | undefined {
