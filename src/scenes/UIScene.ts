@@ -157,7 +157,7 @@ export class UIScene extends Phaser.Scene {
       .setScrollFactor(0).setDepth(1001).setVisible(false);
     this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, 0x66ccff)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Захват...', {
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Capturing...', {
       fontSize: '11px', color: '#66ccff',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
@@ -207,10 +207,10 @@ export class UIScene extends Phaser.Scene {
     this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(1009);
 
     // ── Panel headers (draggable) ──────────────────────────
-    this.panelHeaders['body']    = this.makeHeader('body',    'Тело');
-    this.panelHeaders['target']  = this.makeHeader('target',  'Цель');
-    this.panelHeaders['log']     = this.makeHeader('log',     'Лог');
-    this.panelHeaders['minimap'] = this.makeHeader('minimap', 'Карта');
+    this.panelHeaders['body']    = this.makeHeader('body',    'Body');
+    this.panelHeaders['target']  = this.makeHeader('target',  'Target');
+    this.panelHeaders['log']     = this.makeHeader('log',     'Log');
+    this.panelHeaders['minimap'] = this.makeHeader('minimap', 'Map');
 
     // ── Resize grips ───────────────────────────────────────
     for (const id of Object.keys(this.panelStates)) {
@@ -245,7 +245,7 @@ export class UIScene extends Phaser.Scene {
       this.addLog(`${data.name} убит  +${data.xp} XP → [${s}]`);
     });
     gs.events.on('player-died', (data: { xpLost: number; debuffDuration: number }) => {
-      this.addLog('⚠ Тело погибло. Вы в астрале.');
+      this.addLog('⚠ Body destroyed. You are in astral form.');
       if (data?.xpLost > 0) this.addLog(`  ↓ Потеряно ${data.xpLost} XP`);
       this.addLog(`  ✦ Слабость: −15% урон на ${data?.debuffDuration ?? 30}с`);
     });
@@ -262,7 +262,7 @@ export class UIScene extends Phaser.Scene {
       this.addLog(`✦ КВЕСТ: ${data.name}  +${data.xp} XP`);
     });
     gs.events.on('quest-giver-talk', (data: { active: import('../types/quests').QuestProgress[]; done: import('../types/quests').QuestProgress[] }) => {
-      this.addLog('── Следопыт ──');
+      this.addLog('── Ranger ──');
       if (data.active.length === 0) {
         this.addLog('  Все задания выполнены!');
       } else {
@@ -277,11 +277,11 @@ export class UIScene extends Phaser.Scene {
         this.addLog(`  ✓ Выполнено заданий: ${data.done.length}`);
       }
     });
-    gs.events.on('save-loaded', () => this.addLog('↺ Прогресс загружен'));
+    gs.events.on('save-loaded', () => this.addLog('↺ Progress loaded'));
     gs.events.on('aoe-targeting', (name: string) => {
       this.addLog(`◎ Прицеливание: ${name}  [ЛКМ/ПКМ]`);
     });
-    gs.events.on('spell-out-of-range', () => this.addLog('✗ Слишком далеко'));
+    gs.events.on('spell-out-of-range', () => this.addLog('✗ Too far'));
     gs.events.on('loot-dropped', (data: { creatureName: string; loot: string }) => {
       this.addLog(`↓ ${data.loot}`);
     });
@@ -486,7 +486,7 @@ export class UIScene extends Phaser.Scene {
         `HP ${Math.round(body.currentHP)}/${body.maxHP} (${hpPct}%)   ` +
         `Мана ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)`
       ).setVisible(true);
-      this.hintText.setText('[1] Атака  [Q] Выйти  [E] Захват  [2-8] Умения');
+      this.hintText.setText('[1] Attack  [Q] Leave  [E] Capture  [2-8] Abilities');
 
       // ── Статус-иконки ────────────────────────────────────
       if (body.statusEffects.size > 0) {
@@ -505,7 +505,7 @@ export class UIScene extends Phaser.Scene {
     } else {
       this.resourceText.setVisible(false);
       this.statusBarText.setVisible(false);
-      this.hintText.setText('[WASD] Движение  [E] Захватить тело');
+      this.hintText.setText('[WASD] Move  [E] Possess body');
     }
 
     // ── Capture bar ──────────────────────────────────────
@@ -575,17 +575,17 @@ export class UIScene extends Phaser.Scene {
 
         if (!s.collapsed) {
           const def = tgt.definition;
-          const dmgLabel = def.damageType === 'magic'  ? '✦ Магия'
-                         : def.damageType === 'ranged' ? '➶ Дальний' : '⚔ Ближний';
+          const dmgLabel = def.damageType === 'magic'  ? '✦ Magic'
+                         : def.damageType === 'ranged' ? '➶ Ranged' : '⚔ Melee';
           const tLines = [
             `${dmgLabel}  HP: ${Math.round(tgt.currentHP)}/${tgt.maxHP}`,
             '',
-            'Боевые статы:',
+            'Combat stats:',
           ];
           for (const [stat, val] of Object.entries(def.npcStats ?? {})) {
             if ((val ?? 0) > 0) tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]}: ${val}`);
           }
-          tLines.push('', 'Обучает:');
+          tLines.push('', 'Teaches:');
           for (const [stat, cap] of Object.entries(def.caps)) {
             tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → кап ${cap}`);
           }
@@ -609,7 +609,7 @@ export class UIScene extends Phaser.Scene {
     {
       const s = this.panelStates.log;
       this.panelHeaders['log'].setPosition(s.x, s.y);
-      this.setHeaderLabel('log', 'Лог событий');
+      this.setHeaderLabel('log', 'Event Log');
       if (!s.collapsed) {
         this.logText.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 10, true)
           .setPosition(s.x, s.y + HEADER_H).setVisible(true);
@@ -727,8 +727,8 @@ export class UIScene extends Phaser.Scene {
         bg.setInteractive({ useHandCursor: true })
           .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
             ptr.event.stopPropagation();
-            if (this.skillBarLocked) { this.addLog('🔒 Панель заблокирована'); return; }
-            if (this.cachedInCombat) { this.addLog('⚔ Нельзя менять в бою'); return; }
+            if (this.skillBarLocked) { this.addLog('🔒 Panel locked'); return; }
+            if (this.cachedInCombat) { this.addLog('⚔ Cannot change in combat'); return; }
             if (this.spellPickerSlot === i) this.closeSpellPicker();
             else this.openSpellPicker(i);
           });
@@ -810,7 +810,7 @@ export class UIScene extends Phaser.Scene {
         this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell: null });
         this.closeSpellPicker();
       });
-    const ctxt = this.add.text(cx, iy, '✕\nочист.', {
+    const ctxt = this.add.text(cx, iy, '✕\nclear', {
       fontSize: '9px', color: '#ff6666', align: 'center',
     }).setOrigin(0.5);
     this.spellPickerContainer.add([cbg, ctxt]);
@@ -861,7 +861,7 @@ export class UIScene extends Phaser.Scene {
 
     // Enchantment как постоянный статус
     if (body.enchantRegenPenalty > 0) {
-      items.push({ icon: '⚔🔥', label: 'Зачар.', timer: -1, color: 0x664400 });
+      items.push({ icon: '⚔🔥', label: 'Enchant', timer: -1, color: 0x664400 });
     }
 
     const boxSize = 48;
@@ -922,7 +922,7 @@ export class UIScene extends Phaser.Scene {
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
-    const labels = ['Статы', 'Инвентарь', 'Квесты', 'Ачивки'];
+    const labels = ['Stats', 'Inventory', 'Quests', 'Achieve'];
     const btnW = 76;
     const btnH = 22;
     const gap = 4;
@@ -1108,7 +1108,7 @@ export class UIScene extends Phaser.Scene {
             lines.push(`✧ ${sig.nameRu}: ${buildXPBar(cur, threshold, 10)}  ${cur}/${threshold}`);
           }
         }
-        this.windowTitleText.setText('◉ Статы сферы');
+        this.windowTitleText.setText('◉ Sphere Stats');
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
@@ -1116,7 +1116,7 @@ export class UIScene extends Phaser.Scene {
         const inv = data.inventory ?? [];
         const lines: string[] = [];
         if (inv.length === 0) {
-          lines.push('  Инвентарь пуст');
+          lines.push('  Inventory empty');
         } else {
           for (const slot of inv) {
             const def = ITEMS[slot.itemId];
@@ -1138,7 +1138,7 @@ export class UIScene extends Phaser.Scene {
         const lineH = 15;
 
         if (active.length === 0) {
-          lines.push('  Все квесты выполнены!');
+          lines.push('  All quests complete!');
         } else {
           for (const q of active) {
             const isTracked = tracked.includes(q.def.id);
@@ -1169,7 +1169,7 @@ export class UIScene extends Phaser.Scene {
               const obj = q.def.objectives[i];
               const cur = q.counts[i];
               const d = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-              const verb = obj.type === 'kill' ? 'Убить' : obj.type === 'capture' ? 'Захватить' : 'Изучить';
+              const verb = obj.type === 'kill' ? 'Kill' : obj.type === 'capture' ? 'Capture' : 'Learn';
               lines.push(`   ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${d}`);
               relY += lineH;
             }

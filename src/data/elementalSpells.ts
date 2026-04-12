@@ -13,7 +13,7 @@ import { AbilityDef } from '../types/abilities';
 /** T1 — Искра: одиночный выстрел */
 export const MOB_FIRE_T1: AbilityDef = {
   id: 'mob_fire_t1',
-  nameRu: 'Искра',
+  nameRu: 'Spark',
   school: 'fire',
   damageType: 'magic',
   cooldown: 2.0,
@@ -27,7 +27,7 @@ export const MOB_FIRE_T1: AbilityDef = {
 export const MOB_FIRE_T2: AbilityDef = {
   id: 'mob_fire_t2',
   prerequisiteId: 'mob_fire_t1',
-  nameRu: 'Огн. стрела',
+  nameRu: 'Fire Arrow',
   school: 'fire',
   damageType: 'magic',
   effectType: 'multi_projectile',
@@ -44,7 +44,7 @@ export const MOB_FIRE_T2: AbilityDef = {
 /** T3 — Огненная стена: зона на земле, урон стоящим в ней (оригинал Archimage) */
 export const MOB_FIRE_T3: AbilityDef = {
   id: 'mob_fire_t3',
-  nameRu: 'Огн. стена',
+  nameRu: 'Fire Wall',
   school: 'fire',
   damageType: 'magic',
   effectType: 'ground_zone',
@@ -67,7 +67,7 @@ export const MOB_FIRE_T3: AbilityDef = {
 export const ENCHANT_FIRE: AbilityDef = {
   id: 'enchant_fire',
   prerequisiteId: 'mob_fire_t2',
-  nameRu: 'Зачарование: Огонь',
+  nameRu: 'Enchant: Fire',
   school: 'fire',
   damageType: 'magic',
   effectType: 'weapon_enchant',
@@ -86,7 +86,7 @@ export const ENCHANT_FIRE: AbilityDef = {
 /** T1 — Ледышка: одиночный выстрел */
 export const MOB_WATER_T1: AbilityDef = {
   id: 'mob_water_t1',
-  nameRu: 'Ледышка',
+  nameRu: 'Ice Shard',
   school: 'water',
   damageType: 'magic',
   cooldown: 2.0,
@@ -100,7 +100,7 @@ export const MOB_WATER_T1: AbilityDef = {
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_water_t2',
   prerequisiteId: 'mob_water_t1',
-  nameRu: 'Лед. стрела',
+  nameRu: 'Ice Arrow',
   school: 'water',
   damageType: 'magic',
   effectType: 'projectile_aoe',
@@ -117,7 +117,7 @@ export const MOB_WATER_T2: AbilityDef = {
 /** T3 — Ледяной дождь: зона ледяного дождя, урон + школьный бонус охлаждения */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_water_t3',
-  nameRu: 'Лед. дождь',
+  nameRu: 'Ice Rain',
   school: 'water',
   damageType: 'magic',
   effectType: 'ground_zone',
@@ -137,7 +137,7 @@ export const MOB_WATER_T3: AbilityDef = {
 export const ENCHANT_WATER: AbilityDef = {
   id: 'enchant_water',
   prerequisiteId: 'mob_water_t2',
-  nameRu: 'Зачарование: Вода',
+  nameRu: 'Enchant: Water',
   school: 'water',
   damageType: 'magic',
   effectType: 'weapon_enchant',
@@ -156,7 +156,7 @@ export const ENCHANT_WATER: AbilityDef = {
 /** T1 — Камешек: одиночный выстрел */
 export const MOB_EARTH_T1: AbilityDef = {
   id: 'mob_earth_t1',
-  nameRu: 'Камешек',
+  nameRu: 'Pebble Shot',
   school: 'earth',
   damageType: 'magic',
   cooldown: 2.0,
@@ -170,7 +170,7 @@ export const MOB_EARTH_T1: AbilityDef = {
 export const MOB_EARTH_T2: AbilityDef = {
   id: 'mob_earth_t2',
   prerequisiteId: 'mob_earth_t1',
-  nameRu: 'Кам. шип',
+  nameRu: 'Stone Spike',
   school: 'earth',
   damageType: 'magic',
   effectType: 'cross_aoe',
@@ -189,7 +189,7 @@ export const MOB_EARTH_T2: AbilityDef = {
 /** T3 — Земляная стена: призыв стены с HP (оригинал Archimage) */
 export const MOB_EARTH_T3: AbilityDef = {
   id: 'mob_earth_t3',
-  nameRu: 'Зем. стена',
+  nameRu: 'Earth Wall',
   school: 'earth',
   damageType: 'magic',
   effectType: 'summon_wall',
@@ -212,7 +212,7 @@ export const MOB_EARTH_T3: AbilityDef = {
 export const ENCHANT_EARTH: AbilityDef = {
   id: 'enchant_earth',
   prerequisiteId: 'mob_earth_t2',
-  nameRu: 'Зачарование: Земля',
+  nameRu: 'Enchant: Earth',
   school: 'earth',
   damageType: 'magic',
   effectType: 'weapon_enchant',
@@ -231,7 +231,7 @@ export const ENCHANT_EARTH: AbilityDef = {
 /** T1 — Порыв: одиночный выстрел */
 export const MOB_WIND_T1: AbilityDef = {
   id: 'mob_wind_t1',
-  nameRu: 'Порыв',
+  nameRu: 'Gust',
   school: 'wind',
   damageType: 'magic',
   cooldown: 2.0,
@@ -245,7 +245,7 @@ export const MOB_WIND_T1: AbilityDef = {
 export const MOB_WIND_T2: AbilityDef = {
   id: 'mob_wind_t2',
   prerequisiteId: 'mob_wind_t1',
-  nameRu: 'Ветрорез',
+  nameRu: 'Wind Blade',
   school: 'wind',
   damageType: 'magic',
   effectType: 'cone_projectiles',
@@ -262,7 +262,7 @@ export const MOB_WIND_T2: AbilityDef = {
 /** T3 — Ветряная стена: размещаемый барьер, снаряды теряют урон пролетая через (оригинал Archimage) */
 export const MOB_WIND_T3: AbilityDef = {
   id: 'mob_wind_t3',
-  nameRu: 'Ветр. стена',
+  nameRu: 'Wind Barrier',
   school: 'wind',
   damageType: 'magic',
   effectType: 'wind_barrier',
@@ -285,7 +285,7 @@ export const MOB_WIND_T3: AbilityDef = {
 export const ENCHANT_WIND: AbilityDef = {
   id: 'enchant_wind',
   prerequisiteId: 'mob_wind_t2',
-  nameRu: 'Зачарование: Ветер',
+  nameRu: 'Enchant: Wind',
   school: 'wind',
   damageType: 'magic',
   effectType: 'weapon_enchant',
@@ -304,7 +304,7 @@ export const ENCHANT_WIND: AbilityDef = {
 /** T1 — Призыв волка: призывает волка-союзника */
 export const MOB_NATURE_T1: AbilityDef = {
   id: 'mob_nature_t1',
-  nameRu: 'Призыв волка',
+  nameRu: 'Summon Wolf',
   school: 'nature',
   damageType: 'magic',
   effectType: 'summon_wolf',
@@ -319,7 +319,7 @@ export const MOB_NATURE_T1: AbilityDef = {
 export const MOB_NATURE_T2: AbilityDef = {
   id: 'mob_nature_t2',
   prerequisiteId: 'mob_nature_t1',
-  nameRu: 'Древесная кора',
+  nameRu: 'Bark Armor',
   school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',
@@ -336,7 +336,7 @@ export const MOB_NATURE_T2: AbilityDef = {
 export const MOB_NATURE_T3: AbilityDef = {
   id: 'mob_nature_t3',
   prerequisiteId: 'mob_nature_t2',
-  nameRu: 'Покров листвы',
+  nameRu: 'Leaf Canopy',
   school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',

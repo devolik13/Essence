@@ -45,7 +45,7 @@ const PH = ZONE_H * T; // 3200 px
 
 export const ZONE_VILLAGE: ZoneConfig = {
   id: 'village',
-  nameRu: 'Деревня Эшворт',
+  nameRu: 'Eshworth Village',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -87,7 +87,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
 export const ZONE_WATER: ZoneConfig = {
   id: 'water',
-  nameRu: 'Туманное озеро',
+  nameRu: 'Misty Lake',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -128,7 +128,7 @@ export const ZONE_WATER: ZoneConfig = {
 
 export const ZONE_FIRE: ZoneConfig = {
   id: 'fire',
-  nameRu: 'Пепельная роща',
+  nameRu: 'Ashen Grove',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -172,7 +172,7 @@ export const ZONE_FIRE: ZoneConfig = {
 
 export const ZONE_WIND: ZoneConfig = {
   id: 'wind',
-  nameRu: 'Вершины ветров',
+  nameRu: 'Wind Peaks',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -212,7 +212,7 @@ export const ZONE_WIND: ZoneConfig = {
 
 export const ZONE_EARTH: ZoneConfig = {
   id: 'earth',
-  nameRu: 'Каменные холмы',
+  nameRu: 'Stone Hills',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',

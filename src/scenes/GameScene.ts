@@ -106,7 +106,7 @@ export const DEATH_DEBUFF_MULT = 0.85;  // ×0.85 к урону пока деб�
  *  baseDamage = 0 — урон берётся из weapon.baseDamage в handleAttack */
 const BASIC_ATTACKS: Record<string, AbilityDef> = {
   default: {
-    id: 'basic_melee', nameRu: 'Удар', damageType: 'melee',
+    id: 'basic_melee', nameRu: 'Strike', damageType: 'melee',
     cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Базовый удар',
   },
   human_warrior: {
@@ -114,24 +114,24 @@ const BASIC_ATTACKS: Record<string, AbilityDef> = {
     cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Удар мечом',
   },
   human_archer: {
-    id: 'basic_bow', nameRu: 'Выстрел', damageType: 'ranged',
-    cooldown: 1.0, manaCost: 0, range: 200, baseDamage: 0, description: 'Выстрел из лука',
+    id: 'basic_bow', nameRu: 'Shot', damageType: 'ranged',
+    cooldown: 1.0, manaCost: 0, range: 200, baseDamage: 0, description: 'Bow shot',
   },
   human_mage: {
-    id: 'basic_staff', nameRu: 'Удар посохом', damageType: 'magic',
-    cooldown: 1.5, manaCost: 2, range: 180, baseDamage: 0, description: 'Магический выстрел',
+    id: 'basic_staff', nameRu: 'Staff Strike', damageType: 'magic',
+    cooldown: 1.5, manaCost: 2, range: 180, baseDamage: 0, description: 'Magic shot',
   },
   rabbit: {
-    id: 'basic_paw', nameRu: 'Удар лапой', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 36, baseDamage: 0, description: 'Быстрый удар лапой',
+    id: 'basic_paw', nameRu: 'Paw Strike', damageType: 'melee',
+    cooldown: 0.8, manaCost: 0, range: 36, baseDamage: 0, description: 'Quick paw strike',
   },
   goblin: {
-    id: 'basic_dagger', nameRu: 'Укол кинжалом', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 40, baseDamage: 0, description: 'Укол кинжалом',
+    id: 'basic_dagger', nameRu: 'Dagger Stab', damageType: 'melee',
+    cooldown: 0.8, manaCost: 0, range: 40, baseDamage: 0, description: 'Dagger stab',
   },
   wolf: {
-    id: 'basic_bite', nameRu: 'Укус', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 38, baseDamage: 0, description: 'Укус волка',
+    id: 'basic_bite', nameRu: 'Bite', damageType: 'melee',
+    cooldown: 0.8, manaCost: 0, range: 38, baseDamage: 0, description: 'Wolf bite',
   },
 };
 
@@ -632,7 +632,7 @@ export class GameScene extends Phaser.Scene {
     // Камень возрождения
     const rp = zone.respawnPoint;
     this.add.image(rp.x, rp.y - 80, 'respawn_stone');
-    this.add.text(rp.x, rp.y - 106, 'Камень возрождения', {
+    this.add.text(rp.x, rp.y - 106, 'Respawn Stone', {
       fontSize: '11px', color: '#aaaaee', align: 'center',
     }).setOrigin(0.5);
 
@@ -676,11 +676,11 @@ export class GameScene extends Phaser.Scene {
     const qp = this.questGiverPos;
     this.add.arc(qp.x, qp.y, 12, 0, 360, false, 0xffdd55, 0.9).setDepth(5);
     this.add.arc(qp.x, qp.y, 16, 0, 360, false, 0xffaa00, 0.3).setDepth(4);
-    this.add.text(qp.x, qp.y - 24, '! Следопыт', {
+    this.add.text(qp.x, qp.y - 24, '! Ranger', {
       fontSize: '10px', color: '#ffdd88', align: 'center',
       stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(6);
-    this.add.text(qp.x, qp.y + 18, '[E] поговорить', {
+    this.add.text(qp.x, qp.y + 18, '[E] talk', {
       fontSize: '8px', color: '#888866',
     }).setOrigin(0.5).setDepth(6);
   }

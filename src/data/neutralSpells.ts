@@ -10,7 +10,7 @@ import { WeaponType } from '../types/bodies';
 /** T1 — Ускорение: самобафф +50% скорости на 5 сек */
 export const MOB_NEUTRAL_T1: AbilityDef = {
   id: 'acceleration',
-  nameRu: 'Ускорение',
+  nameRu: 'Acceleration',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -26,7 +26,7 @@ export const MOB_NEUTRAL_T1: AbilityDef = {
 /** T2 — Лечение: исцеляет себя, зависит от Интеллекта */
 export const MOB_NEUTRAL_HEAL: AbilityDef = {
   id: 'neutral_heal',
-  nameRu: 'Лечение',
+  nameRu: 'Heal',
   school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
@@ -42,7 +42,7 @@ export const MOB_NEUTRAL_HEAL: AbilityDef = {
 export const MOB_NEUTRAL_T2: AbilityDef = {
   id: 'dash',
   prerequisiteId: 'acceleration',
-  nameRu: 'Рывок',
+  nameRu: 'Dash',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'dash_forward',
@@ -59,7 +59,7 @@ export const MOB_NEUTRAL_T2: AbilityDef = {
 /** Маневр — групповой бонус к уклонению на 3 сек */
 export const ABILITY_MANEUVER: AbilityDef = {
   id: 'maneuver',
-  nameRu: 'Маневр',
+  nameRu: 'Maneuver',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -77,7 +77,7 @@ export const ABILITY_MANEUVER: AbilityDef = {
 /** Прикрытие — групповой блок следующей 1 атаки */
 export const ABILITY_COVER: AbilityDef = {
   id: 'cover',
-  nameRu: 'Прикрытие',
+  nameRu: 'Cover',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -95,7 +95,7 @@ export const ABILITY_COVER: AbilityDef = {
 /** Щитовая стойка — замедление + броня, только для меча/булавы (со щитом) */
 export const ABILITY_SHIELD_STANCE: AbilityDef = {
   id: 'shield_stance',
-  nameRu: 'Щитовая стойка',
+  nameRu: 'Shield Stance',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -111,7 +111,7 @@ export const ABILITY_SHIELD_STANCE: AbilityDef = {
 /** Отчаяние — удар с +10 урона за каждый дебафф на себе. Только ближний бой */
 export const ABILITY_DESPERATION: AbilityDef = {
   id: 'desperation',
-  nameRu: 'Отчаяние',
+  nameRu: 'Desperation',
   school: 'neutral',
   damageType: 'melee',
   cooldown: 8,
@@ -125,7 +125,7 @@ export const ABILITY_DESPERATION: AbilityDef = {
 /** Разоблачение — удар с +10% урона за каждый бафф на противнике */
 export const ABILITY_EXPOSE: AbilityDef = {
   id: 'expose',
-  nameRu: 'Разоблачение',
+  nameRu: 'Expose',
   school: 'neutral',
   damageType: 'melee',
   cooldown: 8,
@@ -139,7 +139,7 @@ export const ABILITY_EXPOSE: AbilityDef = {
 /** Адаптация — при смене оружия следующий навык бесплатный */
 export const ABILITY_ADAPTATION: AbilityDef = {
   id: 'adaptation',
-  nameRu: 'Адаптация',
+  nameRu: 'Adaptation',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -154,7 +154,7 @@ export const ABILITY_ADAPTATION: AbilityDef = {
 /** Подпитка — реген HP за каждый бафф на себе */
 export const ABILITY_SUSTAIN: AbilityDef = {
   id: 'sustain',
-  nameRu: 'Подпитка',
+  nameRu: 'Sustain',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -170,7 +170,7 @@ export const ABILITY_SUSTAIN: AbilityDef = {
 /** Стойкость духа — реген HP за каждый дебафф на себе */
 export const ABILITY_SPIRIT_RESILIENCE: AbilityDef = {
   id: 'spirit_resilience',
-  nameRu: 'Стойкость духа',
+  nameRu: 'Spirit Resilience',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -186,7 +186,7 @@ export const ABILITY_SPIRIT_RESILIENCE: AbilityDef = {
 /** Закалка — защита от дальних атак */
 export const ABILITY_RANGED_RESIST: AbilityDef = {
   id: 'ranged_resist',
-  nameRu: 'Закалка',
+  nameRu: 'Hardening',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -201,7 +201,7 @@ export const ABILITY_RANGED_RESIST: AbilityDef = {
 /** Очищение — лечение за каждый статус на себе */
 export const ABILITY_PURIFY: AbilityDef = {
   id: 'purify',
-  nameRu: 'Очищение',
+  nameRu: 'Purify',
   school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
@@ -217,7 +217,7 @@ export const ABILITY_PURIFY: AbilityDef = {
 /** Непоколебимость — иммунитет к оглушению */
 export const ABILITY_UNSHAKEABLE: AbilityDef = {
   id: 'unshakeable',
-  nameRu: 'Непоколебимость',
+  nameRu: 'Unshakeable',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -232,7 +232,7 @@ export const ABILITY_UNSHAKEABLE: AbilityDef = {
 /** Твёрдая стойка — иммунитет к отбрасыванию */
 export const ABILITY_FIRM_STANCE: AbilityDef = {
   id: 'firm_stance',
-  nameRu: 'Твёрдая стойка',
+  nameRu: 'Firm Stance',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -247,7 +247,7 @@ export const ABILITY_FIRM_STANCE: AbilityDef = {
 /** Боевой марш — ускорение союзников */
 export const ABILITY_BATTLE_MARCH: AbilityDef = {
   id: 'battle_march',
-  nameRu: 'Боевой марш',
+  nameRu: 'Battle March',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -265,7 +265,7 @@ export const ABILITY_BATTLE_MARCH: AbilityDef = {
 /** Добивание — бонус урон если у цели < 50% HP */
 export const ABILITY_EXECUTE: AbilityDef = {
   id: 'execute',
-  nameRu: 'Добивание',
+  nameRu: 'Execute',
   school: 'neutral',
   damageType: 'melee',
   cooldown: 8,
@@ -279,7 +279,7 @@ export const ABILITY_EXECUTE: AbilityDef = {
 /** Чистый удар — бонус урон если нет зачарования */
 export const ABILITY_PURE_STRIKE: AbilityDef = {
   id: 'pure_strike',
-  nameRu: 'Чистый удар',
+  nameRu: 'Pure Strike',
   school: 'neutral',
   damageType: 'melee',
   cooldown: 6,
@@ -293,7 +293,7 @@ export const ABILITY_PURE_STRIKE: AbilityDef = {
 /** Исцеление союзника — лечит выбранного союзника */
 export const ABILITY_ALLY_HEAL: AbilityDef = {
   id: 'ally_heal',
-  nameRu: 'Исцеление союзника',
+  nameRu: 'Ally Heal',
   school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
