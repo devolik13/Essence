@@ -773,11 +773,14 @@ export class GameScene extends Phaser.Scene {
   private possessStarterBody(index: number) {
     const def = STARTER_BODIES[index];
     const pos = this.starterPositions[index];
-    this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
-    this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
-    this.playerBody.possess(this);
-    this.fillBodySlots(this.playerBody);
-    this.sphere.enterBody();
+    this.spawnCaptureFlash(pos.x, pos.y, () => {
+      this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
+      this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
+      this.playerBody.possess(this);
+      this.fillBodySlots(this.playerBody);
+      this.sphere.enterBody();
+      this.sphere.lastBodyId = def.id;
+    });
   }
 
   /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — заклинания */
@@ -873,6 +876,65 @@ export class GameScene extends Phaser.Scene {
 
   private selectTarget(creature: Creature) {
     this.selectedTarget = creature;
+  }
+
+  /** Вспышка захвата тела — яркая белая вспышка с частицами, callback после завершения */
+  private spawnCaptureFlash(x: number, y: number, onComplete: () => void) {
+    // Яркая вспышка
+    const flash = this.add.circle(x, y, 40, 0xffffff, 0.9)
+      .setDepth(60).setBlendMode(Phaser.BlendModes.ADD);
+    const glow = this.add.circle(x, y, 80, 0xaaddff, 0.4)
+      .setDepth(59).setBlendMode(Phaser.BlendModes.ADD);
+
+    // Сжимающееся кольцо
+    const ring = this.add.circle(x, y, 100, 0xaaddff, 0)
+      .setStrokeStyle(3, 0xffffff, 0.8)
+      .setDepth(60).setBlendMode(Phaser.BlendModes.ADD);
+
+    // Частицы разлетаются
+    const emitter = this.add.particles(x, y, 'particle_circle', {
+      speed: { min: 60, max: 160 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 1, end: 0 },
+      tint: [0xffffff, 0xaaddff, 0x88bbff],
+      lifespan: 500,
+      blendMode: Phaser.BlendModes.ADD,
+      emitting: false,
+    }).setDepth(61);
+    emitter.explode(20);
+
+    // Анимация вспышки: расширяется и затухает
+    this.tweens.add({
+      targets: flash,
+      scaleX: 2.5, scaleY: 2.5,
+      alpha: 0,
+      duration: 350,
+      ease: 'Power2',
+      onComplete: () => flash.destroy(),
+    });
+    this.tweens.add({
+      targets: glow,
+      scaleX: 2, scaleY: 2,
+      alpha: 0,
+      duration: 450,
+      ease: 'Power1',
+      onComplete: () => glow.destroy(),
+    });
+    this.tweens.add({
+      targets: ring,
+      scaleX: 0.1, scaleY: 0.1,
+      alpha: 0,
+      duration: 300,
+      ease: 'Power3',
+      onComplete: () => ring.destroy(),
+    });
+
+    // Callback после вспышки — появляется тело
+    this.time.delayedCall(350, () => {
+      onComplete();
+      emitter.destroy();
+    });
   }
 
   /** Переход между зонами: если игрок у края карты → переход */
@@ -1311,31 +1373,37 @@ export class GameScene extends Phaser.Scene {
 
   private completeCaptureCreature(creature: Creature) {
     const def = creature.definition;
-    this.playerBody = new Body(this, creature.x, creature.y, def, this.sphere.stats);
-    this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
-    this.playerBody.possess(this);
-    this.fillBodySlots(this.playerBody);
-    this.sphere.enterBody();
+    const cx = creature.x, cy = creature.y;
 
     // Убираем существо из мира + ставим в очередь респауна
     this.scheduleRespawn(creature);
     creature.destroy();
     this.creatures = this.creatures.filter(c => c !== creature);
 
-    this.events.emit('body-captured', def.nameRu);
+    // Вспышка захвата → появление тела
+    this.spawnCaptureFlash(cx, cy, () => {
+      this.playerBody = new Body(this, cx, cy, def, this.sphere.stats);
+      this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
+      this.playerBody.possess(this);
+      this.fillBodySlots(this.playerBody);
+      this.sphere.enterBody();
+      this.sphere.lastBodyId = def.id;
 
-    // Захваты: счётчик ачивок
-    this.sphere.killCounts['__captures'] = (this.sphere.killCounts['__captures'] ?? 0) + 1;
-    const captureAchievements = checkAchievements(this.sphere);
-    for (const ach of captureAchievements) {
-      this.events.emit('achievement-unlocked', ach);
-    }
+      this.events.emit('body-captured', def.nameRu);
 
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      // Захваты: счётчик ачивок
+      this.sphere.killCounts['__captures'] = (this.sphere.killCounts['__captures'] ?? 0) + 1;
+      const captureAchievements = checkAchievements(this.sphere);
+      for (const ach of captureAchievements) {
+        this.events.emit('achievement-unlocked', ach);
+      }
 
-    // Квест — засчитать захват
-    const captureCompleted = this.questTracker.onCapture(def.id);
-    for (const q of captureCompleted) this.onQuestComplete(q);
+      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+
+      // Квест — засчитать захват
+      const captureCompleted = this.questTracker.onCapture(def.id);
+      for (const q of captureCompleted) this.onQuestComplete(q);
+    });
   }
 
   // ─── Квестовые хелперы ───────────────────────────────
