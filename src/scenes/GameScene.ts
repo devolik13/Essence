@@ -27,6 +27,7 @@ import { ALL_ZONES, ZoneConfig } from '../data/zones';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
+import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
@@ -146,6 +147,17 @@ export class GameScene extends Phaser.Scene {
   private windBarriers: WindBarrier[] = [];
   private starterBodies: Phaser.GameObjects.Arc[] = [];
 
+  // World objects
+  private resourceNodes: { x: number; y: number; def: import('../data/itemDB').ResourceNodeDef; gfx: Phaser.GameObjects.Container; cooldown: number; depleted: boolean }[] = [];
+  private workbenches: { x: number; y: number; type: string; nameRu: string; gfx: Phaser.GameObjects.Container }[] = [];
+  private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container }[] = [];
+
+  // Crafting state
+  private craftingTimer: number = 0;
+  private craftingRecipe: import('../types/items').RecipeDef | null = null;
+  private gatheringTimer: number = 0;
+  private gatheringNode: typeof this.resourceNodes[0] | null = null;
+
   // Очередь респауна: { definitionId, x, y, delay (мс осталось) }
   private respawnQueue: { id: string; x: number; y: number; timer: number }[] = [];
   private readonly RESPAWN_DELAY = 15000; // 15 секунд
@@ -258,6 +270,9 @@ export class GameScene extends Phaser.Scene {
     // ─── Мобы ────────────────────────────────────────
     this.spawnCreatures();
 
+    // ─── Ресурсные ноды, верстаки, NPC ───────────────
+    this.spawnWorldObjects();
+
     // ─── Камера ──────────────────────────────────────
     const zoneW = this.currentZone.widthTiles * TILE_SIZE;
     const zoneH = this.currentZone.heightTiles * TILE_SIZE;
@@ -369,6 +384,10 @@ export class GameScene extends Phaser.Scene {
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
+      }
+      // [E] в теле — взаимодействие с миром (ноды, верстаки, NPC) или захват
+      if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
+        this.tryInteractWorldObject() || this.tryCaptureDead();
       }
 
       // Слот 1 [1] — базовая атака
@@ -497,6 +516,7 @@ export class GameScene extends Phaser.Scene {
     this.updateGroundZones(delta);
     this.updateWindBarriers(delta);
     this.updateSummonedWalls(delta);
+    this.updateWorldObjects(delta);
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -917,6 +937,168 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // ─── Ресурсные ноды, верстаки, NPC ────────────────────
+
+  private spawnWorldObjects() {
+    const zone = this.currentZone;
+
+    // Resource nodes
+    for (const ns of zone.resourceNodes ?? []) {
+      const def = RESOURCE_NODES[ns.nodeId];
+      if (!def) continue;
+      const container = this.add.container(ns.x, ns.y).setDepth(3);
+      const circle = this.add.circle(0, 0, 12, def.color, 0.7);
+      const label = this.add.text(0, -20, def.nameRu, { fontSize: '8px', color: '#dddddd', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+      const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+      container.add([circle, label, eKey]);
+      this.resourceNodes.push({ x: ns.x, y: ns.y, def, gfx: container, cooldown: 0, depleted: false });
+    }
+
+    // Workbenches
+    for (const wb of zone.workbenches ?? []) {
+      const container = this.add.container(wb.x, wb.y).setDepth(5);
+      const rect = this.add.rectangle(0, 0, 28, 20, 0x664422, 0.8).setStrokeStyle(2, 0x996633);
+      const label = this.add.text(0, -18, wb.nameRu, { fontSize: '8px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+      const icon = this.add.text(0, 0, '⚒', { fontSize: '14px' }).setOrigin(0.5);
+      const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+      container.add([rect, label, icon, eKey]);
+      this.workbenches.push({ x: wb.x, y: wb.y, type: wb.type, nameRu: wb.nameRu, gfx: container });
+    }
+
+    // NPCs
+    for (const npc of zone.npcs ?? []) {
+      const container = this.add.container(npc.x, npc.y).setDepth(5);
+      const circle = this.add.circle(0, 0, 12, 0xffdd55, 0.9);
+      const glow = this.add.circle(0, 0, 16, 0xffaa00, 0.3);
+      const label = this.add.text(0, -22, npc.nameRu, { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
+      const eKey = this.add.text(0, 18, '[E] shop', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+      container.add([glow, circle, label, eKey]);
+      this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: npc.nameRu, role: npc.role, gfx: container });
+    }
+  }
+
+  /** Try interact with nearby world object (E key) */
+  private tryInteractWorldObject(): boolean {
+    if (!this.playerBody) return false;
+    const px = this.playerBody.x, py = this.playerBody.y;
+    const interactRange = 60;
+
+    // Resource nodes
+    for (const node of this.resourceNodes) {
+      if (node.depleted) continue;
+      if (distance(px, py, node.x, node.y) < interactRange) {
+        this.startGathering(node);
+        return true;
+      }
+    }
+
+    // Workbenches
+    for (const wb of this.workbenches) {
+      if (distance(px, py, wb.x, wb.y) < interactRange) {
+        this.openCraftingUI(wb.type);
+        return true;
+      }
+    }
+
+    // NPCs (vendor)
+    for (const npc of this.worldNPCs) {
+      if (distance(px, py, npc.x, npc.y) < interactRange) {
+        if (npc.role === 'vendor') this.openVendorUI();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private startGathering(node: typeof this.resourceNodes[0]) {
+    // Check for required tool
+    const toolMap: Record<string, string> = { mining: 'pickaxe', woodcutting: 'axe', trophy: 'skinning_knife' };
+    const requiredTool = toolMap[node.def.profession];
+    if (requiredTool && !this.sphere.inventory.find(i => i.itemId === requiredTool)) {
+      this.events.emit('log', `Need ${ITEMS[requiredTool]?.nameRu ?? requiredTool}! Visit Merchant.`);
+      return;
+    }
+    const qty = node.def.minQty + Math.floor(Math.random() * (node.def.maxQty - node.def.minQty + 1));
+    const existing = this.sphere.inventory.find(i => i.itemId === node.def.itemId);
+    if (existing) existing.quantity += qty;
+    else this.sphere.inventory.push({ itemId: node.def.itemId, quantity: qty });
+
+    this.events.emit('log', `Gathered ${qty}x ${ITEMS[node.def.itemId]?.nameRu ?? node.def.itemId}`);
+    node.depleted = true;
+    node.cooldown = node.def.respawnTime;
+    node.gfx.setAlpha(0.3);
+
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+  }
+
+  private openCraftingUI(workbenchType: string) {
+    const available = RECIPES.filter(r => r.workbench === workbenchType);
+    if (available.length === 0) {
+      this.events.emit('log', 'No recipes available');
+      return;
+    }
+    // For demo: show recipes + auto-craft first available
+    for (const recipe of available) {
+      const canCraft = Object.entries(recipe.materials).every(([itemId, qty]) => {
+        const inv = this.sphere.inventory.find(i => i.itemId === itemId);
+        return inv && inv.quantity >= qty;
+      });
+      if (canCraft) {
+        this.startCrafting(recipe);
+        return;
+      }
+    }
+    this.events.emit('log', `Need materials. Recipes: ${available.map(r => r.nameRu).join(', ')}`);
+  }
+
+  private startCrafting(recipe: import('../types/items').RecipeDef) {
+    // Consume materials
+    for (const [itemId, qty] of Object.entries(recipe.materials)) {
+      const inv = this.sphere.inventory.find(i => i.itemId === itemId);
+      if (inv) inv.quantity -= qty;
+    }
+    this.sphere.inventory = this.sphere.inventory.filter(i => i.quantity > 0);
+
+    this.craftingTimer = recipe.craftTime;
+    this.craftingRecipe = recipe;
+    this.events.emit('log', `Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
+    this.events.emit('crafting-start', recipe.craftTime);
+  }
+
+  private openVendorUI() {
+    let messages: string[] = [];
+
+    // Give tools for free
+    const tools = ['pickaxe', 'axe', 'skinning_knife'];
+    let toolsGiven = 0;
+    for (const toolId of tools) {
+      if (!this.sphere.inventory.find(i => i.itemId === toolId)) {
+        this.sphere.inventory.push({ itemId: toolId, quantity: 1 });
+        toolsGiven++;
+      }
+    }
+    if (toolsGiven > 0) messages.push(`Got ${toolsGiven} tools`);
+
+    // Give all recipes for free
+    const recipesToGive = ['recipe_copper_helmet', 'recipe_copper_chest', 'recipe_copper_ring', 'recipe_basic_rune'];
+    let recipesLearned = 0;
+    for (const rId of recipesToGive) {
+      if (!this.sphere.learnedRecipes.includes(rId)) {
+        this.sphere.learnedRecipes.push(rId);
+        recipesLearned++;
+      }
+    }
+    if (recipesLearned > 0) messages.push(`${recipesLearned} recipes`);
+
+    if (messages.length > 0) {
+      this.events.emit('log', `Merchant: ${messages.join(', ')}!`);
+    } else {
+      this.events.emit('log', 'Merchant: You have everything.');
+    }
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+  }
+
   // ─── Атака ────────────────────────────────────────────
 
   private get isInCombat(): boolean {
@@ -926,6 +1108,38 @@ export class GameScene extends Phaser.Scene {
 
   private selectTarget(creature: Creature) {
     this.selectedTarget = creature;
+  }
+
+  /** Update resource node respawns and crafting timer */
+  private updateWorldObjects(delta: number) {
+    const dt = delta / 1000;
+
+    // Resource node respawn
+    for (const node of this.resourceNodes) {
+      if (node.depleted) {
+        node.cooldown -= dt;
+        if (node.cooldown <= 0) {
+          node.depleted = false;
+          node.gfx.setAlpha(1);
+        }
+      }
+    }
+
+    // Crafting timer
+    if (this.craftingTimer > 0 && this.craftingRecipe) {
+      this.craftingTimer -= dt;
+      if (this.craftingTimer <= 0) {
+        // Complete craft
+        const recipe = this.craftingRecipe;
+        const existing = this.sphere.inventory.find(i => i.itemId === recipe.resultId);
+        if (existing) existing.quantity += recipe.resultQty;
+        else this.sphere.inventory.push({ itemId: recipe.resultId, quantity: recipe.resultQty });
+        this.events.emit('log', `Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
+        sfxLevelUp();
+        this.craftingRecipe = null;
+        saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      }
+    }
   }
 
   /** Вспышка захвата тела — яркая белая вспышка с частицами, callback после завершения */

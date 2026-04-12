@@ -14,24 +14,41 @@ export interface ZoneExit {
   spawnY: number;
 }
 
+export interface ResourceNodeSpawn {
+  x: number; y: number;
+  nodeId: string; // copper_vein, willow_tree, hide_pile
+}
+
+export interface WorkbenchSpawn {
+  x: number; y: number;
+  type: 'armorer' | 'weaponsmith' | 'jeweler' | 'runemaster';
+  nameRu: string;
+}
+
+export interface NPCSpawn {
+  x: number; y: number;
+  id: string;
+  nameRu: string;
+  role: 'vendor' | 'quest';
+}
+
 export interface ZoneConfig {
   id: string;
   nameRu: string;
-  /** Размер карты в тайлах */
   widthTiles: number;
   heightTiles: number;
-  /** Основной тайл фона */
   baseTile: string;
-  /** Тинт фона зоны (для атмосферы) */
   tint?: number;
-  /** Безопасная зона (деревня) */
   safeBounds?: { x1: number; y1: number; x2: number; y2: number };
-  /** Точка камня возрождения */
   respawnPoint: { x: number; y: number };
-  /** Группы спавнов мобов */
   spawnGroups: SpawnGroup[];
-  /** Переходы в другие зоны */
   exits: ZoneExit[];
+  /** Resource gathering nodes */
+  resourceNodes?: ResourceNodeSpawn[];
+  /** Crafting workbenches */
+  workbenches?: WorkbenchSpawn[];
+  /** NPCs */
+  npcs?: NPCSpawn[];
 }
 
 // ── Размеры зон ──────────────────────────────────────────────────────────────
@@ -90,6 +107,35 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { edge: 'south', targetZone: 'fire',   spawnX: PW / 2, spawnY: 80 },
     { edge: 'east',  targetZone: 'wind',   spawnX: 80,     spawnY: PH / 2 },
     { edge: 'west',  targetZone: 'earth',  spawnX: PW - 80, spawnY: PH / 2 },
+  ],
+
+  // Resource nodes — near exits, outside safe zone
+  resourceNodes: [
+    // Mining (copper) — north-east
+    { x: PW / 2 + 400, y: PH / 2 - 400, nodeId: 'copper_vein' },
+    { x: PW / 2 + 450, y: PH / 2 - 350, nodeId: 'copper_vein' },
+    { x: PW / 2 + 500, y: PH / 2 - 430, nodeId: 'copper_vein' },
+    // Woodcutting (willow) — north-west
+    { x: PW / 2 - 400, y: PH / 2 - 400, nodeId: 'willow_tree' },
+    { x: PW / 2 - 450, y: PH / 2 - 350, nodeId: 'willow_tree' },
+    { x: PW / 2 - 500, y: PH / 2 - 430, nodeId: 'willow_tree' },
+    // Trophy (hide) — south
+    { x: PW / 2 - 100, y: PH / 2 + 400, nodeId: 'hide_pile' },
+    { x: PW / 2 + 50,  y: PH / 2 + 450, nodeId: 'hide_pile' },
+    { x: PW / 2 - 50,  y: PH / 2 + 500, nodeId: 'hide_pile' },
+  ],
+
+  // Workbenches — inside safe zone
+  workbenches: [
+    { x: PW / 2 - 180, y: PH / 2 - 120, type: 'armorer',      nameRu: 'Armorer' },
+    { x: PW / 2 - 100, y: PH / 2 - 120, type: 'weaponsmith',  nameRu: 'Weaponsmith' },
+    { x: PW / 2 + 100, y: PH / 2 - 120, type: 'jeweler',      nameRu: 'Jeweler' },
+    { x: PW / 2 + 180, y: PH / 2 - 120, type: 'runemaster',   nameRu: 'Runemaster' },
+  ],
+
+  // NPCs
+  npcs: [
+    { x: PW / 2, y: PH / 2 - 160, id: 'vendor', nameRu: 'Merchant', role: 'vendor' },
   ],
 };
 

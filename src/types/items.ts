@@ -1,32 +1,63 @@
-export type ItemRarity = 'common' | 'uncommon' | 'rare';
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export interface ItemDef {
   id: string;
   nameRu: string;
-  /** Brief description shown in inventory tooltip */
   descRu: string;
   rarity: ItemRarity;
-  /** 'material' = craft/quest ingredient; 'consumable' = single-use effect */
-  type: 'material' | 'consumable';
-  /** For consumables: restores this much HP */
+  type: 'material' | 'consumable' | 'equipment' | 'recipe';
+  /** For consumables */
   hpRestore?: number;
-  /** For consumables: restores this much Mana */
   manaRestore?: number;
-  /** Icon glyph shown in the inventory cell */
+  /** For equipment: which slot */
+  equipSlot?: EquipSlot;
+  /** For equipment: stat bonuses */
+  statBonuses?: Partial<Record<string, number>>;
+  /** For equipment: armor bonus */
+  armorBonus?: number;
+  /** For equipment: mana bonus */
+  manaBonus?: number;
+  /** Icon glyph */
   icon: string;
+}
+
+export type EquipSlot = 'weapon' | 'shield' | 'helmet' | 'chest' | 'gloves' | 'boots' | 'ring' | 'amulet' | 'weapon_rune' | 'armor_rune';
+
+export interface RecipeDef {
+  id: string;
+  nameRu: string;
+  /** Which workbench type */
+  workbench: 'armorer' | 'weaponsmith' | 'jeweler' | 'runemaster';
+  /** Required materials: itemId → quantity */
+  materials: Record<string, number>;
+  /** Result item id */
+  resultId: string;
+  resultQty: number;
+  /** Crafting time in seconds */
+  craftTime: number;
 }
 
 export interface LootEntry {
   itemId: string;
-  /** Drop probability 0–1 */
   chance: number;
-  /** Minimum quantity dropped */
   minQty: number;
-  /** Maximum quantity dropped */
   maxQty: number;
 }
 
 export interface InventoryItem {
   itemId: string;
   quantity: number;
+}
+
+export interface Equipment {
+  weapon?: string;
+  shield?: string;
+  helmet?: string;
+  chest?: string;
+  gloves?: string;
+  boots?: string;
+  ring?: string;
+  amulet?: string;
+  weapon_rune?: string;
+  armor_rune?: string;
 }

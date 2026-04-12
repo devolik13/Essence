@@ -38,6 +38,15 @@ export class Sphere extends Phaser.GameObjects.Container {
   /** ID последнего тела (для восстановления при переходе между зонами) */
   public lastBodyId: string | null = null;
 
+  /** Экипированные предметы */
+  public equipment: import('../types/items').Equipment = {};
+
+  /** Золото */
+  public gold: number = 0;
+
+  /** Изученные рецепты */
+  public learnedRecipes: string[] = [];
+
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
   private keys!: {

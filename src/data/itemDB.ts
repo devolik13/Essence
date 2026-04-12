@@ -1,4 +1,4 @@
-import { ItemDef, LootEntry } from '../types/items';
+import { ItemDef, LootEntry, RecipeDef } from '../types/items';
 
 // ─── Item definitions ─────────────────────────────────────────────────────────
 
@@ -59,6 +59,55 @@ export const ITEMS: Record<string, ItemDef> = {
     descRu: 'Тяжёлый болт с бронебойным наконечником.',
     icon: '→',
   },
+  // ── Gathering Tools (from vendor, free) ──────────────────────────────────
+  pickaxe: {
+    id: 'pickaxe', nameRu: 'Pickaxe', rarity: 'common', type: 'material',
+    descRu: 'Required for mining ore.', icon: '⛏',
+  },
+  axe: {
+    id: 'axe', nameRu: 'Axe', rarity: 'common', type: 'material',
+    descRu: 'Required for chopping wood.', icon: '🪓',
+  },
+  skinning_knife: {
+    id: 'skinning_knife', nameRu: 'Skinning Knife', rarity: 'common', type: 'material',
+    descRu: 'Required for gathering trophies.', icon: '🔪',
+  },
+
+  // ── Gathering Resources T1 ───────────────────────────────────────────────
+  // Mining
+  copper_ore: {
+    id: 'copper_ore', nameRu: 'Copper Ore', rarity: 'common', type: 'material',
+    descRu: 'Soft metal, base for T1 crafting.', icon: '⛏',
+  },
+  // Woodcutting
+  willow_branch: {
+    id: 'willow_branch', nameRu: 'Willow Branch', rarity: 'common', type: 'material',
+    descRu: 'Flexible wood for arrows and T1 gear.', icon: '🌿',
+  },
+  // Trophy
+  wolf_hide: {
+    id: 'wolf_hide', nameRu: 'Wolf Hide', rarity: 'common', type: 'material',
+    descRu: 'Common hide for light armor.', icon: '🦴',
+  },
+
+  // ── Equipment T1 ───────────────────────────────────────────────────────────
+  copper_helmet: {
+    id: 'copper_helmet', nameRu: 'Copper Helmet', rarity: 'common', type: 'equipment',
+    descRu: '+2 Armor', icon: '⛑', equipSlot: 'helmet', armorBonus: 2,
+  },
+  copper_chest: {
+    id: 'copper_chest', nameRu: 'Copper Chest', rarity: 'common', type: 'equipment',
+    descRu: '+5 Armor', icon: '🛡', equipSlot: 'chest', armorBonus: 5,
+  },
+  copper_ring: {
+    id: 'copper_ring', nameRu: 'Copper Ring', rarity: 'common', type: 'equipment',
+    descRu: '+3 Luck', icon: '💍', equipSlot: 'ring', statBonuses: { luck: 3 },
+  },
+  basic_rune: {
+    id: 'basic_rune', nameRu: 'Basic Rune', rarity: 'common', type: 'equipment',
+    descRu: '+1 Armor, +1 Will', icon: '✦', equipSlot: 'armor_rune', armorBonus: 1, statBonuses: { will: 1 },
+  },
+
   // Consumables
   health_potion: {
     id: 'health_potion', nameRu: 'Зелье здоровья', rarity: 'common', type: 'consumable',
@@ -127,6 +176,71 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
     { itemId: 'bandit_coin',   chance: 0.9, minQty: 2, maxQty: 5 },
     { itemId: 'health_potion', chance: 0.4,  minQty: 1, maxQty: 2 },
   ],
+};
+
+// ─── Recipes ─────────────────────────────────────────────────────────────────
+
+export const RECIPES: RecipeDef[] = [
+  // Armorer
+  {
+    id: 'recipe_copper_helmet', nameRu: 'Copper Helmet',
+    workbench: 'armorer',
+    materials: { copper_ore: 3, wolf_hide: 2 },
+    resultId: 'copper_helmet', resultQty: 1, craftTime: 10,
+  },
+  {
+    id: 'recipe_copper_chest', nameRu: 'Copper Chestplate',
+    workbench: 'armorer',
+    materials: { copper_ore: 5, wolf_hide: 3 },
+    resultId: 'copper_chest', resultQty: 1, craftTime: 10,
+  },
+  // Jeweler
+  {
+    id: 'recipe_copper_ring', nameRu: 'Copper Ring',
+    workbench: 'jeweler',
+    materials: { copper_ore: 4, wolf_hide: 1 },
+    resultId: 'copper_ring', resultQty: 1, craftTime: 10,
+  },
+  // Rune Master
+  {
+    id: 'recipe_basic_rune', nameRu: 'Basic Rune',
+    workbench: 'runemaster',
+    materials: { willow_branch: 3, wolf_hide: 2 },
+    resultId: 'basic_rune', resultQty: 1, craftTime: 10,
+  },
+];
+
+// ─── Resource Node Types ─────────────────────────────────────────────────────
+
+export interface ResourceNodeDef {
+  id: string;
+  nameRu: string;
+  profession: 'mining' | 'woodcutting' | 'trophy';
+  itemId: string;
+  gatherTime: number; // seconds
+  minQty: number;
+  maxQty: number;
+  respawnTime: number; // seconds
+  color: number;
+  icon: string;
+}
+
+export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
+  copper_vein: {
+    id: 'copper_vein', nameRu: 'Copper Vein', profession: 'mining',
+    itemId: 'copper_ore', gatherTime: 2, minQty: 1, maxQty: 3,
+    respawnTime: 30, color: 0xcc8844, icon: '⛏',
+  },
+  willow_tree: {
+    id: 'willow_tree', nameRu: 'Willow Tree', profession: 'woodcutting',
+    itemId: 'willow_branch', gatherTime: 2, minQty: 1, maxQty: 3,
+    respawnTime: 30, color: 0x558833, icon: '🪓',
+  },
+  hide_pile: {
+    id: 'hide_pile', nameRu: 'Hide Pile', profession: 'trophy',
+    itemId: 'wolf_hide', gatherTime: 2, minQty: 1, maxQty: 2,
+    respawnTime: 30, color: 0x886644, icon: '🦴',
+  },
 };
 
 /** Roll loot for a creature and return what dropped (may be empty). */
