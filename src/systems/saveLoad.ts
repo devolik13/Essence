@@ -18,6 +18,7 @@ interface SaveData {
   killCounts?: Record<string, number>;
   unlockedAchievements?: string[];
   trackedQuestIds?: string[];
+  lastBodyId?: string | null;
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -42,6 +43,7 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     killCounts: { ...sphere.killCounts },
     unlockedAchievements: [...sphere.unlockedAchievements],
     trackedQuestIds: [...sphere.trackedQuestIds],
+    lastBodyId: sphere.lastBodyId ?? null,
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -98,6 +100,9 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     }
     if (data.trackedQuestIds) {
       sphere.trackedQuestIds = [...data.trackedQuestIds];
+    }
+    if (data.lastBodyId !== undefined) {
+      sphere.lastBodyId = data.lastBodyId;
     }
 
     return true;

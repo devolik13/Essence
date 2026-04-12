@@ -35,6 +35,9 @@ export class Sphere extends Phaser.GameObjects.Container {
   // Зачарование оружия (toggle-аура)
   public activeEnchant: AbilityDef | null = null;
 
+  /** ID последнего тела (для восстановления при переходе между зонами) */
+  public lastBodyId: string | null = null;
+
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
   private keys!: {

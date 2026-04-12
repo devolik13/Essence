@@ -212,12 +212,17 @@ export class GameScene extends Phaser.Scene {
     this.currentZone = ALL_ZONES[data?.zoneId ?? 'village'] ?? ALL_ZONES['village'];
     this.spawnX = data?.spawnX;
     this.spawnY = data?.spawnY;
-    // Очищаем массивы при перезагрузке сцены
+    // Очищаем все ссылки при перезагрузке сцены
     this.creatures = [];
     this.damageTexts = [];
     this.groundZones = [];
     this.windBarriers = [];
     this.summonedWalls = [];
+    this.playerBody = null;
+    this.selectedTarget = null;
+    this.captureProcess = null;
+    this.captureTarget = null;
+    this.starterBodies = [];
   }
 
   create() {
@@ -233,6 +238,18 @@ export class GameScene extends Phaser.Scene {
     this.sphere = new Sphere(this, startX, startY);
     const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     if (loaded) this.events.emit('save-loaded');
+
+    // ─── Восстановление тела после перехода между зонами ─────
+    if (this.sphere.lastBodyId) {
+      const bodyDef = CREATURE_DB[this.sphere.lastBodyId] ?? STARTER_BODIES.find(b => b.id === this.sphere.lastBodyId);
+      if (bodyDef) {
+        this.playerBody = new Body(this, startX, startY, bodyDef, this.sphere.stats);
+        this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
+        this.playerBody.possess(this);
+        this.fillBodySlots(this.playerBody);
+        this.sphere.enterBody();
+      }
+    }
 
     // ─── Стартовые тела (визуальные маркеры) ─────────
     this.createStarterMarkers();
@@ -825,7 +842,10 @@ export class GameScene extends Phaser.Scene {
       if (exit.edge === 'west' && entity.x < edge) trigger = true;
 
       if (trigger) {
-        // Сохраняем перед переходом
+        // Сохраняем тело и сферу перед переходом
+        if (this.playerBody) {
+          this.sphere.lastBodyId = this.playerBody.definition.id;
+        }
         saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
         // Перезапускаем сцену с новой зоной
         this.scene.restart({ zoneId: exit.targetZone, spawnX: exit.spawnX, spawnY: exit.spawnY });
