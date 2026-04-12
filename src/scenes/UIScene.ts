@@ -1054,6 +1054,12 @@ export class UIScene extends Phaser.Scene {
     if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
   }
 
+  private refreshWindow() {
+    if (this.currentWindow && this.cachedUIData) {
+      this.buildWindowContent(this.cachedUIData);
+    }
+  }
+
   private closeWindow() {
     this.currentWindow = null;
     this.windowContainer.setVisible(false);
@@ -1114,19 +1120,75 @@ export class UIScene extends Phaser.Scene {
       }
       case 'inventory': {
         const inv = data.inventory ?? [];
+        const equip = data.sphere?.equipment ?? {};
         const lines: string[] = [];
+
+        // Equipment slots
+        lines.push('═══ EQUIPMENT ═══');
+        const slots: [string, string][] = [
+          ['weapon', 'Weapon'], ['shield', 'Shield'], ['helmet', 'Helmet'],
+          ['chest', 'Chest'], ['gloves', 'Gloves'], ['boots', 'Boots'],
+          ['ring', 'Ring'], ['amulet', 'Amulet'],
+          ['weapon_rune', 'Wpn Rune'], ['armor_rune', 'Arm Rune'],
+        ];
+        for (const [slotKey, slotName] of slots) {
+          const itemId = (equip as any)[slotKey];
+          if (itemId) {
+            const def = ITEMS[itemId];
+            lines.push(`  ${slotName}: ${def?.icon ?? '?'} ${def?.nameRu ?? itemId}`);
+          } else {
+            lines.push(`  ${slotName}: [empty]`);
+          }
+        }
+
+        // Bag
+        lines.push('');
+        lines.push('═══ BAG ═══');
         if (inv.length === 0) {
-          lines.push('  Inventory empty');
+          lines.push('  Empty');
         } else {
           for (const slot of inv) {
             const def = ITEMS[slot.itemId];
-            const r = def?.rarity === 'rare' ? '★' : def?.rarity === 'uncommon' ? '◆' : '·';
-            lines.push(`${r} ${def?.icon ?? '?'} ${def?.nameRu ?? slot.itemId}  ×${slot.quantity}`);
-            if (def?.descRu) lines.push(`   ${def.descRu}`);
+            const r = def?.rarity === 'rare' ? '★' : def?.rarity === 'uncommon' ? '◆' : def?.rarity === 'epic' ? '♦' : '·';
+            const eqTag = def?.type === 'equipment' ? ' [EQUIP]' : '';
+            lines.push(`${r} ${def?.icon ?? '?'} ${def?.nameRu ?? slot.itemId}  ×${slot.quantity}${eqTag}`);
           }
         }
-        this.windowTitleText.setText(`◈ Инвентарь  (${inv.length} видов)`);
+
+        lines.push('');
+        lines.push('Click equipment item to equip/unequip');
+
+        this.windowTitleText.setText(`◈ Inventory  (${inv.length} items)`);
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+
+        // Clickable equip buttons for equipment items
+        this.windowInteractables.forEach(t => t.destroy());
+        this.windowInteractables = [];
+        let btnY = 0;
+        for (const slot of inv) {
+          const def = ITEMS[slot.itemId];
+          if (def?.type === 'equipment' && def.equipSlot) {
+            const isEquipped = (equip as any)[def.equipSlot] === slot.itemId;
+            const btn = this.add.text(
+              this.windowX + this.windowW - 60,
+              this.windowY + 220 + btnY,
+              isEquipped ? 'Remove' : 'Equip',
+              { fontSize: '9px', color: isEquipped ? '#ff8888' : '#88ff88', backgroundColor: '#333333', padding: { x: 4, y: 2 } }
+            ).setDepth(1003).setInteractive();
+            btn.on('pointerdown', () => {
+              const gs = this.scene.get('GameScene');
+              if (isEquipped) {
+                (equip as any)[def.equipSlot!] = undefined;
+              } else {
+                (equip as any)[def.equipSlot!] = slot.itemId;
+              }
+              if (gs) (gs as any).events?.emit('equipment-changed');
+              this.refreshWindow();
+            });
+            this.windowInteractables.push(btn);
+            btnY += 16;
+          }
+        }
         break;
       }
       case 'quests': {
