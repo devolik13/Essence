@@ -29,6 +29,7 @@ import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX } from '../systems/vfx';
+import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 
 // ── Зона на карте (ground_zone) ─────────────────────────────
 interface GroundZone {
@@ -324,6 +325,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      resumeAudio(); // Unlock audio on first click
       // Правая кнопка — отмена AoE
       if (pointer.rightButtonDown()) {
         this.exitAoeTargeting();
@@ -951,6 +953,7 @@ export class GameScene extends Phaser.Scene {
       emitting: false,
     }).setDepth(61);
     emitter.explode(20);
+    sfxCapture();
 
     // Анимация вспышки: расширяется и затухает
     this.tweens.add({
@@ -1007,6 +1010,7 @@ export class GameScene extends Phaser.Scene {
         }
         saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
         // Перезапускаем сцену с новой зоной
+        sfxZoneTransition();
         this.scene.restart({ zoneId: exit.targetZone, spawnX: exit.spawnX, spawnY: exit.spawnY });
         return;
       }
@@ -1117,6 +1121,7 @@ export class GameScene extends Phaser.Scene {
       // VFX удара
       if (dt === 'melee') {
         spawnMeleeSwingVFX(this, this.playerBody.x, this.playerBody.y, closestCreature.x, closestCreature.y);
+      if (result.crit) sfxCritHit(); else sfxMeleeHit();
       }
       spawnHitVFX(this, closestCreature.x, closestCreature.y, 'neutral', result.crit);
     }
@@ -1125,6 +1130,7 @@ export class GameScene extends Phaser.Scene {
     const bodyElement = this.playerBody.definition.element ?? 'neutral';
     if (dt === 'ranged') {
       spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, closestCreature.x, closestCreature.y, 'neutral');
+      sfxRangedShot();
       this.spawnProjectile(
         this.playerBody.x, this.playerBody.y,
         closestCreature.x, closestCreature.y,
@@ -1168,6 +1174,7 @@ export class GameScene extends Phaser.Scene {
 
     // Блок: melee/ranged → проверка блока ДО попадания
     if (cdt !== 'magic' && this.playerBody.tryBlock()) {
+      sfxBlock();
       this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y, 0, false, false));
       creature.attackCooldown = WEAPON_COOLDOWNS[creature.definition.weapon];
       return;
@@ -1287,6 +1294,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onCreatureKilled(creature: Creature) {
+    sfxDeath();
     // Призванный союзник: убрать из мира, без XP, без захвата, без респауна
     if (creature.isSummoned) {
       creature.destroy();
@@ -1327,7 +1335,8 @@ export class GameScene extends Phaser.Scene {
             if (next >= threshold) {
               // Заклинание выучено!
               this.sphere.learnedSpells.push(spell);
-              this.events.emit('spell-learned', spell);
+              sfxLevelUp();
+      this.events.emit('spell-learned', spell);
             } else {
               this.events.emit('spell-progress', { spell, current: next, threshold });
             }
@@ -1389,6 +1398,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onPlayerDeath() {
+    sfxDeath();
     // ── Штраф за смерть ──────────────────────────────────
     let totalXpLost = 0;
     if (this.playerBody) {
@@ -1582,6 +1592,7 @@ export class GameScene extends Phaser.Scene {
       }
       // VFX кастования баффа
       spawnCastVFX(this, this.playerBody.x, this.playerBody.y, spell.school ?? 'neutral');
+      sfxBuff();
       this.events.emit('ability-used', spell.nameRu);
       return;
     }
@@ -1616,6 +1627,7 @@ export class GameScene extends Phaser.Scene {
           this.playerBody.maxHP,
         );
         spawnHealVFX(this, this.playerBody.x, this.playerBody.y);
+        sfxHeal();
       }
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -1778,6 +1790,7 @@ export class GameScene extends Phaser.Scene {
         spell.school === 'fire' ? 0xff5500 : spell.school === 'water' ? 0x4499ff : 0xffffff);
     }
     spawnHitVFX(this, target.x, target.y, spellSchool, result.crit || !!isDouble);
+    if (result.crit || isDouble) sfxCritHit(); else if (spell.damageType === 'magic') sfxMagicHit(); else sfxMeleeHit();
 
     // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────
     if (spell.lifestealPercent && this.playerBody && result.hit) {
