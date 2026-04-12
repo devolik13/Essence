@@ -47,6 +47,8 @@ export class Creature extends Phaser.GameObjects.Container {
 
   /** Внешний callback для проверки блокировки движения стенами */
   public wallCheckFn?: (x: number, y: number) => boolean;
+  /** Безопасная зона — мобы не могут в неё заходить */
+  public safeBounds?: { x1: number; y1: number; x2: number; y2: number };
 
   // Wander
   private wanderTimer: number = 0;
@@ -216,6 +218,25 @@ export class Creature extends Phaser.GameObjects.Container {
           this.x += this.wanderDirX * CREATURE_SPEED * 0.3 * speedMult * dt;
           this.y += this.wanderDirY * CREATURE_SPEED * 0.3 * speedMult * dt;
           break;
+      }
+    }
+
+    // Мобы не заходят в сейф-зону — выталкиваем
+    if (this.safeBounds) {
+      const sb = this.safeBounds;
+      const margin = 20;
+      if (this.x > sb.x1 - margin && this.x < sb.x2 + margin &&
+          this.y > sb.y1 - margin && this.y < sb.y2 + margin) {
+        // Вытолкнуть к ближайшему краю
+        const dLeft = this.x - (sb.x1 - margin);
+        const dRight = (sb.x2 + margin) - this.x;
+        const dTop = this.y - (sb.y1 - margin);
+        const dBottom = (sb.y2 + margin) - this.y;
+        const minD = Math.min(dLeft, dRight, dTop, dBottom);
+        if (minD === dLeft) this.x = sb.x1 - margin;
+        else if (minD === dRight) this.x = sb.x2 + margin;
+        else if (minD === dTop) this.y = sb.y1 - margin;
+        else this.y = sb.y2 + margin;
       }
     }
 

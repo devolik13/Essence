@@ -906,9 +906,13 @@ export class GameScene extends Phaser.Scene {
     // Спавним мобов текущей зоны
     spawnGroup(this.currentZone.spawnGroups);
 
-    // Подключаем проверку стен ко всем существам
+    // Подключаем проверку стен и сейф-зону ко всем существам
     const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);
-    for (const c of this.creatures) c.wallCheckFn = wallCheck;
+    const sb = this.currentZone.safeBounds;
+    for (const c of this.creatures) {
+      c.wallCheckFn = wallCheck;
+      if (sb) c.safeBounds = sb;
+    }
   }
 
   // ─── Атака ────────────────────────────────────────────
