@@ -662,47 +662,91 @@ export class GameScene extends Phaser.Scene {
     this.spawnDecorations(wt, ht);
   }
 
-  /** Процедурно расставить деревья, камни и кусты по зоне */
+  /** Процедурно расставить деревья, камни, кусты, реки, дороги */
   private spawnDecorations(wt: number, ht: number) {
     const zw = wt * TILE_SIZE;
     const zh = ht * TILE_SIZE;
     const sb = this.currentZone.safeBounds;
     const rng = new Phaser.Math.RandomDataGenerator([this.currentZone.id]);
+    const zoneId = this.currentZone.id;
 
     const isInSafe = (x: number, y: number) =>
       sb && x > sb.x1 - 40 && x < sb.x2 + 40 && y > sb.y1 - 40 && y < sb.y2 + 40;
 
-    // Деревья (60-100 штук)
-    const treeCount = 60 + rng.between(0, 40);
+    // ── Дороги (из центра к выходам) ─────────────────────
+    const gfxRoads = this.add.graphics().setDepth(0).setAlpha(0.4);
+    gfxRoads.fillStyle(0x998866, 1);
+    const cx = zw / 2, cy = zh / 2;
+    for (const exit of this.currentZone.exits) {
+      let ex = cx, ey = cy;
+      if (exit.edge === 'north') { ex = cx; ey = 0; }
+      if (exit.edge === 'south') { ex = cx; ey = zh; }
+      if (exit.edge === 'east')  { ex = zw; ey = cy; }
+      if (exit.edge === 'west')  { ex = 0; ey = cy; }
+      // Рисуем полосу дороги
+      const dx = ex - cx, dy = ey - cy;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const nx = dx / len, ny = dy / len;
+      const roadWidth = 20;
+      for (let t = 0; t < len; t += 8) {
+        const px = cx + nx * t;
+        const py = cy + ny * t;
+        // Немного "вибрации" для натуральности
+        const wobble = Math.sin(t * 0.02) * 6;
+        gfxRoads.fillRect(px - roadWidth / 2 + ny * wobble, py - roadWidth / 2 - nx * wobble, roadWidth, 8);
+      }
+    }
+
+    // ── Река (извилистая линия, разная для каждой зоны) ───
+    const gfxRiver = this.add.graphics().setDepth(0).setAlpha(0.5);
+    const riverColor = zoneId === 'water' ? 0x3366aa : zoneId === 'fire' ? 0xaa4400 : 0x4488aa;
+    gfxRiver.fillStyle(riverColor, 1);
+    // Река идёт примерно по диагонали зоны
+    const riverStartX = rng.between(100, 400);
+    const riverEndX = zw - rng.between(100, 400);
+    const riverY0 = rng.between(zh * 0.2, zh * 0.4);
+    for (let x = riverStartX; x < riverEndX; x += 4) {
+      const t = (x - riverStartX) / (riverEndX - riverStartX);
+      const baseY = riverY0 + t * (zh * 0.4);
+      const wave = Math.sin(x * 0.008 + rng.frac() * 6) * 60 + Math.sin(x * 0.02) * 20;
+      const riverWidth = 14 + Math.sin(x * 0.005) * 6;
+      if (!isInSafe(x, baseY + wave)) {
+        gfxRiver.fillRect(x, baseY + wave - riverWidth / 2, 4, riverWidth);
+      }
+    }
+
+    // ── Деревья (150-200) ────────────────────────────────
+    const treeCount = 150 + rng.between(0, 50);
     for (let i = 0; i < treeCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
       if (isInSafe(x, y)) continue;
       const tree = this.add.image(x, y, 'deco_tree').setDepth(1);
-      tree.setScale(0.8 + rng.frac() * 0.6);
+      tree.setScale(0.8 + rng.frac() * 0.8);
       tree.setAlpha(0.7 + rng.frac() * 0.3);
       if (this.currentZone.tint) tree.setTint(this.currentZone.tint);
     }
 
-    // Камни (30-50)
-    const rockCount = 30 + rng.between(0, 20);
+    // ── Камни (80-120) ───────────────────────────────────
+    const rockCount = 80 + rng.between(0, 40);
     for (let i = 0; i < rockCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
       if (isInSafe(x, y)) continue;
       const rock = this.add.image(x, y, 'deco_rock').setDepth(1);
-      rock.setScale(0.7 + rng.frac() * 0.8);
+      rock.setScale(0.6 + rng.frac() * 1.0);
       rock.setAlpha(0.5 + rng.frac() * 0.3);
+      if (this.currentZone.tint) rock.setTint(Phaser.Display.Color.IntegerToColor(this.currentZone.tint).brighten(20).color);
     }
 
-    // Кусты (40-60)
-    const bushCount = 40 + rng.between(0, 20);
+    // ── Кусты (100-140) ──────────────────────────────────
+    const bushCount = 100 + rng.between(0, 40);
     for (let i = 0; i < bushCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
       if (isInSafe(x, y)) continue;
       const bush = this.add.image(x, y, 'deco_bush').setDepth(1);
-      bush.setScale(0.6 + rng.frac() * 0.6);
+      bush.setScale(0.5 + rng.frac() * 0.8);
       bush.setAlpha(0.5 + rng.frac() * 0.3);
       if (this.currentZone.tint) bush.setTint(this.currentZone.tint);
     }
