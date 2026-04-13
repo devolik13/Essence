@@ -84,9 +84,10 @@ export class Body extends Phaser.GameObjects.Container {
 
     if (animCfg) {
       // Анимированный спрайт
-      this.bodySprite = scene.add.sprite(0, 0, `warrior_idle_down`);
+      const startAnim = animCfg.idle('down');
+      this.bodySprite = scene.add.sprite(0, 0, startAnim);
       this.bodySprite.setDisplaySize(animCfg.displaySize, animCfg.displaySize);
-      this.bodySprite.play('warrior_idle_down');
+      this.bodySprite.play(startAnim);
       // По завершении атаки — вернуться в idle
       this.bodySprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         this.isAttackPlaying = false;

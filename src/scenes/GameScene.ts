@@ -1814,6 +1814,7 @@ export class GameScene extends Phaser.Scene {
       }
       // VFX кастования баффа
       spawnCastVFX(this, this.playerBody.x, this.playerBody.y, spell.school ?? 'neutral');
+      this.playerBody.playAttackAnim();
       sfxBuff();
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -2004,6 +2005,12 @@ export class GameScene extends Phaser.Scene {
 
     target.takeDamage(dmg);
     this.aggroCreature(target);
+
+    // Анимация атаки при заклинании
+    if (this.playerBody) {
+      this.playerBody.faceToward(target.x, target.y);
+      this.playerBody.playAttackAnim();
+    }
 
     // VFX попадания способности
     const spellSchool = spell.school ?? (spell.damageType === 'melee' ? 'neutral' : 'neutral');
