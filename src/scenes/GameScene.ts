@@ -152,6 +152,12 @@ export class GameScene extends Phaser.Scene {
   private workbenches: { x: number; y: number; type: string; nameRu: string; gfx: Phaser.GameObjects.Container }[] = [];
   private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container }[] = [];
 
+  // Zone exit arrows (shown when near edge)
+  private exitArrows: Phaser.GameObjects.Text[] = [];
+
+  // Loot drops on ground
+  private lootDrops: { x: number; y: number; items: { itemId: string; qty: number }[]; gfx: Phaser.GameObjects.Container; timer: number }[] = [];
+
   // Crafting state
   private craftingTimer: number = 0;
   private craftingRecipe: import('../types/items').RecipeDef | null = null;
@@ -241,6 +247,8 @@ export class GameScene extends Phaser.Scene {
     this.worldNPCs = [];
     this.craftingTimer = 0;
     this.craftingRecipe = null;
+    this.lootDrops = [];
+    this.exitArrows = [];
   }
 
   create() {
@@ -277,6 +285,9 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Ресурсные ноды, верстаки, NPC ───────────────
     this.spawnWorldObjects();
+
+    // ─── Exit arrows (hidden, shown near edge) ──────
+    this.createExitArrows();
 
     // ─── Камера ──────────────────────────────────────
     const zoneW = this.currentZone.widthTiles * TILE_SIZE;
@@ -390,9 +401,9 @@ export class GameScene extends Phaser.Scene {
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
       }
-      // [E] в теле — взаимодействие с миром (ноды, верстаки, NPC) или захват
+      // [E] в теле — лут, ноды, верстаки, NPC, захват
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        if (!this.tryInteractWorldObject()) {
+        if (!this.tryPickupLoot() && !this.tryInteractWorldObject()) {
           this.tryCaptureDead();
         }
       }
@@ -524,6 +535,7 @@ export class GameScene extends Phaser.Scene {
     this.updateWindBarriers(delta);
     this.updateSummonedWalls(delta);
     this.updateWorldObjects(delta);
+    this.updateExitArrows();
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -1024,6 +1036,99 @@ export class GameScene extends Phaser.Scene {
     return false;
   }
 
+  /** Create exit arrows — large arrows at zone edges, hidden by default */
+  private createExitArrows() {
+    const zw = this.currentZone.widthTiles * TILE_SIZE;
+    const zh = this.currentZone.heightTiles * TILE_SIZE;
+    for (const exit of this.currentZone.exits) {
+      const target = ALL_ZONES[exit.targetZone];
+      if (!target) continue;
+      let x = zw / 2, y = zh / 2;
+      let arrow = '';
+      if (exit.edge === 'north') { x = zw / 2; y = 60; arrow = '▲'; }
+      if (exit.edge === 'south') { x = zw / 2; y = zh - 60; arrow = '▼'; }
+      if (exit.edge === 'east')  { x = zw - 60; y = zh / 2; arrow = '▶'; }
+      if (exit.edge === 'west')  { x = 60; y = zh / 2; arrow = '◀'; }
+      const text = this.add.text(x, y, `${arrow} ${target.nameRu}`, {
+        fontSize: '18px', color: '#ffdd44',
+        stroke: '#000000', strokeThickness: 4,
+        shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true },
+      }).setOrigin(0.5).setDepth(100).setAlpha(0);
+      (text as any)._exitEdge = exit.edge;
+      this.exitArrows.push(text);
+    }
+  }
+
+  /** Show/hide exit arrows based on player distance to edge */
+  private updateExitArrows() {
+    const entity = this.playerBody ?? this.sphere;
+    if (!entity) return;
+    const zw = this.currentZone.widthTiles * TILE_SIZE;
+    const zh = this.currentZone.heightTiles * TILE_SIZE;
+    const showDist = 400; // show when within 400px of edge
+
+    for (const arrow of this.exitArrows) {
+      const edge = (arrow as any)._exitEdge;
+      let dist = 9999;
+      if (edge === 'north') dist = entity.y;
+      if (edge === 'south') dist = zh - entity.y;
+      if (edge === 'east')  dist = zw - entity.x;
+      if (edge === 'west')  dist = entity.x;
+
+      const alpha = dist < showDist ? Math.min(1, (showDist - dist) / 200) : 0;
+      arrow.setAlpha(alpha);
+      // Pulse
+      if (alpha > 0) {
+        arrow.setScale(1 + Math.sin(Date.now() * 0.003) * 0.1);
+      }
+    }
+  }
+
+  /** Spawn loot bag on the ground */
+  private spawnLootDrop(x: number, y: number, items: { itemId: string; qty: number }[]) {
+    const container = this.add.container(x, y).setDepth(3);
+    // Glowing bag
+    const glow = this.add.circle(0, 0, 14, 0xffdd44, 0.3);
+    const bag = this.add.circle(0, 0, 8, 0xddaa33, 0.9);
+    const icon = this.add.text(0, 0, '💰', { fontSize: '12px' }).setOrigin(0.5);
+    const label = this.add.text(0, -18, '[E] Loot', { fontSize: '7px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+    container.add([glow, bag, icon, label]);
+
+    // Pulse animation
+    this.tweens.add({
+      targets: glow,
+      scaleX: 1.3, scaleY: 1.3,
+      alpha: 0.5,
+      duration: 600,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.lootDrops.push({ x, y, items, gfx: container, timer: 60 }); // 60 sec before despawn
+  }
+
+  /** Try pickup loot near player */
+  private tryPickupLoot(): boolean {
+    if (!this.playerBody) return false;
+    const px = this.playerBody.x, py = this.playerBody.y;
+    for (let i = this.lootDrops.length - 1; i >= 0; i--) {
+      const drop = this.lootDrops[i];
+      if (distance(px, py, drop.x, drop.y) < 60) {
+        // Pick up all items
+        for (const { itemId, qty } of drop.items) {
+          this.sphere.addItem(itemId, qty);
+        }
+        const lootStr = drop.items.map(d => `+${d.qty} ${ITEMS[d.itemId]?.nameRu ?? d.itemId}`).join(', ');
+        this.showMessage(lootStr);
+        drop.gfx.destroy();
+        this.lootDrops.splice(i, 1);
+        saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** Show floating message above player */
   private showMessage(text: string) {
     if (!this.playerBody) return;
@@ -1038,17 +1143,36 @@ export class GameScene extends Phaser.Scene {
       this.showMessage(`Need ${ITEMS[requiredTool]?.nameRu ?? requiredTool}! Visit Merchant.`);
       return;
     }
+    // Start gathering cast (3 sec)
+    this.gatheringTimer = 3;
+    this.gatheringNode = node;
+    this.showMessage(`Gathering ${node.def.nameRu}...`);
+    this.events.emit('crafting-start', 3); // reuse cast bar for gathering
+  }
+
+  private completeGathering() {
+    if (!this.gatheringNode) return;
+    const node = this.gatheringNode;
     const qty = node.def.minQty + Math.floor(Math.random() * (node.def.maxQty - node.def.minQty + 1));
     const existing = this.sphere.inventory.find(i => i.itemId === node.def.itemId);
     if (existing) existing.quantity += qty;
     else this.sphere.inventory.push({ itemId: node.def.itemId, quantity: qty });
 
-    this.showMessage(`Gathered ${qty}x ${ITEMS[node.def.itemId]?.nameRu ?? node.def.itemId}`);
+    this.showMessage(`+${qty} ${ITEMS[node.def.itemId]?.nameRu ?? node.def.itemId}`);
     node.depleted = true;
     node.cooldown = node.def.respawnTime;
     node.gfx.setAlpha(0.3);
-
+    this.gatheringNode = null;
+    this.gatheringTimer = 0;
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+  }
+
+  private interruptGathering() {
+    if (this.gatheringTimer > 0) {
+      this.gatheringTimer = 0;
+      this.gatheringNode = null;
+      this.showMessage('Gathering interrupted!');
+    }
   }
 
   private openCraftingUI(workbenchType: string) {
@@ -1118,9 +1242,17 @@ export class GameScene extends Phaser.Scene {
     this.selectedTarget = creature;
   }
 
-  /** Update resource node respawns and crafting timer */
+  /** Update resource node respawns, gathering timer, and crafting timer */
   private updateWorldObjects(delta: number) {
     const dt = delta / 1000;
+
+    // Gathering timer
+    if (this.gatheringTimer > 0 && this.gatheringNode) {
+      this.gatheringTimer -= dt;
+      if (this.gatheringTimer <= 0) {
+        this.completeGathering();
+      }
+    }
 
     // Resource node respawn
     for (const node of this.resourceNodes) {
@@ -1130,6 +1262,15 @@ export class GameScene extends Phaser.Scene {
           node.depleted = false;
           node.gfx.setAlpha(1);
         }
+      }
+    }
+
+    // Loot drop despawn
+    for (let i = this.lootDrops.length - 1; i >= 0; i--) {
+      this.lootDrops[i].timer -= dt;
+      if (this.lootDrops[i].timer <= 0) {
+        this.lootDrops[i].gfx.destroy();
+        this.lootDrops.splice(i, 1);
       }
     }
 
@@ -1390,6 +1531,7 @@ export class GameScene extends Phaser.Scene {
 
   private creatureAttackPlayer(creature: Creature) {
     if (!this.playerBody) return;
+    this.interruptGathering(); // Сбор прерывается при атаке
 
     const cdt = creature.definition.damageType;
     const cwb = WEAPONS[creature.definition.weapon].baseDamage;
@@ -1574,17 +1716,10 @@ export class GameScene extends Phaser.Scene {
     // Квест — засчитать убийство
     this.handleQuestKill(creature.definition.id, xpTotal);
 
-    // Лут
+    // Лут — дроп на землю
     const dropped = rollLoot(creature.definition.id);
     if (dropped.length > 0) {
-      for (const { itemId, qty } of dropped) {
-        this.sphere.addItem(itemId, qty);
-      }
-      const lootStr = dropped.map(d => {
-        const item = ITEMS[d.itemId];
-        return `${item?.nameRu ?? d.itemId} ×${d.qty}`;
-      }).join(', ');
-      this.events.emit('loot-dropped', { creatureName: creature.definition.nameRu, loot: lootStr });
+      this.spawnLootDrop(creature.x, creature.y, dropped);
     }
 
     // Статистика убийств

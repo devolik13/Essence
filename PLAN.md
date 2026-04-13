@@ -5,7 +5,7 @@
 ### 1.1 Crafting & Equipment (critical)
 - [x] 1. Crafting UI — workbench windows with recipes
 - [x] 2. Vendor UI — shop window with tools
-- [ ] 3. Gathering cast bar — progress bar when collecting resources
+- [x] 3. Gathering cast bar — 3 sec cast, interrupted by combat
 - [ ] 4. Equipment affects stats — armor/stat bonuses in damage calculation
 - [ ] 5. More recipes — T2/T3 equipment for each workbench
 - [ ] 6. Resource variety — T2-T3 nodes in elemental zones
@@ -14,19 +14,19 @@
 - [ ] 7. Spell learning thresholds — verify all creatures teach correctly
 - [ ] 8. Mob HP/damage balance per zone — village easy, elemental harder
 - [ ] 9. Death penalty tuning — test and adjust
-- [ ] 10. Potion consumption — use HP/mana potions from inventory (use button)
+- [ ] ~~10. Potion consumption~~ — NOT PLANNED, no potions in design
 
 ### 1.3 Chapter 1 Content
 - [ ] 11. Enable bosses — uncomment 4 bosses, test fights
 - [ ] 12. Quest system UI — acceptance, descriptions, rewards
 - [ ] 13. NPC dialogs — simple system: text + response options
-- [ ] 14. Mob loot drops — visible on ground (currently auto-pickup)
+- [x] 14. Mob loot drops — visible bags on ground, [E] to pickup, 60s despawn
 
 ### 1.4 World & Navigation
 - [ ] 15. Minimap — show mobs, nodes, NPCs, exits
 - [ ] 16. Quest markers — on minimap and screen (! and ?)
 - [ ] 17. Resource nodes in elemental zones — T2 ore, wood, trophies
-- [ ] 18. Exit indicators — arrows to zone transitions near edges
+- [x] 18. Exit indicators — pulsing arrows appear within 400px of zone edge
 
 ### 1.5 Visuals
 - [x] 19. Starter body sprites — warrior, mage done. Archer needed
