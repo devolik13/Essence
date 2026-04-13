@@ -1003,6 +1003,8 @@ export class UIScene extends Phaser.Scene {
         this.windowX = Math.max(0, Math.min(GAME_WIDTH - this.windowW, dx));
         this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, dy));
         this.windowContainer.setPosition(this.windowX, this.windowY);
+        // Update content mask to follow window
+        this.updateContentMask();
       });
     this.input.setDraggable(this.winTitleBg);
 
@@ -1030,10 +1032,13 @@ export class UIScene extends Phaser.Scene {
       Phaser.Geom.Rectangle.Contains,
     );
     this.winCloseBtn.setX(w - 6);
-    // Update content mask (scene coordinates)
+    this.updateContentMask();
+  }
+
+  private updateContentMask() {
     if (this._contentMaskGfx) {
       this._contentMaskGfx.clear();
-      this._contentMaskGfx.fillRect(this.windowX, this.windowY + WIN_TITLE_H, w, h);
+      this._contentMaskGfx.fillRect(this.windowX, this.windowY + WIN_TITLE_H, this.windowW, this.windowH);
     }
   }
 
