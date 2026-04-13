@@ -997,13 +997,17 @@ export class UIScene extends Phaser.Scene {
     }).setOrigin(0, 0);
 
     // Drag via title bar
+    let dragOffX = 0, dragOffY = 0;
     this.winTitleBg
       .setInteractive(new Phaser.Geom.Rectangle(0, 0, this.windowW, WIN_TITLE_H), Phaser.Geom.Rectangle.Contains)
-      .on('drag', (_ptr: Phaser.Input.Pointer, dx: number, dy: number) => {
-        this.windowX = Math.max(0, Math.min(GAME_WIDTH - this.windowW, dx));
-        this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, dy));
+      .on('dragstart', (ptr: Phaser.Input.Pointer) => {
+        dragOffX = ptr.x - this.windowX;
+        dragOffY = ptr.y - this.windowY;
+      })
+      .on('drag', (ptr: Phaser.Input.Pointer) => {
+        this.windowX = Math.max(0, Math.min(GAME_WIDTH - this.windowW, ptr.x - dragOffX));
+        this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, ptr.y - dragOffY));
         this.windowContainer.setPosition(this.windowX, this.windowY);
-        // Update content mask to follow window
         this.updateContentMask();
       });
     this.input.setDraggable(this.winTitleBg);
