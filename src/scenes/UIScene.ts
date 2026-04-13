@@ -1079,18 +1079,20 @@ export class UIScene extends Phaser.Scene {
       this.windowH = 380;
       this.windowX = 200;
     }
-    this.winBg.setPosition(this.windowX + this.windowW / 2, this.windowY + this.windowH / 2);
+    // Positions are RELATIVE to container (container is at windowX, windowY)
+    this.windowContainer.setPosition(this.windowX, this.windowY);
+    this.winBg.setPosition(this.windowW / 2, this.windowH / 2);
     this.winBg.setSize(this.windowW, this.windowH);
-    this.winTitleBg.setPosition(this.windowX + this.windowW / 2, this.windowY + 11);
+    this.winTitleBg.setPosition(this.windowW / 2, 11);
     this.winTitleBg.setSize(this.windowW, 22);
-    this.winCloseBtn.setPosition(this.windowX + this.windowW - 14, this.windowY + 11);
-    this.windowTitleText.setPosition(this.windowX + 8, this.windowY + 4);
-    this.windowContentText.setPosition(this.windowX + 8, this.windowY + 26);
+    this.winCloseBtn.setPosition(this.windowW - 14, 11);
+    this.windowTitleText.setPosition(8, 4);
+    this.windowContentText.setPosition(8, 26);
 
-    // Update content mask position
+    // Update content mask position (mask is in scene coords, not container)
     const mask = (this as any)._contentMask;
     if (mask) {
-      mask.setPosition(this.windowX + this.windowW / 2, this.windowY + this.windowH / 2);
+      mask.setPosition(this.windowX + this.windowW / 2, this.windowY + this.windowH / 2 + 11);
       mask.setSize(this.windowW - 4, this.windowH - 26);
     }
 
