@@ -1052,10 +1052,14 @@ export class UIScene extends Phaser.Scene {
 
   private repositionInteractables() {
     for (const btn of this.windowInteractables) {
-      btn.setPosition(
-        this.windowX + (btn as any).__relX,
-        this.windowY + (btn as any).__relY,
-      );
+      // Skip elements inside windowContainer (they move with it)
+      if ((btn as any).__inContainer) continue;
+      if ((btn as any).__relX !== undefined) {
+        btn.setPosition(
+          this.windowX + (btn as any).__relX,
+          this.windowY + (btn as any).__relY,
+        );
+      }
     }
   }
 
@@ -1183,6 +1187,7 @@ export class UIScene extends Phaser.Scene {
 
         const eqTitle = this.add.text(eqX + 50, eqY - 4, 'EQUIPMENT', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
         this.windowContainer.add(eqTitle);
+        (eqTitle as any).__inContainer = true;
         this.windowInteractables.push(eqTitle);
 
         const eqSlots: { key: string; label: string; col: number; row: number }[] = [
@@ -1208,14 +1213,16 @@ export class UIScene extends Phaser.Scene {
           const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.9)
             .setStrokeStyle(1, itemDef ? 0x888888 : 0x333344).setInteractive();
           this.windowContainer.add(bg);
-          this.windowInteractables.push(bg);
+        (bg as any).__inContainer = true;
+        this.windowInteractables.push(bg);
 
           const txt = this.add.text(sx + SLOT / 2, sy + SLOT / 2,
             itemDef ? (itemDef.icon ?? '?') : es.label,
             { fontSize: itemDef ? '16px' : '7px', color: itemDef ? '#ffffff' : '#555566' }
           ).setOrigin(0.5);
           this.windowContainer.add(txt);
-          this.windowInteractables.push(txt);
+        (txt as any).__inContainer = true;
+        this.windowInteractables.push(txt);
 
           if (itemDef) {
             bg.on('pointerdown', () => {
@@ -1232,6 +1239,7 @@ export class UIScene extends Phaser.Scene {
 
         const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
         this.windowContainer.add(bagTitle);
+        (bagTitle as any).__inContainer = true;
         this.windowInteractables.push(bagTitle);
 
         for (let i = 0; i < Math.max(inv.length, 20); i++) {
@@ -1246,21 +1254,24 @@ export class UIScene extends Phaser.Scene {
           const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.8)
             .setStrokeStyle(1, item ? 0x666666 : 0x222233).setInteractive();
           this.windowContainer.add(bg);
-          this.windowInteractables.push(bg);
+        (bg as any).__inContainer = true;
+        this.windowInteractables.push(bg);
 
           if (itemDef && item) {
             const icon = this.add.text(sx + SLOT / 2, sy + SLOT / 2 - 4,
               itemDef.icon ?? '?', { fontSize: '14px' }
             ).setOrigin(0.5);
             this.windowContainer.add(icon);
-            this.windowInteractables.push(icon);
+        (icon as any).__inContainer = true;
+        this.windowInteractables.push(icon);
 
             if (item.quantity > 1) {
               const qty = this.add.text(sx + SLOT - 2, sy + SLOT - 2,
                 `${item.quantity}`, { fontSize: '8px', color: '#cccccc', stroke: '#000', strokeThickness: 2 }
               ).setOrigin(1);
               this.windowContainer.add(qty);
-              this.windowInteractables.push(qty);
+        (qty as any).__inContainer = true;
+        this.windowInteractables.push(qty);
             }
 
             if (itemDef.type === 'equipment' && itemDef.equipSlot) {
