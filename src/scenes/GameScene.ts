@@ -236,6 +236,11 @@ export class GameScene extends Phaser.Scene {
     this.captureProcess = null;
     this.captureTarget = null;
     this.starterBodies = [];
+    this.resourceNodes = [];
+    this.workbenches = [];
+    this.worldNPCs = [];
+    this.craftingTimer = 0;
+    this.craftingRecipe = null;
   }
 
   create() {
@@ -387,7 +392,9 @@ export class GameScene extends Phaser.Scene {
       }
       // [E] в теле — взаимодействие с миром (ноды, верстаки, NPC) или захват
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        this.tryInteractWorldObject() || this.tryCaptureDead();
+        if (!this.tryInteractWorldObject()) {
+          this.tryCaptureDead();
+        }
       }
 
       // Слот 1 [1] — базовая атака
@@ -981,12 +988,13 @@ export class GameScene extends Phaser.Scene {
   private tryInteractWorldObject(): boolean {
     if (!this.playerBody) return false;
     const px = this.playerBody.x, py = this.playerBody.y;
-    const interactRange = 60;
+    const interactRange = 80;
 
     // Resource nodes
     for (const node of this.resourceNodes) {
       if (node.depleted) continue;
-      if (distance(px, py, node.x, node.y) < interactRange) {
+      const d = distance(px, py, node.x, node.y);
+      if (d < interactRange) {
         this.startGathering(node);
         return true;
       }
@@ -994,7 +1002,8 @@ export class GameScene extends Phaser.Scene {
 
     // Workbenches
     for (const wb of this.workbenches) {
-      if (distance(px, py, wb.x, wb.y) < interactRange) {
+      const d = distance(px, py, wb.x, wb.y);
+      if (d < interactRange) {
         this.openCraftingUI(wb.type);
         return true;
       }
@@ -1002,7 +1011,8 @@ export class GameScene extends Phaser.Scene {
 
     // NPCs (vendor)
     for (const npc of this.worldNPCs) {
-      if (distance(px, py, npc.x, npc.y) < interactRange) {
+      const d = distance(px, py, npc.x, npc.y);
+      if (d < interactRange) {
         if (npc.role === 'vendor') this.openVendorUI();
         return true;
       }
