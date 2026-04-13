@@ -9,7 +9,7 @@ import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constan
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
-import { ITEMS } from '../data/itemDB';
+import { ITEMS, RECIPES } from '../data/itemDB';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
 import { getAllAchievementStatus } from '../systems/achievements';
 import { STATUS_DEFS } from '../types/statuses';
@@ -19,7 +19,7 @@ const HEADER_H = 20;
 const WIN_W = 310;
 const WIN_TITLE_H = 22;
 
-type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements';
+type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -86,6 +86,10 @@ export class UIScene extends Phaser.Scene {
   private winTitleBg!: Phaser.GameObjects.Rectangle;
   private winCloseBtn!: Phaser.GameObjects.Text;
   private cachedUIData: UIData | null = null;
+  /** Тип верстака для окна крафта */
+  private craftingWorkbenchType: string = '';
+  /** Активный крафт таймер */
+  private craftingProgress: { remaining: number; total: number; name: string } | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
   private castBarBg!:   Phaser.GameObjects.Rectangle;
   private castBar!:     Phaser.GameObjects.Rectangle;
@@ -278,6 +282,17 @@ export class UIScene extends Phaser.Scene {
       }
     });
     gs.events.on('save-loaded', () => this.addLog('↺ Progress loaded'));
+    gs.events.on('open-vendor', () => {
+      this.currentWindow = 'vendor';
+      this.windowContainer.setVisible(true);
+      if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+    });
+    gs.events.on('open-crafting', (workbenchType: string) => {
+      this.craftingWorkbenchType = workbenchType;
+      this.currentWindow = 'crafting';
+      this.windowContainer.setVisible(true);
+      if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+    });
     gs.events.on('aoe-targeting', (name: string) => {
       this.addLog(`◎ Прицеливание: ${name}  [ЛКМ/ПКМ]`);
     });
@@ -1249,8 +1264,131 @@ export class UIScene extends Phaser.Scene {
         const lines = statuses.map(({ def, unlocked }) =>
           `${unlocked ? '✓' : '✗'} ${def.icon} ${def.nameRu}\n   ${def.descRu}`
         );
-        this.windowTitleText.setText(`★ Ачивки  ${cnt}/${ACHIEVEMENTS.length}`);
+        this.windowTitleText.setText(`★ Achievements  ${cnt}/${ACHIEVEMENTS.length}`);
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+        break;
+      }
+
+      case 'vendor': {
+        const inv = data.inventory ?? [];
+        const lines: string[] = [];
+        lines.push('═══ MERCHANT ═══');
+        lines.push('Free tools & recipes:');
+        lines.push('');
+
+        // Tools
+        const tools = [
+          { id: 'pickaxe', name: 'Pickaxe', desc: 'For mining ore' },
+          { id: 'axe', name: 'Axe', desc: 'For chopping wood' },
+          { id: 'skinning_knife', name: 'Skinning Knife', desc: 'For gathering trophies' },
+        ];
+        lines.push('── Tools ──');
+        for (const tool of tools) {
+          const has = inv.find(i => i.itemId === tool.id);
+          const status = has ? '✓ Owned' : '  Buy (0g)';
+          lines.push(`${ITEMS[tool.id]?.icon ?? '?'} ${tool.name} — ${tool.desc}  ${status}`);
+        }
+
+        // Recipes
+        lines.push('');
+        lines.push('── Recipes ──');
+        const learned = data.sphere?.learnedRecipes ?? [];
+        for (const recipe of RECIPES) {
+          const has = learned.includes(recipe.id);
+          const status = has ? '✓ Learned' : '  Buy (0g)';
+          const result = ITEMS[recipe.resultId];
+          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  ${status}`);
+          // Show ingredients
+          const mats = Object.entries(recipe.materials).map(([id, qty]) =>
+            `${ITEMS[id]?.icon ?? '?'}${ITEMS[id]?.nameRu ?? id} ×${qty}`
+          ).join(' + ');
+          lines.push(`   ${mats}`);
+        }
+
+        this.windowTitleText.setText('🏪 Merchant');
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+
+        // Buy All button
+        this.windowInteractables.forEach(t => t.destroy());
+        this.windowInteractables = [];
+        const buyBtn = this.add.text(
+          this.windowX + this.windowW / 2, this.windowY + this.windowH - 30,
+          '[ Buy All (Free) ]',
+          { fontSize: '11px', color: '#88ff88', backgroundColor: '#224422', padding: { x: 8, y: 4 } }
+        ).setOrigin(0.5).setDepth(1003).setInteractive();
+        buyBtn.on('pointerdown', () => {
+          const gs = this.scene.get('GameScene');
+          if (gs) (gs as any).openVendorUI?.();
+          this.refreshWindow();
+        });
+        this.windowInteractables.push(buyBtn);
+        break;
+      }
+
+      case 'crafting': {
+        const inv = data.inventory ?? [];
+        const wbType = this.craftingWorkbenchType;
+        const available = RECIPES.filter(r => r.workbench === wbType);
+        const lines: string[] = [];
+
+        lines.push(`═══ ${wbType.toUpperCase()} ═══`);
+        lines.push('');
+
+        if (available.length === 0) {
+          lines.push('No recipes for this workbench.');
+        }
+
+        for (const recipe of available) {
+          const result = ITEMS[recipe.resultId];
+          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  (${recipe.craftTime}s)`);
+          if (result?.descRu) lines.push(`   ${result.descRu}`);
+
+          // Ingredients with have/need
+          const matLines: string[] = [];
+          let canCraft = true;
+          for (const [itemId, need] of Object.entries(recipe.materials)) {
+            const have = inv.find(i => i.itemId === itemId)?.quantity ?? 0;
+            const ok = have >= need;
+            if (!ok) canCraft = false;
+            const color = ok ? '' : '!';
+            matLines.push(`   ${color}${ITEMS[itemId]?.icon ?? '?'} ${ITEMS[itemId]?.nameRu ?? itemId}: ${have}/${need}`);
+          }
+          lines.push(...matLines);
+          lines.push(canCraft ? '   ✓ Ready to craft' : '   ✗ Missing materials');
+          lines.push('');
+        }
+
+        this.windowTitleText.setText(`⚒ ${wbType.charAt(0).toUpperCase() + wbType.slice(1)}`);
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+
+        // Craft buttons
+        this.windowInteractables.forEach(t => t.destroy());
+        this.windowInteractables = [];
+        let btnY = 0;
+        for (const recipe of available) {
+          const canCraft = Object.entries(recipe.materials).every(([itemId, qty]) => {
+            return (inv.find(i => i.itemId === itemId)?.quantity ?? 0) >= qty;
+          });
+          const btn = this.add.text(
+            this.windowX + this.windowW - 60, this.windowY + 60 + btnY,
+            canCraft ? 'Craft' : '---',
+            {
+              fontSize: '10px',
+              color: canCraft ? '#88ff88' : '#666666',
+              backgroundColor: canCraft ? '#224422' : '#222222',
+              padding: { x: 6, y: 3 },
+            }
+          ).setDepth(1003).setInteractive();
+          if (canCraft) {
+            btn.on('pointerdown', () => {
+              const gs = this.scene.get('GameScene');
+              if (gs) (gs as any).startCraftingFromUI?.(recipe);
+              this.time.delayedCall(200, () => this.refreshWindow());
+            });
+          }
+          this.windowInteractables.push(btn);
+          btnY += 80; // space per recipe
+        }
         break;
       }
     }

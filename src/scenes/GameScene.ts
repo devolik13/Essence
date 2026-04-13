@@ -1013,7 +1013,10 @@ export class GameScene extends Phaser.Scene {
     for (const npc of this.worldNPCs) {
       const d = distance(px, py, npc.x, npc.y);
       if (d < interactRange) {
-        if (npc.role === 'vendor') this.openVendorUI();
+        if (npc.role === 'vendor') {
+          this.openVendorUI();
+          this.events.emit('open-vendor');
+        }
         return true;
       }
     }
@@ -1049,23 +1052,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   private openCraftingUI(workbenchType: string) {
-    const available = RECIPES.filter(r => r.workbench === workbenchType);
-    if (available.length === 0) {
-      this.showMessage('No recipes');
-      return;
-    }
-    // For demo: show recipes + auto-craft first available
-    for (const recipe of available) {
-      const canCraft = Object.entries(recipe.materials).every(([itemId, qty]) => {
-        const inv = this.sphere.inventory.find(i => i.itemId === itemId);
-        return inv && inv.quantity >= qty;
-      });
-      if (canCraft) {
-        this.startCrafting(recipe);
-        return;
-      }
-    }
-    this.showMessage(`Need materials. Recipes: ${available.map(r => r.nameRu).join(', ')}`);
+    this.events.emit('open-crafting', workbenchType);
+  }
+
+  /** Called from UIScene craft button */
+  public startCraftingFromUI(recipe: import('../types/items').RecipeDef) {
+    this.startCrafting(recipe);
   }
 
   private startCrafting(recipe: import('../types/items').RecipeDef) {
