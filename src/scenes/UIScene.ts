@@ -1171,20 +1171,20 @@ export class UIScene extends Phaser.Scene {
         this.windowContentText.setText('');
         this.windowTitleText.setText('');
 
-        const wx = this.windowX;
-        const wy = this.windowY;
         const SLOT = 36;
         const GAP = 4;
         const rarityColors: Record<string, number> = { common: 0x444444, uncommon: 0x225522, rare: 0x333366, epic: 0x442266, legendary: 0x664400 };
 
-        // ── LEFT: Character Equipment ──────────────────────
-        const eqX = wx + 12;
-        const eqY = wy + 30;
+        // All positions RELATIVE to windowContainer (0,0 = top-left of window)
 
-        const eqTitle = this.add.text(eqX + 50, eqY - 4, 'EQUIPMENT', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0).setDepth(1003);
+        // ── LEFT: Character Equipment ──────────────────────
+        const eqX = 12;
+        const eqY = 30;
+
+        const eqTitle = this.add.text(eqX + 50, eqY - 4, 'EQUIPMENT', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
+        this.windowContainer.add(eqTitle);
         this.windowInteractables.push(eqTitle);
 
-        // Equipment slot layout (Diablo 3 style)
         const eqSlots: { key: string; label: string; col: number; row: number }[] = [
           { key: 'helmet',      label: 'Head',    col: 1, row: 0 },
           { key: 'amulet',      label: 'Neck',    col: 0, row: 1 },
@@ -1205,43 +1205,33 @@ export class UIScene extends Phaser.Scene {
           const itemDef = itemId ? ITEMS[itemId] : null;
           const bgColor = itemDef ? (rarityColors[itemDef.rarity] ?? 0x333333) : 0x1a1a2a;
 
-          // Slot background
           const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.9)
-            .setStrokeStyle(1, itemDef ? 0x888888 : 0x333344)
-            .setDepth(1003).setInteractive();
+            .setStrokeStyle(1, itemDef ? 0x888888 : 0x333344).setInteractive();
+          this.windowContainer.add(bg);
           this.windowInteractables.push(bg);
 
-          // Item icon or slot label
           const txt = this.add.text(sx + SLOT / 2, sy + SLOT / 2,
             itemDef ? (itemDef.icon ?? '?') : es.label,
             { fontSize: itemDef ? '16px' : '7px', color: itemDef ? '#ffffff' : '#555566' }
-          ).setOrigin(0.5).setDepth(1004);
+          ).setOrigin(0.5);
+          this.windowContainer.add(txt);
           this.windowInteractables.push(txt);
 
-          // Click to unequip
           if (itemDef) {
             bg.on('pointerdown', () => {
               (equip as any)[es.key] = undefined;
               this.refreshWindow();
             });
-            // Tooltip on hover
-            bg.on('pointerover', () => {
-              txt.setText(`${itemDef.icon}\n${itemDef.nameRu}`);
-              txt.setFontSize(7);
-            });
-            bg.on('pointerout', () => {
-              txt.setText(itemDef.icon ?? '?');
-              txt.setFontSize(16);
-            });
           }
         }
 
-        // ── RIGHT: Inventory Bag (6 columns grid) ──────────
-        const bagX = wx + 130;
-        const bagY = wy + 30;
+        // ── RIGHT: Inventory Bag ──────────────────────────
+        const bagX = 130;
+        const bagY = 30;
         const COLS = 5;
 
-        const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0).setDepth(1003);
+        const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
+        this.windowContainer.add(bagTitle);
         this.windowInteractables.push(bagTitle);
 
         for (let i = 0; i < Math.max(inv.length, 20); i++) {
@@ -1254,25 +1244,25 @@ export class UIScene extends Phaser.Scene {
           const bgColor = itemDef ? (rarityColors[itemDef.rarity] ?? 0x333333) : 0x111118;
 
           const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.8)
-            .setStrokeStyle(1, item ? 0x666666 : 0x222233)
-            .setDepth(1003).setInteractive();
+            .setStrokeStyle(1, item ? 0x666666 : 0x222233).setInteractive();
+          this.windowContainer.add(bg);
           this.windowInteractables.push(bg);
 
           if (itemDef && item) {
             const icon = this.add.text(sx + SLOT / 2, sy + SLOT / 2 - 4,
               itemDef.icon ?? '?', { fontSize: '14px' }
-            ).setOrigin(0.5).setDepth(1004);
+            ).setOrigin(0.5);
+            this.windowContainer.add(icon);
             this.windowInteractables.push(icon);
 
-            // Quantity
             if (item.quantity > 1) {
               const qty = this.add.text(sx + SLOT - 2, sy + SLOT - 2,
                 `${item.quantity}`, { fontSize: '8px', color: '#cccccc', stroke: '#000', strokeThickness: 2 }
-              ).setOrigin(1).setDepth(1004);
+              ).setOrigin(1);
+              this.windowContainer.add(qty);
               this.windowInteractables.push(qty);
             }
 
-            // Click to equip (equipment only)
             if (itemDef.type === 'equipment' && itemDef.equipSlot) {
               const slot = itemDef.equipSlot;
               bg.on('pointerdown', () => {
@@ -1280,18 +1270,6 @@ export class UIScene extends Phaser.Scene {
                 this.refreshWindow();
               });
             }
-
-            // Hover tooltip
-            bg.on('pointerover', () => {
-              icon.setText(`${itemDef.icon}\n${itemDef.nameRu}`);
-              icon.setFontSize(6);
-              icon.setY(sy + SLOT / 2);
-            });
-            bg.on('pointerout', () => {
-              icon.setText(itemDef.icon ?? '?');
-              icon.setFontSize(14);
-              icon.setY(sy + SLOT / 2 - 4);
-            });
           }
         }
         break;
