@@ -1213,9 +1213,10 @@ export class GameScene extends Phaser.Scene {
     if (toolsGiven > 0) messages.push(`Got ${toolsGiven} tools`);
 
     // Give all recipes for free
-    const recipesToGive = ['recipe_copper_helmet', 'recipe_copper_chest', 'recipe_copper_ring', 'recipe_basic_rune'];
+    // Give all recipes for free
+    const allRecipeIds = RECIPES.map(r => r.id);
     let recipesLearned = 0;
-    for (const rId of recipesToGive) {
+    for (const rId of allRecipeIds) {
       if (!this.sphere.learnedRecipes.includes(rId)) {
         this.sphere.learnedRecipes.push(rId);
         recipesLearned++;
