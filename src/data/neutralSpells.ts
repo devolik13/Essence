@@ -261,6 +261,56 @@ export const ABILITY_IRON_SKIN: AbilityDef = {
   description: 'All party members gain +10% Armor for 6 sec.',
 };
 
+/** Fortune's Blessing — группа +20% удачи */
+export const ABILITY_FORTUNE: AbilityDef = {
+  id: 'fortune',
+  nameRu: "Fortune's Blessing",
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'luck_group_buff',
+  cooldown: 20,
+  castTime: 1,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  targetParty: true,
+  description: 'All party members gain +20% Luck for 5 sec.',
+};
+
+/** Mana Flow — группа +20% реген маны */
+export const ABILITY_MANA_FLOW: AbilityDef = {
+  id: 'mana_flow',
+  nameRu: 'Mana Flow',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'mana_flow',
+  cooldown: 30,
+  castTime: 1,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  targetParty: true,
+  description: 'All party members gain +20% mana regen for 10 sec.',
+};
+
+/** Mana Link — передача регена маны другому игроку из группы */
+export const ABILITY_MANA_LINK: AbilityDef = {
+  id: 'mana_link',
+  nameRu: 'Mana Link',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'mana_link_target', // цель получает +15%
+  cooldown: 30,
+  manaCost: 5,
+  range: 150,
+  baseDamage: 0,
+  targetAlly: true, // целится в союзника
+  description: 'Give +15% mana regen to ally. Self: -10% mana regen. 15 sec.',
+};
+
 /** Боевой марш — ускорение союзников */
 export const ABILITY_BATTLE_MARCH: AbilityDef = {
   id: 'battle_march',

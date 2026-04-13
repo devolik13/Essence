@@ -48,6 +48,10 @@ export type StatusEffectId =
   | 'regen_per_buff'   // Реген за каждый бафф
   | 'regen_per_debuff' // Реген за каждый дебафф
   | 'armor_group_buff' // Групповой бафф брони (+10%)
+  | 'luck_group_buff'  // Групповой бафф удачи (+20%)
+  | 'mana_flow'        // Групповой бафф регена маны (+20%)
+  | 'mana_link_self'   // Mana Link: дебафф кастера (−10% реген маны)
+  | 'mana_link_target' // Mana Link: бафф цели (+15% реген маны)
   | 'focus'            // Фокусировка (следующая атака 100% попадает)
   | 'damage_boost'     // Боевой клич (+10% исходящего урона)
   // Баффы
@@ -132,6 +136,8 @@ export interface StatusEffectDef {
   armorBonus?: number;
   /** Бонус к Стойкости в процентах от текущего Armor (0.15 = +15%) */
   armorBonusPercent?: number;
+  /** Бонус к Удаче в процентах (0.2 = +20%) */
+  luckBonusPercent?: number;
   /** Бонус к Уклонению (абсолютное значение, напр. 10 = +10 Evasion) */
   evasionBonus?: number;
   /** Блокирует следующую 1 атаку полностью (снимается при попадании) */
@@ -375,7 +381,27 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   armor_group_buff: {
     id: 'armor_group_buff', nameRu: 'Iron Skin',
     maxStacks: 1, duration: 6, stackBehavior: 'refresh',
-    armorBonusPercent: 0.10, // +10% от текущего Armor (групповой)
+    armorBonusPercent: 0.10,
+  },
+  luck_group_buff: {
+    id: 'luck_group_buff', nameRu: "Fortune's Blessing",
+    maxStacks: 1, duration: 5, stackBehavior: 'refresh',
+    luckBonusPercent: 0.20, // +20% Luck
+  },
+  mana_flow: {
+    id: 'mana_flow', nameRu: 'Mana Flow',
+    maxStacks: 1, duration: 10, stackBehavior: 'refresh',
+    regenManaBonus: 0.20, // +20% реген маны
+  },
+  mana_link_self: {
+    id: 'mana_link_self', nameRu: 'Mana Link (cost)',
+    maxStacks: 1, duration: 15, stackBehavior: 'refresh',
+    regenManaBonus: -0.10, // −10% реген маны
+  },
+  mana_link_target: {
+    id: 'mana_link_target', nameRu: 'Mana Link',
+    maxStacks: 1, duration: 15, stackBehavior: 'refresh',
+    regenManaBonus: 0.15, // +15% реген маны
   },
   focus: {
     id: 'focus', nameRu: 'Focus',
