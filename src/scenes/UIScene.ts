@@ -988,6 +988,11 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', color: '#cccccc', lineSpacing: 4,
     }).setOrigin(0, 0).setScrollFactor(0).setDepth(1021);
 
+    // Mask to clip content within window bounds
+    const maskShape = this.add.rectangle(this.windowX + this.windowW / 2, this.windowY + this.windowH / 2, this.windowW - 4, this.windowH - WIN_TITLE_H - 4, 0xffffff).setVisible(false);
+    this.windowContentText.setMask(new Phaser.Display.Masks.GeometryMask(this, maskShape));
+    (this as any)._contentMask = maskShape;
+
     // ── Drag via title bar ────────────────────────────────
     this.winTitleBg
       .setInteractive(new Phaser.Geom.Rectangle(0, 0, this.windowW, WIN_TITLE_H), Phaser.Geom.Rectangle.Contains)
@@ -1077,6 +1082,13 @@ export class UIScene extends Phaser.Scene {
     this.winCloseBtn.setPosition(this.windowX + this.windowW - 14, this.windowY + 11);
     this.windowTitleText.setPosition(this.windowX + 8, this.windowY + 4);
     this.windowContentText.setPosition(this.windowX + 8, this.windowY + 26);
+
+    // Update content mask position
+    const mask = (this as any)._contentMask;
+    if (mask) {
+      mask.setPosition(this.windowX + this.windowW / 2, this.windowY + this.windowH / 2);
+      mask.setSize(this.windowW - 4, this.windowH - 26);
+    }
 
     this.windowContainer.setVisible(true);
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
