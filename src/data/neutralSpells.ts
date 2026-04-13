@@ -244,7 +244,7 @@ export const ABILITY_FIRM_STANCE: AbilityDef = {
   description: 'Иммунитет к отбрасыванию на 5 сек.',
 };
 
-/** Iron Skin — групповой бафф +10% брони */
+/** Iron Skin — бафф группы (party) +10% брони, не по радиусу */
 export const ABILITY_IRON_SKIN: AbilityDef = {
   id: 'iron_skin',
   nameRu: 'Iron Skin',
@@ -257,9 +257,8 @@ export const ABILITY_IRON_SKIN: AbilityDef = {
   manaCost: 10,
   range: 0,
   baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 200,
-  description: 'Allies in r200 gain +10% Armor for 6 sec.',
+  targetParty: true, // применяется на всю группу (party), не по радиусу
+  description: 'All party members gain +10% Armor for 6 sec.',
 };
 
 /** Боевой марш — ускорение союзников */

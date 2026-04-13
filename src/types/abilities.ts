@@ -127,6 +127,8 @@ export interface AbilityDef {
   healPerStatusEffect?: number;
   /** Целится в союзника вместо врага */
   targetAlly?: boolean;
+  /** Применяется на всю группу (party), без проверки радиуса */
+  targetParty?: boolean;
 
   description: string;
 }
