@@ -401,9 +401,9 @@ export class GameScene extends Phaser.Scene {
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
       }
-      // [E] в теле — лут, ноды, верстаки, NPC, захват
+      // [E] в теле — лут, квестодатель, ноды, верстаки, NPC, захват
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        if (!this.tryPickupLoot() && !this.tryInteractWorldObject()) {
+        if (!this.tryPickupLoot() && !this.tryTalkToQuestGiver() && !this.tryInteractWorldObject()) {
           this.tryCaptureDead();
         }
       }

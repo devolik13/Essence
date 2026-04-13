@@ -88,6 +88,7 @@ export class UIScene extends Phaser.Scene {
   private cachedUIData: UIData | null = null;
   /** Тип верстака для окна крафта */
   private craftingWorkbenchType: string = '';
+  private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   /** Активный крафт таймер */
   private craftingProgress: { remaining: number; total: number; name: string } | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
@@ -1010,6 +1011,12 @@ export class UIScene extends Phaser.Scene {
       this.winBg, this.winTitleBg, this.windowTitleText,
       this.winCloseBtn, this.windowContentText,
     ]).setScrollFactor(0).setDepth(1018).setVisible(false);
+
+    // Mask for content clipping (in scene coordinates, updated on resize)
+    this._contentMaskGfx = this.make.graphics({});
+    this._contentMaskGfx.fillRect(0, 0, 1, 1); // placeholder
+    const mask = this._contentMaskGfx.createGeometryMask();
+    this.windowContentText.setMask(mask);
   }
 
   /** Resize window (for inventory vs other panels) */
@@ -1023,6 +1030,11 @@ export class UIScene extends Phaser.Scene {
       Phaser.Geom.Rectangle.Contains,
     );
     this.winCloseBtn.setX(w - 6);
+    // Update content mask (scene coordinates)
+    if (this._contentMaskGfx) {
+      this._contentMaskGfx.clear();
+      this._contentMaskGfx.fillRect(this.windowX, this.windowY + WIN_TITLE_H, w, h);
+    }
   }
 
   private toggleWindow(type: WindowType) {
