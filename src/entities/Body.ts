@@ -311,7 +311,8 @@ export class Body extends Phaser.GameObjects.Container {
     let vy = 0;
 
     const movementBlocked = this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root');
-    if (this.isPlayerControlled && this.keys && !this.isCasting && !movementBlocked) {
+    // Все касты можно делать в движении — isCasting НЕ блокирует WASD
+    if (this.isPlayerControlled && this.keys && !movementBlocked) {
       if (this.keys.A.isDown) vx = -1;
       if (this.keys.D.isDown) vx = 1;
       if (this.keys.W.isDown) vy = -1;
