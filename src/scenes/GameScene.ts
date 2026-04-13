@@ -2336,18 +2336,35 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'projectile_aoe' && result.hit) {
       const aoeR = spell.aoeRadius ?? 45;
       const splashBase = spell.splashDamage ?? spell.baseDamage;
-      this.spawnAoeFlash(target.x, target.y, aoeR);
+
+      // Визуальный снаряд к цели
+      spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.school ?? 'water');
+      this.spawnProjectile(this.playerBody.x, this.playerBody.y, target.x, target.y, 0x4499ff, 8, 5);
+
+      // Взрыв AoE с VFX
+      spawnAoeVFX(this, target.x, target.y, aoeR, spell.school ?? 'water');
+
+      // Школьный бонус
+      const schoolBonus = spell.school ? SCHOOL_BONUSES[spell.school] : undefined;
+
+      // Splash по ВСЕМ в радиусе (включая основную цель)
       for (const c of this.creatures) {
-        if (c === target || c.isDead || c.isSummoned) continue;
+        if (c.isDead || c.isSummoned) continue;
         if (distance(c.x, c.y, target.x, target.y) > aoeR) continue;
-        const r = calcMagicDamage(this.sphere.stats, c.stats, splashBase);
-        if (r.hit) {
+        // Основная цель уже получила baseDamage выше — даём только splash
+        const dmgBase = c === target ? 0 : splashBase;
+        if (dmgBase > 0) {
+          const r = calcMagicDamage(this.sphere.stats, c.stats, dmgBase);
           const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
           c.takeDamage(d);
           this.aggroCreature(c);
           this.damageTexts.push(new DamageText(this, c.x, c.y - 10, d, r.crit, false));
-          if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) c.applyStatus(spell.statusEffect);
+          spawnHitVFX(this, c.x, c.y, spell.school ?? 'water', r.crit);
           if (c.isDead) this.onCreatureKilled(c);
+        }
+        // Школьный бонус: chill на всех в зоне взрыва (включая основную цель)
+        if (schoolBonus?.statusEffect && Math.random() < (schoolBonus.statusChance ?? 0)) {
+          c.applyStatus(schoolBonus.statusEffect);
         }
       }
     }
