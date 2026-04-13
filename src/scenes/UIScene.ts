@@ -1032,11 +1032,19 @@ export class UIScene extends Phaser.Scene {
     }
     this.currentWindow = type;
 
-    // Resize for inventory (wider)
+    // Resize + center based on window type
     if (type === 'inventory') {
-      this.resizeWindow(340, 420);
+      this.windowX = Math.floor((GAME_WIDTH - 520) / 2);
+      this.windowY = 20;
+      this.resizeWindow(520, 460);
+    } else if (type === 'vendor' || type === 'crafting') {
+      this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
+      this.windowY = 30;
+      this.resizeWindow(400, 420);
     } else {
-      this.resizeWindow(310, 380);
+      this.windowX = Math.floor((GAME_WIDTH - 320) / 2);
+      this.windowY = 30;
+      this.resizeWindow(320, 400);
     }
 
     this.windowContainer.setPosition(this.windowX, this.windowY);
@@ -1122,8 +1130,8 @@ export class UIScene extends Phaser.Scene {
         this.windowContentText.setText('');
         this.windowTitleText.setText('');
 
-        const SLOT = 36;
-        const GAP = 4;
+        const SLOT = 44;
+        const GAP = 5;
         const rarityColors: Record<string, number> = { common: 0x444444, uncommon: 0x225522, rare: 0x333366, epic: 0x442266, legendary: 0x664400 };
 
         // All positions RELATIVE to windowContainer (0,0 = top-left of window)
@@ -1177,9 +1185,9 @@ export class UIScene extends Phaser.Scene {
         }
 
         // ── RIGHT: Inventory Bag ──────────────────────────
-        const bagX = 130;
+        const bagX = 165;
         const bagY = 30;
-        const COLS = 5;
+        const COLS = 7;
 
         const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
         this.windowContainer.add(bagTitle);
