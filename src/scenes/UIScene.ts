@@ -1034,9 +1034,9 @@ export class UIScene extends Phaser.Scene {
 
     // Resize + center based on window type
     if (type === 'inventory') {
-      this.windowX = Math.floor((GAME_WIDTH - 520) / 2);
-      this.windowY = 20;
-      this.resizeWindow(520, 460);
+      this.windowX = Math.floor((GAME_WIDTH - 620) / 2);
+      this.windowY = 10;
+      this.resizeWindow(620, 560);
     } else if (type === 'vendor' || type === 'crafting') {
       this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
       this.windowY = 30;
@@ -1130,7 +1130,7 @@ export class UIScene extends Phaser.Scene {
         this.windowContentText.setText('');
         this.windowTitleText.setText('');
 
-        const SLOT = 44;
+        const SLOT = 50;
         const GAP = 5;
         const rarityColors: Record<string, number> = { common: 0x444444, uncommon: 0x225522, rare: 0x333366, epic: 0x442266, legendary: 0x664400 };
 
@@ -1171,7 +1171,7 @@ export class UIScene extends Phaser.Scene {
 
           const txt = this.add.text(sx + SLOT / 2, sy + SLOT / 2,
             itemDef ? (itemDef.icon ?? '?') : es.label,
-            { fontSize: itemDef ? '16px' : '7px', color: itemDef ? '#ffffff' : '#555566' }
+            { fontSize: itemDef ? '22px' : '9px', color: itemDef ? '#ffffff' : '#555566' }
           ).setOrigin(0.5);
           this.windowContainer.add(txt);
         this.windowInteractables.push(txt);
@@ -1185,9 +1185,9 @@ export class UIScene extends Phaser.Scene {
         }
 
         // ── RIGHT: Inventory Bag ──────────────────────────
-        const bagX = 165;
+        const bagX = 185;
         const bagY = 30;
-        const COLS = 7;
+        const COLS = 8;
 
         const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
         this.windowContainer.add(bagTitle);
@@ -1209,14 +1209,14 @@ export class UIScene extends Phaser.Scene {
 
           if (itemDef && item) {
             const icon = this.add.text(sx + SLOT / 2, sy + SLOT / 2 - 4,
-              itemDef.icon ?? '?', { fontSize: '14px' }
+              itemDef.icon ?? '?', { fontSize: '20px' }
             ).setOrigin(0.5);
             this.windowContainer.add(icon);
         this.windowInteractables.push(icon);
 
             if (item.quantity > 1) {
               const qty = this.add.text(sx + SLOT - 2, sy + SLOT - 2,
-                `${item.quantity}`, { fontSize: '8px', color: '#cccccc', stroke: '#000', strokeThickness: 2 }
+                `${item.quantity}`, { fontSize: '10px', color: '#cccccc', stroke: '#000', strokeThickness: 2 }
               ).setOrigin(1);
               this.windowContainer.add(qty);
         this.windowInteractables.push(qty);
