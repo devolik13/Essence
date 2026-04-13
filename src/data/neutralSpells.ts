@@ -295,20 +295,20 @@ export const ABILITY_MANA_FLOW: AbilityDef = {
   description: 'All party members gain +20% mana regen for 10 sec.',
 };
 
-/** Mana Link — передача регена маны другому игроку из группы */
+/** Mana Link — toggle-аура, постоянная передача регена маны сопартийцу */
 export const ABILITY_MANA_LINK: AbilityDef = {
   id: 'mana_link',
   nameRu: 'Mana Link',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
-  statusEffect: 'mana_link_target', // цель получает +15%
-  cooldown: 30,
-  manaCost: 5,
-  range: 150,
+  isToggle: true, // toggle-аура как enchantment
+  cooldown: 0,
+  manaCost: 0,
+  range: 0,
   baseDamage: 0,
-  targetAlly: true, // целится в союзника
-  description: 'Give +15% mana regen to ally. Self: -10% mana regen. 15 sec.',
+  targetParty: true, // выбирает сопартийца
+  description: 'Toggle: Self -10% mana regen, target ally +15% mana regen. Active until cancelled.',
 };
 
 /** Боевой марш — ускорение союзников */

@@ -395,13 +395,13 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   },
   mana_link_self: {
     id: 'mana_link_self', nameRu: 'Mana Link (cost)',
-    maxStacks: 1, duration: 15, stackBehavior: 'refresh',
-    regenManaBonus: -0.10, // −10% реген маны
+    maxStacks: 1, duration: 9999, stackBehavior: 'refresh', // toggle — бессрочный
+    regenManaBonus: -0.10,
   },
   mana_link_target: {
     id: 'mana_link_target', nameRu: 'Mana Link',
-    maxStacks: 1, duration: 15, stackBehavior: 'refresh',
-    regenManaBonus: 0.15, // +15% реген маны
+    maxStacks: 1, duration: 9999, stackBehavior: 'refresh', // toggle — бессрочный
+    regenManaBonus: 0.15,
   },
   focus: {
     id: 'focus', nameRu: 'Focus',
