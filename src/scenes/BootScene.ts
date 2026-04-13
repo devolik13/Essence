@@ -816,6 +816,17 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('warrior_atk_down',    'assets/warrior/warrior_custom_sword_attack_down.png',  { frameWidth: W, frameHeight: W });
     this.load.spritesheet('warrior_atk_right',   'assets/warrior/warrior_custom_sword_attack_right.png', { frameWidth: W, frameHeight: W });
     this.load.spritesheet('warrior_atk_up',      'assets/warrior/warrior_custom_sword_attack_up.png',    { frameWidth: W, frameHeight: W });
+
+    // ── Mage spritesheets (256×256 per frame, 5×5 = 25 frames) ──────────────
+    this.load.spritesheet('mage_idle_down',   'assets/mage/Lich-idle_down-v1.png',        { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_idle_right',  'assets/mage/Lich-idle_right-v1.png',       { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_idle_up',     'assets/mage/Lich-idle_up-v1.png',          { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_walk_down',   'assets/mage/Lich-walk_down-v1.png',        { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_walk_right',  'assets/mage/Lich-walk_right-v1.png',       { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_walk_up',     'assets/mage/Lich-walk_up-v1.png',          { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_atk_down',    'assets/mage/Lich-custom_cast_down-v1.png', { frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_atk_right',   'assets/mage/Lich-custom_cast_right-v1.png',{ frameWidth: W, frameHeight: W });
+    this.load.spritesheet('mage_atk_up',      'assets/mage/Lich-custom_cast_up-v1.png',   { frameWidth: W, frameHeight: W });
   }
 
   create() {
@@ -837,9 +848,20 @@ export class BootScene extends Phaser.Scene {
     makeAnim('warrior_walk_down',  'warrior_walk_down',  18, -1);
     makeAnim('warrior_walk_right', 'warrior_walk_right', 18, -1);
     makeAnim('warrior_walk_up',    'warrior_walk_up',    18, -1);
-    makeAnim('warrior_atk_down',   'warrior_atk_down',   17, 0);   // repeat=0 = один раз (+20%)
+    makeAnim('warrior_atk_down',   'warrior_atk_down',   17, 0);
     makeAnim('warrior_atk_right',  'warrior_atk_right',  17, 0);
     makeAnim('warrior_atk_up',     'warrior_atk_up',     17, 0);
+
+    // ── Mage animations ──────────────────────────────────────────────────────
+    makeAnim('mage_idle_down',  'mage_idle_down',  8, -1);
+    makeAnim('mage_idle_right', 'mage_idle_right', 8, -1);
+    makeAnim('mage_idle_up',    'mage_idle_up',    8, -1);
+    makeAnim('mage_walk_down',  'mage_walk_down',  18, -1);
+    makeAnim('mage_walk_right', 'mage_walk_right', 18, -1);
+    makeAnim('mage_walk_up',    'mage_walk_up',    18, -1);
+    makeAnim('mage_atk_down',   'mage_atk_down',   17, 0);
+    makeAnim('mage_atk_right',  'mage_atk_right',  17, 0);
+    makeAnim('mage_atk_up',     'mage_atk_up',     17, 0);
 
     this.scene.start('GameScene');
     this.scene.start('UIScene');

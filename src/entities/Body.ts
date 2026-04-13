@@ -21,6 +21,12 @@ const ANIMATED_BODIES: Record<string, {
     atk:  dir => `warrior_atk_${dir}`,
     displaySize: 80,
   },
+  human_mage: {
+    idle: dir => `mage_idle_${dir}`,
+    walk: dir => `mage_walk_${dir}`,
+    atk:  dir => `mage_atk_${dir}`,
+    displaySize: 80,
+  },
 };
 
 /**
