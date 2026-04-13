@@ -1021,12 +1021,18 @@ export class GameScene extends Phaser.Scene {
     return false;
   }
 
+  /** Show floating message above player */
+  private showMessage(text: string) {
+    if (!this.playerBody) return;
+    this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 30, 0, false, false, text));
+  }
+
   private startGathering(node: typeof this.resourceNodes[0]) {
     // Check for required tool
     const toolMap: Record<string, string> = { mining: 'pickaxe', woodcutting: 'axe', trophy: 'skinning_knife' };
     const requiredTool = toolMap[node.def.profession];
     if (requiredTool && !this.sphere.inventory.find(i => i.itemId === requiredTool)) {
-      this.events.emit('log', `Need ${ITEMS[requiredTool]?.nameRu ?? requiredTool}! Visit Merchant.`);
+      this.showMessage(`Need ${ITEMS[requiredTool]?.nameRu ?? requiredTool}! Visit Merchant.`);
       return;
     }
     const qty = node.def.minQty + Math.floor(Math.random() * (node.def.maxQty - node.def.minQty + 1));
@@ -1034,7 +1040,7 @@ export class GameScene extends Phaser.Scene {
     if (existing) existing.quantity += qty;
     else this.sphere.inventory.push({ itemId: node.def.itemId, quantity: qty });
 
-    this.events.emit('log', `Gathered ${qty}x ${ITEMS[node.def.itemId]?.nameRu ?? node.def.itemId}`);
+    this.showMessage(`Gathered ${qty}x ${ITEMS[node.def.itemId]?.nameRu ?? node.def.itemId}`);
     node.depleted = true;
     node.cooldown = node.def.respawnTime;
     node.gfx.setAlpha(0.3);
@@ -1045,7 +1051,7 @@ export class GameScene extends Phaser.Scene {
   private openCraftingUI(workbenchType: string) {
     const available = RECIPES.filter(r => r.workbench === workbenchType);
     if (available.length === 0) {
-      this.events.emit('log', 'No recipes available');
+      this.showMessage('No recipes');
       return;
     }
     // For demo: show recipes + auto-craft first available
@@ -1059,7 +1065,7 @@ export class GameScene extends Phaser.Scene {
         return;
       }
     }
-    this.events.emit('log', `Need materials. Recipes: ${available.map(r => r.nameRu).join(', ')}`);
+    this.showMessage(`Need materials. Recipes: ${available.map(r => r.nameRu).join(', ')}`);
   }
 
   private startCrafting(recipe: import('../types/items').RecipeDef) {
@@ -1072,7 +1078,7 @@ export class GameScene extends Phaser.Scene {
 
     this.craftingTimer = recipe.craftTime;
     this.craftingRecipe = recipe;
-    this.events.emit('log', `Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
+    this.showMessage(`Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
     this.events.emit('crafting-start', recipe.craftTime);
   }
 
@@ -1102,9 +1108,9 @@ export class GameScene extends Phaser.Scene {
     if (recipesLearned > 0) messages.push(`${recipesLearned} recipes`);
 
     if (messages.length > 0) {
-      this.events.emit('log', `Merchant: ${messages.join(', ')}!`);
+      this.showMessage(`Merchant: ${messages.join(', ')}!`);
     } else {
-      this.events.emit('log', 'Merchant: You have everything.');
+      this.showMessage('Merchant: You have everything.');
     }
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
@@ -1144,7 +1150,7 @@ export class GameScene extends Phaser.Scene {
         const existing = this.sphere.inventory.find(i => i.itemId === recipe.resultId);
         if (existing) existing.quantity += recipe.resultQty;
         else this.sphere.inventory.push({ itemId: recipe.resultId, quantity: recipe.resultQty });
-        this.events.emit('log', `Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
+        this.showMessage(`Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
         sfxLevelUp();
         this.craftingRecipe = null;
         saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
