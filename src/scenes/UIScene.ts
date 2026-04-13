@@ -1060,6 +1060,24 @@ export class UIScene extends Phaser.Scene {
       return;
     }
     this.currentWindow = type;
+    // Resize window for inventory (D3 style needs more space)
+    if (type === 'inventory') {
+      this.windowW = 340;
+      this.windowH = 420;
+      this.windowX = 140;
+    } else {
+      this.windowW = 310;
+      this.windowH = 380;
+      this.windowX = 200;
+    }
+    this.winBg.setPosition(this.windowX + this.windowW / 2, this.windowY + this.windowH / 2);
+    this.winBg.setSize(this.windowW, this.windowH);
+    this.winTitleBg.setPosition(this.windowX + this.windowW / 2, this.windowY + 11);
+    this.winTitleBg.setSize(this.windowW, 22);
+    this.winCloseBtn.setPosition(this.windowX + this.windowW - 14, this.windowY + 11);
+    this.windowTitleText.setPosition(this.windowX + 8, this.windowY + 4);
+    this.windowContentText.setPosition(this.windowX + 8, this.windowY + 26);
+
     this.windowContainer.setVisible(true);
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
       const active = this.menuBtnTypes[i] === type;
@@ -1136,72 +1154,132 @@ export class UIScene extends Phaser.Scene {
       case 'inventory': {
         const inv = data.inventory ?? [];
         const equip = data.sphere?.equipment ?? {};
-        const lines: string[] = [];
-
-        // Equipment slots
-        lines.push('═══ EQUIPMENT ═══');
-        const slots: [string, string][] = [
-          ['weapon', 'Weapon'], ['shield', 'Shield'], ['helmet', 'Helmet'],
-          ['chest', 'Chest'], ['gloves', 'Gloves'], ['boots', 'Boots'],
-          ['ring', 'Ring'], ['amulet', 'Amulet'],
-          ['weapon_rune', 'Wpn Rune'], ['armor_rune', 'Arm Rune'],
-        ];
-        for (const [slotKey, slotName] of slots) {
-          const itemId = (equip as any)[slotKey];
-          if (itemId) {
-            const def = ITEMS[itemId];
-            lines.push(`  ${slotName}: ${def?.icon ?? '?'} ${def?.nameRu ?? itemId}`);
-          } else {
-            lines.push(`  ${slotName}: [empty]`);
-          }
-        }
-
-        // Bag
-        lines.push('');
-        lines.push('═══ BAG ═══');
-        if (inv.length === 0) {
-          lines.push('  Empty');
-        } else {
-          for (const slot of inv) {
-            const def = ITEMS[slot.itemId];
-            const r = def?.rarity === 'rare' ? '★' : def?.rarity === 'uncommon' ? '◆' : def?.rarity === 'epic' ? '♦' : '·';
-            const eqTag = def?.type === 'equipment' ? ' [EQUIP]' : '';
-            lines.push(`${r} ${def?.icon ?? '?'} ${def?.nameRu ?? slot.itemId}  ×${slot.quantity}${eqTag}`);
-          }
-        }
-
-        lines.push('');
-        lines.push('Click equipment item to equip/unequip');
-
-        this.windowTitleText.setText(`◈ Inventory  (${inv.length} items)`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-
-        // Clickable equip buttons for equipment items
         this.windowInteractables.forEach(t => t.destroy());
         this.windowInteractables = [];
-        let btnY = 0;
-        for (const slot of inv) {
-          const def = ITEMS[slot.itemId];
-          if (def?.type === 'equipment' && def.equipSlot) {
-            const isEquipped = (equip as any)[def.equipSlot] === slot.itemId;
-            const btn = this.add.text(
-              this.windowX + this.windowW - 60,
-              this.windowY + 220 + btnY,
-              isEquipped ? 'Remove' : 'Equip',
-              { fontSize: '9px', color: isEquipped ? '#ff8888' : '#88ff88', backgroundColor: '#333333', padding: { x: 4, y: 2 } }
-            ).setDepth(1003).setInteractive();
-            btn.on('pointerdown', () => {
-              const gs = this.scene.get('GameScene');
-              if (isEquipped) {
-                (equip as any)[def.equipSlot!] = undefined;
-              } else {
-                (equip as any)[def.equipSlot!] = slot.itemId;
-              }
-              if (gs) (gs as any).events?.emit('equipment-changed');
+        this.windowContentText.setText('');
+        this.windowTitleText.setText('');
+
+        const wx = this.windowX;
+        const wy = this.windowY;
+        const SLOT = 36;
+        const GAP = 4;
+        const rarityColors: Record<string, number> = { common: 0x444444, uncommon: 0x225522, rare: 0x333366, epic: 0x442266, legendary: 0x664400 };
+
+        // ── LEFT: Character Equipment ──────────────────────
+        const eqX = wx + 12;
+        const eqY = wy + 30;
+
+        const eqTitle = this.add.text(eqX + 50, eqY - 4, 'EQUIPMENT', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0).setDepth(1003);
+        this.windowInteractables.push(eqTitle);
+
+        // Equipment slot layout (Diablo 3 style)
+        const eqSlots: { key: string; label: string; col: number; row: number }[] = [
+          { key: 'helmet',      label: 'Head',    col: 1, row: 0 },
+          { key: 'amulet',      label: 'Neck',    col: 0, row: 1 },
+          { key: 'chest',       label: 'Chest',   col: 1, row: 1 },
+          { key: 'weapon',      label: 'Wpn',     col: 2, row: 1 },
+          { key: 'ring',        label: 'Ring',     col: 0, row: 2 },
+          { key: 'gloves',      label: 'Hands',   col: 1, row: 2 },
+          { key: 'shield',      label: 'Shield',  col: 2, row: 2 },
+          { key: 'boots',       label: 'Feet',    col: 1, row: 3 },
+          { key: 'weapon_rune', label: 'W.Rune',  col: 0, row: 4 },
+          { key: 'armor_rune',  label: 'A.Rune',  col: 2, row: 4 },
+        ];
+
+        for (const es of eqSlots) {
+          const sx = eqX + es.col * (SLOT + GAP);
+          const sy = eqY + 14 + es.row * (SLOT + GAP);
+          const itemId = (equip as any)[es.key];
+          const itemDef = itemId ? ITEMS[itemId] : null;
+          const bgColor = itemDef ? (rarityColors[itemDef.rarity] ?? 0x333333) : 0x1a1a2a;
+
+          // Slot background
+          const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.9)
+            .setStrokeStyle(1, itemDef ? 0x888888 : 0x333344)
+            .setDepth(1003).setInteractive();
+          this.windowInteractables.push(bg);
+
+          // Item icon or slot label
+          const txt = this.add.text(sx + SLOT / 2, sy + SLOT / 2,
+            itemDef ? (itemDef.icon ?? '?') : es.label,
+            { fontSize: itemDef ? '16px' : '7px', color: itemDef ? '#ffffff' : '#555566' }
+          ).setOrigin(0.5).setDepth(1004);
+          this.windowInteractables.push(txt);
+
+          // Click to unequip
+          if (itemDef) {
+            bg.on('pointerdown', () => {
+              (equip as any)[es.key] = undefined;
               this.refreshWindow();
             });
-            this.windowInteractables.push(btn);
-            btnY += 16;
+            // Tooltip on hover
+            bg.on('pointerover', () => {
+              txt.setText(`${itemDef.icon}\n${itemDef.nameRu}`);
+              txt.setFontSize(7);
+            });
+            bg.on('pointerout', () => {
+              txt.setText(itemDef.icon ?? '?');
+              txt.setFontSize(16);
+            });
+          }
+        }
+
+        // ── RIGHT: Inventory Bag (6 columns grid) ──────────
+        const bagX = wx + 130;
+        const bagY = wy + 30;
+        const COLS = 5;
+
+        const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0).setDepth(1003);
+        this.windowInteractables.push(bagTitle);
+
+        for (let i = 0; i < Math.max(inv.length, 20); i++) {
+          const col = i % COLS;
+          const row = Math.floor(i / COLS);
+          const sx = bagX + col * (SLOT + GAP);
+          const sy = bagY + 14 + row * (SLOT + GAP);
+          const item = inv[i];
+          const itemDef = item ? ITEMS[item.itemId] : null;
+          const bgColor = itemDef ? (rarityColors[itemDef.rarity] ?? 0x333333) : 0x111118;
+
+          const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.8)
+            .setStrokeStyle(1, item ? 0x666666 : 0x222233)
+            .setDepth(1003).setInteractive();
+          this.windowInteractables.push(bg);
+
+          if (itemDef && item) {
+            const icon = this.add.text(sx + SLOT / 2, sy + SLOT / 2 - 4,
+              itemDef.icon ?? '?', { fontSize: '14px' }
+            ).setOrigin(0.5).setDepth(1004);
+            this.windowInteractables.push(icon);
+
+            // Quantity
+            if (item.quantity > 1) {
+              const qty = this.add.text(sx + SLOT - 2, sy + SLOT - 2,
+                `${item.quantity}`, { fontSize: '8px', color: '#cccccc', stroke: '#000', strokeThickness: 2 }
+              ).setOrigin(1).setDepth(1004);
+              this.windowInteractables.push(qty);
+            }
+
+            // Click to equip (equipment only)
+            if (itemDef.type === 'equipment' && itemDef.equipSlot) {
+              const slot = itemDef.equipSlot;
+              bg.on('pointerdown', () => {
+                (equip as any)[slot] = item.itemId;
+                this.refreshWindow();
+              });
+            }
+
+            // Hover tooltip
+            bg.on('pointerover', () => {
+              icon.setText(`${itemDef.icon}\n${itemDef.nameRu}`);
+              icon.setFontSize(6);
+              icon.setY(sy + SLOT / 2);
+            });
+            bg.on('pointerout', () => {
+              icon.setText(itemDef.icon ?? '?');
+              icon.setFontSize(14);
+              icon.setY(sy + SLOT / 2 - 4);
+            });
           }
         }
         break;
