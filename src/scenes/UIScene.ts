@@ -89,6 +89,7 @@ export class UIScene extends Phaser.Scene {
   /** Тип верстака для окна крафта */
   private craftingWorkbenchType: string = '';
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
+  private _contentScrollY: number = 0;
   /** Активный крафт таймер */
   private craftingProgress: { remaining: number; total: number; name: string } | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
@@ -1023,6 +1024,23 @@ export class UIScene extends Phaser.Scene {
     this._contentMaskGfx.fillRect(0, 0, 1, 1); // placeholder
     const mask = this._contentMaskGfx.createGeometryMask();
     this.windowContentText.setMask(mask);
+
+    // Scroll with mouse wheel
+    this._contentScrollY = 0;
+    this.input.on('wheel', (_ptr: Phaser.Input.Pointer, _dx: number[], _dy: number[], dz: number) => {
+      if (!this.windowContainer.visible) return;
+      // Check if pointer is over window
+      const ptr = this.input.activePointer;
+      if (ptr.x < this.windowX || ptr.x > this.windowX + this.windowW) return;
+      if (ptr.y < this.windowY || ptr.y > this.windowY + this.windowH) return;
+
+      this._contentScrollY += dz > 0 ? 20 : -20;
+      this._contentScrollY = Math.max(0, this._contentScrollY);
+      // Limit scroll to content height
+      const maxScroll = Math.max(0, this.windowContentText.height - (this.windowH - WIN_TITLE_H - 16));
+      this._contentScrollY = Math.min(this._contentScrollY, maxScroll);
+      this.windowContentText.setY(WIN_TITLE_H + 8 - this._contentScrollY);
+    });
   }
 
   /** Resize window (for inventory vs other panels) */
@@ -1052,6 +1070,8 @@ export class UIScene extends Phaser.Scene {
       return;
     }
     this.currentWindow = type;
+    this._contentScrollY = 0;
+    this.windowContentText.setY(WIN_TITLE_H + 8);
 
     // Resize + center based on window type
     if (type === 'inventory') {
