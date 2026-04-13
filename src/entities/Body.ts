@@ -111,14 +111,40 @@ export class Body extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  /** Бонус к Armor от статусов (fortify стаки, bark_armor, shield_stance) */
+  /** Бонус к Armor от статусов (процентные + плоские, не стакаются кроме fortify) */
   get armorBonus(): number {
-    let bonus = 0;
+    const baseArmor = this.sphereStats[StatName.Armor] ?? 0;
+    let flatBonus = 0;
+    let percentBonus = 0;
+
+    // Fortify (от оружия) — стакается отдельно
+    const fortify = this.statusEffects.get('fortify');
+    if (fortify) {
+      const def = STATUS_DEFS['fortify'];
+      percentBonus += (def.armorBonusPercent ?? 0) * fortify.stacks;
+    }
+
+    // Заклинания брони — НЕ стакаются, берём максимальный
+    // (bark_armor, shield_stance, armor_group_buff)
+    const armorSpells: StatusEffectId[] = ['bark_armor', 'shield_stance', 'armor_group_buff'];
+    let bestSpellPercent = 0;
+    for (const spellId of armorSpells) {
+      if (this.statusEffects.has(spellId)) {
+        const def = STATUS_DEFS[spellId];
+        bestSpellPercent = Math.max(bestSpellPercent, def.armorBonusPercent ?? 0);
+      }
+    }
+    percentBonus += bestSpellPercent;
+
+    // Плоские бонусы от экипировки и прочего
     for (const [id, status] of this.statusEffects) {
       const def = STATUS_DEFS[id];
-      if (def.armorBonus) bonus += def.armorBonus * status.stacks;
+      if (def.armorBonus && !['fortify', 'bark_armor', 'shield_stance', 'armor_group_buff'].includes(id)) {
+        flatBonus += def.armorBonus * status.stacks;
+      }
     }
-    return bonus;
+
+    return Math.round(baseArmor * percentBonus) + flatBonus;
   }
 
   /** Бонус к Evasion от статусов (evasion_boost) */

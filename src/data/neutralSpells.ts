@@ -244,6 +244,24 @@ export const ABILITY_FIRM_STANCE: AbilityDef = {
   description: 'Иммунитет к отбрасыванию на 5 сек.',
 };
 
+/** Iron Skin — групповой бафф +10% брони */
+export const ABILITY_IRON_SKIN: AbilityDef = {
+  id: 'iron_skin',
+  nameRu: 'Iron Skin',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'self_buff',
+  statusEffect: 'armor_group_buff',
+  cooldown: 20,
+  castTime: 1,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  isAoe: true,
+  aoeRadius: 200,
+  description: 'Allies in r200 gain +10% Armor for 6 sec.',
+};
+
 /** Боевой марш — ускорение союзников */
 export const ABILITY_BATTLE_MARCH: AbilityDef = {
   id: 'battle_march',

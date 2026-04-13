@@ -47,6 +47,7 @@ export type StatusEffectId =
   | 'ranged_resist'    // Защита от стрелков
   | 'regen_per_buff'   // Реген за каждый бафф
   | 'regen_per_debuff' // Реген за каждый дебафф
+  | 'armor_group_buff' // Групповой бафф брони (+10%)
   | 'focus'            // Фокусировка (следующая атака 100% попадает)
   | 'damage_boost'     // Боевой клич (+10% исходящего урона)
   // Баффы
@@ -129,6 +130,8 @@ export interface StatusEffectDef {
   regenHpBonus?: number;
   /** Бонус к Стойкости (абсолютное значение, напр. 20 = +20 Armor) */
   armorBonus?: number;
+  /** Бонус к Стойкости в процентах от текущего Armor (0.15 = +15%) */
+  armorBonusPercent?: number;
   /** Бонус к Уклонению (абсолютное значение, напр. 10 = +10 Evasion) */
   evasionBonus?: number;
   /** Блокирует следующую 1 атаку полностью (снимается при попадании) */
@@ -306,7 +309,7 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   bark_armor: {
     id: 'bark_armor', nameRu: 'Bark Armor',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
-    armorBonus: 20,
+    armorBonusPercent: 0.15, // +15% от текущего Armor
   },
   daze: {
     id: 'daze', nameRu: 'Stagger',
@@ -321,7 +324,7 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   fortify: {
     id: 'fortify', nameRu: 'Fortify',
     maxStacks: 5, duration: 5, stackBehavior: 'refresh',
-    armorBonus: 3, // +3 Armor за стак, макс +15
+    armorBonusPercent: 0.05, // +5% за стак, макс +25%
   },
   concussion: {
     id: 'concussion', nameRu: 'Concussion',
@@ -342,7 +345,7 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'shield_stance', nameRu: 'Shield Stance',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     moveSlow: 0.3, // −30% скорость
-    armorBonus: 15, // +15 Armor
+    armorBonusPercent: 0.20, // +20% от текущего Armor
   },
   stun_immune: {
     id: 'stun_immune', nameRu: 'Unshakeable',
@@ -368,6 +371,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'regen_per_debuff', nameRu: 'Spirit Resilience',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     regenPerDebuff: 3, // +3 HP/сек за каждый дебафф
+  },
+  armor_group_buff: {
+    id: 'armor_group_buff', nameRu: 'Iron Skin',
+    maxStacks: 1, duration: 6, stackBehavior: 'refresh',
+    armorBonusPercent: 0.10, // +10% от текущего Armor (групповой)
   },
   focus: {
     id: 'focus', nameRu: 'Focus',
