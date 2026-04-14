@@ -1443,8 +1443,15 @@ export class UIScene extends Phaser.Scene {
         break;
       }
       case 'quests': {
-        const active = data.quests.filter(q => !q.completed);
-        const done   = data.quests.filter(q =>  q.completed);
+        const completedIds = data.quests.filter(q => q.completed).map(q => q.def.id);
+        // Only show quests where prerequisites are met
+        const active = data.quests.filter(q => {
+          if (q.completed) return false;
+          const prereqs = q.def.prerequisiteIds;
+          if (!prereqs || prereqs.length === 0) return true;
+          return prereqs.every(pid => completedIds.includes(pid));
+        });
+        const done = data.quests.filter(q => q.completed);
         const tracked = data.trackedQuestIds ?? [];
         const lines: string[] = [];
         let relY = WIN_TITLE_H + 8;
@@ -1457,9 +1464,10 @@ export class UIScene extends Phaser.Scene {
             const isTracked = tracked.includes(q.def.id);
             // Checkbox — inside container with relative coords
             const btn = this.add.text(
-              this.windowW - 24, relY,
+              this.windowW - 28, relY,
               isTracked ? '☑' : '☐',
-              { fontSize: '12px', color: isTracked ? '#66ccff' : '#556677' },
+              { fontSize: '14px', color: isTracked ? '#66ccff' : '#888899',
+                padding: { x: 4, y: 2 } },
             ).setInteractive({ useHandCursor: true })
               .on('pointerover', () => btn.setColor('#aaddff'))
               .on('pointerout',  () => btn.setColor(isTracked ? '#66ccff' : '#556677'))
@@ -1504,26 +1512,48 @@ export class UIScene extends Phaser.Scene {
         const inv = data.inventory ?? [];
         const coins = data.sphere?.copper ?? 0;
         const learned = data.sphere?.learnedRecipes ?? [];
-        const lines: string[] = [];
         this.windowInteractables.forEach(t => t.destroy());
         this.windowInteractables = [];
 
+        const lines: string[] = [];
         lines.push(`═══ MERCHANT ═══  💰 ${formatCurrency(coins)}`);
         lines.push('');
-        lines.push('── Recipes (T1: Free, T2: 50c, T3: 200c) ──');
+        lines.push('── Recipes ──');
 
-        let btnY = 0;
-        for (const recipe of RECIPES) {
+        // Show only first few recipes (most relevant) to not overflow
+        let btnIdx = 0;
+        const shownRecipes = RECIPES.slice(0, 20); // first 20
+        for (const recipe of shownRecipes) {
           const has = learned.includes(recipe.id);
           const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
           const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
           const result = ITEMS[recipe.resultId];
           const priceStr = has ? '✓' : price === 0 ? 'Free' : formatCurrency(price);
           lines.push(`${result?.icon ?? '?'} ${recipe.nameRu} [${priceStr}]`);
+
+          // Buy button (inside container)
+          if (!has) {
+            const canAfford = coins >= price;
+            const buyBtn = this.add.text(
+              this.windowW - 40, WIN_TITLE_H + 40 + btnIdx * 15,
+              canAfford ? 'Buy' : '---',
+              { fontSize: '9px', color: canAfford ? '#88ff88' : '#666', backgroundColor: '#222', padding: { x: 3, y: 1 } }
+            ).setInteractive({ useHandCursor: true });
+            if (canAfford) {
+              buyBtn.on('pointerdown', () => {
+                const gs = this.scene.get('GameScene');
+                if (gs) (gs as any).buyRecipe?.(recipe.id, price);
+                this.time.delayedCall(100, () => this.refreshWindow());
+              });
+            }
+            this.windowContainer.add(buyBtn);
+            this.windowInteractables.push(buyBtn);
+          }
+          btnIdx++;
         }
 
         lines.push('');
-        lines.push('── Disassemble (50% materials back) ──');
+        lines.push('── Disassemble (50% materials) ──');
         const equipItems = inv.filter(i => ITEMS[i.itemId]?.type === 'equipment');
         if (equipItems.length === 0) {
           lines.push('  No equipment to disassemble');
@@ -1531,11 +1561,25 @@ export class UIScene extends Phaser.Scene {
           for (const item of equipItems) {
             const def = ITEMS[item.itemId];
             lines.push(`${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`);
+            // Disassemble button
+            const disBtn = this.add.text(
+              this.windowW - 65, WIN_TITLE_H + 40 + btnIdx * 15,
+              'Disassemble',
+              { fontSize: '8px', color: '#ffaa66', backgroundColor: '#332211', padding: { x: 3, y: 1 } }
+            ).setInteractive({ useHandCursor: true });
+            disBtn.on('pointerdown', () => {
+              const gs = this.scene.get('GameScene');
+              if (gs) (gs as any).disassembleItem?.(item.itemId);
+              this.time.delayedCall(100, () => this.refreshWindow());
+            });
+            this.windowContainer.add(disBtn);
+            this.windowInteractables.push(disBtn);
+            btnIdx++;
           }
         }
 
         this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+        this.windowContentText.setWordWrapWidth(this.windowW - 60, true).setText(lines.join('\n'));
         break;
       }
 
