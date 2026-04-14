@@ -1335,16 +1335,12 @@ export class UIScene extends Phaser.Scene {
         } else {
           for (const q of active) {
             const isTracked = tracked.includes(q.def.id);
-            // Checkbox — created as interactive Text outside container
-            const btnRelX = this.windowW - 24;
-            const btnRelY = relY;
+            // Checkbox — inside container with relative coords
             const btn = this.add.text(
-              this.windowX + btnRelX,
-              this.windowY + btnRelY,
+              this.windowW - 24, relY,
               isTracked ? '☑' : '☐',
               { fontSize: '12px', color: isTracked ? '#66ccff' : '#556677' },
-            ).setScrollFactor(0).setDepth(1030)
-              .setInteractive({ useHandCursor: true })
+            ).setInteractive({ useHandCursor: true })
               .on('pointerover', () => btn.setColor('#aaddff'))
               .on('pointerout',  () => btn.setColor(isTracked ? '#66ccff' : '#556677'))
               .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
@@ -1352,8 +1348,7 @@ export class UIScene extends Phaser.Scene {
                 this.scene.get('GameScene').events.emit('track-quest', q.def.id);
                 if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
               });
-            (btn as any).__relX = btnRelX;
-            (btn as any).__relY = btnRelY;
+            this.windowContainer.add(btn);
             this.windowInteractables.push(btn);
 
             lines.push(`▸ ${q.def.nameRu}  +${q.def.xpReward} XP`);
@@ -1362,15 +1357,15 @@ export class UIScene extends Phaser.Scene {
               const obj = q.def.objectives[i];
               const cur = q.counts[i];
               const d = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-              const verb = obj.type === 'kill' ? 'Kill' : obj.type === 'capture' ? 'Capture' : 'Learn';
+              const verb = obj.type === 'kill' ? 'Kill' : obj.type === 'capture' ? 'Capture' : obj.type === 'talk' ? 'Talk' : obj.type === 'craft_t3' ? 'Craft' : obj.type === 'kill_boss' ? 'Defeat' : 'Learn';
               lines.push(`   ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${d}`);
               relY += lineH;
             }
             relY += 4;
           }
         }
-        if (done.length > 0) lines.push('', `✓ Выполнено: ${done.length} квестов`);
-        this.windowTitleText.setText(`▸ Квесты  (${active.length} активных)`);
+        if (done.length > 0) lines.push('', `✓ Completed: ${done.length} quests`);
+        this.windowTitleText.setText(`▸ Quests  (${active.length} active)`);
         this.windowContentText.setWordWrapWidth(this.windowW - 30, true).setText(lines.join('\n'));
         break;
       }
