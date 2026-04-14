@@ -110,11 +110,11 @@ export const DEATH_DEBUFF_MULT = 0.85;  // ×0.85 к урону пока деб�
 const BASIC_ATTACKS: Record<string, AbilityDef> = {
   default: {
     id: 'basic_melee', nameRu: 'Strike', damageType: 'melee',
-    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Базовый удар',
+    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Basic attack',
   },
   human_warrior: {
-    id: 'basic_sword', nameRu: 'Удар мечом', damageType: 'melee',
-    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Удар мечом',
+    id: 'basic_sword', nameRu: 'Sword Strike', damageType: 'melee',
+    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Sword attack',
   },
   human_archer: {
     id: 'basic_bow', nameRu: 'Shot', damageType: 'ranged',
@@ -970,7 +970,7 @@ export class GameScene extends Phaser.Scene {
 
     // Добровольный выход из тела — только в безопасной зоне
     if (!this.isInSafeZone(x, y)) {
-      this.events.emit('log', { text: 'Выйти из тела можно только в безопасной зоне', color: '#ff6666' });
+      this.events.emit('log', { text: 'Can only leave body in safe zone', color: '#ff6666' });
       return;
     }
 

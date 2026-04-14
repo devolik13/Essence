@@ -301,30 +301,30 @@ export class UIScene extends Phaser.Scene {
     });
     gs.events.on('creature-killed', (data: { name: string; xp: number; stats: StatName[] }) => {
       const s = data.stats.map(s => STAT_NAMES_SHORT[s]).join(', ');
-      this.addLog(`${data.name} убит  +${data.xp} XP → [${s}]`);
+      this.addLog(`${data.name} killed  +${data.xp} XP → [${s}]`);
     });
     gs.events.on('player-died', (data: { xpLost: number; debuffDuration: number }) => {
       this.addLog('⚠ Body destroyed. You are in astral form.');
-      if (data?.xpLost > 0) this.addLog(`  ↓ Потеряно ${data.xpLost} XP`);
-      this.addLog(`  ✦ Слабость: −15% урон на ${data?.debuffDuration ?? 30}с`);
+      if (data?.xpLost > 0) this.addLog(`  ↓ Lost ${data.xpLost} XP`);
+      this.addLog(`  ✦ Weakness: -15% dmg for ${data?.debuffDuration ?? 30}с`);
     });
     gs.events.on('body-captured', (name: string) => this.addLog(`✦ Captured: ${name}`));
     gs.events.on('show-dialog', (msgs: { speaker: string; text: string }[]) => this.showDialog(msgs));
-    gs.events.on('capture-available', (name: string) => this.addLog(`${name} — [E] захват`));
-    gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
+    gs.events.on('capture-available', (name: string) => this.addLog(`${name} — [E] capture`));
+    gs.events.on('capture-start', (name: string) => this.addLog(`Capturing ${name}...`));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
-      this.addLog(`★ Изучено: ${spell.nameRu}`);
+      this.addLog(`★ Learned: ${spell.nameRu}`);
     });
     gs.events.on('spell-locked', (data: { spell: import('../types/abilities').AbilityDef; prereqId: string }) => {
-      this.addLog(`✗ ${data.spell.nameRu} — сначала выучи базовое умение`);
+      this.addLog(`✗ ${data.spell.nameRu} — learn basic ability first`);
     });
     gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
-      this.addLog(`✦ КВЕСТ: ${data.name}  +${data.xp} XP`);
+      this.addLog(`✦ QUEST: ${data.name}  +${data.xp} XP`);
     });
     gs.events.on('quest-giver-talk', (data: { active: import('../types/quests').QuestProgress[]; done: import('../types/quests').QuestProgress[] }) => {
       this.addLog('── Ranger ──');
       if (data.active.length === 0) {
-        this.addLog('  Все задания выполнены!');
+        this.addLog('  All quests complete!');
       } else {
         for (const q of data.active) {
           const progress = q.counts.map((c, i) =>
@@ -334,7 +334,7 @@ export class UIScene extends Phaser.Scene {
         }
       }
       if (data.done.length > 0) {
-        this.addLog(`  ✓ Выполнено заданий: ${data.done.length}`);
+        this.addLog(`  ✓ Completed: ${data.done.length}`);
       }
     });
     gs.events.on('save-loaded', () => this.addLog('↺ Progress loaded'));
@@ -350,7 +350,7 @@ export class UIScene extends Phaser.Scene {
       if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
     });
     gs.events.on('aoe-targeting', (name: string) => {
-      this.addLog(`◎ Прицеливание: ${name}  [ЛКМ/ПКМ]`);
+      this.addLog(`◎ Targeting: ${name}  [LMB/RMB]`);
     });
     gs.events.on('spell-out-of-range', () => this.addLog('✗ Too far'));
     gs.events.on('loot-dropped', (data: { creatureName: string; loot: string }) => {
@@ -358,7 +358,7 @@ export class UIScene extends Phaser.Scene {
     });
     gs.events.on('achievement-unlocked', (ach: AchievementDef) => {
       this.achievementNotifQueue.push(ach);
-      this.addLog(`★ Ачивка: ${ach.nameRu}`);
+      this.addLog(`★ Achievement: ${ach.nameRu}`);
     });
   }
 
@@ -648,7 +648,7 @@ export class UIScene extends Phaser.Scene {
           this.bodyInfoText.setFixedSize(s.w, 0)
             .setPosition(s.x, s.y + HEADER_H).setText(
               `── ${body.definition.nameRu} ──\n` +
-              `Оружие: ${body.weapon.nameRu}  КД: ${body.weapon.cooldown}с`
+              `Weapon: ${body.weapon.nameRu}  CD: ${body.weapon.cooldown}с`
             ).setVisible(true);
           this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
         } else {
@@ -686,9 +686,9 @@ export class UIScene extends Phaser.Scene {
           }
           tLines.push('', 'Teaches:');
           for (const [stat, cap] of Object.entries(def.caps)) {
-            tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → кап ${cap}`);
+            tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → cap ${cap}`);
           }
-          tLines.push(``, `Умение: ${def.abilityName}`);
+          tLines.push(``, `Ability: ${def.abilityName}`);
           if (def.signatureSpell) {
             tLines.push(`✦ ${def.signatureSpell.nameRu}  (${def.spellXPThreshold} XP)`);
           }
@@ -728,7 +728,7 @@ export class UIScene extends Phaser.Scene {
   private drawMinimap(data: UIData) {
     const s = this.panelStates.minimap;
     this.panelHeaders['minimap'].setPosition(s.x, s.y);
-    this.setHeaderLabel('minimap', `Карта  ${s.w}×${s.h}`);
+    this.setHeaderLabel('minimap', `Map  ${s.w}×${s.h}`);
 
     const collapsed = s.collapsed;
     const mapTop = s.y + HEADER_H;
@@ -889,7 +889,7 @@ export class UIScene extends Phaser.Scene {
 
     const bg = this.add.rectangle(panelW / 2, panelH / 2, panelW, panelH, 0x0a0a1a, 0.95)
       .setStrokeStyle(1, 0x4455aa, 0.8);
-    const label = this.add.text(panelW / 2, 6, `Слот ${slotIndex + 1} — выбери заклинание`, {
+    const label = this.add.text(panelW / 2, 6, `Slot ${slotIndex + 1} — choose spell`, {
       fontSize: '10px', color: '#aaaacc',
     }).setOrigin(0.5, 0);
     this.spellPickerContainer.add([bg, label]);
@@ -1623,7 +1623,7 @@ export class UIScene extends Phaser.Scene {
       const ach = this.achievementNotifQueue.shift()!;
       this.achievementNotifBg.setAlpha(0.93).setVisible(true);
       this.achievementNotifText
-        .setText(`★ АЧИВКА: ${ach.nameRu}\n${ach.descRu}`)
+        .setText(`★ ACHIEVEMENT: ${ach.nameRu}\n${ach.descRu}`)
         .setAlpha(1).setVisible(true);
       this.achievementNotifTimer = 3000;
     }

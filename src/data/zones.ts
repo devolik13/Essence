@@ -178,7 +178,7 @@ export const ZONE_WATER: ZoneConfig = {
     { x: PW / 2 - 600, y: 400, creatureId: 'wolf_veteran', count: 1 },
     { x: PW / 2 + 600, y: 450, creatureId: 'bear_veteran', count: 1 },
     // Босс Акварис (центр-север)
-    // { x: PW / 2, y: 300, creatureId: 'aquaris', count: 1 },
+    { x: PW / 2, y: 300, creatureId: 'aquaris', count: 1 },
   ],
   exits: [
     { edge: 'south', targetZone: 'village', spawnX: PW / 2, spawnY: 80 },
@@ -223,7 +223,7 @@ export const ZONE_FIRE: ZoneConfig = {
     { x: PW / 2 - 500, y: PH - 350, creatureId: 'bandit_spear_veteran', count: 1 },
     { x: PW / 2 + 500, y: PH - 400, creatureId: 'goblin_veteran', count: 1 },
     // Босс Игнис (центр-юг)
-    // { x: PW / 2, y: PH - 300, creatureId: 'ignis', count: 1 },
+    { x: PW / 2, y: PH - 300, creatureId: 'ignis', count: 1 },
   ],
   exits: [
     { edge: 'north', targetZone: 'village', spawnX: PW / 2, spawnY: PH - 80 },
@@ -264,7 +264,7 @@ export const ZONE_WIND: ZoneConfig = {
     // Шаманы
     { x: PW / 2 + 300, y: 400, creatureId: 'shaman', count: 2 },
     // Босс Аэрос (дальний восток)
-    // { x: PW - 300, y: PH / 2, creatureId: 'aeros', count: 1 },
+    { x: PW - 300, y: PH / 2, creatureId: 'aeros', count: 1 },
   ],
   exits: [
     { edge: 'west', targetZone: 'village', spawnX: PW - 80, spawnY: PH / 2 },
@@ -306,7 +306,7 @@ export const ZONE_EARTH: ZoneConfig = {
     { x: 500,  y: 600,  creatureId: 'spirit_wolf', count: 2 },
     { x: 600,  y: 700,  creatureId: 'spirit_wolf', count: 2 },
     // Босс Терра (дальний запад)
-    // { x: 300, y: PH / 2, creatureId: 'terra', count: 1 },
+    { x: 300, y: PH / 2, creatureId: 'terra', count: 1 },
   ],
   exits: [
     { edge: 'east', targetZone: 'village', spawnX: 80, spawnY: PH / 2 },
