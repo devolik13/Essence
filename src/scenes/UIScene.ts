@@ -46,6 +46,7 @@ interface UIData {
   inventory: InventoryItem[];
   unlockedAchievements: string[];
   trackedQuestIds: string[];
+  weaponSchool: string | null;
 }
 
 interface PanelState {
@@ -887,7 +888,15 @@ export class UIScene extends Phaser.Scene {
         .filter((s, i) => i !== slotIndex && s.ability)
         .map(s => s.ability!.id) ?? []
     );
-    const spells = this.cachedLearnedSpells.filter(sp => !usedIds.has(sp.id));
+    const weaponSchool = this.cachedUIData?.weaponSchool ?? null;
+    const spells = this.cachedLearnedSpells.filter(sp => {
+      if (usedIds.has(sp.id)) return false;
+      // Filter by weapon school: elemental spells need matching staff
+      if (sp.school && sp.school !== 'neutral') {
+        return sp.school === weaponSchool;
+      }
+      return true; // neutral/weapon spells always available
+    });
     this.spellPickerContainer.removeAll(true);
 
     const sz = 44, gap = 4;

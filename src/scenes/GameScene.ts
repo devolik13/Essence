@@ -653,6 +653,7 @@ export class GameScene extends Phaser.Scene {
       killCounts: this.sphere.killCounts,
       unlockedAchievements: this.sphere.unlockedAchievements,
       trackedQuestIds: this.sphere.trackedQuestIds,
+      weaponSchool: this.getWeaponSchool(),
     });
   }
 
@@ -1290,6 +1291,27 @@ export class GameScene extends Phaser.Scene {
 
     this.showMessage(`Switched to ${ITEMS[newWeaponId!]?.nameRu ?? 'weapon'}`);
     sfxBuff();
+  }
+
+  /** Какая школа магии доступна для текущего оружия тела */
+  private getWeaponSchool(): string | null {
+    if (!this.playerBody) return null;
+    const weaponSchoolMap: Record<string, string> = {
+      staff_fire: 'fire', staff_water: 'water', staff_earth: 'earth',
+      staff_wind: 'wind', staff_nature: 'nature',
+    };
+    return weaponSchoolMap[this.playerBody.definition.weapon] ?? null;
+  }
+
+  /** Проверяет можно ли заклинание поставить в слот с текущим оружием */
+  private canUseSpellWithWeapon(spell: import('../types/abilities').AbilityDef): boolean {
+    // Neutral spells — always OK
+    if (!spell.school || spell.school === 'neutral') return true;
+    // Weapon abilities (no school) — always OK
+    if (!spell.school) return true;
+    // Elemental spells — need matching staff
+    const weaponSchool = this.getWeaponSchool();
+    return spell.school === weaponSchool;
   }
 
   /** Show floating message above player */
@@ -2115,19 +2137,6 @@ export class GameScene extends Phaser.Scene {
     if (slot.cooldownRemaining > 0) return;
 
     const spell = slot.ability;
-
-    // Проверка посоха: стихийные заклинания требуют соответствующий посох
-    if (spell.school && spell.school !== 'neutral') {
-      const staffMap: Record<string, string> = {
-        fire: 'staff_fire', water: 'staff_water', earth: 'staff_earth',
-        wind: 'staff_wind', nature: 'staff_nature',
-      };
-      const requiredWeapon = staffMap[spell.school];
-      if (requiredWeapon && this.playerBody.definition.weapon !== requiredWeapon) {
-        this.showMessage(`Need ${spell.school} staff!`);
-        return;
-      }
-    }
 
     // Проверка маны
     if (this.playerBody.currentMana < spell.manaCost) {
