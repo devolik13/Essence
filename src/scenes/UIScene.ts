@@ -95,6 +95,7 @@ export class UIScene extends Phaser.Scene {
   private craftingWorkbenchType: string = '';
   /** Vendor filter */
   private vendorFilter: string = 'all';
+  private vendorButtons: Phaser.GameObjects.Text[] = [];
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   private _contentScrollY: number = 0;
 
@@ -1205,6 +1206,10 @@ export class UIScene extends Phaser.Scene {
     this.windowContainer.setPosition(this.windowX, this.windowY);
     this.windowContainer.setVisible(true);
 
+    // Create vendor filter/buy buttons (outside container for clickability)
+    this.destroyVendorButtons();
+    if (type === 'vendor') this.createVendorButtons(this.cachedUIData);
+
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
       const active = this.menuBtnTypes[i] === type;
       this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
@@ -1233,6 +1238,79 @@ export class UIScene extends Phaser.Scene {
     this.dialogContainer.setVisible(true);
   }
 
+  private destroyVendorButtons() {
+    for (const b of this.vendorButtons) b.destroy();
+    this.vendorButtons = [];
+  }
+
+  private createVendorButtons(data: UIData | null) {
+    if (!data) return;
+    const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3'];
+
+    // Filter tabs
+    let fx = this.windowX + 8;
+    const tabY = this.windowY + WIN_TITLE_H + 4;
+    for (const tab of tabs) {
+      const isActive = (this.vendorFilter === 'all' && tab === 'All') || this.vendorFilter === tab;
+      const btn = this.add.text(fx, tabY, tab, {
+        fontSize: '9px',
+        color: isActive ? '#ffdd88' : '#99aabb',
+        backgroundColor: isActive ? '#443322' : '#1a1a2a',
+        padding: { x: 4, y: 2 },
+      }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
+      btn.on('pointerdown', () => {
+        this.vendorFilter = tab === 'All' ? 'all' : tab;
+        this.destroyVendorButtons();
+        this.createVendorButtons(this.cachedUIData);
+        if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      });
+      this.vendorButtons.push(btn);
+      fx += btn.width + 4;
+    }
+
+    // Buy All button
+    const learned = data.sphere?.learnedRecipes ?? [];
+    const coins = data.sphere?.copper ?? 0;
+    let filtered = RECIPES;
+    const f = this.vendorFilter;
+    if (f === 'Weapon') filtered = RECIPES.filter(r => r.workbench === 'weaponsmith');
+    else if (f === 'Armor') filtered = RECIPES.filter(r => r.workbench === 'armorer');
+    else if (f === 'Jewel') filtered = RECIPES.filter(r => r.workbench === 'jeweler');
+    else if (f === 'Rune') filtered = RECIPES.filter(r => r.workbench === 'runemaster');
+    else if (f === 'T1') filtered = RECIPES.filter(r => !r.resultId.includes('_t2') && !r.resultId.includes('_t3'));
+    else if (f === 'T2') filtered = RECIPES.filter(r => r.resultId.includes('_t2'));
+    else if (f === 'T3') filtered = RECIPES.filter(r => r.resultId.includes('_t3'));
+
+    const affordable = filtered.filter(r => {
+      if (learned.includes(r.id)) return false;
+      const tier = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
+      const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
+      return coins >= price;
+    });
+
+    const buyBtn = this.add.text(this.windowX + 8, this.windowY + this.windowH - 30,
+      `[ Buy ${affordable.length} affordable recipes ]`, {
+        fontSize: '10px', color: affordable.length > 0 ? '#88ff88' : '#666',
+        backgroundColor: '#224422', padding: { x: 6, y: 3 },
+      }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
+    if (affordable.length > 0) {
+      buyBtn.on('pointerdown', () => {
+        const gs = this.scene.get('GameScene');
+        for (const r of affordable) {
+          const tier = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
+          const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
+          if (gs) (gs as any).buyRecipe?.(r.id, price);
+        }
+        this.time.delayedCall(200, () => {
+          this.destroyVendorButtons();
+          this.createVendorButtons(this.cachedUIData);
+          this.refreshWindow();
+        });
+      });
+    }
+    this.vendorButtons.push(buyBtn);
+  }
+
   private refreshWindow() {
     if (this.currentWindow && this.cachedUIData) {
       this.buildWindowContent(this.cachedUIData);
@@ -1244,6 +1322,7 @@ export class UIScene extends Phaser.Scene {
     this.windowContainer.setVisible(false);
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
+    this.destroyVendorButtons();
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
       this.menuBtnBgs[i].setFillStyle(0x0e1828, 0.92);
       this.menuBtnTexts[i].setColor('#7799bb');
@@ -1511,17 +1590,9 @@ export class UIScene extends Phaser.Scene {
       }
 
       case 'vendor': {
-        const inv = data.inventory ?? [];
         const coins = data.sphere?.copper ?? 0;
         const learned = data.sphere?.learnedRecipes ?? [];
-        const lines: string[] = [];
         const filter = this.vendorFilter;
-
-        // Filter tabs line
-        const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3'];
-        lines.push(`Filter: ${tabs.map(t2 => t2 === filter || (filter === 'all' && t2 === 'All') ? `[${t2}]` : t2).join('  ')}`);
-        lines.push('Click filter name above to change. Type in chat: /vendor T2');
-        lines.push('');
 
         // Filter recipes
         let filtered = RECIPES;
@@ -1534,8 +1605,10 @@ export class UIScene extends Phaser.Scene {
         else if (filter === 'T3') filtered = RECIPES.filter(r => r.resultId.includes('_t3'));
 
         const notLearned = filtered.filter(r => !learned.includes(r.id));
-        const learnedCount = filtered.length - notLearned.length;
-        lines.push(`Recipes: ${learnedCount}/${filtered.length} learned`);
+
+        const lines: string[] = [];
+        lines.push(''); // space for filter tabs
+        lines.push(`${notLearned.length} recipes available | ${filtered.length - notLearned.length} learned`);
         lines.push('');
 
         for (const recipe of notLearned) {
@@ -1544,68 +1617,12 @@ export class UIScene extends Phaser.Scene {
           const result = ITEMS[recipe.resultId];
           const canAfford = coins >= price;
           const priceStr = price === 0 ? 'Free' : formatCurrency(price);
-          const afford = canAfford ? '' : ' ✗';
-          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  [${priceStr}]${afford}`);
+          lines.push(`${canAfford ? '●' : '○'} ${result?.icon ?? '?'} ${recipe.nameRu}  ${priceStr}`);
         }
-
-        if (notLearned.length === 0) {
-          lines.push('✓ All recipes in this category learned!');
-        }
-
-        lines.push('');
-        lines.push('── Disassemble ──');
-        const equipItems = inv.filter(i => ITEMS[i.itemId]?.type === 'equipment');
-        for (const item of equipItems) {
-          const def = ITEMS[item.itemId];
-          lines.push(`${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`);
-        }
-        if (equipItems.length === 0) lines.push('No equipment');
+        if (notLearned.length === 0) lines.push('✓ All learned!');
 
         this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-
-        // Buttons outside container (scene-level, absolute coords)
-        this.windowInteractables.forEach(t => t.destroy());
-        this.windowInteractables = [];
-        const bx = this.windowX + 8;
-        const by = this.windowY + this.windowH - 35;
-
-        // Buy All button
-        const buyAllBtn = this.add.text(bx, by, `Buy All ${filter === 'all' ? 'T1' : filter} (${notLearned.filter(r => {
-          const t2 = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
-          return coins >= (t2 === 3 ? 200 : t2 === 2 ? 50 : 0);
-        }).length} affordable)`, {
-          fontSize: '10px', color: '#88ff88', backgroundColor: '#224422', padding: { x: 6, y: 3 },
-        }).setScrollFactor(0).setDepth(2001).setInteractive({ useHandCursor: true });
-        buyAllBtn.on('pointerdown', () => {
-          const gs = this.scene.get('GameScene');
-          for (const r of notLearned) {
-            const t2 = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
-            const pr = t2 === 3 ? 200 : t2 === 2 ? 50 : 0;
-            if (data.sphere && data.sphere.copper >= pr) {
-              if (gs) (gs as any).buyRecipe?.(r.id, pr);
-            }
-          }
-          this.time.delayedCall(200, () => this.refreshWindow());
-        });
-        this.windowInteractables.push(buyAllBtn);
-
-        // Filter buttons
-        let fx = this.windowX + 8;
-        for (const tab of tabs) {
-          const isActive = (filter === 'all' && tab === 'All') || filter === tab;
-          const filterBtn = this.add.text(fx, this.windowY + WIN_TITLE_H + 4, tab, {
-            fontSize: '9px', color: isActive ? '#ffdd88' : '#667788',
-            backgroundColor: isActive ? '#333322' : '#111118',
-            padding: { x: 3, y: 1 },
-          }).setScrollFactor(0).setDepth(2001).setInteractive({ useHandCursor: true });
-          filterBtn.on('pointerdown', () => {
-            this.vendorFilter = tab === 'All' ? 'all' : tab;
-            this.refreshWindow();
-          });
-          this.windowInteractables.push(filterBtn);
-          fx += tab.length * 7 + 14;
-        }
         break;
       }
 

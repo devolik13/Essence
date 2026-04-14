@@ -827,6 +827,11 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('mage_atk_down',    'assets/mage/Lich-custom_cast_down-v1.png', { frameWidth: W, frameHeight: W });
     this.load.spritesheet('mage_atk_right',   'assets/mage/Lich-custom_cast_right-v1.png',{ frameWidth: W, frameHeight: W });
     this.load.spritesheet('mage_atk_up',      'assets/mage/Lich-custom_cast_up-v1.png',   { frameWidth: W, frameHeight: W });
+
+    // ── Spell spritesheets ──────────────────────────────────────────────────
+    // Fireball: 1024x1024, 3×3 = 9 frames, each ~341×341
+    this.load.spritesheet('spell_fireball', 'assets/spells/fire/fireball_sheet.webp', { frameWidth: 341, frameHeight: 341 });
+    this.load.spritesheet('spell_fire_wall', 'assets/spells/fire/fire_wall_spritesheet.webp', { frameWidth: 256, frameHeight: 256 });
   }
 
   create() {
@@ -862,6 +867,24 @@ export class BootScene extends Phaser.Scene {
     makeAnim('mage_atk_down',   'mage_atk_down',   17, 0);
     makeAnim('mage_atk_right',  'mage_atk_right',  17, 0);
     makeAnim('mage_atk_up',     'mage_atk_up',     17, 0);
+
+    // ── Spell animations ─────────────────────────────────────────────────────
+    if (!this.anims.exists('spell_fireball')) {
+      this.anims.create({
+        key: 'spell_fireball',
+        frames: this.anims.generateFrameNumbers('spell_fireball', { start: 0, end: 8 }),
+        frameRate: 14,
+        repeat: 0,
+      });
+    }
+    if (!this.anims.exists('spell_fire_wall')) {
+      this.anims.create({
+        key: 'spell_fire_wall',
+        frames: this.anims.generateFrameNumbers('spell_fire_wall', { start: 0, end: 24 }),
+        frameRate: 12,
+        repeat: -1,
+      });
+    }
 
     this.scene.start('GameScene');
     this.scene.start('UIScene');
