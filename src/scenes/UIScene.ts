@@ -1514,72 +1514,127 @@ export class UIScene extends Phaser.Scene {
         const learned = data.sphere?.learnedRecipes ?? [];
         this.windowInteractables.forEach(t => t.destroy());
         this.windowInteractables = [];
+        this.windowContentText.setText('');
 
-        const lines: string[] = [];
-        lines.push(`═══ MERCHANT ═══  💰 ${formatCurrency(coins)}`);
-        lines.push('');
-        lines.push('── Recipes ──');
+        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
 
-        // Show only first few recipes (most relevant) to not overflow
-        let btnIdx = 0;
-        const shownRecipes = RECIPES.slice(0, 20); // first 20
-        for (const recipe of shownRecipes) {
-          const has = learned.includes(recipe.id);
-          const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
-          const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
-          const result = ITEMS[recipe.resultId];
-          const priceStr = has ? '✓' : price === 0 ? 'Free' : formatCurrency(price);
-          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu} [${priceStr}]`);
+        // Buy All T1 button (free recipes)
+        let y = WIN_TITLE_H + 8;
+        const buyAllBtn = this.add.text(8, y, '[ Buy All T1 Recipes (Free) ]', {
+          fontSize: '10px', color: '#88ff88', backgroundColor: '#224422', padding: { x: 6, y: 3 },
+        }).setInteractive({ useHandCursor: true });
+        buyAllBtn.on('pointerdown', () => {
+          const gs = this.scene.get('GameScene');
+          for (const r of RECIPES) {
+            const tier = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
+            if (tier === 1 && !learned.includes(r.id)) {
+              if (gs) (gs as any).buyRecipe?.(r.id, 0);
+            }
+          }
+          this.time.delayedCall(100, () => this.refreshWindow());
+        });
+        this.windowContainer.add(buyAllBtn);
+        this.windowInteractables.push(buyAllBtn);
+        y += 22;
 
-          // Buy button (inside container)
-          if (!has) {
+        // Show recipes by category
+        const categories = [
+          { name: 'Weaponsmith', wb: 'weaponsmith' },
+          { name: 'Armorer', wb: 'armorer' },
+          { name: 'Jeweler', wb: 'jeweler' },
+          { name: 'Runemaster', wb: 'runemaster' },
+        ];
+        for (const cat of categories) {
+          const catRecipes = RECIPES.filter(r => r.workbench === cat.wb);
+          const notLearned = catRecipes.filter(r => !learned.includes(r.id));
+          const learnedCount = catRecipes.length - notLearned.length;
+          const label = this.add.text(8, y, `── ${cat.name} (${learnedCount}/${catRecipes.length}) ──`, {
+            fontSize: '9px', color: '#aabb88',
+          });
+          this.windowContainer.add(label);
+          this.windowInteractables.push(label);
+          y += 14;
+
+          // Show only NOT learned (to save space)
+          for (const recipe of notLearned.slice(0, 5)) {
+            const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
+            const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
+            const result = ITEMS[recipe.resultId];
             const canAfford = coins >= price;
-            const buyBtn = this.add.text(
-              this.windowW - 40, WIN_TITLE_H + 40 + btnIdx * 15,
+
+            const row = this.add.text(8, y,
+              `${result?.icon ?? '?'} ${recipe.nameRu}  ${price === 0 ? 'Free' : formatCurrency(price)}`,
+              { fontSize: '9px', color: '#cccccc' }
+            );
+            this.windowContainer.add(row);
+            this.windowInteractables.push(row);
+
+            const buyBtn = this.add.text(this.windowW - 40, y,
               canAfford ? 'Buy' : '---',
-              { fontSize: '9px', color: canAfford ? '#88ff88' : '#666', backgroundColor: '#222', padding: { x: 3, y: 1 } }
+              { fontSize: '9px', color: canAfford ? '#88ff88' : '#555', backgroundColor: '#222', padding: { x: 4, y: 1 } }
             ).setInteractive({ useHandCursor: true });
             if (canAfford) {
+              const rId = recipe.id;
+              const pr = price;
               buyBtn.on('pointerdown', () => {
                 const gs = this.scene.get('GameScene');
-                if (gs) (gs as any).buyRecipe?.(recipe.id, price);
+                if (gs) (gs as any).buyRecipe?.(rId, pr);
                 this.time.delayedCall(100, () => this.refreshWindow());
               });
             }
             this.windowContainer.add(buyBtn);
             this.windowInteractables.push(buyBtn);
+            y += 13;
           }
-          btnIdx++;
+          if (notLearned.length === 0) {
+            const allDone = this.add.text(16, y, '✓ All learned', { fontSize: '8px', color: '#668844' });
+            this.windowContainer.add(allDone);
+            this.windowInteractables.push(allDone);
+            y += 12;
+          } else if (notLearned.length > 5) {
+            const more = this.add.text(16, y, `...+${notLearned.length - 5} more`, { fontSize: '8px', color: '#666' });
+            this.windowContainer.add(more);
+            this.windowInteractables.push(more);
+            y += 12;
+          }
+          y += 4;
         }
 
-        lines.push('');
-        lines.push('── Disassemble (50% materials) ──');
+        // Disassemble section
+        y += 4;
+        const disLabel = this.add.text(8, y, '── Disassemble (50% materials) ──', { fontSize: '9px', color: '#cc9966' });
+        this.windowContainer.add(disLabel);
+        this.windowInteractables.push(disLabel);
+        y += 14;
+
         const equipItems = inv.filter(i => ITEMS[i.itemId]?.type === 'equipment');
         if (equipItems.length === 0) {
-          lines.push('  No equipment to disassemble');
+          const empty = this.add.text(16, y, 'No equipment', { fontSize: '8px', color: '#666' });
+          this.windowContainer.add(empty);
+          this.windowInteractables.push(empty);
         } else {
           for (const item of equipItems) {
             const def = ITEMS[item.itemId];
-            lines.push(`${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`);
-            // Disassemble button
-            const disBtn = this.add.text(
-              this.windowW - 65, WIN_TITLE_H + 40 + btnIdx * 15,
-              'Disassemble',
-              { fontSize: '8px', color: '#ffaa66', backgroundColor: '#332211', padding: { x: 3, y: 1 } }
-            ).setInteractive({ useHandCursor: true });
+            const row = this.add.text(8, y, `${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`, {
+              fontSize: '9px', color: '#cccccc',
+            });
+            this.windowContainer.add(row);
+            this.windowInteractables.push(row);
+
+            const disBtn = this.add.text(this.windowW - 65, y, 'Disassemble', {
+              fontSize: '8px', color: '#ffaa66', backgroundColor: '#332211', padding: { x: 3, y: 1 },
+            }).setInteractive({ useHandCursor: true });
+            const itemId = item.itemId;
             disBtn.on('pointerdown', () => {
               const gs = this.scene.get('GameScene');
-              if (gs) (gs as any).disassembleItem?.(item.itemId);
+              if (gs) (gs as any).disassembleItem?.(itemId);
               this.time.delayedCall(100, () => this.refreshWindow());
             });
             this.windowContainer.add(disBtn);
             this.windowInteractables.push(disBtn);
-            btnIdx++;
+            y += 13;
           }
         }
-
-        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 60, true).setText(lines.join('\n'));
         break;
       }
 
