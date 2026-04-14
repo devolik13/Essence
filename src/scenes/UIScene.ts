@@ -1285,11 +1285,13 @@ export class UIScene extends Phaser.Scene {
 
           if (cap !== undefined) {
             const isCapped = base >= cap;
-            let line = `► ${STAT_NAMES_SHORT[stat]}: ${total}${bonusStr}  /${cap}`;
+            // Show: base/cap = total(+bonus)
+            let line = `► ${STAT_NAMES_SHORT[stat]}: ${base}/${cap}${bonusStr} = ${total}`;
             if (!isCapped) {
               const xp = xpTracker[stat] ?? 0;
               const need = xpToNextLevel(base);
-              line += `  ${buildXPBar(xp, need, 6)} ${xp}/${need}`;
+              line += `  ${buildXPBar(xp, need, 6)}`;
+            } else line += ' [CAP]';
             } else line += ' [CAP]';
             lines.push(line);
           } else {
