@@ -1,12 +1,10 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
-import {
-  MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, ENCHANT_FIRE,
-  MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, ENCHANT_WATER,
-  MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, ENCHANT_EARTH,
-  MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, ENCHANT_WIND,
-  MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3,
-} from './elementalSpells';
+import { MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, ENCHANT_FIRE } from './spells/fire';
+import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, ENCHANT_WATER } from './spells/water';
+import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, ENCHANT_EARTH } from './spells/earth';
+import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, ENCHANT_WIND } from './spells/wind';
+import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3 } from './spells/nature';
 import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL } from './neutralSpells';
 import {
   ABILITY_STING,
