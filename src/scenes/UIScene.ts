@@ -890,28 +890,31 @@ export class UIScene extends Phaser.Scene {
     const spells = this.cachedLearnedSpells.filter(sp => !usedIds.has(sp.id));
     this.spellPickerContainer.removeAll(true);
 
-    const sz = SKILL_SLOT_SIZE, gap = SKILL_SLOT_GAP;
-    const cols   = spells.length + 1;
-    const panelW = cols * sz + (cols - 1) * gap + 16;
-    const panelH = sz + 32;
+    const sz = 44, gap = 4;
+    const COLS = 8;
+    const totalItems = spells.length + 1; // +1 for clear button
+    const rows = Math.ceil(totalItems / COLS);
+    const gridCols = Math.min(totalItems, COLS);
+    const panelW = gridCols * (sz + gap) + gap + 8;
+    const panelH = rows * (sz + gap) + gap + 24;
 
-    const totalSlotW = SKILL_SLOTS_COUNT * sz + (SKILL_SLOTS_COUNT - 1) * gap + 14; // +14 for divider gap
-    const barStartX  = (GAME_WIDTH - totalSlotW) / 2;
-    const extraGap   = slotIndex >= 5 ? 14 : 0;
-    const slotX      = barStartX + slotIndex * (sz + gap) + extraGap + sz / 2;
-    const panelX     = Math.min(Math.max(slotX - panelW / 2, 8), GAME_WIDTH - panelW - 8);
-    const panelY     = GAME_HEIGHT - sz - 8 - panelH - 6;
+    // Position above skill bar, centered
+    const panelX = Math.max(8, Math.min((GAME_WIDTH - panelW) / 2, GAME_WIDTH - panelW - 8));
+    const panelY = GAME_HEIGHT - SKILL_SLOT_SIZE - 14 - panelH;
 
     const bg = this.add.rectangle(panelW / 2, panelH / 2, panelW, panelH, 0x0a0a1a, 0.95)
       .setStrokeStyle(1, 0x4455aa, 0.8);
-    const label = this.add.text(panelW / 2, 6, `Slot ${slotIndex + 1} — choose spell`, {
-      fontSize: '10px', color: '#aaaacc',
+    const label = this.add.text(panelW / 2, 4, `${t('skill.slot')} ${slotIndex + 1} ${t('skill.choose')}`, {
+      fontSize: '9px', color: '#aaaacc',
     }).setOrigin(0.5, 0);
     this.spellPickerContainer.add([bg, label]);
 
-    const iy = panelH / 2 + 6;
     spells.forEach((spell, idx) => {
-      const ix = 8 + idx * (sz + gap) + sz / 2;
+      const col = idx % COLS;
+      const row = Math.floor(idx / COLS);
+      const ix = gap + 4 + col * (sz + gap) + sz / 2;
+      const iy = 20 + row * (sz + gap) + sz / 2;
+
       const ibg = this.add.rectangle(ix, iy, sz, sz, 0x1e2244)
         .setStrokeStyle(1, 0x6677cc).setInteractive({ useHandCursor: true })
         .on('pointerover', () => ibg.setFillStyle(0x2e3466))
@@ -921,19 +924,19 @@ export class UIScene extends Phaser.Scene {
           this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell });
           this.closeSpellPicker();
         });
-      const itxt = this.add.text(ix, iy, spell.nameRu.slice(0, 7), {
-        fontSize: '9px', color: '#aaccff', align: 'center',
+      const itxt = this.add.text(ix, iy - 2, spell.nameRu.slice(0, 7), {
+        fontSize: '8px', color: '#aaccff', align: 'center',
       }).setOrigin(0.5);
       this.spellPickerContainer.add([ibg, itxt]);
-      if (spell.isAoe) {
-        this.spellPickerContainer.add(
-          this.add.text(ix, iy + 14, 'AoE', { fontSize: '8px', color: '#ff9944' }).setOrigin(0.5)
-        );
-      }
     });
 
-    const cx = 8 + spells.length * (sz + gap) + sz / 2;
-    const cbg = this.add.rectangle(cx, iy, sz, sz, 0x221111)
+    // Clear button
+    const clearIdx = spells.length;
+    const clearCol = clearIdx % COLS;
+    const clearRow = Math.floor(clearIdx / COLS);
+    const cx = gap + 4 + clearCol * (sz + gap) + sz / 2;
+    const cy = 20 + clearRow * (sz + gap) + sz / 2;
+    const cbg = this.add.rectangle(cx, cy, sz, sz, 0x221111)
       .setStrokeStyle(1, 0x774444).setInteractive({ useHandCursor: true })
       .on('pointerover', () => cbg.setFillStyle(0x331111))
       .on('pointerout',  () => cbg.setFillStyle(0x221111))
@@ -942,10 +945,11 @@ export class UIScene extends Phaser.Scene {
         this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell: null });
         this.closeSpellPicker();
       });
-    const ctxt = this.add.text(cx, iy, '✕\nclear', {
-      fontSize: '9px', color: '#ff6666', align: 'center',
+    const ctxt = this.add.text(cx, cy, '✕', {
+      fontSize: '14px', color: '#ff6666',
     }).setOrigin(0.5);
     this.spellPickerContainer.add([cbg, ctxt]);
+
     this.spellPickerContainer.setPosition(panelX, panelY).setVisible(true);
   }
 
