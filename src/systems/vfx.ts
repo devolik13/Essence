@@ -9,14 +9,15 @@ import Phaser from 'phaser';
 
 /** Impact animations (play once at target position) */
 export const SPELL_IMPACT_ANIM: Record<string, string> = {
-  mob_fire_t1:  'spell_spark',          // Spark
-  mob_fire_t4:  'spell_fireball',       // Fireball
-  mob_water_t1: 'spell_ice_drop',       // Ice Shard
-  mob_water_t5: 'spell_absolute_zero',  // Absolute Zero
-  mob_earth_t2: 'spell_spike',          // Stone Spike
-  mob_earth_t5: 'spell_meteor',         // Meteor Shower (per hit)
-  mob_wind_t1:  'spell_gust',           // Gust
-  mob_wind_t2:  'spell_wind_blade',     // Wind Blade (per cone)
+  mob_fire_t1:  'spell_spark',            // Spark
+  mob_fire_t4:  'spell_fireball',         // Fireball
+  mob_water_t1: 'spell_ice_explosion',    // Ice Shard → ice explosion
+  mob_water_t2: 'spell_frost_explosion',  // Ice Arrow splash → frost explosion
+  mob_water_t5: 'spell_absolute_zero',    // Absolute Zero
+  mob_earth_t2: 'spell_spike',            // Stone Spike
+  mob_earth_t5: 'spell_meteor',           // Meteor Shower (per hit)
+  mob_wind_t1:  'spell_gust',             // Gust
+  mob_wind_t2:  'spell_wind_blade',       // Wind Blade (per cone)
 };
 
 /** Projectile animations (fly from caster to target, loop) */
@@ -31,7 +32,7 @@ export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
 export const SPELL_ZONE_ANIM: Record<string, string> = {
   mob_fire_t3:  'spell_fire_wall',      // Fire Wall
   mob_fire_t5:  'spell_fire_tsunami',   // Fire Tsunami
-  mob_water_t3: 'spell_ice_explosion',  // Ice Rain
+  mob_water_t3: 'spell_ice_drop',       // Ice Rain → ice drops falling
   mob_water_t4: 'spell_blizzard',       // Blizzard
   mob_earth_t3: 'spell_earth_wall',     // Earth Wall
 };
