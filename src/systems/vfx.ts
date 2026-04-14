@@ -1,9 +1,85 @@
 /**
  * VFX система — визуальные эффекты заклинаний и атак.
- * Использует Phaser ParticleEmitter + Graphics tweens.
+ * Использует Phaser ParticleEmitter + Graphics tweens + animated sprites.
  * Текстуры: particle_circle (16px), particle_spark (4px), particle_dot (2px)
  */
 import Phaser from 'phaser';
+
+// ── Spell → Sprite mapping ──────────────────────────────────────────────────
+
+/** Impact animations (play once at target position) */
+export const SPELL_IMPACT_ANIM: Record<string, string> = {
+  mob_fire_t1:  'spell_spark',          // Spark
+  mob_fire_t4:  'spell_fireball',       // Fireball
+  mob_water_t1: 'spell_ice_drop',       // Ice Shard
+  mob_water_t5: 'spell_absolute_zero',  // Absolute Zero
+  mob_earth_t2: 'spell_spike',          // Stone Spike
+  mob_earth_t5: 'spell_meteor',         // Meteor Shower (per hit)
+  mob_wind_t1:  'spell_gust',           // Gust
+  mob_wind_t2:  'spell_wind_blade',     // Wind Blade (per cone)
+};
+
+/** Projectile animations (fly from caster to target, loop) */
+export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
+  mob_fire_t2:  'spell_firebolt',       // Fire Arrow
+  mob_water_t2: 'spell_frost_arrow',    // Ice Arrow
+  mob_wind_t4:  'spell_lightning',       // Storm Cloud bolts
+  mob_wind_t5:  'spell_ball_lightning',  // Ball Lightning
+};
+
+/** Ground zone animations (loop at zone position) */
+export const SPELL_ZONE_ANIM: Record<string, string> = {
+  mob_fire_t3:  'spell_fire_wall',      // Fire Wall
+  mob_fire_t5:  'spell_fire_tsunami',   // Fire Tsunami
+  mob_water_t3: 'spell_ice_explosion',  // Ice Rain
+  mob_water_t4: 'spell_blizzard',       // Blizzard
+  mob_earth_t3: 'spell_earth_wall',     // Earth Wall
+};
+
+/** Spawn animated impact sprite at position */
+export function spawnSpellImpact(scene: Phaser.Scene, x: number, y: number, spellId: string, size: number = 80) {
+  const animKey = SPELL_IMPACT_ANIM[spellId];
+  if (!animKey || !scene.anims.exists(animKey)) return;
+  const sprite = scene.add.sprite(x, y, animKey).setDepth(55);
+  sprite.setDisplaySize(size, size);
+  sprite.play(animKey);
+  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
+}
+
+/** Spawn animated projectile flying to target */
+export function spawnSpellProjectile(
+  scene: Phaser.Scene,
+  fromX: number, fromY: number,
+  toX: number, toY: number,
+  spellId: string,
+  size: number = 48,
+) {
+  const animKey = SPELL_PROJECTILE_ANIM[spellId];
+  if (!animKey || !scene.anims.exists(animKey)) return;
+
+  const dx = toX - fromX, dy = toY - fromY;
+  const angle = Math.atan2(dy, dx);
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const dur = Math.min(600, (dist / 420) * 1000);
+
+  const sprite = scene.add.sprite(fromX, fromY, animKey).setDepth(53);
+  sprite.setDisplaySize(size, size);
+  sprite.setRotation(angle);
+  sprite.play(animKey);
+
+  scene.tweens.add({
+    targets: sprite,
+    x: toX, y: toY,
+    duration: dur,
+    ease: 'Linear',
+    onComplete: () => sprite.destroy(),
+  });
+}
+
+/** Get zone animation key for a spell (if exists) */
+export function getSpellZoneAnim(spellId: string): string | null {
+  return SPELL_ZONE_ANIM[spellId] ?? null;
+}
 
 // ── Цвета школ магии ─────────────────────────────────────────────────────────
 export const SCHOOL_COLORS: Record<string, number> = {

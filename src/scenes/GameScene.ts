@@ -30,7 +30,7 @@ import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
-import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnFireballVFX } from '../systems/vfx';
+import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnFireballVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 
@@ -2418,7 +2418,7 @@ export class GameScene extends Phaser.Scene {
         spell.school === 'fire' ? 0xff5500 : spell.school === 'water' ? 0x4499ff : 0xffffff);
     }
     spawnHitVFX(this, target.x, target.y, spellSchool, result.crit || !!isDouble);
-    if (spell.id === 'mob_fire_t4') spawnFireballVFX(this, target.x, target.y);
+    spawnSpellImpact(this, target.x, target.y, spell.id);
     if (result.crit || isDouble) sfxCritHit(); else if (spell.damageType === 'magic') sfxMagicHit(); else sfxMeleeHit();
 
     // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────
@@ -2602,6 +2602,7 @@ export class GameScene extends Phaser.Scene {
       const splashBase = spell.splashDamage ?? spell.baseDamage;
 
       // Визуальный снаряд к цели
+      spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.id);
       spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.school ?? 'water');
       this.spawnProjectile(this.playerBody.x, this.playerBody.y, target.x, target.y, 0x4499ff, 8, 5);
 
@@ -2830,8 +2831,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.spawnAoeFlash(worldX, worldY, radius);
-    // Fireball T4 animated explosion at AoE center
-    if (spell.id === 'mob_fire_t4') spawnFireballVFX(this, worldX, worldY);
+    // Spell-specific AoE impact animation
+    spawnSpellImpact(this, worldX, worldY, spell.id, (spell.aoeRadius ?? 60) * 2);
 
     for (const c of this.creatures) {
       if (c.isDead) continue;
@@ -2945,14 +2946,15 @@ export class GameScene extends Phaser.Scene {
       gfx.strokeCircle(wx, wy, radius);
     }
 
-    // Animated sprite for fire zones
+    // Animated sprite overlay for zone
     let zoneSprite: Phaser.GameObjects.Sprite | null = null;
-    if (spell.school === 'fire' && this.anims.exists('spell_fire_wall')) {
-      zoneSprite = this.add.sprite(wx, wy, 'spell_fire_wall').setDepth(6);
-      zoneSprite.play('spell_fire_wall');
+    const zoneAnimKey = getSpellZoneAnim(spell.id);
+    if (zoneAnimKey && this.anims.exists(zoneAnimKey)) {
+      zoneSprite = this.add.sprite(wx, wy, zoneAnimKey).setDepth(6);
+      zoneSprite.play(zoneAnimKey);
       zoneSprite.setDisplaySize(isWall ? wallW : radius * 2, isWall ? wallT * 2 : radius * 2);
       zoneSprite.setAlpha(0.8);
-      zoneSprite.setFlipY(true); // flip upside down
+      if (spell.school === 'fire') zoneSprite.setFlipY(true);
       if (isWall) zoneSprite.setRotation(angle);
     }
 
