@@ -1085,6 +1085,8 @@ export class GameScene extends Phaser.Scene {
         if (npc.role === 'vendor') {
           this.openVendorUI();
           this.events.emit('open-vendor');
+        } else if (npc.role === 'weapon_vendor') {
+          this.openWeaponVendor();
         } else if (npc.role === 'npc') {
           this.talkToNPC(npc.id);
         }
@@ -1186,6 +1188,31 @@ export class GameScene extends Phaser.Scene {
       }
     }
     return false;
+  }
+
+  /** Arms Dealer: gives all starter weapons for free */
+  private openWeaponVendor() {
+    const starterWeapons = [
+      'starter_sword', 'starter_mace', 'starter_greatsword', 'starter_spear',
+      'starter_hammer', 'starter_dagger', 'starter_fists',
+      'starter_shortbow', 'starter_longbow', 'starter_crossbow',
+      'starter_staff_fire', 'starter_staff_water', 'starter_staff_earth',
+      'starter_staff_wind', 'starter_staff_nature',
+    ];
+    let given = 0;
+    for (const id of starterWeapons) {
+      if (!this.sphere.inventory.find(i => i.itemId === id)) {
+        this.sphere.inventory.push({ itemId: id, quantity: 1 });
+        given++;
+      }
+    }
+    if (given > 0) {
+      this.showMessage(`Arms Dealer: ${given} weapons!`);
+      sfxLevelUp();
+    } else {
+      this.showMessage('Arms Dealer: You have all weapons.');
+    }
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
   /** NPC dialog system */
@@ -2088,6 +2115,19 @@ export class GameScene extends Phaser.Scene {
     if (slot.cooldownRemaining > 0) return;
 
     const spell = slot.ability;
+
+    // Проверка посоха: стихийные заклинания требуют соответствующий посох
+    if (spell.school && spell.school !== 'neutral') {
+      const staffMap: Record<string, string> = {
+        fire: 'staff_fire', water: 'staff_water', earth: 'staff_earth',
+        wind: 'staff_wind', nature: 'staff_nature',
+      };
+      const requiredWeapon = staffMap[spell.school];
+      if (requiredWeapon && this.playerBody.definition.weapon !== requiredWeapon) {
+        this.showMessage(`Need ${spell.school} staff!`);
+        return;
+      }
+    }
 
     // Проверка маны
     if (this.playerBody.currentMana < spell.manaCost) {

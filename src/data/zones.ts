@@ -142,6 +142,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: PW / 2 + 150, y: PH / 2 - 80, id: 'pol', nameRu: 'Pol', role: 'npc' },
     { x: PW / 2 + 200, y: PH / 2 + 100, id: 'mira', nameRu: 'Mira', role: 'npc' },
     { x: PW / 2 - 200, y: PH / 2 - 160, id: 'stranger', nameRu: '???', role: 'npc' },
+    { x: PW / 2 + 200, y: PH / 2 - 160, id: 'weapon_vendor', nameRu: 'Arms Dealer', role: 'weapon_vendor' },
   ],
 };
 
