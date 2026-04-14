@@ -77,6 +77,16 @@ export function spawnProjectileVFX(
   });
 }
 
+// ── Эффект взрыва огненного шара (animated sprite) ───────────────────────────
+
+export function spawnFireballVFX(scene: Phaser.Scene, x: number, y: number) {
+  if (!scene.anims.exists('spell_fireball')) return;
+  const sprite = scene.add.sprite(x, y, 'spell_fireball').setDepth(55);
+  sprite.setDisplaySize(80, 80);
+  sprite.play('spell_fireball');
+  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
+}
+
 // ── Эффект попадания (взрыв частиц) ─────────────────────────────────────────
 
 export function spawnHitVFX(

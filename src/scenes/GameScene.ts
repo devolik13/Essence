@@ -30,7 +30,7 @@ import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
-import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX } from '../systems/vfx';
+import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnFireballVFX } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 
@@ -54,6 +54,7 @@ interface GroundZone {
   wallThickness: number;    // толщина
   angle: number;            // угол ориентации (рад)
   gfx: Phaser.GameObjects.Graphics;
+  sprite?: Phaser.GameObjects.Sprite; // animated sprite overlay
 }
 
 // ── Призванная стена (summon_wall) ───────────────────────
@@ -2368,6 +2369,7 @@ export class GameScene extends Phaser.Scene {
         spell.school === 'fire' ? 0xff5500 : spell.school === 'water' ? 0x4499ff : 0xffffff);
     }
     spawnHitVFX(this, target.x, target.y, spellSchool, result.crit || !!isDouble);
+    if (spell.school === 'fire') spawnFireballVFX(this, target.x, target.y);
     if (result.crit || isDouble) sfxCritHit(); else if (spell.damageType === 'magic') sfxMagicHit(); else sfxMeleeHit();
 
     // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────
@@ -2892,6 +2894,17 @@ export class GameScene extends Phaser.Scene {
       gfx.strokeCircle(wx, wy, radius);
     }
 
+    // Animated sprite for fire zones
+    let zoneSprite: Phaser.GameObjects.Sprite | null = null;
+    if (spell.school === 'fire' && this.anims.exists('spell_fire_wall')) {
+      zoneSprite = this.add.sprite(wx, wy, 'spell_fire_wall').setDepth(6);
+      zoneSprite.play('spell_fire_wall');
+      const scale = isWall ? Math.max(wallW, wallT) / 256 : radius * 2 / 256;
+      zoneSprite.setDisplaySize(isWall ? wallW : radius * 2, isWall ? wallT * 2 : radius * 2);
+      zoneSprite.setAlpha(0.8);
+      if (isWall) zoneSprite.setRotation(angle);
+    }
+
     this.groundZones.push({
       x: wx, y: wy, radius,
       dps: spell.zoneDps ?? 10,
@@ -2905,6 +2918,7 @@ export class GameScene extends Phaser.Scene {
       ownerIsPlayer: isPlayer,
       isWall, wallWidth: wallW, wallThickness: wallT, angle,
       gfx,
+      sprite: zoneSprite ?? undefined,
     });
   }
 
@@ -2918,6 +2932,7 @@ export class GameScene extends Phaser.Scene {
 
       if (zone.remaining <= 0) {
         zone.gfx.destroy();
+        if (zone.sprite) zone.sprite.destroy();
         this.groundZones.splice(i, 1);
         continue;
       }

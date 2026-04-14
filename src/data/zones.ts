@@ -80,9 +80,11 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: PW / 2 - 350, y: PH / 2 + 50,  creatureId: 'dummy_xp', count: 5 },
     { x: PW / 2 - 350, y: PH / 2 + 150, creatureId: 'dummy_xp', count: 5 },
     // Обучатели заклинаниям (ниже манекенов)
-    { x: PW / 2 - 250, y: PH / 2 + 300, creatureId: 'dummy_fire_t1', count: 1 },
-    { x: PW / 2 - 350, y: PH / 2 + 300, creatureId: 'dummy_arrow_rain', count: 1 },
-    { x: PW / 2 - 450, y: PH / 2 + 300, creatureId: 'dummy_sweep', count: 1 },
+    { x: PW / 2 - 200, y: PH / 2 + 300, creatureId: 'dummy_fire_t1', count: 1 },
+    { x: PW / 2 - 300, y: PH / 2 + 300, creatureId: 'dummy_fire_arrow', count: 1 },
+    { x: PW / 2 - 400, y: PH / 2 + 300, creatureId: 'dummy_fire_wall', count: 1 },
+    { x: PW / 2 - 500, y: PH / 2 + 300, creatureId: 'dummy_arrow_rain', count: 1 },
+    { x: PW / 2 - 600, y: PH / 2 + 300, creatureId: 'dummy_sweep', count: 1 },
 
     // ── Боевые мобы (далеко от респауна) ─────────────────
     // Гоблины — далеко восток (T1 кинжал)

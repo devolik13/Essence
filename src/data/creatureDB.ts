@@ -571,6 +571,22 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     xpReward: 5, weapon: WeaponType.LongBow, color: 0x88aa44, abilityName: 'Arrow Rain',
     signatureSpell: ABILITY_ARROW_RAIN, spellXPThreshold: 1,
   },
+  dummy_fire_arrow: {
+    id: 'dummy_fire_arrow', name: 'T.FireArrow', nameRu: 'T.FireArrow',
+    type: BodyType.Passive, damageType: 'magic',
+    caps: { [StatName.Intellect]: 5 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.StaffFire, color: 0xff4400, abilityName: 'Fire Arrow',
+    signatureSpell: MOB_FIRE_T2, spellXPThreshold: 1,
+  },
+  dummy_fire_wall: {
+    id: 'dummy_fire_wall', name: 'T.FireWall', nameRu: 'T.FireWall',
+    type: BodyType.Passive, damageType: 'magic',
+    caps: { [StatName.Intellect]: 5 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.StaffFire, color: 0xaa2200, abilityName: 'Fire Wall',
+    signatureSpell: MOB_FIRE_T3, spellXPThreshold: 1,
+  },
   dummy_sweep: {
     id: 'dummy_sweep', name: 'T.Sweep', nameRu: 'T.Sweep',
     type: BodyType.Passive, damageType: 'melee',
