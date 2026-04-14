@@ -2899,9 +2899,9 @@ export class GameScene extends Phaser.Scene {
     if (spell.school === 'fire' && this.anims.exists('spell_fire_wall')) {
       zoneSprite = this.add.sprite(wx, wy, 'spell_fire_wall').setDepth(6);
       zoneSprite.play('spell_fire_wall');
-      const scale = isWall ? Math.max(wallW, wallT) / 256 : radius * 2 / 256;
       zoneSprite.setDisplaySize(isWall ? wallW : radius * 2, isWall ? wallT * 2 : radius * 2);
       zoneSprite.setAlpha(0.8);
+      zoneSprite.setFlipY(true); // flip upside down
       if (isWall) zoneSprite.setRotation(angle);
     }
 
