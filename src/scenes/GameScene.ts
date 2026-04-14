@@ -27,6 +27,7 @@ import { ALL_ZONES, ZoneConfig } from '../data/zones';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
+import { t } from '../i18n';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX } from '../systems/vfx';
@@ -686,7 +687,7 @@ export class GameScene extends Phaser.Scene {
     // Камень возрождения
     const rp = zone.respawnPoint;
     this.add.image(rp.x, rp.y - 80, 'respawn_stone');
-    this.add.text(rp.x, rp.y - 106, 'Respawn Stone', {
+    this.add.text(rp.x, rp.y - 106, t('misc.respawn_stone'), {
       fontSize: '11px', color: '#aaaaee', align: 'center',
     }).setOrigin(0.5);
 
@@ -833,7 +834,7 @@ export class GameScene extends Phaser.Scene {
         fontSize: '9px', color: '#cccccc', align: 'center',
         stroke: '#000000', strokeThickness: 2,
       }).setOrigin(0.5);
-      this.add.text(pos.x, pos.y + 48, '[E] possess', {
+      this.add.text(pos.x, pos.y + 48, t('misc.possess'), {
         fontSize: '7px', color: '#888866',
       }).setOrigin(0.5);
     });
@@ -846,7 +847,7 @@ export class GameScene extends Phaser.Scene {
       fontSize: '10px', color: '#ffdd88', align: 'center',
       stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(6);
-    this.add.text(qp.x, qp.y + 18, '[E] talk', {
+    this.add.text(qp.x, qp.y + 18, t('misc.talk'), {
       fontSize: '8px', color: '#888866',
     }).setOrigin(0.5).setDepth(6);
   }
@@ -970,7 +971,7 @@ export class GameScene extends Phaser.Scene {
 
     // Добровольный выход из тела — только в безопасной зоне
     if (!this.isInSafeZone(x, y)) {
-      this.events.emit('log', { text: 'Can only leave body in safe zone', color: '#ff6666' });
+      this.events.emit('log', { text: t('body.safe_zone_only'), color: '#ff6666' });
       return;
     }
 
@@ -1045,7 +1046,7 @@ export class GameScene extends Phaser.Scene {
       const circle = this.add.circle(0, 0, 12, 0xffdd55, 0.9);
       const glow = this.add.circle(0, 0, 16, 0xffaa00, 0.3);
       const label = this.add.text(0, -22, npc.nameRu, { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
-      const eKey = this.add.text(0, 18, '[E] shop', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+      const eKey = this.add.text(0, 18, t('misc.shop'), { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       container.add([glow, circle, label, eKey]);
       this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: npc.nameRu, role: npc.role, gfx: container });
     }
@@ -1148,7 +1149,7 @@ export class GameScene extends Phaser.Scene {
     const glow = this.add.circle(0, 0, 14, 0xffdd44, 0.3);
     const bag = this.add.circle(0, 0, 8, 0xddaa33, 0.9);
     const icon = this.add.text(0, 0, '💰', { fontSize: '12px' }).setOrigin(0.5);
-    const label = this.add.text(0, -18, '[E] Loot', { fontSize: '7px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+    const label = this.add.text(0, -18, t('misc.loot'), { fontSize: '7px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
     container.add([glow, bag, icon, label]);
 
     // Pulse animation
@@ -1238,7 +1239,7 @@ export class GameScene extends Phaser.Scene {
     const equip = this.sphere.equipment;
     if (!equip.weapon && !equip.weapon2) return;
     if (!equip.weapon || !equip.weapon2) {
-      this.showMessage('Need 2 weapons equipped to switch');
+      this.showMessage(t('weapon.need_two'));
       return;
     }
 
@@ -1305,7 +1306,7 @@ export class GameScene extends Phaser.Scene {
     if (this.gatheringTimer > 0) {
       this.gatheringTimer = 0;
       this.gatheringNode = null;
-      this.showMessage('Gathering interrupted!');
+      this.showMessage(t('gather.interrupted'));
     }
   }
 

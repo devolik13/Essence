@@ -316,14 +316,14 @@ export class UIScene extends Phaser.Scene {
       this.addLog(`${data.name} killed  +${data.xp} XP → [${s}]`);
     });
     gs.events.on('player-died', (data: { xpLost: number; debuffDuration: number }) => {
-      this.addLog('⚠ Body destroyed. You are in astral form.');
+      this.addLog(t('death.message'));
       if (data?.xpLost > 0) this.addLog(`  ↓ Lost ${data.xpLost} XP`);
       this.addLog(`  ✦ Weakness: -15% dmg for ${data?.debuffDuration ?? 30}с`);
     });
-    gs.events.on('body-captured', (name: string) => this.addLog(`✦ Captured: ${name}`));
+    gs.events.on('body-captured', (name: string) => this.addLog(`${t('log.captured')} ${name}`));
     gs.events.on('show-dialog', (msgs: { speaker: string; text: string }[]) => this.showDialog(msgs));
-    gs.events.on('capture-available', (name: string) => this.addLog(`${name} — [E] capture`));
-    gs.events.on('capture-start', (name: string) => this.addLog(`Capturing ${name}...`));
+    gs.events.on('capture-available', (name: string) => this.addLog(`${name} ${t('log.capture_prompt')}`));
+    gs.events.on('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`★ Learned: ${spell.nameRu}`);
     });
@@ -349,7 +349,7 @@ export class UIScene extends Phaser.Scene {
         this.addLog(`  ✓ Completed: ${data.done.length}`);
       }
     });
-    gs.events.on('save-loaded', () => this.addLog('↺ Progress loaded'));
+    gs.events.on('save-loaded', () => this.addLog(t('log.progress_loaded')));
     gs.events.on('open-vendor', () => {
       this.currentWindow = 'vendor';
       this.windowContainer.setVisible(true);
@@ -364,7 +364,7 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('aoe-targeting', (name: string) => {
       this.addLog(`◎ Targeting: ${name}  [LMB/RMB]`);
     });
-    gs.events.on('spell-out-of-range', () => this.addLog('✗ Too far'));
+    gs.events.on('spell-out-of-range', () => this.addLog(t('log.too_far')));
     gs.events.on('loot-dropped', (data: { creatureName: string; loot: string }) => {
       this.addLog(`↓ ${data.loot}`);
     });
@@ -597,7 +597,7 @@ export class UIScene extends Phaser.Scene {
         `Mana ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)   ` +
         `💰 ${coins}`
       ).setVisible(true);
-      this.hintText.setText('[1] Attack  [Q] Leave  [E] Capture  [2-8] Abilities');
+      this.hintText.setText(t('hud.attack'));
 
       // ── Статус-иконки ────────────────────────────────────
       if (body.statusEffects.size > 0) {
@@ -616,7 +616,7 @@ export class UIScene extends Phaser.Scene {
     } else {
       this.resourceText.setVisible(false);
       this.statusBarText.setVisible(false);
-      this.hintText.setText('[WASD] Move  [E] Possess body');
+      this.hintText.setText(t('hud.astral'));
     }
 
     // ── Capture bar ──────────────────────────────────────
@@ -660,7 +660,7 @@ export class UIScene extends Phaser.Scene {
           this.bodyInfoText.setFixedSize(s.w, 0)
             .setPosition(s.x, s.y + HEADER_H).setText(
               `── ${body.definition.nameRu} ──\n` +
-              `Weapon: ${body.weapon.nameRu}  CD: ${body.weapon.cooldown}с`
+              `${t('body.weapon')}: ${body.weapon.nameRu}  ${t('body.cd')}: ${body.weapon.cooldown}s`
             ).setVisible(true);
           this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
         } else {
@@ -812,10 +812,10 @@ export class UIScene extends Phaser.Scene {
 
     // Labels
     const labelY = y - SKILL_SLOT_SIZE / 2 - 8;
-    this.add.text(startX + 2 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, 'Weapon [Tab]', {
+    this.add.text(startX + 2 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, t('skill.weapon_tab'), {
       fontSize: '8px', color: '#556688',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
-    this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, 'Neutral', {
+    this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, t('skill.neutral'), {
       fontSize: '8px', color: '#556688',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
 
@@ -855,8 +855,8 @@ export class UIScene extends Phaser.Scene {
         bg.setInteractive({ useHandCursor: true })
           .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
             ptr.event.stopPropagation();
-            if (this.skillBarLocked) { this.addLog('🔒 Panel locked'); return; }
-            if (this.cachedInCombat) { this.addLog('⚔ Cannot change in combat'); return; }
+            if (this.skillBarLocked) { this.addLog(t('skill.locked')); return; }
+            if (this.cachedInCombat) { this.addLog(t('skill.no_combat')); return; }
             if (this.spellPickerSlot === i) this.closeSpellPicker();
             else this.openSpellPicker(i);
           });
@@ -1051,7 +1051,7 @@ export class UIScene extends Phaser.Scene {
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
-    const labels = ['Stats', 'Inventory', 'Quests', 'Achieve'];
+    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve')];
     const btnW = 76;
     const btnH = 22;
     const gap = 4;
@@ -1303,8 +1303,7 @@ export class UIScene extends Phaser.Scene {
               const xp = xpTracker[stat] ?? 0;
               const need = xpToNextLevel(base);
               line += `  ${buildXPBar(xp, need, 6)}`;
-            } else line += ' [CAP]';
-            } else line += ' [CAP]';
+            } else line += ' ' + t('stats.cap');
             lines.push(line);
           } else {
             lines.push(`  ${STAT_NAMES_SHORT[stat]}: ${total}${bonusStr}`);
@@ -1327,7 +1326,7 @@ export class UIScene extends Phaser.Scene {
         lines.push('');
         lines.push(`💰 ${formatCurrency(sphere.copper ?? 0)}`);
 
-        this.windowTitleText.setText('◉ Sphere Stats');
+        this.windowTitleText.setText(t('stats.title'));
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
@@ -1349,7 +1348,7 @@ export class UIScene extends Phaser.Scene {
         const eqX = 12;
         const eqY = 30;
 
-        const eqTitle = this.add.text(eqX + 50, eqY - 4, 'EQUIPMENT', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
+        const eqTitle = this.add.text(eqX + 50, eqY - 4, t('inv.equipment'), { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
         this.windowContainer.add(eqTitle);
         this.windowInteractables.push(eqTitle);
 
@@ -1399,7 +1398,7 @@ export class UIScene extends Phaser.Scene {
         const bagY = 30;
         const COLS = 8;
 
-        const bagTitle = this.add.text(bagX + 45, bagY - 4, 'INVENTORY', { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
+        const bagTitle = this.add.text(bagX + 45, bagY - 4, t('inv.inventory'), { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
         this.windowContainer.add(bagTitle);
         this.windowInteractables.push(bagTitle);
 
@@ -1478,7 +1477,7 @@ export class UIScene extends Phaser.Scene {
               const obj = q.def.objectives[i];
               const cur = q.counts[i];
               const d = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-              const verb = obj.type === 'kill' ? 'Kill' : obj.type === 'capture' ? 'Capture' : obj.type === 'talk' ? 'Talk' : obj.type === 'craft_t3' ? 'Craft' : obj.type === 'kill_boss' ? 'Defeat' : 'Learn';
+              const verb = obj.type === 'kill' ? t('quest.kill') : obj.type === 'capture' ? t('quest.capture') : obj.type === 'talk' ? t('quest.talk') : obj.type === 'craft_t3' ? t('quest.craft') : obj.type === 'kill_boss' ? t('quest.defeat') : t('quest.learn');
               lines.push(`   ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${d}`);
               relY += lineH;
             }
@@ -1586,7 +1585,7 @@ export class UIScene extends Phaser.Scene {
           });
           const btn = this.add.text(
             this.windowX + this.windowW - 60, this.windowY + 60 + btnY,
-            canCraft ? 'Craft' : '---',
+            canCraft ? t('quest.craft') : '---',
             {
               fontSize: '10px',
               color: canCraft ? '#88ff88' : '#666666',

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { DAMAGE_TEXT_DURATION } from '../utils/constants';
+import { t } from '../i18n';
 
 /**
  * Всплывающий текст урона — появляется над целью и улетает вверх.
@@ -9,7 +10,7 @@ export class DamageText extends Phaser.GameObjects.Text {
   private duration: number;
 
   constructor(scene: Phaser.Scene, x: number, y: number, damage: number, isCrit: boolean, isMiss: boolean, label?: string) {
-    const text = label ?? (isMiss ? 'Miss' : `${damage}`);
+    const text = label ?? (isMiss ? t('misc.miss') : `${damage}`);
     const color = label ? '#55ff55' : isMiss ? '#888888' : isCrit ? '#ffaa00' : '#ffffff';
     const size = isCrit ? '16px' : '12px';
 
