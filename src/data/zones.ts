@@ -85,6 +85,8 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: PW / 2 - 400, y: PH / 2 + 300, creatureId: 'dummy_fire_wall', count: 1 },
     { x: PW / 2 - 500, y: PH / 2 + 300, creatureId: 'dummy_arrow_rain', count: 1 },
     { x: PW / 2 - 600, y: PH / 2 + 300, creatureId: 'dummy_sweep', count: 1 },
+    { x: PW / 2 - 700, y: PH / 2 + 300, creatureId: 'dummy_fireball', count: 1 },
+    { x: PW / 2 - 800, y: PH / 2 + 300, creatureId: 'dummy_bark', count: 1 },
 
     // ── Боевые мобы (далеко от респауна) ─────────────────
     // Гоблины — далеко восток (T1 кинжал)

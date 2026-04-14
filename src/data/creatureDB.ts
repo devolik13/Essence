@@ -1,6 +1,6 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
-import { MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, ENCHANT_FIRE } from './spells/fire';
+import { MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, MOB_FIRE_T4, ENCHANT_FIRE } from './spells/fire';
 import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, ENCHANT_WATER } from './spells/water';
 import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, ENCHANT_EARTH } from './spells/earth';
 import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, ENCHANT_WIND } from './spells/wind';
@@ -584,6 +584,22 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
     xpReward: 5, weapon: WeaponType.StaffFire, color: 0xaa2200, abilityName: 'Fire Wall',
     signatureSpell: MOB_FIRE_T3, spellXPThreshold: 1,
+  },
+  dummy_fireball: {
+    id: 'dummy_fireball', name: 'T.Fireball', nameRu: 'T.Fireball',
+    type: BodyType.Passive, damageType: 'magic',
+    caps: { [StatName.Intellect]: 5 },
+    npcStats: { [StatName.Health]: 1, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.StaffFire, color: 0xff2200, abilityName: 'Fireball',
+    signatureSpell: MOB_FIRE_T4, spellXPThreshold: 1,
+  },
+  dummy_bark: {
+    id: 'dummy_bark', name: 'T.BarkArmor', nameRu: 'T.BarkArmor',
+    type: BodyType.Passive, damageType: 'magic',
+    caps: { [StatName.Intellect]: 5 },
+    npcStats: { [StatName.Health]: 1, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    xpReward: 5, weapon: WeaponType.StaffNature, color: 0x448833, abilityName: 'Bark Armor',
+    signatureSpell: MOB_NATURE_T2, spellXPThreshold: 1,
   },
   dummy_sweep: {
     id: 'dummy_sweep', name: 'T.Sweep', nameRu: 'T.Sweep',
