@@ -809,13 +809,32 @@ export class GameScene extends Phaser.Scene {
   // ─── Стартовые тела ───────────────────────────────────
 
   private createStarterMarkers() {
+    const animMap: Record<string, string> = {
+      human_warrior: 'warrior_idle_down',
+      human_mage: 'mage_idle_down',
+    };
+
     STARTER_BODIES.forEach((def, i) => {
       const pos = this.starterPositions[i];
-      const marker = this.add.arc(pos.x, pos.y, 10, 0, 360, false, def.color, 0.7);
-      this.starterBodies.push(marker);
 
-      this.add.text(pos.x, pos.y + 16, def.nameRu, {
+      // Use animated sprite if available, otherwise colored circle
+      const animKey = animMap[def.id];
+      if (animKey && this.anims.exists(animKey)) {
+        const sprite = this.add.sprite(pos.x, pos.y, animKey);
+        sprite.play(animKey);
+        sprite.setDisplaySize(60, 60);
+        this.starterBodies.push(sprite as any);
+      } else {
+        const marker = this.add.arc(pos.x, pos.y, 14, 0, 360, false, def.color, 0.7);
+        this.starterBodies.push(marker);
+      }
+
+      this.add.text(pos.x, pos.y + 36, def.nameRu, {
         fontSize: '9px', color: '#cccccc', align: 'center',
+        stroke: '#000000', strokeThickness: 2,
+      }).setOrigin(0.5);
+      this.add.text(pos.x, pos.y + 48, '[E] possess', {
+        fontSize: '7px', color: '#888866',
       }).setOrigin(0.5);
     });
 
@@ -1556,12 +1575,46 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Статы игрока с учётом статус-бонусов (fortify, evasion_boost и т.д.) */
+  /** Статы игрока с учётом экипировки + статус-бонусов */
   private getPlayerDefenseStats(): Stats {
-    if (!this.playerBody) return { ...this.sphere.stats };
+    return this.getEffectiveStats();
+  }
+
+  /** Полные статы = база + экипировка + статус-эффекты */
+  private getEffectiveStats(): Stats {
     const s = { ...this.sphere.stats };
-    s[StatName.Armor] += this.playerBody.armorBonus;
-    s[StatName.Evasion] += this.playerBody.evasionBonus;
+
+    // Бонусы от экипировки
+    const equip = this.sphere.equipment;
+    const statMap: Record<string, StatName> = {
+      strength: StatName.Strength, agility: StatName.Agility,
+      accuracy: StatName.Accuracy, evasion: StatName.Evasion,
+      health: StatName.Health, armor: StatName.Armor,
+      intellect: StatName.Intellect, will: StatName.Will,
+      mana: StatName.Mana, luck: StatName.Luck,
+    };
+    for (const slotKey of Object.keys(equip)) {
+      const itemId = (equip as any)[slotKey];
+      if (!itemId) continue;
+      const def = ITEMS[itemId];
+      if (!def) continue;
+      // Stat bonuses
+      if (def.statBonuses) {
+        for (const [stat, val] of Object.entries(def.statBonuses)) {
+          const sn = statMap[stat];
+          if (sn && val) s[sn] += val;
+        }
+      }
+      // Armor bonus from equipment
+      if (def.armorBonus) s[StatName.Armor] += def.armorBonus;
+    }
+
+    // Бонусы от статус-эффектов
+    if (this.playerBody) {
+      s[StatName.Armor] += this.playerBody.armorBonus;
+      s[StatName.Evasion] += this.playerBody.evasionBonus;
+    }
+
     return s;
   }
 
@@ -1615,9 +1668,9 @@ export class GameScene extends Phaser.Scene {
       const final_ = crit ? reduced * 1.5 : reduced;
       result = { raw, reduced, hit: true, crit, final: Math.round(final_) };
     } else {
-      result = dt === 'magic'  ? calcMagicDamage(this.sphere.stats, closestCreature.stats, wb)
-             : dt === 'ranged' ? calcRangedDamage(this.sphere.stats, closestCreature.stats, wb)
-             :                   calcMeleeDamage(this.sphere.stats, closestCreature.stats, wb);
+      result = dt === 'magic'  ? calcMagicDamage(this.getEffectiveStats(), closestCreature.stats, wb)
+             : dt === 'ranged' ? calcRangedDamage(this.getEffectiveStats(), closestCreature.stats, wb)
+             :                   calcMeleeDamage(this.getEffectiveStats(), closestCreature.stats, wb);
     }
 
     let finalDmg = (result.hit && this.sphere.deathDebuffRemaining > 0)
@@ -2189,9 +2242,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Расчёт урона по типу атаки умения
-    const result = spell.damageType === 'melee'  ? calcMeleeDamage(this.sphere.stats, target.stats, spell.baseDamage)
-                 : spell.damageType === 'ranged' ? calcRangedDamage(this.sphere.stats, target.stats, spell.baseDamage)
-                 :                                  calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
+    const result = spell.damageType === 'melee'  ? calcMeleeDamage(this.getEffectiveStats(), target.stats, spell.baseDamage)
+                 : spell.damageType === 'ranged' ? calcRangedDamage(this.getEffectiveStats(), target.stats, spell.baseDamage)
+                 :                                  calcMagicDamage(this.getEffectiveStats(), target.stats, spell.baseDamage);
 
     // ── Прыжок к цели (Землетрясение) ─────────────────────────────────────
     if (spell.leapDistance && this.playerBody) {
@@ -2409,8 +2462,8 @@ export class GameScene extends Phaser.Scene {
         const perp = Math.abs(cx * ny - cy * nx);
         if (perp > 40) continue;
         const r2 = spell.damageType === 'ranged'
-          ? calcRangedDamage(this.sphere.stats, c.stats, spell.baseDamage)
-          : calcMeleeDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          ? calcRangedDamage(this.getEffectiveStats(), c.stats, spell.baseDamage)
+          : calcMeleeDamage(this.getEffectiveStats(), c.stats, spell.baseDamage);
         if (r2.hit) {
           c.takeDamage(r2.final);
           this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r2.final, r2.crit, false));
@@ -2452,7 +2505,7 @@ export class GameScene extends Phaser.Scene {
         let diff = Math.abs(angle - coneDir);
         if (diff > Math.PI) diff = Math.PI * 2 - diff;
         if (diff > halfAngle) continue;
-        const r2 = calcMeleeDamage(this.sphere.stats, c.stats, spell.baseDamage);
+        const r2 = calcMeleeDamage(this.getEffectiveStats(), c.stats, spell.baseDamage);
         if (r2.hit) {
           const d2 = this.sphere.deathDebuffRemaining > 0 ? Math.round(r2.final * DEATH_DEBUFF_MULT) : r2.final;
           c.takeDamage(d2);
@@ -2473,9 +2526,9 @@ export class GameScene extends Phaser.Scene {
         const hitIndex = h;
         this.time.delayedCall(250 * (hitIndex + 1), () => {
           if (!this.playerBody || target.isDead) return;
-          const r = spell.damageType === 'melee'  ? calcMeleeDamage(this.sphere.stats, target.stats, spell.baseDamage)
-                  : spell.damageType === 'ranged' ? calcRangedDamage(this.sphere.stats, target.stats, spell.baseDamage)
-                  :                                  calcMagicDamage(this.sphere.stats, target.stats, spell.baseDamage);
+          const r = spell.damageType === 'melee'  ? calcMeleeDamage(this.getEffectiveStats(), target.stats, spell.baseDamage)
+                  : spell.damageType === 'ranged' ? calcRangedDamage(this.getEffectiveStats(), target.stats, spell.baseDamage)
+                  :                                  calcMagicDamage(this.getEffectiveStats(), target.stats, spell.baseDamage);
           if (r.hit) {
             const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
             target.takeDamage(d);
@@ -2513,7 +2566,7 @@ export class GameScene extends Phaser.Scene {
         // Основная цель уже получила baseDamage выше — даём только splash
         const dmgBase = c === target ? 0 : splashBase;
         if (dmgBase > 0) {
-          const r = calcMagicDamage(this.sphere.stats, c.stats, dmgBase);
+          const r = calcMagicDamage(this.getEffectiveStats(), c.stats, dmgBase);
           const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
           c.takeDamage(d);
           this.aggroCreature(c);
@@ -2539,7 +2592,7 @@ export class GameScene extends Phaser.Scene {
       if (pool.length > 0) {
         for (let i = 0; i < count; i++) {
           const c = pool[Math.floor(Math.random() * pool.length)];
-          const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          const r = calcMagicDamage(this.getEffectiveStats(), c.stats, spell.baseDamage);
           if (r.hit) {
             const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
             c.takeDamage(d);
@@ -2566,7 +2619,7 @@ export class GameScene extends Phaser.Scene {
           if (proj <= 0 || proj > armLen) continue;
           const perp = Math.abs(dx * dir.y - dy * dir.x);
           if (perp > armW) continue;
-          const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          const r = calcMagicDamage(this.getEffectiveStats(), c.stats, spell.baseDamage);
           if (r.hit) {
             const d = this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final;
             c.takeDamage(d);
@@ -2600,7 +2653,7 @@ export class GameScene extends Phaser.Scene {
           if (proj <= 0 || proj > armRange) continue;
           const perp = Math.abs(dx * rNy - dy * rNx);
           if (perp > 25) continue;
-          const r = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+          const r = calcMagicDamage(this.getEffectiveStats(), c.stats, spell.baseDamage);
           if (r.hit) {
             const isDouble = spell.doubleDamageChance && Math.random() < spell.doubleDamageChance;
             const d = (this.sphere.deathDebuffRemaining > 0 ? Math.round(r.final * DEATH_DEBUFF_MULT) : r.final) * (isDouble ? 2 : 1);
@@ -2729,7 +2782,7 @@ export class GameScene extends Phaser.Scene {
     for (const c of this.creatures) {
       if (c.isDead) continue;
       if (distance(c.x, c.y, worldX, worldY) > radius) continue;
-      const result = calcMagicDamage(this.sphere.stats, c.stats, spell.baseDamage);
+      const result = calcMagicDamage(this.getEffectiveStats(), c.stats, spell.baseDamage);
       const aoeDmg = this.sphere.deathDebuffRemaining > 0
         ? Math.round(result.final * DEATH_DEBUFF_MULT) : result.final;
       c.takeDamage(aoeDmg);
@@ -2767,7 +2820,7 @@ export class GameScene extends Phaser.Scene {
     if (!didHit || !this.sphere.activeEnchant || target.isDead || !this.playerBody) return;
     const ench = this.sphere.activeEnchant;
     const enchBase = ench.enchantDamage ?? 8;
-    const enchResult = calcMagicDamage(this.sphere.stats, target.stats, enchBase);
+    const enchResult = calcMagicDamage(this.getEffectiveStats(), target.stats, enchBase);
     if (enchResult.hit) {
       const enchDmg = this.sphere.deathDebuffRemaining > 0
         ? Math.round(enchResult.final * DEATH_DEBUFF_MULT) : enchResult.final;

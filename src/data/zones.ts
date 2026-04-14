@@ -153,6 +153,7 @@ export const ZONE_WATER: ZoneConfig = {
   baseTile: 'tile_grass',
   tint: 0x3377cc,
   respawnPoint: { x: PW / 2, y: PH - 200 },
+  safeBounds: { x1: PW / 2 - 150, y1: PH - 320, x2: PW / 2 + 150, y2: PH - 80 },
   spawnGroups: [
     // Начало зоны (юг — вход из деревни)
     { x: PW / 2 - 300, y: PH - 500, creatureId: 'splasher', count: 3 },
@@ -194,6 +195,7 @@ export const ZONE_FIRE: ZoneConfig = {
   baseTile: 'tile_grass',
   tint: 0xff7733,
   respawnPoint: { x: PW / 2, y: 200 },
+  safeBounds: { x1: PW / 2 - 150, y1: 80, x2: PW / 2 + 150, y2: 320 },
   spawnGroups: [
     // Вход (север)
     { x: PW / 2 - 300, y: 500,  creatureId: 'spark', count: 3 },
@@ -238,6 +240,7 @@ export const ZONE_WIND: ZoneConfig = {
   baseTile: 'tile_grass',
   tint: 0x99ddbb,
   respawnPoint: { x: 200, y: PH / 2 },
+  safeBounds: { x1: 80, y1: PH / 2 - 150, x2: 320, y2: PH / 2 + 150 },
   spawnGroups: [
     // Вход (запад)
     { x: 500,  y: PH / 2 - 200, creatureId: 'gusty',    count: 3 },
@@ -278,6 +281,7 @@ export const ZONE_EARTH: ZoneConfig = {
   baseTile: 'tile_grass',
   tint: 0x886633,
   respawnPoint: { x: PW - 200, y: PH / 2 },
+  safeBounds: { x1: PW - 320, y1: PH / 2 - 150, x2: PW - 80, y2: PH / 2 + 150 },
   spawnGroups: [
     // Вход (восток)
     { x: PW - 500, y: PH / 2 - 200, creatureId: 'pebble', count: 3 },
