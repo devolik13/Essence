@@ -7,8 +7,8 @@
 - [x] 2. Vendor UI — shop window with tools
 - [x] 3. Gathering cast bar — 3 sec cast, interrupted by combat
 - [ ] 4. Equipment affects stats — armor/stat bonuses in damage calculation
-- [ ] 5. More recipes — T2/T3 equipment for each workbench
-- [ ] 6. Resource variety — T2-T3 nodes in elemental zones
+- [x] 5. More recipes — 72 craftable items — T2/T3 equipment for each workbench
+- [x] 6. Resource variety — T1 nodes in village — T2-T3 nodes in elemental zones
 
 ### 1.2 Progression & Balance
 - [ ] 7. Spell learning thresholds — verify all creatures teach correctly
@@ -18,7 +18,7 @@
 
 ### 1.3 Chapter 1 Content
 - [ ] 11. Enable bosses — uncomment 4 bosses, test fights
-- [ ] 12. Quest system UI — acceptance, descriptions, rewards
+- [x] 12. Quest chain — 12 quests with prerequisites — acceptance, descriptions, rewards
 - [ ] 13. NPC dialogs — simple system: text + response options
 - [x] 14. Mob loot drops — visible bags on ground, [E] to pickup, 60s despawn
 
@@ -45,7 +45,7 @@
 ### 1.7 Sound
 - [ ] 29. Background music — different per zone (procedural or file)
 - [ ] 30. Ambient sounds — wind, water, fire per zone
-- [ ] 31. UI sounds — click, window open, equip
+- [x] 31. UI sounds — 12 procedural SFX — click, window open, equip
 - [ ] 32. Mob voices — sound on aggro and death
 
 ---
