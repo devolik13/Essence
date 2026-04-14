@@ -68,6 +68,8 @@ export interface BodyDefinition {
   element?: 'fire' | 'water' | 'earth' | 'wind';
   /** Босс Главы */
   isBoss?: boolean;
+  /** true = в этом теле доступны все выученные заклинания. false/undefined = только базовая атака + своё умение */
+  canUseAllSpells?: boolean;
 }
 
 // ─── Стартовые тела ────────────────────────────────────
@@ -84,6 +86,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     weapon: WeaponType.Sword,
     color: 0xcc3333,
     abilityName: 'Double Strike',
+    canUseAllSpells: true,
   },
   {
     id: 'human_archer',
@@ -96,6 +99,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     weapon: WeaponType.ShortBow,
     color: 0x33cc33,
     abilityName: 'Aimed Shot',
+    canUseAllSpells: true,
   },
   {
     id: 'human_mage',
@@ -108,6 +112,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     weapon: WeaponType.StaffFire,
     color: 0x3366ff,
     abilityName: 'Spark',
+    canUseAllSpells: true,
   },
 ];
 

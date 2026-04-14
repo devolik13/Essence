@@ -870,8 +870,23 @@ export class GameScene extends Phaser.Scene {
 
   /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — заклинания */
   private fillBodySlots(body: Body) {
+    // Слот 0 — всегда базовая атака тела
     body.abilitySlots[0].ability = BASIC_ATTACKS[body.definition.id] ?? BASIC_ATTACKS['default'];
 
+    // Очищаем остальные слоты
+    for (let i = 1; i < 8; i++) body.abilitySlots[i].ability = null;
+
+    // Не-гуманоиды: только своё умение (слот 1), остальное заблокировано
+    if (!body.definition.canUseAllSpells) {
+      const sig = body.definition.signatureSpell;
+      if (sig) {
+        const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
+        if (learned) body.abilitySlots[1].ability = learned;
+      }
+      return;
+    }
+
+    // Гуманоиды: все выученные заклинания доступны
     // Если есть сохранённые назначения — применяем их
     const hasCustomSlots = this.sphere.savedSlotIds.slice(1).some(id => id !== null);
     if (hasCustomSlots) {
@@ -884,7 +899,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Иначе — автозаполнение
+    // Автозаполнение для гуманоидов
     const sig = body.definition.signatureSpell;
     if (sig) {
       const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
