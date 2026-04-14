@@ -93,6 +93,8 @@ export class UIScene extends Phaser.Scene {
   private cachedUIData: UIData | null = null;
   /** Тип верстака для окна крафта */
   private craftingWorkbenchType: string = '';
+  /** Vendor filter */
+  private vendorFilter: string = 'all';
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   private _contentScrollY: number = 0;
 
@@ -1512,128 +1514,97 @@ export class UIScene extends Phaser.Scene {
         const inv = data.inventory ?? [];
         const coins = data.sphere?.copper ?? 0;
         const learned = data.sphere?.learnedRecipes ?? [];
-        this.windowInteractables.forEach(t => t.destroy());
-        this.windowInteractables = [];
-        this.windowContentText.setText('');
+        const lines: string[] = [];
+        const filter = this.vendorFilter;
 
-        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
+        // Filter tabs line
+        const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3'];
+        lines.push(`Filter: ${tabs.map(t2 => t2 === filter || (filter === 'all' && t2 === 'All') ? `[${t2}]` : t2).join('  ')}`);
+        lines.push('Click filter name above to change. Type in chat: /vendor T2');
+        lines.push('');
 
-        // Buy All T1 button (free recipes)
-        let y = WIN_TITLE_H + 8;
-        const buyAllBtn = this.add.text(8, y, '[ Buy All T1 Recipes (Free) ]', {
-          fontSize: '10px', color: '#88ff88', backgroundColor: '#224422', padding: { x: 6, y: 3 },
-        }).setInteractive({ useHandCursor: true });
-        buyAllBtn.on('pointerdown', () => {
-          const gs = this.scene.get('GameScene');
-          for (const r of RECIPES) {
-            const tier = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
-            if (tier === 1 && !learned.includes(r.id)) {
-              if (gs) (gs as any).buyRecipe?.(r.id, 0);
-            }
-          }
-          this.time.delayedCall(100, () => this.refreshWindow());
-        });
-        this.windowContainer.add(buyAllBtn);
-        this.windowInteractables.push(buyAllBtn);
-        y += 22;
+        // Filter recipes
+        let filtered = RECIPES;
+        if (filter === 'Weapon') filtered = RECIPES.filter(r => r.workbench === 'weaponsmith');
+        else if (filter === 'Armor') filtered = RECIPES.filter(r => r.workbench === 'armorer');
+        else if (filter === 'Jewel') filtered = RECIPES.filter(r => r.workbench === 'jeweler');
+        else if (filter === 'Rune') filtered = RECIPES.filter(r => r.workbench === 'runemaster');
+        else if (filter === 'T1') filtered = RECIPES.filter(r => !r.resultId.includes('_t2') && !r.resultId.includes('_t3'));
+        else if (filter === 'T2') filtered = RECIPES.filter(r => r.resultId.includes('_t2'));
+        else if (filter === 'T3') filtered = RECIPES.filter(r => r.resultId.includes('_t3'));
 
-        // Show recipes by category
-        const categories = [
-          { name: 'Weaponsmith', wb: 'weaponsmith' },
-          { name: 'Armorer', wb: 'armorer' },
-          { name: 'Jeweler', wb: 'jeweler' },
-          { name: 'Runemaster', wb: 'runemaster' },
-        ];
-        for (const cat of categories) {
-          const catRecipes = RECIPES.filter(r => r.workbench === cat.wb);
-          const notLearned = catRecipes.filter(r => !learned.includes(r.id));
-          const learnedCount = catRecipes.length - notLearned.length;
-          const label = this.add.text(8, y, `── ${cat.name} (${learnedCount}/${catRecipes.length}) ──`, {
-            fontSize: '9px', color: '#aabb88',
-          });
-          this.windowContainer.add(label);
-          this.windowInteractables.push(label);
-          y += 14;
+        const notLearned = filtered.filter(r => !learned.includes(r.id));
+        const learnedCount = filtered.length - notLearned.length;
+        lines.push(`Recipes: ${learnedCount}/${filtered.length} learned`);
+        lines.push('');
 
-          // Show only NOT learned (to save space)
-          for (const recipe of notLearned.slice(0, 5)) {
-            const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
-            const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
-            const result = ITEMS[recipe.resultId];
-            const canAfford = coins >= price;
-
-            const row = this.add.text(8, y,
-              `${result?.icon ?? '?'} ${recipe.nameRu}  ${price === 0 ? 'Free' : formatCurrency(price)}`,
-              { fontSize: '9px', color: '#cccccc' }
-            );
-            this.windowContainer.add(row);
-            this.windowInteractables.push(row);
-
-            const buyBtn = this.add.text(this.windowW - 40, y,
-              canAfford ? 'Buy' : '---',
-              { fontSize: '9px', color: canAfford ? '#88ff88' : '#555', backgroundColor: '#222', padding: { x: 4, y: 1 } }
-            ).setInteractive({ useHandCursor: true });
-            if (canAfford) {
-              const rId = recipe.id;
-              const pr = price;
-              buyBtn.on('pointerdown', () => {
-                const gs = this.scene.get('GameScene');
-                if (gs) (gs as any).buyRecipe?.(rId, pr);
-                this.time.delayedCall(100, () => this.refreshWindow());
-              });
-            }
-            this.windowContainer.add(buyBtn);
-            this.windowInteractables.push(buyBtn);
-            y += 13;
-          }
-          if (notLearned.length === 0) {
-            const allDone = this.add.text(16, y, '✓ All learned', { fontSize: '8px', color: '#668844' });
-            this.windowContainer.add(allDone);
-            this.windowInteractables.push(allDone);
-            y += 12;
-          } else if (notLearned.length > 5) {
-            const more = this.add.text(16, y, `...+${notLearned.length - 5} more`, { fontSize: '8px', color: '#666' });
-            this.windowContainer.add(more);
-            this.windowInteractables.push(more);
-            y += 12;
-          }
-          y += 4;
+        for (const recipe of notLearned) {
+          const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
+          const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
+          const result = ITEMS[recipe.resultId];
+          const canAfford = coins >= price;
+          const priceStr = price === 0 ? 'Free' : formatCurrency(price);
+          const afford = canAfford ? '' : ' ✗';
+          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  [${priceStr}]${afford}`);
         }
 
-        // Disassemble section
-        y += 4;
-        const disLabel = this.add.text(8, y, '── Disassemble (50% materials) ──', { fontSize: '9px', color: '#cc9966' });
-        this.windowContainer.add(disLabel);
-        this.windowInteractables.push(disLabel);
-        y += 14;
+        if (notLearned.length === 0) {
+          lines.push('✓ All recipes in this category learned!');
+        }
 
+        lines.push('');
+        lines.push('── Disassemble ──');
         const equipItems = inv.filter(i => ITEMS[i.itemId]?.type === 'equipment');
-        if (equipItems.length === 0) {
-          const empty = this.add.text(16, y, 'No equipment', { fontSize: '8px', color: '#666' });
-          this.windowContainer.add(empty);
-          this.windowInteractables.push(empty);
-        } else {
-          for (const item of equipItems) {
-            const def = ITEMS[item.itemId];
-            const row = this.add.text(8, y, `${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`, {
-              fontSize: '9px', color: '#cccccc',
-            });
-            this.windowContainer.add(row);
-            this.windowInteractables.push(row);
+        for (const item of equipItems) {
+          const def = ITEMS[item.itemId];
+          lines.push(`${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`);
+        }
+        if (equipItems.length === 0) lines.push('No equipment');
 
-            const disBtn = this.add.text(this.windowW - 65, y, 'Disassemble', {
-              fontSize: '8px', color: '#ffaa66', backgroundColor: '#332211', padding: { x: 3, y: 1 },
-            }).setInteractive({ useHandCursor: true });
-            const itemId = item.itemId;
-            disBtn.on('pointerdown', () => {
-              const gs = this.scene.get('GameScene');
-              if (gs) (gs as any).disassembleItem?.(itemId);
-              this.time.delayedCall(100, () => this.refreshWindow());
-            });
-            this.windowContainer.add(disBtn);
-            this.windowInteractables.push(disBtn);
-            y += 13;
+        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+
+        // Buttons outside container (scene-level, absolute coords)
+        this.windowInteractables.forEach(t => t.destroy());
+        this.windowInteractables = [];
+        const bx = this.windowX + 8;
+        const by = this.windowY + this.windowH - 35;
+
+        // Buy All button
+        const buyAllBtn = this.add.text(bx, by, `Buy All ${filter === 'all' ? 'T1' : filter} (${notLearned.filter(r => {
+          const t2 = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
+          return coins >= (t2 === 3 ? 200 : t2 === 2 ? 50 : 0);
+        }).length} affordable)`, {
+          fontSize: '10px', color: '#88ff88', backgroundColor: '#224422', padding: { x: 6, y: 3 },
+        }).setScrollFactor(0).setDepth(2001).setInteractive({ useHandCursor: true });
+        buyAllBtn.on('pointerdown', () => {
+          const gs = this.scene.get('GameScene');
+          for (const r of notLearned) {
+            const t2 = r.resultId.includes('_t3') ? 3 : r.resultId.includes('_t2') ? 2 : 1;
+            const pr = t2 === 3 ? 200 : t2 === 2 ? 50 : 0;
+            if (data.sphere && data.sphere.copper >= pr) {
+              if (gs) (gs as any).buyRecipe?.(r.id, pr);
+            }
           }
+          this.time.delayedCall(200, () => this.refreshWindow());
+        });
+        this.windowInteractables.push(buyAllBtn);
+
+        // Filter buttons
+        let fx = this.windowX + 8;
+        for (const tab of tabs) {
+          const isActive = (filter === 'all' && tab === 'All') || filter === tab;
+          const filterBtn = this.add.text(fx, this.windowY + WIN_TITLE_H + 4, tab, {
+            fontSize: '9px', color: isActive ? '#ffdd88' : '#667788',
+            backgroundColor: isActive ? '#333322' : '#111118',
+            padding: { x: 3, y: 1 },
+          }).setScrollFactor(0).setDepth(2001).setInteractive({ useHandCursor: true });
+          filterBtn.on('pointerdown', () => {
+            this.vendorFilter = tab === 'All' ? 'all' : tab;
+            this.refreshWindow();
+          });
+          this.windowInteractables.push(filterBtn);
+          fx += tab.length * 7 + 14;
         }
         break;
       }
