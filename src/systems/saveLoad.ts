@@ -19,6 +19,8 @@ interface SaveData {
   unlockedAchievements?: string[];
   trackedQuestIds?: string[];
   lastBodyId?: string | null;
+  copper?: number;
+  weaponSlotConfigs?: Record<string, (string | null)[]>;
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -44,6 +46,8 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     unlockedAchievements: [...sphere.unlockedAchievements],
     trackedQuestIds: [...sphere.trackedQuestIds],
     lastBodyId: sphere.lastBodyId ?? null,
+    copper: sphere.copper,
+    weaponSlotConfigs: { ...sphere.weaponSlotConfigs },
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -103,6 +107,12 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     }
     if (data.lastBodyId !== undefined) {
       sphere.lastBodyId = data.lastBodyId;
+    }
+    if (data.copper !== undefined) {
+      sphere.copper = data.copper;
+    }
+    if (data.weaponSlotConfigs) {
+      sphere.weaponSlotConfigs = { ...data.weaponSlotConfigs };
     }
 
     return true;

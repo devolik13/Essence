@@ -31,6 +31,7 @@ import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
+import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 
 // ── Зона на карте (ground_zone) ─────────────────────────────
 interface GroundZone {
@@ -1313,36 +1314,72 @@ export class GameScene extends Phaser.Scene {
   }
 
   private openVendorUI() {
-    let messages: string[] = [];
-
-    // Give tools for free
+    // Give tools for free (always)
     const tools = ['pickaxe', 'axe', 'skinning_knife'];
-    let toolsGiven = 0;
     for (const toolId of tools) {
       if (!this.sphere.inventory.find(i => i.itemId === toolId)) {
         this.sphere.inventory.push({ itemId: toolId, quantity: 1 });
-        toolsGiven++;
       }
     }
-    if (toolsGiven > 0) messages.push(`Got ${toolsGiven} tools`);
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    // Open vendor UI window
+    this.events.emit('open-vendor');
+  }
 
-    // Give all recipes for free
-    // Give all recipes for free
-    const allRecipeIds = RECIPES.map(r => r.id);
-    let recipesLearned = 0;
-    for (const rId of allRecipeIds) {
-      if (!this.sphere.learnedRecipes.includes(rId)) {
-        this.sphere.learnedRecipes.push(rId);
-        recipesLearned++;
+  /** Disassemble equipment item — returns 50% of materials */
+  public disassembleItem(itemId: string) {
+    const inv = this.sphere.inventory.find(i => i.itemId === itemId);
+    if (!inv || inv.quantity <= 0) return;
+
+    // Find the recipe that produces this item
+    const recipe = RECIPES.find(r => r.resultId === itemId);
+    if (!recipe) {
+      this.showMessage('Cannot disassemble this item');
+      return;
+    }
+
+    // Remove 1 from inventory
+    inv.quantity -= 1;
+    if (inv.quantity <= 0) {
+      this.sphere.inventory = this.sphere.inventory.filter(i => i.quantity > 0);
+    }
+
+    // Unequip if equipped
+    const equip = this.sphere.equipment;
+    for (const key of Object.keys(equip)) {
+      if ((equip as any)[key] === itemId) {
+        (equip as any)[key] = undefined;
       }
     }
-    if (recipesLearned > 0) messages.push(`${recipesLearned} recipes`);
 
-    if (messages.length > 0) {
-      this.showMessage(`Merchant: ${messages.join(', ')}!`);
-    } else {
-      this.showMessage('Merchant: You have everything.');
+    // Return 50% of materials
+    const returned: string[] = [];
+    for (const [matId, qty] of Object.entries(recipe.materials)) {
+      const returnQty = Math.max(1, Math.floor(qty * 0.5));
+      const existing = this.sphere.inventory.find(i => i.itemId === matId);
+      if (existing) existing.quantity += returnQty;
+      else this.sphere.inventory.push({ itemId: matId, quantity: returnQty });
+      returned.push(`${returnQty}x ${ITEMS[matId]?.nameRu ?? matId}`);
     }
+
+    this.showMessage(`Disassembled! Got: ${returned.join(', ')}`);
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+  }
+
+  /** Buy recipe from vendor */
+  public buyRecipe(recipeId: string, price: number) {
+    if (this.sphere.copper < price) {
+      this.showMessage(`Not enough coins! Need ${formatCurrency(price)}`);
+      return;
+    }
+    if (this.sphere.learnedRecipes.includes(recipeId)) {
+      this.showMessage('Already known');
+      return;
+    }
+    this.sphere.copper -= price;
+    this.sphere.learnedRecipes.push(recipeId);
+    this.showMessage(`Learned recipe! -${formatCurrency(price)}`);
+    sfxLevelUp();
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
@@ -1830,6 +1867,14 @@ export class GameScene extends Phaser.Scene {
 
     // Квест — засчитать убийство
     this.handleQuestKill(creature.definition.id, xpTotal);
+
+    // Валюта
+    const coinDrop = MOB_COPPER_DROPS[creature.definition.id];
+    if (coinDrop) {
+      const coins = coinDrop.min + Math.floor(Math.random() * (coinDrop.max - coinDrop.min + 1));
+      this.sphere.copper += coins;
+      this.showMessage(`+${formatCurrency(coins)}`);
+    }
 
     // Лут — дроп на землю
     const dropped = rollLoot(creature.definition.id);

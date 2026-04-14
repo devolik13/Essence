@@ -47,8 +47,8 @@ export class Sphere extends Phaser.GameObjects.Container {
   /** Экипированные предметы */
   public equipment: import('../types/items').Equipment = {};
 
-  /** Золото */
-  public gold: number = 0;
+  /** Currency in copper coins (100 copper = 1 silver, 100 silver = 1 gold, 100 gold = 1 platinum) */
+  public copper: number = 0;
 
   /** Изученные рецепты */
   public learnedRecipes: string[] = [];

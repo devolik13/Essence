@@ -35,6 +35,8 @@ export interface RecipeDef {
   resultQty: number;
   /** Crafting time in seconds */
   craftTime: number;
+  /** Price in copper to buy recipe (0 = free) */
+  price?: number;
 }
 
 export interface LootEntry {

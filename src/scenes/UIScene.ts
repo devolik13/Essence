@@ -10,6 +10,7 @@ import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
 import { ITEMS, RECIPES } from '../data/itemDB';
+import { formatCurrency } from '../systems/currency';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
 import { getAllAchievementStatus } from '../systems/achievements';
 import { STATUS_DEFS } from '../types/statuses';
@@ -578,9 +579,11 @@ export class UIScene extends Phaser.Scene {
     if (body) {
       const hpPct  = Math.round((body.currentHP   / body.maxHP)   * 100);
       const manaPct= Math.round((body.currentMana / body.maxMana) * 100);
+      const coins = formatCurrency(data.sphere.copper ?? 0);
       this.resourceText.setText(
         `HP ${Math.round(body.currentHP)}/${body.maxHP} (${hpPct}%)   ` +
-        `Мана ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)`
+        `Mana ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)   ` +
+        `💰 ${coins}`
       ).setVisible(true);
       this.hintText.setText('[1] Attack  [Q] Leave  [E] Capture  [2-8] Abilities');
 
@@ -1452,57 +1455,40 @@ export class UIScene extends Phaser.Scene {
 
       case 'vendor': {
         const inv = data.inventory ?? [];
-        const lines: string[] = [];
-        lines.push('═══ MERCHANT ═══');
-        lines.push('Free tools & recipes:');
-        lines.push('');
-
-        // Tools
-        const tools = [
-          { id: 'pickaxe', name: 'Pickaxe', desc: 'For mining ore' },
-          { id: 'axe', name: 'Axe', desc: 'For chopping wood' },
-          { id: 'skinning_knife', name: 'Skinning Knife', desc: 'For gathering trophies' },
-        ];
-        lines.push('── Tools ──');
-        for (const tool of tools) {
-          const has = inv.find(i => i.itemId === tool.id);
-          const status = has ? '✓ Owned' : '  Buy (0g)';
-          lines.push(`${ITEMS[tool.id]?.icon ?? '?'} ${tool.name} — ${tool.desc}  ${status}`);
-        }
-
-        // Recipes
-        lines.push('');
-        lines.push('── Recipes ──');
+        const coins = data.sphere?.copper ?? 0;
         const learned = data.sphere?.learnedRecipes ?? [];
-        for (const recipe of RECIPES) {
-          const has = learned.includes(recipe.id);
-          const status = has ? '✓ Learned' : '  Buy (0g)';
-          const result = ITEMS[recipe.resultId];
-          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  ${status}`);
-          // Show ingredients
-          const mats = Object.entries(recipe.materials).map(([id, qty]) =>
-            `${ITEMS[id]?.icon ?? '?'}${ITEMS[id]?.nameRu ?? id} ×${qty}`
-          ).join(' + ');
-          lines.push(`   ${mats}`);
-        }
-
-        this.windowTitleText.setText('🏪 Merchant');
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-
-        // Buy All button
+        const lines: string[] = [];
         this.windowInteractables.forEach(t => t.destroy());
         this.windowInteractables = [];
-        const buyBtn = this.add.text(
-          this.windowX + this.windowW / 2, this.windowY + this.windowH - 30,
-          '[ Buy All (Free) ]',
-          { fontSize: '11px', color: '#88ff88', backgroundColor: '#224422', padding: { x: 8, y: 4 } }
-        ).setOrigin(0.5).setDepth(1003).setInteractive();
-        buyBtn.on('pointerdown', () => {
-          const gs = this.scene.get('GameScene');
-          if (gs) (gs as any).openVendorUI?.();
-          this.refreshWindow();
-        });
-        this.windowInteractables.push(buyBtn);
+
+        lines.push(`═══ MERCHANT ═══  💰 ${formatCurrency(coins)}`);
+        lines.push('');
+        lines.push('── Recipes (T1: Free, T2: 50c, T3: 200c) ──');
+
+        let btnY = 0;
+        for (const recipe of RECIPES) {
+          const has = learned.includes(recipe.id);
+          const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
+          const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
+          const result = ITEMS[recipe.resultId];
+          const priceStr = has ? '✓' : price === 0 ? 'Free' : formatCurrency(price);
+          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu} [${priceStr}]`);
+        }
+
+        lines.push('');
+        lines.push('── Disassemble (50% materials back) ──');
+        const equipItems = inv.filter(i => ITEMS[i.itemId]?.type === 'equipment');
+        if (equipItems.length === 0) {
+          lines.push('  No equipment to disassemble');
+        } else {
+          for (const item of equipItems) {
+            const def = ITEMS[item.itemId];
+            lines.push(`${def?.icon ?? '?'} ${def?.nameRu ?? item.itemId} ×${item.quantity}`);
+          }
+        }
+
+        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
 
