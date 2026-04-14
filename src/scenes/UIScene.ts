@@ -788,8 +788,25 @@ export class UIScene extends Phaser.Scene {
     const startX = (GAME_WIDTH - totalW) / 2;
     const y = GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 8;
 
+    const DIVIDER_GAP = 14; // extra gap between weapon (0-4) and neutral (5-7) slots
+
+    // Divider line between slot 5 and 6
+    const divX = startX + 5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + DIVIDER_GAP / 2 - 2;
+    this.add.rectangle(divX, y, 2, SKILL_SLOT_SIZE + 8, 0x334466, 0.6)
+      .setScrollFactor(0).setDepth(1000);
+
+    // Labels
+    const labelY = y - SKILL_SLOT_SIZE / 2 - 8;
+    this.add.text(startX + 2 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, 'Weapon [Tab]', {
+      fontSize: '8px', color: '#556688',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
+    this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, 'Neutral', {
+      fontSize: '8px', color: '#556688',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
+
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
-      const x = startX + i * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2;
+      const extraGap = i >= 5 ? DIVIDER_GAP : 0;
+      const x = startX + i * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + extraGap + SKILL_SLOT_SIZE / 2;
 
       const bg = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE, 0x1a1a2e, 0.9)
         .setScrollFactor(0).setDepth(1000);
@@ -860,9 +877,10 @@ export class UIScene extends Phaser.Scene {
     const panelW = cols * sz + (cols - 1) * gap + 16;
     const panelH = sz + 32;
 
-    const totalSlotW = SKILL_SLOTS_COUNT * sz + (SKILL_SLOTS_COUNT - 1) * gap;
+    const totalSlotW = SKILL_SLOTS_COUNT * sz + (SKILL_SLOTS_COUNT - 1) * gap + 14; // +14 for divider gap
     const barStartX  = (GAME_WIDTH - totalSlotW) / 2;
-    const slotX      = barStartX + slotIndex * (sz + gap) + sz / 2;
+    const extraGap   = slotIndex >= 5 ? 14 : 0;
+    const slotX      = barStartX + slotIndex * (sz + gap) + extraGap + sz / 2;
     const panelX     = Math.min(Math.max(slotX - panelW / 2, 8), GAME_WIDTH - panelW - 8);
     const panelY     = GAME_HEIGHT - sz - 8 - panelH - 6;
 
@@ -1288,7 +1306,8 @@ export class UIScene extends Phaser.Scene {
           { key: 'helmet',      label: 'Head',    col: 1, row: 0 },
           { key: 'amulet',      label: 'Neck',    col: 0, row: 1 },
           { key: 'chest',       label: 'Chest',   col: 1, row: 1 },
-          { key: 'weapon',      label: 'Wpn',     col: 2, row: 1 },
+          { key: 'weapon',      label: 'Wpn 1',   col: 2, row: 0 },
+          { key: 'weapon2',     label: 'Wpn 2',   col: 2, row: 1 },
           { key: 'ring',        label: 'Ring',     col: 0, row: 2 },
           { key: 'gloves',      label: 'Hands',   col: 1, row: 2 },
           { key: 'shield',      label: 'Shield',  col: 2, row: 2 },
