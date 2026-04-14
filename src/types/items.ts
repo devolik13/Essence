@@ -51,6 +51,7 @@ export interface InventoryItem {
 
 export interface Equipment {
   weapon?: string;
+  weapon2?: string;  // second weapon slot (Tab to switch)
   shield?: string;
   helmet?: string;
   chest?: string;

@@ -209,6 +209,7 @@ export class GameScene extends Phaser.Scene {
   private keyE!: Phaser.Input.Keyboard.Key;
   private keyEsc!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
+  private keyTab!:   Phaser.Input.Keyboard.Key;
   private key1!: Phaser.Input.Keyboard.Key;
   private key2!: Phaser.Input.Keyboard.Key;
   private key3!: Phaser.Input.Keyboard.Key;
@@ -313,6 +314,7 @@ export class GameScene extends Phaser.Scene {
       this.keyE     = this.input.keyboard.addKey('E');
       this.keyEsc   = this.input.keyboard.addKey('ESC');
       this.keySpace = this.input.keyboard.addKey('SPACE');
+      this.keyTab   = this.input.keyboard.addKey('TAB');
       this.key1     = this.input.keyboard.addKey('ONE');
       this.key2     = this.input.keyboard.addKey('TWO');
       this.key3     = this.input.keyboard.addKey('THREE');
@@ -424,6 +426,11 @@ export class GameScene extends Phaser.Scene {
           this.activateSpellSlot(i + 1);
           break;
         }
+      }
+
+      // TAB — переключение оружия
+      if (Phaser.Input.Keyboard.JustDown(this.keyTab)) {
+        this.switchWeapon();
       }
 
       // ESC — отмена AoE
@@ -891,31 +898,39 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Гуманоиды: все выученные заклинания доступны
-    // Если есть сохранённые назначения — применяем их
-    const hasCustomSlots = this.sphere.savedSlotIds.slice(1).some(id => id !== null);
-    if (hasCustomSlots) {
-      for (let i = 1; i < 8; i++) {
-        const savedId = this.sphere.savedSlotIds[i];
-        body.abilitySlots[i].ability = savedId
-          ? (this.sphere.learnedSpells.find(s => s.id === savedId) ?? null)
+    // Гуманоиды: слоты 0-4 = оружейные, слоты 5-7 = нейтральные
+    const equip = this.sphere.equipment;
+    const activeWeaponId = this.sphere.activeWeaponSlot === 0 ? equip.weapon : equip.weapon2;
+
+    // Слоты 0-4: загружаем сохранённую конфигурацию для текущего оружия
+    if (activeWeaponId && this.sphere.weaponSlotConfigs[activeWeaponId]) {
+      const config = this.sphere.weaponSlotConfigs[activeWeaponId];
+      for (let i = 0; i < 5; i++) {
+        const spellId = config[i];
+        body.abilitySlots[i].ability = spellId
+          ? (this.sphere.learnedSpells.find(s => s.id === spellId) ?? BASIC_ATTACKS[body.definition.id] ?? null)
           : null;
       }
-      return;
+    } else {
+      // Автозаполнение слотов 0-4: базовая атака + T1/T2/T3 оружия
+      body.abilitySlots[0].ability = BASIC_ATTACKS[body.definition.id] ?? BASIC_ATTACKS['default'];
+      const sig = body.definition.signatureSpell;
+      if (sig) {
+        const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
+        if (learned) body.abilitySlots[1].ability = learned;
+      }
     }
 
-    // Автозаполнение для гуманоидов
-    const sig = body.definition.signatureSpell;
-    if (sig) {
-      const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
-      if (learned) body.abilitySlots[1].ability = learned;
-    }
-    let slotIdx = 2;
-    for (const spell of this.sphere.learnedSpells) {
-      if (sig && spell.id === sig.id) continue;
-      if (slotIdx >= 8) break;
-      body.abilitySlots[slotIdx].ability = spell;
-      slotIdx++;
+    // Слоты 5-7: нейтральные (сохранённые или автозаполнение)
+    const neutralSlotIds = this.sphere.savedSlotIds.slice(5);
+    for (let i = 0; i < 3; i++) {
+      const savedId = neutralSlotIds[i];
+      if (savedId) {
+        body.abilitySlots[5 + i].ability = this.sphere.learnedSpells.find(s => s.id === savedId) ?? null;
+      } else if (i === 0) {
+        // Auto-fill first neutral with Acceleration if learned
+        body.abilitySlots[5].ability = this.sphere.learnedSpells.find(s => s.id === 'acceleration') ?? null;
+      }
     }
   }
 
@@ -1195,6 +1210,37 @@ export class GameScene extends Phaser.Scene {
       { speaker: 'Nikola Tesla', text: "You're not the first volunteer. But you might be the first to return strong enough. Go. Find a body. Learn everything you can." },
       { speaker: '', text: "You feel yourself dissolving... fading... and then reforming. A bright sphere of light in an unfamiliar world. You are the Essence." },
     ]);
+  }
+
+  /** Switch between weapon 1 and weapon 2 */
+  private switchWeapon() {
+    if (!this.playerBody) return;
+    const equip = this.sphere.equipment;
+    if (!equip.weapon && !equip.weapon2) return;
+    if (!equip.weapon || !equip.weapon2) {
+      this.showMessage('Need 2 weapons equipped to switch');
+      return;
+    }
+
+    // Save current weapon slots 1-5 config
+    const currentWeaponId = this.sphere.activeWeaponSlot === 0 ? equip.weapon : equip.weapon2;
+    if (currentWeaponId) {
+      const config: (string | null)[] = [];
+      for (let i = 0; i < 5; i++) {
+        config.push(this.playerBody.abilitySlots[i].ability?.id ?? null);
+      }
+      this.sphere.weaponSlotConfigs[currentWeaponId] = config;
+    }
+
+    // Switch active weapon
+    this.sphere.activeWeaponSlot = this.sphere.activeWeaponSlot === 0 ? 1 : 0;
+    const newWeaponId = this.sphere.activeWeaponSlot === 0 ? equip.weapon : equip.weapon2;
+
+    // Load saved config for new weapon
+    this.fillBodySlots(this.playerBody);
+
+    this.showMessage(`Switched to ${ITEMS[newWeaponId!]?.nameRu ?? 'weapon'}`);
+    sfxBuff();
   }
 
   /** Show floating message above player */

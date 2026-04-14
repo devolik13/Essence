@@ -17,8 +17,14 @@ export class Sphere extends Phaser.GameObjects.Container {
   public learnedSpells: AbilityDef[] = [];
   public inBody: boolean = false;
   public learnedAbilities: string[] = [];
-  /** Сохранённые назначения слотов: индекс → spell.id или null */
+  /** Сохранённые назначения нейтральных слотов 6-8: spell.id или null */
   public savedSlotIds: (string | null)[] = Array(8).fill(null);
+
+  /** Активный слот оружия (0 = первое, 1 = второе) */
+  public activeWeaponSlot: number = 0;
+
+  /** Сохранённые раскладки слотов 1-5 для каждого оружия: weaponItemId → [slot1..slot5 spell ids] */
+  public weaponSlotConfigs: Record<string, (string | null)[]> = {};
 
   // Инвентарь
   public inventory: InventoryItem[] = [];
