@@ -66,6 +66,9 @@ export class UIScene extends Phaser.Scene {
 
   // ── Tracked quest HUD (top-left) ──────────────────────
   private trackedQuestText!: Phaser.GameObjects.Text;
+  private _questHudBg!: Phaser.GameObjects.Rectangle;
+  private _questHudX: number = 0;
+  private _questHudY: number = 0;
 
   // ── Menu buttons ──────────────────────────────────────
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
@@ -176,11 +179,30 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', color: '#ff8800',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
-    // ── Tracked quest HUD (top-left) ─────────────────────
-    this.trackedQuestText = this.add.text(10, 10, '', {
-      fontSize: '11px', color: '#ffeeaa', lineSpacing: 4,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+    // ── Tracked quest HUD (right side, draggable) ─────────
+    this._questHudX = GAME_WIDTH - 220;
+    this._questHudY = 10;
+    this._questHudBg = this.add.rectangle(this._questHudX, this._questHudY, 210, 100, 0x000000, 0.35)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(999).setVisible(false)
+      .setStrokeStyle(1, 0x334455, 0.4);
+    this.trackedQuestText = this.add.text(this._questHudX + 8, this._questHudY + 6, '', {
+      fontSize: '10px', color: '#ffeeaa', lineSpacing: 3,
     }).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    // Make quest HUD draggable
+    this._questHudBg.setInteractive({ draggable: true });
+    let qDragOffX = 0, qDragOffY = 0;
+    this._questHudBg.on('dragstart', (ptr: Phaser.Input.Pointer) => {
+      qDragOffX = ptr.x - this._questHudX;
+      qDragOffY = ptr.y - this._questHudY;
+    });
+    this._questHudBg.on('drag', (ptr: Phaser.Input.Pointer) => {
+      this._questHudX = ptr.x - qDragOffX;
+      this._questHudY = ptr.y - qDragOffY;
+      this._questHudBg.setPosition(this._questHudX, this._questHudY);
+      this.trackedQuestText.setPosition(this._questHudX + 8, this._questHudY + 6);
+    });
+    this.input.setDraggable(this._questHudBg);
 
     // ── Panel content text objects (positioned in updateUI) ──
     this.targetPanel = this.add.text(0, 0, '', {
@@ -471,24 +493,50 @@ export class UIScene extends Phaser.Scene {
     this.cachedBody = body;
     if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
 
-    // ── Tracked quest HUD (top-left) ──────────────────────
+    // ── Tracked quest HUD (right side) ─────────────────────
     {
       const tracked = data.trackedQuestIds ?? [];
-      const trackedQuests = data.quests.filter(q => !q.completed && tracked.includes(q.def.id));
-      if (trackedQuests.length > 0) {
-        const lines: string[] = [];
-        for (const q of trackedQuests) {
-          lines.push(`▸ ${q.def.nameRu}`);
-          for (let i = 0; i < q.def.objectives.length; i++) {
-            const obj = q.def.objectives[i];
-            const cur = q.counts[i];
-            const isDone = cur >= obj.count;
-            lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? obj.targetId ?? ''}`);
-          }
+      // Active main quest (first incomplete in chain)
+      const activeQuests = data.quests.filter(q => !q.completed);
+      const mainQuest = activeQuests.find(q => q.def.prerequisiteIds !== undefined || q.def.id.startsWith('q'));
+      // Tracked side quests
+      const trackedQuests = activeQuests.filter(q => tracked.includes(q.def.id));
+
+      const lines: string[] = [];
+
+      // Main quest always shown
+      if (mainQuest && !trackedQuests.find(q => q.def.id === mainQuest.def.id)) {
+        lines.push(`◆ ${mainQuest.def.nameRu}`);
+        for (let i = 0; i < mainQuest.def.objectives.length; i++) {
+          const obj = mainQuest.def.objectives[i];
+          const cur = mainQuest.counts[i];
+          const isDone = cur >= obj.count;
+          lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? ''}`);
         }
+      }
+
+      // Tracked quests
+      for (const q of trackedQuests) {
+        if (lines.length > 0) lines.push('');
+        lines.push(`▸ ${q.def.nameRu}`);
+        for (let i = 0; i < q.def.objectives.length; i++) {
+          const obj = q.def.objectives[i];
+          const cur = q.counts[i];
+          const isDone = cur >= obj.count;
+          lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? ''}`);
+        }
+      }
+
+      if (lines.length > 0) {
         this.trackedQuestText.setText(lines.join('\n')).setVisible(true);
+        this.trackedQuestText.setPosition(this._questHudX + 8, this._questHudY + 6);
+        // Resize background to fit content
+        const tw = Math.max(180, this.trackedQuestText.width + 16);
+        const th = this.trackedQuestText.height + 12;
+        this._questHudBg.setSize(tw, th).setVisible(true);
       } else {
         this.trackedQuestText.setVisible(false);
+        this._questHudBg.setVisible(false);
       }
     }
 
