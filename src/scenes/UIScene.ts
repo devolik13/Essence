@@ -93,6 +93,13 @@ export class UIScene extends Phaser.Scene {
   private craftingWorkbenchType: string = '';
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   private _contentScrollY: number = 0;
+
+  // Dialog system
+  private dialogContainer!: Phaser.GameObjects.Container;
+  private dialogText!: Phaser.GameObjects.Text;
+  private dialogSpeaker!: Phaser.GameObjects.Text;
+  private dialogQueue: { speaker: string; text: string }[] = [];
+  private dialogVisible: boolean = false;
   /** Активный крафт таймер */
   private craftingProgress: { remaining: number; total: number; name: string } | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
@@ -204,6 +211,29 @@ export class UIScene extends Phaser.Scene {
     });
     this.input.setDraggable(this._questHudBg);
 
+    // ── Dialog panel (bottom of screen) ────────────────────
+    {
+      const dY = GAME_HEIGHT - 130;
+      const dBg = this.add.rectangle(GAME_WIDTH / 2, dY + 50, GAME_WIDTH - 40, 100, 0x0a0a1a, 0.92)
+        .setStrokeStyle(1, 0x334466);
+      this.dialogSpeaker = this.add.text(30, dY + 8, '', {
+        fontSize: '12px', color: '#ffcc66', fontStyle: 'bold',
+      });
+      this.dialogText = this.add.text(30, dY + 26, '', {
+        fontSize: '11px', color: '#ccccdd', lineSpacing: 3,
+        wordWrap: { width: GAME_WIDTH - 80 },
+      });
+      const continueBtn = this.add.text(GAME_WIDTH - 50, dY + 80, '[Continue]', {
+        fontSize: '10px', color: '#88aacc',
+      }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+        .on('pointerover', () => continueBtn.setColor('#aaddff'))
+        .on('pointerout', () => continueBtn.setColor('#88aacc'))
+        .on('pointerdown', () => this.advanceDialog());
+
+      this.dialogContainer = this.add.container(0, 0, [dBg, this.dialogSpeaker, this.dialogText, continueBtn])
+        .setScrollFactor(0).setDepth(2000).setVisible(false);
+    }
+
     // ── Panel content text objects (positioned in updateUI) ──
     this.targetPanel = this.add.text(0, 0, '', {
       fontSize: '11px', color: '#ffddaa', lineSpacing: 4,
@@ -277,7 +307,8 @@ export class UIScene extends Phaser.Scene {
       if (data?.xpLost > 0) this.addLog(`  ↓ Потеряно ${data.xpLost} XP`);
       this.addLog(`  ✦ Слабость: −15% урон на ${data?.debuffDuration ?? 30}с`);
     });
-    gs.events.on('body-captured', (name: string) => this.addLog(`✦ Захвачено: ${name}`));
+    gs.events.on('body-captured', (name: string) => this.addLog(`✦ Captured: ${name}`));
+    gs.events.on('show-dialog', (msgs: { speaker: string; text: string }[]) => this.showDialog(msgs));
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} — [E] захват`));
     gs.events.on('capture-start', (name: string) => this.addLog(`Захват ${name}...`));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
@@ -1145,6 +1176,26 @@ export class UIScene extends Phaser.Scene {
       this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
     }
     if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+  }
+
+  // ── Dialog system ──────────────────────────────────────
+
+  public showDialog(messages: { speaker: string; text: string }[]) {
+    this.dialogQueue = [...messages];
+    this.dialogVisible = true;
+    this.advanceDialog();
+  }
+
+  private advanceDialog() {
+    if (this.dialogQueue.length === 0) {
+      this.dialogContainer.setVisible(false);
+      this.dialogVisible = false;
+      return;
+    }
+    const msg = this.dialogQueue.shift()!;
+    this.dialogSpeaker.setText(msg.speaker);
+    this.dialogText.setText(msg.text);
+    this.dialogContainer.setVisible(true);
   }
 
   private refreshWindow() {

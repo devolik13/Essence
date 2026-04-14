@@ -295,6 +295,11 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
     this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
 
+    // Show prologue on first game start (village only)
+    if (this.currentZone.id === 'village') {
+      this.time.delayedCall(500, () => this.showPrologue());
+    }
+
     // ─── Индикатор выбранной цели ─────────────────────
     this.targetIndicator = this.add.arc(0, 0, 18, 0, 360, false, 0xffff00, 0)
       .setStrokeStyle(2, 0xffff00, 0.8).setVisible(false);
@@ -1043,6 +1048,8 @@ export class GameScene extends Phaser.Scene {
         if (npc.role === 'vendor') {
           this.openVendorUI();
           this.events.emit('open-vendor');
+        } else if (npc.role === 'npc') {
+          this.talkToNPC(npc.id);
         }
         return true;
       }
@@ -1142,6 +1149,52 @@ export class GameScene extends Phaser.Scene {
       }
     }
     return false;
+  }
+
+  /** NPC dialog system */
+  private talkToNPC(npcId: string) {
+    const dialogs: Record<string, { speaker: string; text: string }[]> = {
+      aldric: [
+        { speaker: 'Aldric — Blacksmith', text: "I forge weapons and armor for the village. If you need something crafted, use the workbenches nearby. I've seen better days... the elementals have been restless lately." },
+        { speaker: 'Aldric — Blacksmith', text: "Bring me ore, wood, and hides — I'll show you how to make proper gear. Start with copper. It's soft, but it'll do for now." },
+      ],
+      pol: [
+        { speaker: 'Pol — Innkeeper', text: "Welcome to the Rusty Tankard. You're one of those... Spheres, aren't you? We've seen a few come through. Most don't last long." },
+        { speaker: 'Pol — Innkeeper', text: "Word of advice — don't go into the elemental zones unprepared. The creatures there aren't like the goblins. They wield magic." },
+      ],
+      mira: [
+        { speaker: 'Mira — Guide', text: "Father says you came from another world. I believe him. There's something different about you — the way you move between bodies." },
+        { speaker: 'Mira — Guide', text: "The four Guardians protect the balance of this land. Ignis to the south, Aquaris to the north, Terra to the west, Aeros to the east. They've been here since before the village was built." },
+        { speaker: 'Mira — Guide', text: "If you're going to face one... be ready. They're ancient. And powerful." },
+      ],
+      stranger: [
+        { speaker: '???', text: "..." },
+        { speaker: '???', text: "You can see me. Interesting. Most can't. Or they pretend not to." },
+        { speaker: '???', text: "I've been watching. The Void is closer than anyone thinks. The Guardians feel it too — that's why they're agitated. But you... you might be the key." },
+        { speaker: '???', text: "Find the crystals. All four. Before it's too late." },
+      ],
+    };
+
+    const msgs = dialogs[npcId];
+    if (msgs) {
+      this.events.emit('show-dialog', msgs);
+    }
+  }
+
+  /** Show prologue on first game start */
+  private showPrologue() {
+    // Check if prologue was already shown
+    if (localStorage.getItem('essence_prologue_shown')) return;
+    localStorage.setItem('essence_prologue_shown', '1');
+
+    this.events.emit('show-dialog', [
+      { speaker: 'Nikola Tesla', text: "They came from nowhere. Bullets pass through them. Shells crumble to dust. We tried everything — electricity, explosives, chemicals. Nothing works." },
+      { speaker: 'Marie Curie', text: "I found the same frequency in my radiation readings — but from empty air. As if another world vibrates on the same wavelength as these creatures." },
+      { speaker: 'Nikola Tesla', text: "We built the Transfer Machine. It separates consciousness from body and sends it to that other world — as a Sphere. A pure mind, able to inhabit any creature." },
+      { speaker: 'Marie Curie', text: "Magic there isn't magic. It's physics at a different frequency. Learn it. Master it. Bring it back. It's the only weapon that works against the Void." },
+      { speaker: 'Nikola Tesla', text: "You're not the first volunteer. But you might be the first to return strong enough. Go. Find a body. Learn everything you can." },
+      { speaker: '', text: "You feel yourself dissolving... fading... and then reforming. A bright sphere of light in an unfamiliar world. You are the Essence." },
+    ]);
   }
 
   /** Show floating message above player */

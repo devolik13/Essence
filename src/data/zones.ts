@@ -136,6 +136,10 @@ export const ZONE_VILLAGE: ZoneConfig = {
   // NPCs
   npcs: [
     { x: PW / 2, y: PH / 2 - 160, id: 'vendor', nameRu: 'Merchant', role: 'vendor' },
+    { x: PW / 2 - 150, y: PH / 2 - 80, id: 'aldric', nameRu: 'Aldric', role: 'npc' },
+    { x: PW / 2 + 150, y: PH / 2 - 80, id: 'pol', nameRu: 'Pol', role: 'npc' },
+    { x: PW / 2 + 200, y: PH / 2 + 100, id: 'mira', nameRu: 'Mira', role: 'npc' },
+    { x: PW / 2 - 200, y: PH / 2 - 160, id: 'stranger', nameRu: '???', role: 'npc' },
   ],
 };
 
