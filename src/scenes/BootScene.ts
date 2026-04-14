@@ -829,9 +829,42 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('mage_atk_up',      'assets/mage/Lich-custom_cast_up-v1.png',   { frameWidth: W, frameHeight: W });
 
     // ── Spell spritesheets ──────────────────────────────────────────────────
-    // Fireball: 1024x1024, 3×3 = 9 frames, each ~341×341
-    this.load.spritesheet('spell_fireball', 'assets/spells/fire/fireball_sheet.webp', { frameWidth: 341, frameHeight: 341 });
-    this.load.spritesheet('spell_fire_wall', 'assets/spells/fire/fire_wall_spritesheet.webp', { frameWidth: 256, frameHeight: 256 });
+    // FIRE
+    this.load.spritesheet('spell_fireball',       'assets/spells/fire/fireball_sheet.webp',        { frameWidth: 341, frameHeight: 341 }); // 3×3=9
+    this.load.spritesheet('spell_fire_wall',      'assets/spells/fire/fire_wall_spritesheet.webp', { frameWidth: 256, frameHeight: 256 }); // 5×5=25
+    this.load.spritesheet('spell_spark',          'assets/spells/fire/explosion_sheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_firebolt',       'assets/spells/fire/firebolt_sheet.webp',        { frameWidth: 256, frameHeight: 180 }); // 4×3=12
+    this.load.spritesheet('spell_fire_tsunami',   'assets/spells/fire/tsunami_sheet.webp',         { frameWidth: 192, frameHeight: 96 });  // 4×2=8 (768/4, 768/8? no 768/2=384 per row... wait 4col 2row = 192×384? no)
+    this.load.spritesheet('spell_burning_ground', 'assets/spells/fire/burning_ground_sheet.webp',  { frameWidth: 204, frameHeight: 136 }); // 3×3=9 (612/3=204)
+
+    // WATER
+    this.load.spritesheet('spell_ice_drop',         'assets/spells/water/ice_drop_sprite.webp',        { frameWidth: 192, frameHeight: 384 }); // 4×2=8 (768/4=192, 768/2=384)
+    this.load.spritesheet('spell_frost_arrow',      'assets/spells/water/frost_arrow_sprite.webp',     { frameWidth: 768, frameHeight: 153 }); // 1×5=5 (768/1, 768/5=153)
+    this.load.spritesheet('spell_frost_explosion',  'assets/spells/water/frost_explosion_sprite.webp', { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_ice_explosion',    'assets/spells/water/ice_explosion_sheet.webp',    { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_blizzard',         'assets/spells/water/blizzard_sprite.webp',        { frameWidth: 256, frameHeight: 256 }); // 5×5=25
+    this.load.spritesheet('spell_absolute_zero',    'assets/spells/water/absolute_zero.webp',          { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+
+    // EARTH
+    this.load.image('spell_pebble',              'assets/spells/earth/pebble_sprite.webp');       // static
+    this.load.spritesheet('spell_spike',         'assets/spells/earth/spike_sprite.webp',          { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_earth_wall',    'assets/spells/earth/wall_sprite.webp',           { frameWidth: 256, frameHeight: 256 }); // 5×5=25
+    this.load.image('spell_grotto',              'assets/spells/earth/grotto_shield.webp');        // static
+    this.load.spritesheet('spell_meteor',        'assets/spells/earth/meteor_sprite.webp',         { frameWidth: 256, frameHeight: 256 }); // 5×5=25
+
+    // WIND
+    this.load.spritesheet('spell_gust',          'assets/spells/wind/gust_spritesheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_wind_blade',    'assets/spells/wind/wind_blade_spritesheet.webp', { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_wind_wall',     'assets/spells/wind/wind_wall_spritesheet.webp',  { frameWidth: 153, frameHeight: 384 }); // 5×2=10 (768/5=153, 768/2=384)
+    this.load.spritesheet('spell_lightning',      'assets/spells/wind/lightning_spritesheet.webp',  { frameWidth: 153, frameHeight: 384 }); // 5×2=10
+    this.load.spritesheet('spell_ball_lightning', 'assets/spells/wind/ball_spritesheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+
+    // NATURE
+    this.load.image('spell_bark',                'assets/spells/nature/bark_shield.webp');         // static
+    this.load.spritesheet('spell_leaves',        'assets/spells/nature/leaves_sheet.webp',         { frameWidth: 122, frameHeight: 136 }); // 5×3=15 (612/5=122, 408/3=136)
+    this.load.spritesheet('spell_ent',           'assets/spells/nature/ent_sheet.webp',            { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_wolf_idle',     'assets/spells/nature/wolf_idle_sheet.webp',      { frameWidth: 102, frameHeight: 102 }); // 5×5=25 (512/5=102)
+    this.load.spritesheet('spell_wolf_attack',   'assets/spells/nature/wolf-attack-v2.webp',       { frameWidth: 102, frameHeight: 102 }); // 5×5=25
   }
 
   create() {
@@ -869,22 +902,45 @@ export class BootScene extends Phaser.Scene {
     makeAnim('mage_atk_up',     'mage_atk_up',     17, 0);
 
     // ── Spell animations ─────────────────────────────────────────────────────
-    if (!this.anims.exists('spell_fireball')) {
-      this.anims.create({
-        key: 'spell_fireball',
-        frames: this.anims.generateFrameNumbers('spell_fireball', { start: 0, end: 8 }),
-        frameRate: 14,
-        repeat: 0,
-      });
-    }
-    if (!this.anims.exists('spell_fire_wall')) {
-      this.anims.create({
-        key: 'spell_fire_wall',
-        frames: this.anims.generateFrameNumbers('spell_fire_wall', { start: 0, end: 24 }),
-        frameRate: 12,
-        repeat: -1,
-      });
-    }
+    const mkSpell = (key: string, sheet: string, end: number, fps: number, loop: boolean) => {
+      if (!this.anims.exists(key)) {
+        this.anims.create({ key, frames: this.anims.generateFrameNumbers(sheet, { start: 0, end }), frameRate: fps, repeat: loop ? -1 : 0 });
+      }
+    };
+
+    // FIRE
+    mkSpell('spell_spark',          'spell_spark',          8,  12, false);
+    mkSpell('spell_firebolt',       'spell_firebolt',       11, 14, true);
+    mkSpell('spell_fireball',       'spell_fireball',       8,  12, false);
+    mkSpell('spell_fire_wall',      'spell_fire_wall',      24, 12, true);
+    mkSpell('spell_fire_tsunami',   'spell_fire_tsunami',   7,  10, true);
+    mkSpell('spell_burning_ground', 'spell_burning_ground', 8,  10, true);
+
+    // WATER
+    mkSpell('spell_ice_drop',        'spell_ice_drop',        7,  10, false);
+    mkSpell('spell_frost_arrow',     'spell_frost_arrow',     4,  10, true);
+    mkSpell('spell_frost_explosion', 'spell_frost_explosion', 8,  12, false);
+    mkSpell('spell_ice_explosion',   'spell_ice_explosion',   8,  12, false);
+    mkSpell('spell_blizzard',        'spell_blizzard',        24, 10, true);
+    mkSpell('spell_absolute_zero',   'spell_absolute_zero',   8,  12, false);
+
+    // EARTH
+    mkSpell('spell_spike',      'spell_spike',      8,  12, false);
+    mkSpell('spell_earth_wall', 'spell_earth_wall', 24, 10, true);
+    mkSpell('spell_meteor',     'spell_meteor',     24, 14, false);
+
+    // WIND
+    mkSpell('spell_gust',          'spell_gust',          8,  12, false);
+    mkSpell('spell_wind_blade',    'spell_wind_blade',    8,  12, false);
+    mkSpell('spell_wind_wall',     'spell_wind_wall',     9,  10, true);
+    mkSpell('spell_lightning',     'spell_lightning',      9,  14, false);
+    mkSpell('spell_ball_lightning','spell_ball_lightning', 8,  12, true);
+
+    // NATURE
+    mkSpell('spell_leaves',       'spell_leaves',       14, 10, true);
+    mkSpell('spell_ent',          'spell_ent',          8,  8,  true);
+    mkSpell('spell_wolf_idle',    'spell_wolf_idle',    24, 8,  true);
+    mkSpell('spell_wolf_attack',  'spell_wolf_attack',  24, 14, false);
 
     this.scene.start('GameScene');
     this.scene.start('UIScene');
