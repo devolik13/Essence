@@ -183,6 +183,24 @@ export const ITEMS: Record<string, ItemDef> = {
     descRu: '+1 Armor, +1 Will', icon: '✦', equipSlot: 'armor_rune', armorBonus: 1, statBonuses: { will: 1 },
   },
 
+  // ── Quest Items ─────────────────────────────────────────────────────────────
+  crystal_fire: {
+    id: 'crystal_fire', nameRu: 'Fire Crystal', rarity: 'legendary', type: 'material',
+    descRu: 'Crystallized essence of Ignis. Enables fire magic in the Steam World.', icon: '💎',
+  },
+  crystal_water: {
+    id: 'crystal_water', nameRu: 'Water Crystal', rarity: 'legendary', type: 'material',
+    descRu: 'Crystallized essence of Aquaris. Enables water magic in the Steam World.', icon: '💎',
+  },
+  crystal_earth: {
+    id: 'crystal_earth', nameRu: 'Earth Crystal', rarity: 'legendary', type: 'material',
+    descRu: 'Crystallized essence of Terra. Enables earth magic in the Steam World.', icon: '💎',
+  },
+  crystal_wind: {
+    id: 'crystal_wind', nameRu: 'Wind Crystal', rarity: 'legendary', type: 'material',
+    descRu: 'Crystallized essence of Aeros. Enables wind magic in the Steam World.', icon: '💎',
+  },
+
   // Consumables
   health_potion: {
     id: 'health_potion', nameRu: 'Зелье здоровья', rarity: 'common', type: 'consumable',

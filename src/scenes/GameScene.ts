@@ -3002,12 +3002,21 @@ export class GameScene extends Phaser.Scene {
   /** Разговор с NPC-квестодателем */
   private tryTalkToQuestGiver(): boolean {
     const qp = this.questGiverPos;
-    if (distance(this.sphere.x, this.sphere.y, qp.x, qp.y) > CAPTURE_RANGE * 1.5) return false;
+    const entity = this.playerBody ?? this.sphere;
+    if (distance(entity.x, entity.y, qp.x, qp.y) > 80) return false;
 
-    const all = this.questTracker.getAll();
-    const active = all.filter(q => !q.completed);
-    const done   = all.filter(q => q.completed);
+    // Advance 'talk' quest objectives
+    const talkCompleted = this.questTracker.onTalk('ranger');
+    for (const q of talkCompleted) this.onQuestComplete(q);
 
+    // Show dialog of next available quest
+    const next = this.questTracker.getNextQuest();
+    if (next?.def.dialogStart) {
+      this.showMessage(next.def.dialogStart.substring(0, 80) + '...');
+    }
+
+    const active = this.questTracker.getActive();
+    const done = this.questTracker.getCompleted();
     this.events.emit('quest-giver-talk', { active, done });
     return true;
   }

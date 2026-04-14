@@ -1,18 +1,28 @@
-export type ObjectiveType = 'kill' | 'capture' | 'learn_spell';
+export type ObjectiveType = 'kill' | 'capture' | 'learn_spell' | 'craft_t3' | 'talk' | 'kill_boss';
 
 export interface QuestObjective {
   type: ObjectiveType;
   targetId?: string;
-  targetNameRu?: string;  // русское имя цели для отображения
+  targetNameRu?: string;
   count: number;
 }
 
 export interface QuestDef {
   id: string;
   nameRu: string;
+  /** Quest description / story text */
+  description?: string;
   objectives: QuestObjective[];
-  /** XP awarded on completion — distributed same as kill XP */
+  /** XP awarded on completion */
   xpReward: number;
+  /** Prerequisite quest IDs — must be completed before this quest activates */
+  prerequisiteIds?: string[];
+  /** Dialog text shown when quest is given */
+  dialogStart?: string;
+  /** Dialog text shown when quest is completed */
+  dialogEnd?: string;
+  /** Item reward on completion */
+  rewardItemId?: string;
 }
 
 export interface QuestProgress {

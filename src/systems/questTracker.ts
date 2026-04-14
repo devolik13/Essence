@@ -11,17 +11,40 @@ export class QuestTracker {
     }));
   }
 
-  /** Returns newly completed quests (may be empty) */
+  /** Check if quest prerequisites are met */
+  isQuestAvailable(q: QuestProgress): boolean {
+    if (q.completed) return false;
+    if (!q.def.prerequisiteIds || q.def.prerequisiteIds.length === 0) return true;
+    return q.def.prerequisiteIds.every(preId =>
+      this.quests.some(pq => pq.def.id === preId && pq.completed)
+    );
+  }
+
+  /** Returns newly completed quests */
   onKill(creatureId: string): QuestProgress[] {
     return this.advance('kill', creatureId);
   }
 
-  onCapture(_creatureId: string): QuestProgress[] {
-    return this.advance('capture', undefined);
+  onCapture(creatureId: string): QuestProgress[] {
+    // Capture advances both specific creature and generic 'capture' objectives
+    const results = this.advance('capture', creatureId);
+    return results;
   }
 
   onSpellLearned(spellId: string): QuestProgress[] {
     return this.advance('learn_spell', spellId);
+  }
+
+  onTalk(npcId: string): QuestProgress[] {
+    return this.advance('talk', npcId);
+  }
+
+  onCraftT3(): QuestProgress[] {
+    return this.advance('craft_t3', undefined);
+  }
+
+  onBossKill(bossId: string): QuestProgress[] {
+    return this.advance('kill_boss', bossId);
   }
 
   getAll(): QuestProgress[] {
@@ -29,7 +52,17 @@ export class QuestTracker {
   }
 
   getActive(): QuestProgress[] {
-    return this.quests.filter(q => !q.completed);
+    return this.quests.filter(q => !q.completed && this.isQuestAvailable(q));
+  }
+
+  getCompleted(): QuestProgress[] {
+    return this.quests.filter(q => q.completed);
+  }
+
+  /** Get the next available quest that hasn't started yet */
+  getNextQuest(): QuestProgress | null {
+    return this.quests.find(q => !q.completed && this.isQuestAvailable(q) &&
+      q.counts.every(c => c === 0)) ?? null;
   }
 
   restoreState(completedIds: string[], counts: Record<string, number[]>) {
@@ -44,12 +77,14 @@ export class QuestTracker {
 
     for (const q of this.quests) {
       if (q.completed) continue;
+      // Check prerequisites
+      if (!this.isQuestAvailable(q)) continue;
 
       let progressed = false;
       for (let i = 0; i < q.def.objectives.length; i++) {
         const obj = q.def.objectives[i];
         if (obj.type !== type) continue;
-        // targetId undefined in objective = any target
+        // targetId undefined in objective = any target matches
         if (obj.targetId !== undefined && obj.targetId !== targetId) continue;
         if (q.counts[i] < obj.count) {
           q.counts[i]++;
