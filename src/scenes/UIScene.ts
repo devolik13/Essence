@@ -1249,22 +1249,51 @@ export class UIScene extends Phaser.Scene {
 
     switch (this.currentWindow) {
       case 'stats': {
-        const debuffStr = debuffSecs > 0 ? `  ⚠ Слабость: ${debuffSecs}с` : '';
-        const lines: string[] = [`◉ Ранг ${rank.toFixed(1)}${debuffStr}`, ''];
+        const debuffStr = debuffSecs > 0 ? `  ⚠ Weakness: ${debuffSecs}s` : '';
+        const lines: string[] = [`◉ Rank ${rank.toFixed(1)}${debuffStr}`, ''];
+
+        // Calculate equipment bonuses
+        const equipBonuses: Partial<Record<StatName, number>> = {};
+        const equip = sphere.equipment ?? {};
+        const statMap: Record<string, StatName> = {
+          strength: StatName.Strength, agility: StatName.Agility,
+          accuracy: StatName.Accuracy, evasion: StatName.Evasion,
+          health: StatName.Health, armor: StatName.Armor,
+          intellect: StatName.Intellect, will: StatName.Will,
+          mana: StatName.Mana, luck: StatName.Luck,
+        };
+        for (const slotKey of Object.keys(equip)) {
+          const itemId = (equip as any)[slotKey];
+          if (!itemId) continue;
+          const def = ITEMS[itemId];
+          if (!def) continue;
+          if (def.statBonuses) {
+            for (const [s, v] of Object.entries(def.statBonuses)) {
+              const sn = statMap[s];
+              if (sn && v) equipBonuses[sn] = (equipBonuses[sn] ?? 0) + v;
+            }
+          }
+          if (def.armorBonus) equipBonuses[StatName.Armor] = (equipBonuses[StatName.Armor] ?? 0) + def.armorBonus;
+        }
+
         for (const stat of STAT_ORDER) {
-          const val = sphere.stats[stat];
+          const base = sphere.stats[stat];
+          const bonus = equipBonuses[stat] ?? 0;
+          const total = base + bonus;
           const cap = caps[stat];
+          const bonusStr = bonus > 0 ? ` (+${bonus})` : '';
+
           if (cap !== undefined) {
-            const isCapped = val >= cap;
-            let line = `► ${STAT_NAMES_SHORT[stat]}: ${val}/${cap}`;
+            const isCapped = base >= cap;
+            let line = `► ${STAT_NAMES_SHORT[stat]}: ${total}${bonusStr}  /${cap}`;
             if (!isCapped) {
               const xp = xpTracker[stat] ?? 0;
-              const need = xpToNextLevel(val);
+              const need = xpToNextLevel(base);
               line += `  ${buildXPBar(xp, need, 6)} ${xp}/${need}`;
-            } else line += ' [КАП]';
+            } else line += ' [CAP]';
             lines.push(line);
           } else {
-            lines.push(`  ${STAT_NAMES_SHORT[stat]}: ${val}`);
+            lines.push(`  ${STAT_NAMES_SHORT[stat]}: ${total}${bonusStr}`);
           }
         }
         const sig = data.body?.definition.signatureSpell;
@@ -1273,12 +1302,17 @@ export class UIScene extends Phaser.Scene {
           lines.push('');
           const learned = sphere.learnedSpells.some(sp => sp.id === sig.id);
           if (learned) {
-            lines.push(`✦ ${sig.nameRu} — ИЗУЧЕНО`);
+            lines.push(`✦ ${sig.nameRu} — LEARNED`);
           } else {
             const cur = sphere.spellProgress[sig.id] ?? 0;
             lines.push(`✧ ${sig.nameRu}: ${buildXPBar(cur, threshold, 10)}  ${cur}/${threshold}`);
           }
         }
+
+        // Show currency
+        lines.push('');
+        lines.push(`💰 ${formatCurrency(sphere.copper ?? 0)}`);
+
         this.windowTitleText.setText('◉ Sphere Stats');
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
