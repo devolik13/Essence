@@ -2369,7 +2369,7 @@ export class GameScene extends Phaser.Scene {
         spell.school === 'fire' ? 0xff5500 : spell.school === 'water' ? 0x4499ff : 0xffffff);
     }
     spawnHitVFX(this, target.x, target.y, spellSchool, result.crit || !!isDouble);
-    if (spell.school === 'fire') spawnFireballVFX(this, target.x, target.y);
+    if (spell.id === 'mob_fire_t4') spawnFireballVFX(this, target.x, target.y);
     if (result.crit || isDouble) sfxCritHit(); else if (spell.damageType === 'magic') sfxMagicHit(); else sfxMeleeHit();
 
     // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────
@@ -2781,6 +2781,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.spawnAoeFlash(worldX, worldY, radius);
+    // Fireball T4 animated explosion at AoE center
+    if (spell.id === 'mob_fire_t4') spawnFireballVFX(this, worldX, worldY);
 
     for (const c of this.creatures) {
       if (c.isDead) continue;
