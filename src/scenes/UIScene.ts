@@ -3,6 +3,7 @@ import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
 import { StatName } from '../types/stats';
+import { t, getLang, setLang, initLang } from '../i18n';
 import { CaptureProcess, CaptureState } from '../systems/capture';
 import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
@@ -282,6 +283,17 @@ export class UIScene extends Phaser.Scene {
       loop: true,
       callback: this.tickAchievementNotif,
       callbackScope: this,
+    });
+
+    // ── Language toggle button ─────────────────────────────
+    initLang();
+    const langBtn = this.add.text(GAME_WIDTH - 40, GAME_HEIGHT - 16, getLang().toUpperCase(), {
+      fontSize: '10px', color: '#888888', backgroundColor: '#111122', padding: { x: 4, y: 2 },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(2000).setInteractive({ useHandCursor: true });
+    langBtn.on('pointerdown', () => {
+      const next = getLang() === 'en' ? 'ru' : 'en';
+      setLang(next);
+      langBtn.setText(next.toUpperCase());
     });
 
     // ── Skill bar ─────────────────────────────────────────
