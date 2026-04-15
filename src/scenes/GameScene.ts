@@ -2690,6 +2690,55 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // ── Chain Lightning: прыгает от цели к цели ──────────────────────────
+    if (spell.effectType === 'chain_lightning' && result.hit) {
+      const jumpRadius = spell.chainRadius ?? 120;
+      const maxJumps = (spell.chainCount ?? 5) - 1; // first hit already done
+      const hitTargets = new Set<Creature>([target]);
+      let currentTarget = target;
+
+      const doChain = (jumpIndex: number) => {
+        if (jumpIndex >= maxJumps) return;
+        // Find nearest unhit enemy
+        let nearest: Creature | null = null;
+        let nearestDist = jumpRadius;
+        for (const c of this.creatures) {
+          if (c.isDead || c.isSummoned || hitTargets.has(c)) continue;
+          const d = distance(currentTarget.x, currentTarget.y, c.x, c.y);
+          if (d < nearestDist) { nearestDist = d; nearest = c; }
+        }
+        if (!nearest) return;
+
+        hitTargets.add(nearest);
+        const nextTarget = nearest;
+
+        // Delayed chain — visual hop
+        this.time.delayedCall(150 * (jumpIndex + 1), () => {
+          // Projectile VFX between targets
+          spawnSpellProjectile(this, currentTarget.x, currentTarget.y, nextTarget.x, nextTarget.y, spell.id, 40);
+
+          // Damage
+          const r = calcMagicDamage(this.getEffectiveStats(), nextTarget.stats, spell.baseDamage);
+          let chainDmg = r.final;
+          if (spell.doubleDamageChance && Math.random() < spell.doubleDamageChance) chainDmg *= 2;
+          nextTarget.takeDamage(chainDmg);
+          this.aggroCreature(nextTarget);
+          spawnHitVFX(this, nextTarget.x, nextTarget.y, spell.school ?? 'wind', chainDmg > r.final);
+          this.damageTexts.push(new DamageText(this, nextTarget.x, nextTarget.y - 10, chainDmg, chainDmg > r.final, false));
+
+          // Status effect
+          if (spell.statusEffect && Math.random() < (spell.statusChance ?? 0)) {
+            nextTarget.applyStatus(spell.statusEffect as any);
+          }
+
+          if (nextTarget.isDead) this.onCreatureKilled(nextTarget);
+          currentTarget = nextTarget;
+          doChain(jumpIndex + 1);
+        });
+      };
+      doChain(0);
+    }
+
     // ── Сброс кулдауна (длинный лук) ─────────────────────────────────────
     if (spell.effectType === 'reset_cooldown' && result.hit) {
       if (Math.random() < (spell.resetCooldownChance ?? 0)) {

@@ -82,8 +82,10 @@ export const MOB_WIND_T4: AbilityDef = {
 export const MOB_WIND_T5: AbilityDef = {
   id: 'mob_wind_t5', prerequisiteId: 'mob_wind_t4',
   nameRu: 'Ball Lightning', school: 'wind', damageType: 'magic',
-  effectType: 'multi_projectile', projectileCount: 5, projectileRadius: 300,
+  effectType: 'chain_lightning',
+  chainRadius: 120,   // jump radius between targets
+  chainCount: 5,      // number of jumps
   castTime: 1.5, cooldown: 25, manaCost: 15, range: 300, baseDamage: 30,
   doubleDamageChance: 0.3, statusEffect: 'stun', statusChance: 0.05,
-  description: 'Chain lightning 5 targets. 30% double dmg, 5% stun.',
+  description: 'Ball lightning hits target then chains to 4 nearby enemies. 30% double dmg, 5% stun.',
 };
