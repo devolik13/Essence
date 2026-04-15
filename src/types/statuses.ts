@@ -52,6 +52,7 @@ export type StatusEffectId =
   | 'mana_flow'        // Групповой бафф регена маны (+20%)
   | 'mana_link_self'   // Mana Link: дебафф кастера (−10% реген маны)
   | 'mana_link_target' // Mana Link: бафф цели (+15% реген маны)
+  | 'magic_vulnerability' // Метеокинез (+50% входящего магического урона)
   | 'focus'            // Фокусировка (следующая атака 100% попадает)
   | 'damage_boost'     // Боевой клич (+10% исходящего урона)
   // Баффы
@@ -402,6 +403,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     id: 'mana_link_target', nameRu: 'Mana Link',
     maxStacks: 1, duration: 9999, stackBehavior: 'refresh', // toggle — бессрочный
     regenManaBonus: 0.15,
+  },
+  magic_vulnerability: {
+    id: 'magic_vulnerability', nameRu: 'Meteorokinesis',
+    maxStacks: 1, duration: 8, stackBehavior: 'refresh',
+    incomingDamageIncrease: 0.5, // +50% incoming magic damage
   },
   focus: {
     id: 'focus', nameRu: 'Focus',

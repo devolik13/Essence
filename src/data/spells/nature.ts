@@ -62,13 +62,12 @@ export const MOB_NATURE_T4: AbilityDef = {
   castTime: 2, cooldown: 40, manaCost: 15, range: 150, baseDamage: 0,
   description: 'Place Ent (HP=10% of caster). Absorbs damage for allies in r100. 20 sec.',
 };
-/** T5 — Meteorokinesis: magic damage aura (Archimage: +5-15% стихийным) */
+/** T5 — Meteorokinesis: AoE debuff (Archimage: +5-15% стихийным) */
 export const MOB_NATURE_T5: AbilityDef = {
   id: 'mob_nature_t5', prerequisiteId: 'mob_nature_t4',
   nameRu: 'Meteorokinesis', school: 'nature', damageType: 'magic',
-  effectType: 'self_buff', statusEffect: 'damage_boost',
-  isToggle: true,
-  cooldown: 0, manaCost: 0, range: 0, baseDamage: 0,
-  regenPenalty: 0.2,
-  description: 'Toggle: +10% magic damage. -20% mana regen.',
+  isAoe: true, aoeRadius: 250,
+  statusEffect: 'magic_vulnerability', statusChance: 1.0,
+  castTime: 2, cooldown: 30, manaCost: 15, range: 0, baseDamage: 0,
+  description: 'All enemies in r250 take +50% magic damage for 8 sec.',
 };
