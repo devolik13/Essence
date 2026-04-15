@@ -20,6 +20,7 @@ export type StatusEffectId =
   | 'leaf_regen'       // Покров листвы (реген HP аура)
   // Контроль действий
   | 'stun'             // Оглушение
+  | 'knockdown'        // Сбитие с ног (отдельно от стана)
   | 'sleep'            // Сон
   | 'silence'          // Немота
   | 'fear'             // Страх
@@ -217,6 +218,11 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   stun: {
     id: 'stun', nameRu: 'Stun',
     maxStacks: 1, duration: 2, stackBehavior: 'refresh',
+    blockAll: true,
+  },
+  knockdown: {
+    id: 'knockdown', nameRu: 'Knockdown',
+    maxStacks: 1, duration: 1, stackBehavior: 'refresh',
     blockAll: true,
   },
   sleep: {

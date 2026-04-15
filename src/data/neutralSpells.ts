@@ -457,10 +457,10 @@ export const ABILITY_KNOCKDOWN: AbilityDef = {
   manaCost: 10,
   range: 64,
   baseDamage: 12,
-  statusEffect: 'stun',
+  statusEffect: 'knockdown',
   statusChance: 1.0,
   requiredWeapons: [WeaponType.Spear],
-  description: 'Подсечка копьём. Сбивает врага с ног (оглушение 1 сек).',
+  description: 'Подсечка копьём. Сбивает врага с ног (1 сек).',
 };
 
 /** Исцеление союзника — лечит выбранного союзника */
