@@ -71,6 +71,7 @@ export const ABILITY_MANEUVER: AbilityDef = {
   isAoe: true,
   aoeRadius: 200,
   statusEffect: 'evasion_boost',
+  requiredWeapons: [WeaponType.Fists],
   description: 'Союзники в r200 получают +10 Уклонение на 3 сек.',
 };
 
@@ -89,6 +90,7 @@ export const ABILITY_COVER: AbilityDef = {
   isAoe: true,
   aoeRadius: 200,
   statusEffect: 'block_next',
+  requiredWeapons: [WeaponType.Sword],
   description: 'Союзники в r200 блокируют следующую 1 атаку (10 сек).',
 };
 
@@ -133,6 +135,7 @@ export const ABILITY_EXPOSE: AbilityDef = {
   range: 60,
   baseDamage: 12,
   bonusDamagePercentPerTargetBuff: 0.1,
+  requiredWeapons: [WeaponType.LongBow],
   description: 'Удар. +10% урона за каждый бафф на противнике.',
 };
 
@@ -195,6 +198,7 @@ export const ABILITY_RANGED_RESIST: AbilityDef = {
   manaCost: 10,
   range: 0,
   baseDamage: 0,
+  requiredWeapons: [WeaponType.LongBow],
   description: '−30% входящего дальнего урона на 5 сек.',
 };
 
@@ -226,6 +230,7 @@ export const ABILITY_UNSHAKEABLE: AbilityDef = {
   manaCost: 5,
   range: 0,
   baseDamage: 0,
+  requiredWeapons: [WeaponType.Spear],
   description: 'Иммунитет к оглушению на 5 сек.',
 };
 
@@ -241,6 +246,7 @@ export const ABILITY_FIRM_STANCE: AbilityDef = {
   manaCost: 5,
   range: 0,
   baseDamage: 0,
+  requiredWeapons: [WeaponType.Mace],
   description: 'Иммунитет к отбрасыванию на 5 сек.',
 };
 
@@ -258,6 +264,7 @@ export const ABILITY_IRON_SKIN: AbilityDef = {
   range: 0,
   baseDamage: 0,
   targetParty: true, // применяется на всю группу (party), не по радиусу
+  requiredWeapons: [WeaponType.Sword, WeaponType.Mace],
   description: 'All party members gain +10% Armor for 6 sec.',
 };
 
@@ -275,6 +282,7 @@ export const ABILITY_FORTUNE: AbilityDef = {
   range: 0,
   baseDamage: 0,
   targetParty: true,
+  requiredWeapons: [WeaponType.Dagger],
   description: 'All party members gain +20% Luck for 5 sec.',
 };
 
@@ -326,6 +334,7 @@ export const ABILITY_BATTLE_MARCH: AbilityDef = {
   isAoe: true,
   aoeRadius: 200,
   statusEffect: 'acceleration',
+  requiredWeapons: [WeaponType.Hammer],
   description: 'Союзники в r200 получают +50% скорости на 5 сек.',
 };
 
@@ -340,6 +349,7 @@ export const ABILITY_EXECUTE: AbilityDef = {
   range: 60,
   baseDamage: 12,
   executeBonusPercent: 0.5,
+  requiredWeapons: [WeaponType.Crossbow],
   description: 'Удар. +50% урона если у цели менее 50% HP.',
 };
 
@@ -354,6 +364,7 @@ export const ABILITY_PURE_STRIKE: AbilityDef = {
   range: 60,
   baseDamage: 12,
   bonusDamageIfNoEnchant: 0.3,
+  requiredWeapons: [WeaponType.ShortBow],
   description: 'Удар. +30% урона если нет активного зачарования.',
 };
 
