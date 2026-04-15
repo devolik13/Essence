@@ -109,6 +109,8 @@ export interface StatusEffectDef {
   outgoingDamageIncrease?: number;
   /** Увеличение получаемого урона (0.05 = +5%) */
   incomingDamageIncrease?: number;
+  /** Увеличение получаемого стихийного урона (fire/water/earth/wind only) */
+  elementalDamageIncrease?: number;
   /** Снижение получаемого урона (0.2 = −20%) */
   incomingDamageReduction?: number;
   /** Снижение брони цели (0.5 = −50%) */
@@ -407,7 +409,7 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   magic_vulnerability: {
     id: 'magic_vulnerability', nameRu: 'Meteorokinesis',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
-    incomingDamageIncrease: 0.5, // +50% incoming magic damage
+    elementalDamageIncrease: 0.5, // +50% incoming elemental (fire/water/earth/wind) damage ONLY
   },
   focus: {
     id: 'focus', nameRu: 'Focus',
