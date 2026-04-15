@@ -412,6 +412,21 @@ export const ABILITY_POISON_TRAP: AbilityDef = {
   description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает яд.',
 };
 
+/** Бросок к цели — кинжальщик прыгает к выбранной цели */
+export const ABILITY_SHADOW_STEP: AbilityDef = {
+  id: 'shadow_step',
+  nameRu: 'Shadow Step',
+  school: 'neutral',
+  damageType: 'melee',
+  cooldown: 10,
+  manaCost: 10,
+  range: 300,
+  baseDamage: 8,
+  leapDistance: 150,
+  requiredWeapons: [WeaponType.Dagger],
+  description: 'Прыжок к цели (макс 150px). Если цель дальше — не достанет.',
+};
+
 /** Сбитие с ног — копьё сбивает врага, оглушение */
 export const ABILITY_KNOCKDOWN: AbilityDef = {
   id: 'knockdown',
