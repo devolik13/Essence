@@ -77,12 +77,17 @@ export const MOB_FIRE_T4: AbilityDef = {
   castTime: 2, cooldown: 15, manaCost: 15, range: 280, baseDamage: 35,
   description: 'Massive fireball explosion. AoE r160.',
 };
-/** T5 — Fire Tsunami: wave of fire, burning ground (Archimage: волна 30-70/колонку) */
+/** T5 — Fire Tsunami: wave sweeps toward caster, leaves burning ground */
 export const MOB_FIRE_T5: AbilityDef = {
   id: 'mob_fire_t5', prerequisiteId: 'mob_fire_t4',
   nameRu: 'Fire Tsunami', school: 'fire', damageType: 'magic',
-  effectType: 'ground_zone', isWallShape: true, wallWidth: 200, wallThickness: 40,
-  castTime: 3, cooldown: 30, manaCost: 15, range: 250, baseDamage: 0,
-  isAoe: true, aoeRadius: 100, zoneDuration: 6, zoneDps: 45,
-  description: 'Wave of fire. 200×40 wall, 45 dps, 6 sec.',
+  effectType: 'fire_tsunami',
+  wallWidth: 200,       // width of the wave
+  wallThickness: 160,   // depth of the zone (wave travels this distance)
+  castTime: 3, cooldown: 30, manaCost: 15, range: 250,
+  baseDamage: 30,       // wave hit damage (instant)
+  isAoe: true, aoeRadius: 100,
+  zoneDuration: 6,      // burning ground lasts 6 sec
+  zoneDps: 25,          // burning ground DPS
+  description: 'Fire wave sweeps toward caster. 30 dmg on hit + burning ground 25 dps, 6 sec.',
 };

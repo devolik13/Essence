@@ -34,6 +34,26 @@ import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spaw
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 
+// ── Fire Tsunami ─────────────────────────────────────────────
+interface FireTsunami {
+  x: number; y: number;           // center of the zone
+  angle: number;                   // direction from target to caster
+  width: number; depth: number;    // zone dimensions
+  waveProgress: number;            // 0→1, wave position
+  waveDuration: number;            // seconds for wave to cross
+  waveHit: Set<Creature>;         // creatures already hit by wave
+  baseDamage: number;              // instant wave damage
+  burnRemaining: number;           // burning ground timer after wave
+  burnDps: number;                 // burning ground DPS
+  burnTickTimer: number;
+  school: string;
+  casterStats: Stats;
+  ownerIsPlayer: boolean;
+  waveSprite: Phaser.GameObjects.Sprite | null;
+  burnSprites: Phaser.GameObjects.Sprite[];
+  gfx: Phaser.GameObjects.Graphics;
+}
+
 // ── Зона на карте (ground_zone) ─────────────────────────────
 interface GroundZone {
   x: number;
@@ -155,6 +175,9 @@ export class GameScene extends Phaser.Scene {
   private workbenches: { x: number; y: number; type: string; nameRu: string; gfx: Phaser.GameObjects.Container }[] = [];
   private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container }[] = [];
 
+  // Fire tsunamis
+  private fireTsunamis: FireTsunami[] = [];
+
   // Zone exit arrows (shown when near edge)
   private exitArrows: Phaser.GameObjects.Text[] = [];
 
@@ -252,6 +275,7 @@ export class GameScene extends Phaser.Scene {
     this.craftingTimer = 0;
     this.craftingRecipe = null;
     this.lootDrops = [];
+    this.fireTsunamis = [];
     this.exitArrows = [];
   }
 
@@ -550,6 +574,7 @@ export class GameScene extends Phaser.Scene {
     this.updateWindBarriers(delta);
     this.updateSummonedWalls(delta);
     this.updateWorldObjects(delta);
+    this.updateFireTsunamis(delta);
     this.updateExitArrows();
 
     // Индикатор выбранной цели
@@ -1509,6 +1534,146 @@ export class GameScene extends Phaser.Scene {
         sfxLevelUp();
         this.craftingRecipe = null;
         saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      }
+    }
+  }
+
+  // ─── Fire Tsunami ────────────────────────────────────────
+
+  private spawnFireTsunami(wx: number, wy: number, spell: AbilityDef) {
+    if (!this.playerBody) return;
+
+    const width = spell.wallWidth ?? 200;
+    const depth = spell.wallThickness ?? 160;
+    const dx = wx - this.playerBody.x;
+    const dy = wy - this.playerBody.y;
+    const angle = Math.atan2(dy, dx); // direction from caster to target
+    const waveDuration = 1.5; // seconds for wave to cross the zone
+
+    // Zone rectangle graphics (burning ground area)
+    const gfx = this.add.graphics().setDepth(4).setAlpha(0.3);
+    gfx.fillStyle(0xff4400, 0.2);
+    const pts = this.getRotatedRectPoints(wx, wy, width / 2, depth / 2, angle + Math.PI / 2);
+    gfx.fillPoints(pts, true);
+    gfx.lineStyle(1, 0xff6600, 0.4);
+    gfx.strokePoints(pts, true);
+
+    // Wave sprite — starts at far edge, moves toward caster
+    const farX = wx + Math.cos(angle) * (depth / 2);
+    const farY = wy + Math.sin(angle) * (depth / 2);
+    let waveSprite: Phaser.GameObjects.Sprite | null = null;
+    if (this.anims.exists('spell_fire_tsunami')) {
+      waveSprite = this.add.sprite(farX, farY, 'spell_fire_tsunami').setDepth(7);
+      waveSprite.setDisplaySize(width, 60);
+      waveSprite.setRotation(angle + Math.PI); // face toward caster
+      waveSprite.play('spell_fire_tsunami');
+    }
+
+    this.fireTsunamis.push({
+      x: wx, y: wy, angle, width, depth,
+      waveProgress: 0,
+      waveDuration,
+      waveHit: new Set(),
+      baseDamage: spell.baseDamage,
+      burnRemaining: spell.zoneDuration ?? 6,
+      burnDps: spell.zoneDps ?? 25,
+      burnTickTimer: 0,
+      school: spell.school ?? 'fire',
+      casterStats: { ...this.getEffectiveStats() },
+      ownerIsPlayer: true,
+      waveSprite,
+      burnSprites: [],
+      gfx,
+    });
+  }
+
+  private updateFireTsunamis(delta: number) {
+    const dt = delta / 1000;
+
+    for (let i = this.fireTsunamis.length - 1; i >= 0; i--) {
+      const t = this.fireTsunamis[i];
+
+      // Phase 1: Wave moving
+      if (t.waveProgress < 1) {
+        t.waveProgress += dt / t.waveDuration;
+        if (t.waveProgress > 1) t.waveProgress = 1;
+
+        // Move wave sprite
+        if (t.waveSprite) {
+          const prog = t.waveProgress;
+          const farX = t.x + Math.cos(t.angle) * (t.depth / 2) * (1 - prog * 2);
+          const farY = t.y + Math.sin(t.angle) * (t.depth / 2) * (1 - prog * 2);
+          t.waveSprite.setPosition(farX, farY);
+        }
+
+        // Wave hits creatures it passes over
+        const waveLinePos = t.depth * (1 - t.waveProgress) - t.depth / 2; // relative to center
+        for (const c of this.creatures) {
+          if (c.isDead || c.isSummoned || t.waveHit.has(c)) continue;
+          // Check if creature is inside the zone rectangle
+          const cx = c.x - t.x, cy = c.y - t.y;
+          const cos = Math.cos(-t.angle - Math.PI / 2), sin = Math.sin(-t.angle - Math.PI / 2);
+          const lx = cx * cos - cy * sin;
+          const ly = cx * sin + cy * cos;
+          if (Math.abs(lx) > t.width / 2 || Math.abs(ly) > t.depth / 2) continue;
+          // Check if wave has passed this creature's position
+          if (ly < waveLinePos) {
+            t.waveHit.add(c);
+            const r = calcMagicDamage(t.casterStats, c.stats, t.baseDamage);
+            c.takeDamage(r.final);
+            this.aggroCreature(c);
+            spawnSpellImpact(this, c.x, c.y, 'mob_fire_t1'); // spark explosion
+            this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, r.crit, false));
+            if (c.isDead) this.onCreatureKilled(c);
+          }
+        }
+
+        // When wave finishes, destroy wave sprite, spawn burning ground
+        if (t.waveProgress >= 1) {
+          if (t.waveSprite) { t.waveSprite.destroy(); t.waveSprite = null; }
+          // Spawn burning ground sprite
+          if (this.anims.exists('spell_burning_ground')) {
+            const bg = this.add.sprite(t.x, t.y, 'spell_burning_ground').setDepth(5);
+            bg.setDisplaySize(t.width, t.depth);
+            bg.setRotation(t.angle + Math.PI / 2);
+            bg.play('spell_burning_ground');
+            bg.setAlpha(0.7);
+            t.burnSprites.push(bg);
+          }
+          t.gfx.setAlpha(0.5); // make zone more visible
+        }
+      }
+
+      // Phase 2: Burning ground DPS
+      if (t.waveProgress >= 1) {
+        t.burnRemaining -= dt;
+        t.burnTickTimer -= dt;
+
+        if (t.burnTickTimer <= 0) {
+          t.burnTickTimer = 1; // tick every 1 sec
+          for (const c of this.creatures) {
+            if (c.isDead || c.isSummoned) continue;
+            const cx = c.x - t.x, cy = c.y - t.y;
+            const cos = Math.cos(-t.angle - Math.PI / 2), sin = Math.sin(-t.angle - Math.PI / 2);
+            const lx = cx * cos - cy * sin;
+            const ly = cx * sin + cy * cos;
+            if (Math.abs(lx) > t.width / 2 || Math.abs(ly) > t.depth / 2) continue;
+            const r = calcMagicDamage(t.casterStats, c.stats, t.burnDps);
+            c.takeDamage(r.final);
+            this.aggroCreature(c);
+            this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, false, false));
+            // School bonus: 10% burn
+            if (Math.random() < 0.1) c.applyStatus('burn');
+            if (c.isDead) this.onCreatureKilled(c);
+          }
+        }
+
+        if (t.burnRemaining <= 0) {
+          // Cleanup
+          t.gfx.destroy();
+          for (const s of t.burnSprites) s.destroy();
+          this.fireTsunamis.splice(i, 1);
+        }
       }
     }
   }
@@ -2731,7 +2896,7 @@ export class GameScene extends Phaser.Scene {
     const spell = slot.ability;
 
     // Повторное нажатие на стену/зону — досрочная отмена (даже во время КД)
-    const isPlaceable = spell.effectType === 'summon_wall' || spell.effectType === 'ground_zone' || spell.effectType === 'wind_barrier';
+    const isPlaceable = spell.effectType === 'summon_wall' || spell.effectType === 'ground_zone' || spell.effectType === 'wind_barrier' || spell.effectType === 'fire_tsunami';
     if (isPlaceable && this.cancelPlacedEffect(spell.id)) {
       this.events.emit('log', { text: `${spell.nameRu} — отменено`, color: '#aaaaaa' });
       return;
@@ -2813,6 +2978,12 @@ export class GameScene extends Phaser.Scene {
     // ── Ground Zone: создаём зону вместо мгновенного урона ──────────────
     if (spell.effectType === 'ground_zone') {
       this.spawnGroundZone(worldX, worldY, radius, spell);
+      return;
+    }
+
+    // ── Fire Tsunami: wave + burning ground ──────────────────────────────
+    if (spell.effectType === 'fire_tsunami') {
+      this.spawnFireTsunami(worldX, worldY, spell);
       return;
     }
 

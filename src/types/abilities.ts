@@ -22,7 +22,7 @@ export interface AbilityDef {
   splashDamage?: number;
 
   /** Особый механический эффект умения */
-  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'summon_wall' | 'wind_barrier' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant' | 'ground_zone' | 'projectile_aoe';
+  effectType?: 'dash_forward' | 'dash_backward' | 'summon_wolf' | 'summon_wall' | 'wind_barrier' | 'reset_cooldown' | 'pierce' | 'multi_hit' | 'cone_aoe' | 'multi_projectile' | 'cross_aoe' | 'cone_projectiles' | 'self_buff' | 'self_heal' | 'weapon_enchant' | 'ground_zone' | 'projectile_aoe' | 'fire_tsunami';
   /** Дальность броска вперёд (dash_forward), пикс */
   dashDistance?: number;
   /** Количество целей насквозь (pierce) */
