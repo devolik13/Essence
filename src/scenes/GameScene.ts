@@ -79,6 +79,7 @@ interface GroundZone {
   spellId: string;
   casterStats: Stats;
   ownerIsPlayer: boolean;
+  followPlayer?: boolean;  // зона следует за игроком (Whirlwind)
   // Форма стены (прямоугольник)
   isWall: boolean;
   wallWidth: number;        // длина стены
@@ -3310,6 +3311,7 @@ export class GameScene extends Phaser.Scene {
       casterStats: casterStats ?? { ...this.sphere.stats },
       ownerIsPlayer: isPlayer,
       isWall, wallWidth: wallW, wallThickness: wallT, angle,
+      followPlayer: isPlayer && spell.range === 0,
       gfx,
       sprite: zoneSprite ?? undefined,
     });
@@ -3328,6 +3330,19 @@ export class GameScene extends Phaser.Scene {
         if (zone.sprite) zone.sprite.destroy();
         this.groundZones.splice(i, 1);
         continue;
+      }
+
+      // Следование за игроком (Whirlwind и пр.)
+      if (zone.followPlayer && this.playerBody) {
+        zone.x = this.playerBody.x;
+        zone.y = this.playerBody.y;
+        zone.gfx.clear();
+        const color = ({ fire: 0xff4400, water: 0x4488ff, earth: 0x886633, wind: 0xaaddcc, nature: 0x44aa44 } as Record<string, number>)[zone.school ?? ''] ?? 0xff6600;
+        zone.gfx.fillStyle(color, 0.35);
+        zone.gfx.fillCircle(zone.x, zone.y, zone.radius);
+        zone.gfx.lineStyle(2, color, 0.7);
+        zone.gfx.strokeCircle(zone.x, zone.y, zone.radius);
+        if (zone.sprite) zone.sprite.setPosition(zone.x, zone.y);
       }
 
       // Пульсация альфы
