@@ -73,8 +73,8 @@ export const MOB_WATER_T4: AbilityDef = {
   effectType: 'ground_zone',
   castTime: 2, cooldown: 20, manaCost: 15, range: 250, baseDamage: 0,
   isAoe: true, aoeRadius: 120, zoneDuration: 4, zoneDps: 25,
-  statusEffect: 'chill', statusChance: 0.3,
-  description: 'Blizzard zone. 25 dps, r120, 4 sec. 30% chill.',
+  statusEffect: 'interrupt', statusChance: 0.1,
+  description: 'Blizzard zone. 25 dps, r120, 4 sec. 10% interrupt per tick.',
 };
 /** T5 — Absolute Zero: instant freeze nova (Archimage: пассивка урон + заморозка) */
 export const MOB_WATER_T5: AbilityDef = {
