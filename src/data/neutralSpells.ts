@@ -447,6 +447,22 @@ export const ABILITY_SHADOW_STEP: AbilityDef = {
   description: 'Прыжок к цели (макс 150px). Если цель дальше — не достанет.',
 };
 
+/** Серия ударов — тройной удар кастетами */
+export const ABILITY_COMBO: AbilityDef = {
+  id: 'combo',
+  nameRu: 'Combo',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'multi_hit',
+  hitCount: 3,
+  cooldown: 8,
+  manaCost: 10,
+  range: 36,
+  baseDamage: 10,
+  requiredWeapons: [WeaponType.Fists],
+  description: 'Серия из 3 быстрых ударов кастетами. Эффект оружия на каждый удар.',
+};
+
 /** Таран — рывок копьём, отталкивает врагов на пути без урона */
 export const ABILITY_RAM: AbilityDef = {
   id: 'ram',
