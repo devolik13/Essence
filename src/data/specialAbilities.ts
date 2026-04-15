@@ -1,4 +1,5 @@
 import { AbilityDef } from '../types/abilities';
+import { WeaponType } from '../types/bodies';
 
 // ─── Гоблин ────────────────────────────────────────────────────────────────
 
@@ -445,5 +446,6 @@ export const ABILITY_WAR_CRY: AbilityDef = {
   statusEffect: 'damage_boost',
   cooldown: 30, manaCost: 10, range: 0, baseDamage: 0,
   isAoe: true, aoeRadius: 200,
+  requiredWeapons: [WeaponType.Greatsword],
   description: 'Союзники в r200 +10% урона на 6 сек.',
 };
