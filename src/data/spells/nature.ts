@@ -52,13 +52,15 @@ export const MOB_NATURE_T3: AbilityDef = {
 // T4 & T5 — Adapted from Archimage. Not assigned to creatures yet.
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── NATURE T4/T5 ────────────────────────────────────────────────────────────
-/** T4 — Ent: summon tank (Archimage: защищает + хилит слабейшего) */
+/** T4 — Ent: protective structure (Archimage: защищает связанных магов) */
 export const MOB_NATURE_T4: AbilityDef = {
   id: 'mob_nature_t4', prerequisiteId: 'mob_nature_t3',
   nameRu: 'Ent', school: 'nature', damageType: 'magic',
-  effectType: 'summon_wolf',
-  castTime: 2, cooldown: 40, manaCost: 15, range: 0, baseDamage: 0,
-  description: 'Summon Ent. Tanks and heals weakest ally. 20 sec.',
+  effectType: 'summon_ent',
+  aoeRadius: 100,       // protection radius
+  barrierDuration: 20,  // max lifetime
+  castTime: 2, cooldown: 40, manaCost: 15, range: 150, baseDamage: 0,
+  description: 'Place Ent (HP=10% of caster). Absorbs damage for allies in r100. 20 sec.',
 };
 /** T5 — Meteorokinesis: magic damage aura (Archimage: +5-15% стихийным) */
 export const MOB_NATURE_T5: AbilityDef = {

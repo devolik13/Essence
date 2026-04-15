@@ -34,6 +34,17 @@ import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spaw
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 
+// ── Summoned Ent (damage absorber) ───────────────────────────
+interface SummonedEnt {
+  x: number; y: number;
+  hp: number; maxHP: number;
+  radius: number;
+  remaining: number;
+  sprite: Phaser.GameObjects.Sprite | null;
+  hpBar: Phaser.GameObjects.Rectangle;
+  hpBarBg: Phaser.GameObjects.Rectangle;
+}
+
 // ── Fire Tsunami ─────────────────────────────────────────────
 interface FireTsunami {
   x: number; y: number;           // center of the zone
@@ -177,6 +188,8 @@ export class GameScene extends Phaser.Scene {
 
   // Fire tsunamis
   private fireTsunamis: FireTsunami[] = [];
+  // Summoned Ents
+  private summonedEnts: SummonedEnt[] = [];
 
   // Zone exit arrows (shown when near edge)
   private exitArrows: Phaser.GameObjects.Text[] = [];
@@ -276,6 +289,7 @@ export class GameScene extends Phaser.Scene {
     this.craftingRecipe = null;
     this.lootDrops = [];
     this.fireTsunamis = [];
+    this.summonedEnts = [];
     this.exitArrows = [];
   }
 
@@ -575,6 +589,7 @@ export class GameScene extends Phaser.Scene {
     this.updateSummonedWalls(delta);
     this.updateWorldObjects(delta);
     this.updateFireTsunamis(delta);
+    this.updateEnts(delta);
     this.updateExitArrows();
 
     // Индикатор выбранной цели
@@ -1538,6 +1553,83 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // ─── Summoned Ent ───────────────────────────────────────
+
+  private spawnEnt(wx: number, wy: number, spell: AbilityDef) {
+    if (!this.playerBody) return;
+    const entHP = Math.round(this.playerBody.maxHP * 0.1);
+    const radius = spell.aoeRadius ?? 100;
+    const duration = spell.barrierDuration ?? 20;
+
+    // Sprite
+    let sprite: Phaser.GameObjects.Sprite | null = null;
+    if (this.anims.exists('spell_ent')) {
+      sprite = this.add.sprite(wx, wy, 'spell_ent').setDepth(6);
+      sprite.setDisplaySize(64, 64);
+      sprite.play('spell_ent');
+    }
+
+    // HP bar
+    const hpBarBg = this.add.rectangle(wx, wy - 36, 40, 4, 0x333333).setDepth(7);
+    const hpBar = this.add.rectangle(wx, wy - 36, 40, 4, 0x44cc44).setDepth(8);
+
+    // Protection radius indicator
+    const gfx = this.add.graphics().setDepth(3).setAlpha(0.15);
+    gfx.fillStyle(0x44aa44, 0.2);
+    gfx.fillCircle(wx, wy, radius);
+    gfx.lineStyle(1, 0x44aa44, 0.4);
+    gfx.strokeCircle(wx, wy, radius);
+
+    this.summonedEnts.push({
+      x: wx, y: wy, hp: entHP, maxHP: entHP,
+      radius, remaining: duration,
+      sprite, hpBar, hpBarBg,
+    });
+
+    // Store gfx reference for cleanup
+    (this.summonedEnts[this.summonedEnts.length - 1] as any)._gfx = gfx;
+  }
+
+  private updateEnts(delta: number) {
+    const dt = delta / 1000;
+    for (let i = this.summonedEnts.length - 1; i >= 0; i--) {
+      const ent = this.summonedEnts[i];
+      ent.remaining -= dt;
+
+      // HP bar
+      const ratio = Math.max(0, ent.hp / ent.maxHP);
+      ent.hpBar.width = 40 * ratio;
+
+      if (ent.remaining <= 0 || ent.hp <= 0) {
+        ent.sprite?.destroy();
+        ent.hpBar.destroy();
+        ent.hpBarBg.destroy();
+        (ent as any)._gfx?.destroy();
+        this.summonedEnts.splice(i, 1);
+      }
+    }
+  }
+
+  /** Check if an ent absorbs damage for target at position */
+  public tryEntAbsorb(targetX: number, targetY: number, damage: number): number {
+    for (const ent of this.summonedEnts) {
+      if (ent.hp <= 0) continue;
+      const d = distance(targetX, targetY, ent.x, ent.y);
+      if (d <= ent.radius) {
+        // Ent absorbs the damage
+        const absorbed = Math.min(ent.hp, damage);
+        ent.hp -= absorbed;
+        // Flash ent
+        if (ent.sprite) {
+          ent.sprite.setTint(0xff4444);
+          this.time.delayedCall(150, () => ent.sprite?.clearTint());
+        }
+        return damage - absorbed; // remaining damage to target
+      }
+    }
+    return damage; // no ent protecting
+  }
+
   // ─── Fire Tsunami ────────────────────────────────────────
 
   private spawnFireTsunami(wx: number, wy: number, spell: AbilityDef) {
@@ -1979,7 +2071,9 @@ export class GameScene extends Phaser.Scene {
       if (cdt === 'ranged' && this.playerBody.hasStatus('ranged_resist')) {
         finalDmg = Math.round(finalDmg * 0.7);
       }
-      this.playerBody.takeDamage(finalDmg);
+      // Ent absorbs damage for player if in range
+      const afterEnt = this.tryEntAbsorb(this.playerBody.x, this.playerBody.y, finalDmg);
+      this.playerBody.takeDamage(afterEnt);
     }
 
     // Снаряд моба
@@ -2945,7 +3039,7 @@ export class GameScene extends Phaser.Scene {
     const spell = slot.ability;
 
     // Повторное нажатие на стену/зону — досрочная отмена (даже во время КД)
-    const isPlaceable = spell.effectType === 'summon_wall' || spell.effectType === 'ground_zone' || spell.effectType === 'wind_barrier' || spell.effectType === 'fire_tsunami';
+    const isPlaceable = spell.effectType === 'summon_wall' || spell.effectType === 'ground_zone' || spell.effectType === 'wind_barrier' || spell.effectType === 'fire_tsunami' || spell.effectType === 'summon_ent';
     if (isPlaceable && this.cancelPlacedEffect(spell.id)) {
       this.events.emit('log', { text: `${spell.nameRu} — отменено`, color: '#aaaaaa' });
       return;
@@ -3027,6 +3121,12 @@ export class GameScene extends Phaser.Scene {
     // ── Ground Zone: создаём зону вместо мгновенного урона ──────────────
     if (spell.effectType === 'ground_zone') {
       this.spawnGroundZone(worldX, worldY, radius, spell);
+      return;
+    }
+
+    // ── Summon Ent: damage absorber ─────────────────────────────────────
+    if (spell.effectType === 'summon_ent') {
+      this.spawnEnt(worldX, worldY, spell);
       return;
     }
 
