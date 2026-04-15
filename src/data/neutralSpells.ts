@@ -368,6 +368,50 @@ export const ABILITY_PURE_STRIKE: AbilityDef = {
   description: 'Удар. +30% урона если нет активного зачарования.',
 };
 
+/** Огненная ловушка — зона на земле, при наступлении горение */
+export const ABILITY_FIRE_TRAP: AbilityDef = {
+  id: 'fire_trap',
+  nameRu: 'Fire Trap',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'ground_zone',
+  cooldown: 15,
+  castTime: 1,
+  manaCost: 10,
+  range: 150,
+  baseDamage: 0,
+  isAoe: true,
+  aoeRadius: 40,
+  zoneDuration: 10,
+  zoneDps: 0,
+  statusEffect: 'burn',
+  statusChance: 1.0,
+  requiredWeapons: [WeaponType.ShortBow],
+  description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает горение.',
+};
+
+/** Ядовитая ловушка — зона на земле, при наступлении яд */
+export const ABILITY_POISON_TRAP: AbilityDef = {
+  id: 'poison_trap',
+  nameRu: 'Poison Trap',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'ground_zone',
+  cooldown: 15,
+  castTime: 1,
+  manaCost: 10,
+  range: 150,
+  baseDamage: 0,
+  isAoe: true,
+  aoeRadius: 40,
+  zoneDuration: 10,
+  zoneDps: 0,
+  statusEffect: 'poison',
+  statusChance: 1.0,
+  requiredWeapons: [WeaponType.Dagger],
+  description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает яд.',
+};
+
 /** Исцеление союзника — лечит выбранного союзника */
 export const ABILITY_ALLY_HEAL: AbilityDef = {
   id: 'ally_heal',

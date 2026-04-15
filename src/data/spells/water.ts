@@ -48,23 +48,6 @@ export const MOB_WATER_T3: AbilityDef = {
   zoneDps: 25,
   description: 'Зона ледяного дождя (r80, 3 сек). 25 урона/сек. Школьный бонус: 20% охлаждение.',
 };
-/** Enchant — Зачарование водой: toggle-аура */
-export const ENCHANT_WATER: AbilityDef = {
-  id: 'enchant_water',
-  prerequisiteId: 'mob_water_t2',
-  nameRu: 'Enchant: Water',
-  school: 'water',
-  damageType: 'magic',
-  effectType: 'weapon_enchant',
-  isToggle: true,
-  cooldown: 0,
-  manaCost: 0,
-  range: 0,
-  baseDamage: 0,
-  enchantDamage: 8,
-  regenPenalty: 0.3,
-  description: 'Аура: оружие наносит доп. урон водой (от Интеллекта). Реген маны −30%.',
-};
 // ─── WATER T4/T5 ─────────────────────────────────────────────────────────────
 /** T4 — Blizzard: interrupt + slow zone (Archimage: прерывание 5-10%) */
 export const MOB_WATER_T4: AbilityDef = {

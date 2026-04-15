@@ -51,23 +51,6 @@ export const MOB_WIND_T3: AbilityDef = {
   barrierDuration: 8,
   description: 'Ветряной барьер (160×20, 8 сек). Снаряды пролетая через него теряют 25% урона.',
 };
-/** Enchant — Зачарование ветром: toggle-аура */
-export const ENCHANT_WIND: AbilityDef = {
-  id: 'enchant_wind',
-  prerequisiteId: 'mob_wind_t2',
-  nameRu: 'Enchant: Wind',
-  school: 'wind',
-  damageType: 'magic',
-  effectType: 'weapon_enchant',
-  isToggle: true,
-  cooldown: 0,
-  manaCost: 0,
-  range: 0,
-  baseDamage: 0,
-  enchantDamage: 8,
-  regenPenalty: 0.3,
-  description: 'Аура: оружие наносит доп. урон ветром (от Интеллекта). Реген маны −30%.',
-};
 // ─── WIND T4/T5 ──────────────────────────────────────────────────────────────
 /** T4 — Storm Cloud: multiple lightning (Archimage: 5-9 молний по 15-30) */
 export const MOB_WIND_T4: AbilityDef = {

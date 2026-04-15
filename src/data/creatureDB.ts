@@ -1,9 +1,9 @@
 import { BodyDefinition, BodyType, WeaponType, GOBLIN } from '../types/bodies';
 import { StatName } from '../types/stats';
-import { MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, MOB_FIRE_T4, ENCHANT_FIRE } from './spells/fire';
-import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, ENCHANT_WATER } from './spells/water';
-import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, ENCHANT_EARTH } from './spells/earth';
-import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, ENCHANT_WIND } from './spells/wind';
+import { MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, MOB_FIRE_T4 } from './spells/fire';
+import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3 } from './spells/water';
+import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3 } from './spells/earth';
+import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3 } from './spells/wind';
 import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3 } from './spells/nature';
 import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL } from './neutralSpells';
 import {
@@ -469,9 +469,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 30,    [StatName.Armor]: 8,     [StatName.Will]: 15,
       [StatName.Mana]: 40,      [StatName.Luck]: 5,
     },
-    weapon: WeaponType.StaffFire, color: 0xff3300, abilityName: 'Enchant: Fire',
+    weapon: WeaponType.StaffFire, color: 0xff3300, abilityName: 'Fire Wall',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3],
-    signatureSpell: ENCHANT_FIRE,            spellXPThreshold: 150,
   },
 
   aquaris: {
@@ -484,9 +483,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 28,    [StatName.Armor]: 6,     [StatName.Will]: 18,
       [StatName.Mana]: 40,      [StatName.Luck]: 5,
     },
-    weapon: WeaponType.StaffWater, color: 0x0066ff, abilityName: 'Enchant: Water',
+    weapon: WeaponType.StaffWater, color: 0x0066ff, abilityName: 'Ice Rain',
     npcSpells: [MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3],
-    signatureSpell: ENCHANT_WATER,           spellXPThreshold: 150,
   },
 
   terra: {
@@ -499,9 +497,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 35,    [StatName.Armor]: 15,    [StatName.Will]: 12,
       [StatName.Mana]: 40,      [StatName.Luck]: 5,
     },
-    weapon: WeaponType.StaffEarth, color: 0x886622, abilityName: 'Enchant: Earth',
+    weapon: WeaponType.StaffEarth, color: 0x886622, abilityName: 'Earth Wall',
     npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3],
-    signatureSpell: ENCHANT_EARTH,           spellXPThreshold: 150,
   },
 
   aeros: {
@@ -514,9 +511,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 25,    [StatName.Armor]: 5,     [StatName.Will]: 14,
       [StatName.Mana]: 40,      [StatName.Luck]: 8,
     },
-    weapon: WeaponType.StaffWind, color: 0xccddff, abilityName: 'Enchant: Wind',
+    weapon: WeaponType.StaffWind, color: 0xccddff, abilityName: 'Wind Barrier',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3],
-    signatureSpell: ENCHANT_WIND,            spellXPThreshold: 150,
   },
 
   // ─── Тестовые сферы (пассивные, 1 заклинание, порог 1 XP) ────────────────────
@@ -528,11 +524,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   t_nature_t3: { id: 't_nature_t3', name: 'Nature T3',     nameRu: 'Nature T3',         type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x226622, abilityName: 'Leaf Canopy',        signatureSpell: MOB_NATURE_T3, spellXPThreshold: 1 },
   // Нейтральная
   t_heal:      { id: 't_heal',      name: 'Neutral T2b',   nameRu: 'Heal',             type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 10 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0xaaffaa, abilityName: 'Лечение',              signatureSpell: MOB_NEUTRAL_HEAL, spellXPThreshold: 1 },
-  // Зачарования
-  t_ench_fire:  { id: 't_ench_fire',  name: 'Enchant Fire',  nameRu: 'Ench. Fire',     type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0xff4400, abilityName: 'Enchant: Fire',   signatureSpell: ENCHANT_FIRE,  spellXPThreshold: 1 },
-  t_ench_water: { id: 't_ench_water', name: 'Enchant Water', nameRu: 'Ench. Water',      type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0x0088ff, abilityName: 'Enchant: Water',    signatureSpell: ENCHANT_WATER, spellXPThreshold: 1 },
-  t_ench_earth: { id: 't_ench_earth', name: 'Enchant Earth', nameRu: 'Ench. Earth',     type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0x886600, abilityName: 'Enchant: Earth',   signatureSpell: ENCHANT_EARTH, spellXPThreshold: 1 },
-  t_ench_wind:  { id: 't_ench_wind',  name: 'Enchant Wind',  nameRu: 'Ench. Wind',     type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.Sword,      color: 0xbbddff, abilityName: 'Enchant: Wind',   signatureSpell: ENCHANT_WIND,  spellXPThreshold: 1 },
   // Оружейные T1
   // Оружейные T2
   t_xbow_t2:     { id: 't_xbow_t2',     name: 'Crossbow T2', nameRu: 'Crossbow T2',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x885533, abilityName: 'Snare Bolt',    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 1 },

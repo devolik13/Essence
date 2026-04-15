@@ -435,6 +435,7 @@ export const ABILITY_FOCUS: AbilityDef = {
   effectType: 'self_buff',
   statusEffect: 'focus',
   cooldown: 10, manaCost: 5, range: 0, baseDamage: 0,
+  requiredWeapons: [WeaponType.Hammer],
   description: 'Следующая атака 100% попадает (игнорирует блок и уклонение).',
 };
 

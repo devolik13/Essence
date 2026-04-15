@@ -51,23 +51,6 @@ export const MOB_FIRE_T3: AbilityDef = {
   zoneDps: 35,
   description: 'Стена огня (140×30, 5 сек). Враги в зоне получают 12 урона/сек.',
 };
-/** Enchant — Зачарование огнём: toggle-аура */
-export const ENCHANT_FIRE: AbilityDef = {
-  id: 'enchant_fire',
-  prerequisiteId: 'mob_fire_t2',
-  nameRu: 'Enchant: Fire',
-  school: 'fire',
-  damageType: 'magic',
-  effectType: 'weapon_enchant',
-  isToggle: true,
-  cooldown: 0,
-  manaCost: 0,
-  range: 0,
-  baseDamage: 0,
-  enchantDamage: 8,
-  regenPenalty: 0.3,
-  description: 'Аура: оружие наносит доп. урон огнём (от Интеллекта). Реген маны −30%.',
-};
 // ─── FIRE T4/T5 ──────────────────────────────────────────────────────────────
 /** T4 — Fireball: AoE explosion (Archimage: взрыв 3×3) */
 export const MOB_FIRE_T4: AbilityDef = {

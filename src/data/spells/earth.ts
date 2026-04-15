@@ -53,23 +53,6 @@ export const MOB_EARTH_T3: AbilityDef = {
   barrierDuration: 10,
   description: 'Призывает каменную стену (120×24, 10 сек, HP = 50 × (1+Инт/100)).',
 };
-/** Enchant — Зачарование землёй: toggle-аура */
-export const ENCHANT_EARTH: AbilityDef = {
-  id: 'enchant_earth',
-  prerequisiteId: 'mob_earth_t2',
-  nameRu: 'Enchant: Earth',
-  school: 'earth',
-  damageType: 'magic',
-  effectType: 'weapon_enchant',
-  isToggle: true,
-  cooldown: 0,
-  manaCost: 0,
-  range: 0,
-  baseDamage: 0,
-  enchantDamage: 8,
-  regenPenalty: 0.3,
-  description: 'Аура: оружие наносит доп. урон землёй (от Интеллекта). Реген маны −30%.',
-};
 // ─── EARTH T4/T5 ─────────────────────────────────────────────────────────────
 /** T4 — Stone Grotto: armor aura (Archimage: пассивка +10-20% брони) */
 export const MOB_EARTH_T4: AbilityDef = {

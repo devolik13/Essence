@@ -301,11 +301,6 @@ export const TEST_SPELL_SPAWNS: SpawnGroup[] = [
   { x: 4600, y: 2880, creatureId: 't_nature_t3', count: 1 },
   // Нейтральная (юго-восток)
   { x: 4140, y: 3180, creatureId: 't_heal',  count: 1 },
-  // Зачарования (юг)
-  { x: 3940, y: 3200, creatureId: 't_ench_fire',  count: 1 },
-  { x: 3740, y: 3200, creatureId: 't_ench_water', count: 1 },
-  { x: 3540, y: 3180, creatureId: 't_ench_earth', count: 1 },
-  { x: 3340, y: 3120, creatureId: 't_ench_wind',  count: 1 },
   // Оружейные T1 (юго-запад → запад)
   // T3 тестовые (южнее деревни)
   { x: 3440, y: 3240, creatureId: 't_fire_t3',    count: 1 },
