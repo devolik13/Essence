@@ -465,6 +465,23 @@ export const ABILITY_RAM: AbilityDef = {
   description: 'Рывок вперёд на 200px. Отталкивает всех врагов на пути без урона.',
 };
 
+/** Рикошет — болт отскакивает ко второй цели рядом */
+export const ABILITY_RICOCHET: AbilityDef = {
+  id: 'ricochet',
+  nameRu: 'Ricochet',
+  school: 'neutral',
+  damageType: 'ranged',
+  effectType: 'chain_lightning',
+  chainRadius: 150,
+  chainCount: 1,
+  cooldown: 8,
+  manaCost: 10,
+  range: 280,
+  baseDamage: 10,
+  requiredWeapons: [WeaponType.Crossbow],
+  description: 'Болт попадает в цель и отскакивает к ближайшему врагу в r150.',
+};
+
 /** Исцеление союзника — лечит выбранного союзника */
 export const ABILITY_ALLY_HEAL: AbilityDef = {
   id: 'ally_heal',
