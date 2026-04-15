@@ -2556,8 +2556,8 @@ export class GameScene extends Phaser.Scene {
                  : spell.damageType === 'ranged' ? calcRangedDamage(this.getEffectiveStats(), target.stats, spell.baseDamage)
                  :                                  calcMagicDamage(this.getEffectiveStats(), target.stats, spell.baseDamage);
 
-    // ── Прыжок к цели (Землетрясение) ─────────────────────────────────────
-    if (spell.leapDistance && this.playerBody) {
+    // ── Прыжок к цели (Shadow Step и пр. — не-AoE) ──────────────────────
+    if (spell.leapDistance && this.playerBody && !spell.isAoe) {
       const dx = target.x - this.playerBody.x;
       const dy = target.y - this.playerBody.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -3117,6 +3117,16 @@ export class GameScene extends Phaser.Scene {
     slot.cooldownRemaining = spell.cooldown;
 
     const radius = spell.aoeRadius ?? 60;
+
+    // ── Прыжок в точку (Землетрясение и пр.) ───────────────────────────
+    if (spell.leapDistance && this.playerBody) {
+      const dx = worldX - this.playerBody.x;
+      const dy = worldY - this.playerBody.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const leap = Math.min(spell.leapDistance, dist);
+      this.playerBody.x += (dx / dist) * leap;
+      this.playerBody.y += (dy / dist) * leap;
+    }
 
     // ── Ground Zone: создаём зону вместо мгновенного урона ──────────────
     if (spell.effectType === 'ground_zone') {
