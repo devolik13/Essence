@@ -80,12 +80,12 @@ export const MOB_EARTH_T4: AbilityDef = {
   isAoe: true, aoeRadius: 200,
   description: '+15% armor to self and allies r200, 8 sec.',
 };
-/** T5 — Meteor Shower: multiple impacts (Archimage: 1-5 метеоритов, -50% брони) */
+/** T5 — Meteor Shower: AoE around caster (Archimage: 1-5 метеоритов, -50% брони) */
 export const MOB_EARTH_T5: AbilityDef = {
   id: 'mob_earth_t5', prerequisiteId: 'mob_earth_t4',
   nameRu: 'Meteor Shower', school: 'earth', damageType: 'magic',
-  effectType: 'multi_projectile', projectileCount: 5, projectileRadius: 200,
-  castTime: 3, cooldown: 30, manaCost: 15, range: 280, baseDamage: 30,
+  isAoe: true, aoeRadius: 200,
+  castTime: 3, cooldown: 30, manaCost: 15, range: 0, baseDamage: 30,
   statusEffect: 'armor_break', statusChance: 0.5,
-  description: '5 meteors. 30 dmg each, 50% armor break.',
+  description: 'Meteors rain around caster. r200, 30 dmg, 50% armor break.',
 };
