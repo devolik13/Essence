@@ -3047,7 +3047,14 @@ export class GameScene extends Phaser.Scene {
 
     if (slot.cooldownRemaining > 0) return;
 
-    if (spell.isAoe) {
+    if (spell.isAoe && spell.range === 0) {
+      // AoE на себе (Whirlwind и пр.) — без прицеливания
+      if (this.playerBody.currentMana < spell.manaCost) {
+        this.events.emit('no-mana');
+        return;
+      }
+      this.doAoeDamage(spell, slotIndex, this.playerBody.x, this.playerBody.y);
+    } else if (spell.isAoe) {
       // Входим в режим прицеливания
       this.aoeTargeting = { slotIndex, spell };
       this.events.emit('aoe-targeting', spell.nameRu);

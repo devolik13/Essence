@@ -412,6 +412,26 @@ export const ABILITY_POISON_TRAP: AbilityDef = {
   description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает яд.',
 };
 
+/** Кручение — вращение двуручником, урон вокруг себя 3 сек */
+export const ABILITY_WHIRLWIND: AbilityDef = {
+  id: 'whirlwind',
+  nameRu: 'Whirlwind',
+  school: 'neutral',
+  damageType: 'melee',
+  effectType: 'ground_zone',
+  cooldown: 15,
+  castTime: 0,
+  manaCost: 10,
+  range: 0,
+  baseDamage: 0,
+  isAoe: true,
+  aoeRadius: 60,
+  zoneDuration: 3,
+  zoneDps: 15,
+  requiredWeapons: [WeaponType.Greatsword],
+  description: 'Кручение двуручником 3 сек. Наносит урон всем врагам вокруг (r60).',
+};
+
 /** Бросок к цели — кинжальщик прыгает к выбранной цели */
 export const ABILITY_SHADOW_STEP: AbilityDef = {
   id: 'shadow_step',
