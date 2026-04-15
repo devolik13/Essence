@@ -73,9 +73,9 @@ export const ENCHANT_FIRE: AbilityDef = {
 export const MOB_FIRE_T4: AbilityDef = {
   id: 'mob_fire_t4', prerequisiteId: 'mob_fire_t3',
   nameRu: 'Fireball', school: 'fire', damageType: 'magic',
-  isAoe: true, aoeRadius: 100,
+  isAoe: true, aoeRadius: 160,
   castTime: 2, cooldown: 15, manaCost: 15, range: 280, baseDamage: 35,
-  description: 'Massive fireball explosion. AoE r100.',
+  description: 'Massive fireball explosion. AoE r160.',
 };
 /** T5 — Fire Tsunami: wave of fire, burning ground (Archimage: волна 30-70/колонку) */
 export const MOB_FIRE_T5: AbilityDef = {
