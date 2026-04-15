@@ -2437,8 +2437,34 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'dash_forward') {
       const dist = spell.dashDistance ?? 180;
       const dir = this.playerBody.getFacingVector();
-      this.playerBody.x = clamp(this.playerBody.x + dir.x * dist, 16, MAP_WIDTH  - 16);
-      this.playerBody.y = clamp(this.playerBody.y + dir.y * dist, 16, MAP_HEIGHT - 16);
+      const startX = this.playerBody.x;
+      const startY = this.playerBody.y;
+      this.playerBody.x = clamp(startX + dir.x * dist, 16, MAP_WIDTH  - 16);
+      this.playerBody.y = clamp(startY + dir.y * dist, 16, MAP_HEIGHT - 16);
+
+      // Таран: отталкивание врагов вдоль пути рывка
+      if (spell.statusEffect === 'knockback') {
+        const pushDist = 80;
+        for (const c of this.creatures) {
+          if (c.isDead) continue;
+          // Проверяем расстояние от линии рывка (start→end)
+          const ax = c.x - startX, ay = c.y - startY;
+          const bx = this.playerBody.x - startX, by = this.playerBody.y - startY;
+          const lenSq = bx * bx + by * by;
+          const t = lenSq > 0 ? Math.max(0, Math.min(1, (ax * bx + ay * by) / lenSq)) : 0;
+          const projX = startX + t * bx, projY = startY + t * by;
+          const d = distance(c.x, c.y, projX, projY);
+          if (d < 40) {
+            // Отталкиваем перпендикулярно от линии рывка
+            const dx = c.x - projX, dy = c.y - projY;
+            const nd = Math.sqrt(dx * dx + dy * dy) || 1;
+            c.x += (dx / nd) * pushDist;
+            c.y += (dy / nd) * pushDist;
+            c.applyStatus('knockback' as any);
+          }
+        }
+      }
+
       this.events.emit('ability-used', spell.nameRu);
       return;
     }

@@ -447,20 +447,22 @@ export const ABILITY_SHADOW_STEP: AbilityDef = {
   description: 'Прыжок к цели (макс 150px). Если цель дальше — не достанет.',
 };
 
-/** Сбитие с ног — копьё сбивает врага, оглушение */
-export const ABILITY_KNOCKDOWN: AbilityDef = {
-  id: 'knockdown',
-  nameRu: 'Knockdown',
+/** Таран — рывок копьём, отталкивает врагов на пути без урона */
+export const ABILITY_RAM: AbilityDef = {
+  id: 'ram',
+  nameRu: 'Ram',
   school: 'neutral',
   damageType: 'melee',
+  effectType: 'dash_forward',
+  dashDistance: 200,
   cooldown: 12,
   manaCost: 10,
-  range: 64,
-  baseDamage: 12,
-  statusEffect: 'knockdown',
+  range: 0,
+  baseDamage: 0,
+  statusEffect: 'knockback',
   statusChance: 1.0,
   requiredWeapons: [WeaponType.Spear],
-  description: 'Подсечка копьём. Сбивает врага с ног (1 сек).',
+  description: 'Рывок вперёд на 200px. Отталкивает всех врагов на пути без урона.',
 };
 
 /** Исцеление союзника — лечит выбранного союзника */
