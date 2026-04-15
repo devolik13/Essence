@@ -106,8 +106,8 @@ export const ABILITY_SHIELD_STANCE: AbilityDef = {
   manaCost: 10,
   range: 0,
   baseDamage: 0,
-  requiredWeapons: [WeaponType.Sword, WeaponType.Mace],
-  description: 'Замедление −30% на 5 сек, но +15 Armor. Только для меча и булавы (со щитом).',
+  requiredWeapons: [WeaponType.Sword],
+  description: 'Замедление −30% на 5 сек, но +15 Armor. Только для меча (со щитом).',
 };
 
 /** Отчаяние — удар с +10 урона за каждый дебафф на себе. Только ближний бой */
@@ -264,7 +264,7 @@ export const ABILITY_IRON_SKIN: AbilityDef = {
   range: 0,
   baseDamage: 0,
   targetParty: true, // применяется на всю группу (party), не по радиусу
-  requiredWeapons: [WeaponType.Sword, WeaponType.Mace],
+  requiredWeapons: [WeaponType.Mace],
   description: 'All party members gain +10% Armor for 6 sec.',
 };
 
