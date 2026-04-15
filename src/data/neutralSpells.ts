@@ -408,8 +408,24 @@ export const ABILITY_POISON_TRAP: AbilityDef = {
   zoneDps: 0,
   statusEffect: 'poison',
   statusChance: 1.0,
-  requiredWeapons: [WeaponType.Dagger],
+  requiredWeapons: [WeaponType.ShortBow],
   description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает яд.',
+};
+
+/** Сбитие с ног — копьё сбивает врага, оглушение */
+export const ABILITY_KNOCKDOWN: AbilityDef = {
+  id: 'knockdown',
+  nameRu: 'Knockdown',
+  school: 'neutral',
+  damageType: 'melee',
+  cooldown: 12,
+  manaCost: 10,
+  range: 64,
+  baseDamage: 12,
+  statusEffect: 'stun',
+  statusChance: 1.0,
+  requiredWeapons: [WeaponType.Spear],
+  description: 'Подсечка копьём. Сбивает врага с ног (оглушение 1 сек).',
 };
 
 /** Исцеление союзника — лечит выбранного союзника */
