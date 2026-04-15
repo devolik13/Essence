@@ -10,7 +10,7 @@ import Phaser from 'phaser';
 /** Impact animations (play once at target position) */
 export const SPELL_IMPACT_ANIM: Record<string, string> = {
   mob_fire_t1:  'spell_spark',            // Spark
-  mob_fire_t4:  'spell_fireball',         // Fireball
+  mob_fire_t4:  'spell_spark',             // Fireball explosion (spark = explosion sprite)
   mob_water_t1: 'spell_ice_explosion',    // Ice Shard → ice explosion
   mob_water_t2: 'spell_frost_explosion',  // Ice Arrow splash → frost explosion
   mob_water_t5: 'spell_absolute_zero',    // Absolute Zero
@@ -23,6 +23,7 @@ export const SPELL_IMPACT_ANIM: Record<string, string> = {
 /** Projectile animations (fly from caster to target, loop) */
 export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
   mob_fire_t2:  'spell_firebolt',       // Fire Arrow
+  mob_fire_t4:  'spell_fireball',       // Fireball — big flying ball
   mob_water_t2: 'spell_frost_arrow',    // Ice Arrow
   mob_wind_t4:  'spell_lightning',       // Storm Cloud bolts
   mob_wind_t5:  'spell_ball_lightning',  // Ball Lightning
@@ -63,9 +64,10 @@ export function spawnSpellProjectile(
   const dist = Math.sqrt(dx * dx + dy * dy);
   const dur = Math.min(600, (dist / 420) * 1000);
 
+  const projSize = spellId === 'mob_fire_t4' ? 80 : size; // Fireball — bigger projectile
   const sprite = scene.add.sprite(fromX, fromY, animKey).setDepth(53);
-  sprite.setDisplaySize(size, size);
-  sprite.setRotation(angle);
+  sprite.setDisplaySize(projSize, projSize);
+  if (spellId !== 'mob_fire_t4') sprite.setRotation(angle); // fireball doesn't rotate
   sprite.play(animKey);
 
   scene.tweens.add({

@@ -2831,7 +2831,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.spawnAoeFlash(worldX, worldY, radius);
-    // Spell-specific AoE impact animation
+    // Spell-specific AoE: projectile flying to point + impact animation
+    if (this.playerBody) {
+      spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, worldX, worldY, spell.id);
+    }
     spawnSpellImpact(this, worldX, worldY, spell.id, (spell.aoeRadius ?? 60) * 2);
 
     for (const c of this.creatures) {
