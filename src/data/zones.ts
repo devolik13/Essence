@@ -29,7 +29,7 @@ export interface NPCSpawn {
   x: number; y: number;
   id: string;
   nameRu: string;
-  role: 'vendor' | 'quest';
+  role: 'vendor' | 'quest' | 'npc' | 'weapon_vendor';
 }
 
 export interface ZoneConfig {

@@ -83,7 +83,7 @@ export class UIScene extends Phaser.Scene {
   private windowContainer!: Phaser.GameObjects.Container;
   private windowTitleText!: Phaser.GameObjects.Text;
   private windowContentText!: Phaser.GameObjects.Text;
-  private windowInteractables: Phaser.GameObjects.Text[] = [];
+  private windowInteractables: Phaser.GameObjects.GameObject[] = [];
   private windowX: number = 200;
   private windowY: number = 50;
   private windowW: number = 310;
