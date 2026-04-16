@@ -3,8 +3,88 @@ import { AbilityDef } from '../types/abilities';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { QuestTracker } from './questTracker';
 import { InventoryItem } from '../types/items';
+import { calcRank } from './progression';
 
-const SAVE_KEY = 'essence_sphere_v1';
+// ── Multi-slot save system ──────────────────────────────
+const CHARACTERS_KEY = 'essence_characters';
+const OLD_SAVE_KEY = 'essence_sphere_v1';
+
+let activeSlotIndex = 0;
+
+function getSaveKey(slot: number): string {
+  return `essence_slot_${slot}`;
+}
+
+// ── Character metadata ──────────────────────────────────
+
+export interface CharacterMeta {
+  slotIndex: number;
+  name: string;
+  bodyId: string;
+  rank: number;
+  lastPlayed: number;
+}
+
+export function setActiveSlot(slot: number) {
+  activeSlotIndex = slot;
+}
+
+export function getActiveSlot(): number {
+  return activeSlotIndex;
+}
+
+export function getCharacters(): CharacterMeta[] {
+  try {
+    const raw = localStorage.getItem(CHARACTERS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch { return []; }
+}
+
+function saveCharacters(chars: CharacterMeta[]) {
+  localStorage.setItem(CHARACTERS_KEY, JSON.stringify(chars));
+}
+
+export function saveCharacterMeta(meta: CharacterMeta): void {
+  const chars = getCharacters();
+  const idx = chars.findIndex(c => c.slotIndex === meta.slotIndex);
+  if (idx >= 0) chars[idx] = meta;
+  else chars.push(meta);
+  saveCharacters(chars);
+}
+
+export function deleteCharacter(slotIndex: number): void {
+  const chars = getCharacters().filter(c => c.slotIndex !== slotIndex);
+  saveCharacters(chars);
+  localStorage.removeItem(getSaveKey(slotIndex));
+}
+
+export function findFreeSlot(): number | null {
+  const chars = getCharacters();
+  const used = new Set(chars.map(c => c.slotIndex));
+  for (let i = 0; i < 3; i++) {
+    if (!used.has(i)) return i;
+  }
+  return null;
+}
+
+export function migrateOldSave(): void {
+  const chars = getCharacters();
+  if (chars.length > 0) return;
+  const old = localStorage.getItem(OLD_SAVE_KEY);
+  if (!old) return;
+  localStorage.setItem(getSaveKey(0), old);
+  localStorage.removeItem(OLD_SAVE_KEY);
+  saveCharacterMeta({
+    slotIndex: 0,
+    name: 'Character',
+    bodyId: 'human_warrior',
+    rank: 1,
+    lastPlayed: Date.now(),
+  });
+}
+
+// ── Save data ───────────────────────────────────────────
 
 interface SaveData {
   stats: Partial<Stats>;
@@ -21,6 +101,7 @@ interface SaveData {
   lastBodyId?: string | null;
   copper?: number;
   weaponSlotConfigs?: Record<string, (string | null)[]>;
+  characterName?: string;
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -48,54 +129,52 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     lastBodyId: sphere.lastBodyId ?? null,
     copper: sphere.copper,
     weaponSlotConfigs: { ...sphere.weaponSlotConfigs },
+    characterName: sphere.characterName,
   };
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    localStorage.setItem(getSaveKey(activeSlotIndex), JSON.stringify(data));
   } catch {
-    // localStorage недоступен
+    // localStorage unavailable
   }
+
+  saveCharacterMeta({
+    slotIndex: activeSlotIndex,
+    name: sphere.characterName || 'Character',
+    bodyId: sphere.lastBodyId ?? 'human_warrior',
+    rank: calcRank(sphere.stats),
+    lastPlayed: Date.now(),
+  });
 }
 
 export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: QuestTracker): boolean {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(getSaveKey(activeSlotIndex));
     if (!raw) return false;
 
     const data: SaveData = JSON.parse(raw);
 
-    // Восстановить статы
     const defaults = createDefaultStats();
     for (const [k, v] of Object.entries(data.stats ?? {})) {
       if (k in defaults) sphere.stats[k as StatName] = v as number;
     }
 
-    // Восстановить XP-трекер
     for (const [k, v] of Object.entries(data.xpTracker ?? {})) {
       sphere.xpTracker[k as StatName] = v as number;
     }
 
-    // Восстановить прогресс заклинаний
     sphere.spellProgress = { ...(data.spellProgress ?? {}) };
-
-    // Восстановить выученные заклинания
     sphere.learnedSpells = allSpells.filter(s => data.learnedSpellIds?.includes(s.id));
 
-    // Восстановить квесты
     if (quests && data.questCounts) {
       quests.restoreState(data.questCompleted ?? [], data.questCounts);
     }
 
-    // Восстановить назначения слотов
     if (data.savedSlotIds) {
       sphere.savedSlotIds = [...data.savedSlotIds];
     }
-
-    // Восстановить инвентарь
     if (data.inventory) {
       sphere.inventory = data.inventory.map(i => ({ ...i }));
     }
-
-    // Восстановить статистику убийств и ачивки
     if (data.killCounts) {
       sphere.killCounts = { ...data.killCounts };
     }
@@ -114,6 +193,9 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     if (data.weaponSlotConfigs) {
       sphere.weaponSlotConfigs = { ...data.weaponSlotConfigs };
     }
+    if (data.characterName) {
+      sphere.characterName = data.characterName;
+    }
 
     return true;
   } catch {
@@ -122,5 +204,7 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
 }
 
 export function resetSave(): void {
-  localStorage.removeItem(SAVE_KEY);
+  localStorage.removeItem(getSaveKey(activeSlotIndex));
+  const chars = getCharacters().filter(c => c.slotIndex !== activeSlotIndex);
+  saveCharacters(chars);
 }

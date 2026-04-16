@@ -53,6 +53,8 @@ export class Sphere extends Phaser.GameObjects.Container {
   /** Изученные рецепты */
   public learnedRecipes: string[] = [];
 
+  public characterName: string = '';
+
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
   private keys!: {

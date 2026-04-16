@@ -126,6 +126,23 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'skill.locked': '🔒 Panel locked',
     'skill.no_combat': '⚔ Cannot change in combat',
 
+    // Title / Character creation
+    'title.new_game': 'New Game',
+    'title.load': 'Load Game',
+    'title.play': 'Play',
+    'title.delete': 'Delete',
+    'title.back': 'Back',
+    'title.empty_slot': '— Empty —',
+    'title.sword': 'Sword',
+    'title.staff': 'Fire Staff',
+    'title.bow': 'Short Bow',
+    'create.title': 'Create Character',
+    'create.name': 'Enter your name:',
+    'create.choose_weapon': 'Choose starting weapon:',
+    'create.start': 'Start',
+    'create.sword_desc': 'Melee warrior\nStrength + Armor',
+    'create.staff_desc': 'Fire mage\nIntellect + Mana',
+
     // Misc
     'misc.respawn_stone': 'Respawn Stone',
     'misc.possess': '[E] possess',
@@ -230,6 +247,23 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'skill.choose': '— выбери заклинание',
     'skill.locked': '🔒 Панель заблокирована',
     'skill.no_combat': '⚔ Нельзя менять в бою',
+
+    // Title / Character creation
+    'title.new_game': 'Новая игра',
+    'title.load': 'Загрузить',
+    'title.play': 'Играть',
+    'title.delete': 'Удалить',
+    'title.back': 'Назад',
+    'title.empty_slot': '— Пусто —',
+    'title.sword': 'Меч',
+    'title.staff': 'Огненный посох',
+    'title.bow': 'Короткий лук',
+    'create.title': 'Создание персонажа',
+    'create.name': 'Введите имя:',
+    'create.choose_weapon': 'Выберите стартовое оружие:',
+    'create.start': 'Начать',
+    'create.sword_desc': 'Воин ближнего боя\nСила + Броня',
+    'create.staff_desc': 'Маг огня\nИнтеллект + Мана',
 
     // Misc
     'misc.respawn_stone': 'Камень возрождения',

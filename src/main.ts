@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
+import { TitleScene } from './scenes/TitleScene';
+import { CharCreateScene } from './scenes/CharCreateScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
 import { GAME_WIDTH, GAME_HEIGHT } from './utils/constants';
@@ -10,7 +12,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: GAME_HEIGHT,
   parent: document.body,
   backgroundColor: '#111111',
-  scene: [BootScene, GameScene, UIScene],
+  scene: [BootScene, TitleScene, CharCreateScene, GameScene, UIScene],
   physics: {
     default: 'arcade',
     arcade: {

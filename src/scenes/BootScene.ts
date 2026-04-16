@@ -942,7 +942,6 @@ export class BootScene extends Phaser.Scene {
     mkSpell('spell_wolf_idle',    'spell_wolf_idle',    24, 8,  true);
     mkSpell('spell_wolf_attack',  'spell_wolf_attack',  24, 14, false);
 
-    this.scene.start('GameScene');
-    this.scene.start('UIScene');
+    this.scene.start('TitleScene');
   }
 }

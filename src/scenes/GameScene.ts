@@ -264,14 +264,22 @@ export class GameScene extends Phaser.Scene {
   private spawnX?: number;
   private spawnY?: number;
 
+  // New game flow
+  private isNewGame = false;
+  private newGameBodyId?: string;
+  private newGameCharName?: string;
+
   constructor() {
     super({ key: 'GameScene' });
   }
 
-  init(data?: { zoneId?: string; spawnX?: number; spawnY?: number }) {
+  init(data?: { zoneId?: string; spawnX?: number; spawnY?: number; isNewGame?: boolean; starterBodyId?: string; characterName?: string }) {
     this.currentZone = ALL_ZONES[data?.zoneId ?? 'village'] ?? ALL_ZONES['village'];
     this.spawnX = data?.spawnX;
     this.spawnY = data?.spawnY;
+    this.isNewGame = data?.isNewGame ?? false;
+    this.newGameBodyId = data?.starterBodyId;
+    this.newGameCharName = data?.characterName;
     // Очищаем все ссылки при перезагрузке сцены
     this.creatures = [];
     this.damageTexts = [];
@@ -305,18 +313,28 @@ export class GameScene extends Phaser.Scene {
     const startX = this.spawnX ?? this.currentZone.respawnPoint.x;
     const startY = this.spawnY ?? this.currentZone.respawnPoint.y;
     this.sphere = new Sphere(this, startX, startY);
-    const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
-    if (loaded) this.events.emit('save-loaded');
 
-    // ─── Восстановление тела после перехода между зонами ─────
-    if (this.sphere.lastBodyId) {
-      const bodyDef = CREATURE_DB[this.sphere.lastBodyId] ?? STARTER_BODIES.find(b => b.id === this.sphere.lastBodyId);
+    if (this.isNewGame) {
+      this.sphere.characterName = this.newGameCharName ?? '';
+    } else {
+      const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      if (loaded) this.events.emit('save-loaded');
+    }
+
+    // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
+    const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
+    if (autoBodyId) {
+      const bodyDef = CREATURE_DB[autoBodyId] ?? STARTER_BODIES.find(b => b.id === autoBodyId);
       if (bodyDef) {
         this.playerBody = new Body(this, startX, startY, bodyDef, this.sphere.stats);
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
         this.playerBody.possess(this);
         this.fillBodySlots(this.playerBody);
         this.sphere.enterBody();
+        this.sphere.lastBodyId = bodyDef.id;
+        if (this.isNewGame) {
+          saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+        }
       }
     }
 
