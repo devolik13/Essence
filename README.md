@@ -28,7 +28,6 @@
 | [11_game_loop](concept/11_game_loop.md) | Игровой цикл |
 | [12_astral_mode](concept/12_astral_mode.md) | Астральный режим |
 | [13_creature_rarity](concept/13_creature_rarity.md) | Система редкости (дизайн) |
-| [14_creature_list](concept/14_creature_list.md) | Список существ |
 | [15_combat](concept/15_combat.md) | Боевые формулы |
 | [16_statuses](concept/16_statuses.md) | Статусные эффекты |
 | [17_magic](concept/17_magic.md) | Система магии — 5 школ (T1-T5) + 5 в разработке |
