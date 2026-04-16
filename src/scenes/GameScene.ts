@@ -2326,6 +2326,12 @@ export class GameScene extends Phaser.Scene {
 
     // Вспышка захвата → появление тела
     this.spawnCaptureFlash(cx, cy, () => {
+      // Уничтожаем старое тело (Сфера покидает его)
+      if (this.playerBody) {
+        this.playerBody.destroy();
+        this.playerBody = null;
+      }
+
       this.playerBody = new Body(this, cx, cy, def, this.sphere.stats);
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
       this.playerBody.possess(this);
