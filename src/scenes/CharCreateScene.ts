@@ -10,14 +10,13 @@ const MAX_NAME_LENGTH = 16;
 interface WeaponGroup {
   labelKey: string;
   color: number;
-  statsDesc: string;
   weapons: WeaponType[];
 }
 
 const GROUPS: WeaponGroup[] = [
-  { labelKey: 'create.group_str', color: 0xcc3333, statsDesc: 'STR 30 / ARM 15 / HP 5',  weapons: STRENGTH_WEAPONS },
-  { labelKey: 'create.group_agi', color: 0x33cc33, statsDesc: 'AGI 30 / ACC 15 / EVA 5', weapons: AGILITY_WEAPONS },
-  { labelKey: 'create.group_int', color: 0x3366ff, statsDesc: 'INT 30 / MNA 15 / WIL 5', weapons: INTELLECT_WEAPONS },
+  { labelKey: 'create.group_str', color: 0xcc3333, weapons: STRENGTH_WEAPONS },
+  { labelKey: 'create.group_agi', color: 0x33cc33, weapons: AGILITY_WEAPONS },
+  { labelKey: 'create.group_int', color: 0x3366ff, weapons: INTELLECT_WEAPONS },
 ];
 
 const STAFF_SCHOOLS: Partial<Record<WeaponType, string>> = {
@@ -32,12 +31,14 @@ export class CharCreateScene extends Phaser.Scene {
   private playerName = '';
   private nameDisplay!: Phaser.GameObjects.Text;
   private nameCursor!: Phaser.GameObjects.Rectangle;
-  private selectedWeapon: WeaponType | null = null;
+  private selectedWeapons: WeaponType[] = [];
   private cardBorders: Map<WeaponType, Phaser.GameObjects.Rectangle> = new Map();
   private cardBgs: Map<WeaponType, Phaser.GameObjects.Rectangle> = new Map();
+  private cardLabels: Map<WeaponType, Phaser.GameObjects.Text> = new Map();
   private infoPanel!: Phaser.GameObjects.Container;
   private startBg!: Phaser.GameObjects.Rectangle;
   private startTxt!: Phaser.GameObjects.Text;
+  private selectionHint!: Phaser.GameObjects.Text;
   private blinkTimer = 0;
   private keyHandler?: (e: KeyboardEvent) => void;
 
@@ -48,9 +49,10 @@ export class CharCreateScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#111111');
     this.playerName = '';
-    this.selectedWeapon = null;
+    this.selectedWeapons = [];
     this.cardBorders.clear();
     this.cardBgs.clear();
+    this.cardLabels.clear();
 
     const cx = GAME_WIDTH / 2;
 
@@ -78,9 +80,14 @@ export class CharCreateScene extends Phaser.Scene {
     window.addEventListener('keydown', this.keyHandler);
 
     // ── Weapon choice label ───────────────────────────
-    this.add.text(280, 140, t('create.choose_weapon'), {
+    this.add.text(280, 140, t('create.choose_weapons'), {
       fontSize: '14px', color: '#778899',
     }).setOrigin(0.5);
+
+    // Selection hint (shows "1/2" or "2/2")
+    this.selectionHint = this.add.text(420, 140, '', {
+      fontSize: '12px', color: '#556677',
+    }).setOrigin(0, 0.5);
 
     // ── Weapon grid ───────────────────────────────────
     const CARD_W = 92;
@@ -93,7 +100,6 @@ export class CharCreateScene extends Phaser.Scene {
     GROUPS.forEach((group, gi) => {
       const rowY = 175 + gi * (CARD_H + GAP_Y + 18);
 
-      // Group label
       this.add.text(GRID_X, rowY + CARD_H / 2, t(group.labelKey), {
         fontSize: '10px', color: '#' + group.color.toString(16).padStart(6, '0'),
       }).setOrigin(0, 0.5);
@@ -122,6 +128,7 @@ export class CharCreateScene extends Phaser.Scene {
     this.startBg = bg;
     this.startTxt = txt;
     this.updateStartButton();
+    this.updateSelectionHint();
   }
 
   update(_time: number, delta: number) {
@@ -156,21 +163,23 @@ export class CharCreateScene extends Phaser.Scene {
   // ── Weapon card ───────────────────────────────────
 
   private createWeaponCard(x: number, y: number, w: number, h: number, wt: WeaponType, groupColor: number) {
-    const weapon = WEAPONS[wt];
     const bg = this.add.rectangle(x, y, w, h, 0x1a1a2a, 0.9);
     const border = this.add.rectangle(x, y, w, h);
     border.setStrokeStyle(1, 0x333344);
     border.setFillStyle(0, 0);
 
-    // Color stripe at top
     this.add.rectangle(x, y - h / 2 + 3, w - 4, 4, groupColor, 0.6);
 
-    // Weapon name (short)
     this.add.text(x, y + 2, t(`weapon.${wt}`), {
       fontSize: '11px', color: '#bbccdd',
     }).setOrigin(0.5);
 
-    // Starter damage (always 10)
+    // Selection order label (hidden initially)
+    const orderLabel = this.add.text(x + w / 2 - 10, y - h / 2 + 6, '', {
+      fontSize: '10px', color: '#66ccff',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
     this.add.text(x, y + 17, '10', {
       fontSize: '10px', color: '#667788',
     }).setOrigin(0.5);
@@ -178,25 +187,23 @@ export class CharCreateScene extends Phaser.Scene {
     bg.setInteractive({ useHandCursor: true });
 
     bg.on('pointerdown', () => {
-      this.selectedWeapon = wt;
-      this.updateCardSelection();
-      this.updateStartButton();
-      this.buildInfoPanel(wt);
+      this.toggleWeapon(wt);
     });
 
     bg.on('pointerover', () => {
-      if (this.selectedWeapon !== wt) {
+      if (!this.selectedWeapons.includes(wt)) {
         border.setStrokeStyle(1, 0x557799);
       }
       this.buildInfoPanel(wt);
     });
 
     bg.on('pointerout', () => {
-      if (this.selectedWeapon !== wt) {
+      if (!this.selectedWeapons.includes(wt)) {
         border.setStrokeStyle(1, 0x333344);
       }
-      if (this.selectedWeapon) {
-        this.buildInfoPanel(this.selectedWeapon);
+      const last = this.selectedWeapons[this.selectedWeapons.length - 1];
+      if (last) {
+        this.buildInfoPanel(last);
       } else {
         this.buildInfoPanelEmpty();
       }
@@ -204,19 +211,49 @@ export class CharCreateScene extends Phaser.Scene {
 
     this.cardBorders.set(wt, border);
     this.cardBgs.set(wt, bg);
+    this.cardLabels.set(wt, orderLabel);
+  }
+
+  private toggleWeapon(wt: WeaponType) {
+    const idx = this.selectedWeapons.indexOf(wt);
+    if (idx >= 0) {
+      // Deselect
+      this.selectedWeapons.splice(idx, 1);
+    } else if (this.selectedWeapons.length < 2) {
+      // Select
+      this.selectedWeapons.push(wt);
+    } else {
+      // Already 2 selected — replace second
+      this.selectedWeapons[1] = wt;
+    }
+    this.updateCardSelection();
+    this.updateStartButton();
+    this.updateSelectionHint();
+    this.buildInfoPanel(wt);
   }
 
   private updateCardSelection() {
     for (const [wt, border] of this.cardBorders) {
       const bg = this.cardBgs.get(wt)!;
-      if (wt === this.selectedWeapon) {
-        border.setStrokeStyle(2, 0x66ccff);
+      const label = this.cardLabels.get(wt)!;
+      const idx = this.selectedWeapons.indexOf(wt);
+
+      if (idx >= 0) {
+        border.setStrokeStyle(2, idx === 0 ? 0x66ccff : 0xffcc44);
         bg.setFillStyle(0x223344, 0.9);
+        label.setText(`${idx + 1}`);
+        label.setColor(idx === 0 ? '#66ccff' : '#ffcc44');
       } else {
         border.setStrokeStyle(1, 0x333344);
         bg.setFillStyle(0x1a1a2a, 0.9);
+        label.setText('');
       }
     }
+  }
+
+  private updateSelectionHint() {
+    this.selectionHint.setText(`(${this.selectedWeapons.length}/2)`);
+    this.selectionHint.setColor(this.selectedWeapons.length === 2 ? '#66ccff' : '#556677');
   }
 
   // ── Info panel ────────────────────────────────────
@@ -240,7 +277,6 @@ export class CharCreateScene extends Phaser.Scene {
     const px = panelW / 2;
     const py = panelH / 2;
 
-    // Background
     const bg = this.add.rectangle(px, py, panelW, panelH, 0x1a1a2a, 0.9);
     bg.setStrokeStyle(1, 0x446688);
     this.infoPanel.add(bg);
@@ -249,36 +285,29 @@ export class CharCreateScene extends Phaser.Scene {
     const leftX = 16;
     const valX = 170;
 
-    // Weapon name
     this.infoPanel.add(this.add.text(px, y, t(`weapon.${wt}`), {
       fontSize: '18px', color: '#ccddee',
       stroke: '#000000', strokeThickness: 2,
     }).setOrigin(0.5));
     y += 28;
 
-    // Separator
     this.infoPanel.add(this.add.rectangle(px, y, panelW - 20, 1, 0x334455));
     y += 12;
 
-    // Type
     const typeKey = INTELLECT_WEAPONS.includes(wt) ? 'create.type.magic'
       : weapon.isMelee ? 'create.type.melee' : 'create.type.ranged';
     this.addInfoRow(leftX, valX, y, t('create.info.type'), t(typeKey));
     y += 20;
 
-    // Damage (starter weapons always 10)
     this.addInfoRow(leftX, valX, y, t('create.info.damage'), '10');
     y += 20;
 
-    // Speed
     this.addInfoRow(leftX, valX, y, t('create.info.speed'), `${weapon.cooldown}s`);
     y += 20;
 
-    // Range
     this.addInfoRow(leftX, valX, y, t('create.info.range'), `${weapon.range}`);
     y += 20;
 
-    // Effect or School
     const school = STAFF_SCHOOLS[wt];
     if (school) {
       this.addInfoRow(leftX, valX, y, t('create.info.school'), t(school), '#aaaaff');
@@ -317,7 +346,7 @@ export class CharCreateScene extends Phaser.Scene {
   // ── Buttons ───────────────────────────────────────
 
   private canStart(): boolean {
-    return this.playerName.trim().length > 0 && this.selectedWeapon !== null;
+    return this.playerName.trim().length > 0 && this.selectedWeapons.length === 2;
   }
 
   private updateStartButton() {
@@ -358,7 +387,9 @@ export class CharCreateScene extends Phaser.Scene {
 
     this.cleanup();
 
-    const bodyId = `starter_${this.selectedWeapon!}`;
+    const weapon1 = this.selectedWeapons[0];
+    const weapon2 = this.selectedWeapons[1];
+    const bodyId = `starter_${weapon1}`;
 
     setActiveSlot(slotIndex);
     saveCharacterMeta({
@@ -372,6 +403,8 @@ export class CharCreateScene extends Phaser.Scene {
     this.scene.start('GameScene', {
       isNewGame: true,
       starterBodyId: bodyId,
+      starterWeapon1: weapon1,
+      starterWeapon2: weapon2,
       characterName: this.playerName.trim(),
     });
     this.scene.start('UIScene');
