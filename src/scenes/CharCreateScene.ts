@@ -15,9 +15,9 @@ interface WeaponGroup {
 }
 
 const GROUPS: WeaponGroup[] = [
-  { labelKey: 'create.group_str', color: 0xcc3333, statsDesc: 'STR 30 / ARM 15 / HP 5',  weapons: STRENGTH_WEAPONS },
-  { labelKey: 'create.group_agi', color: 0x33cc33, statsDesc: 'AGI 30 / ACC 15 / EVA 5', weapons: AGILITY_WEAPONS },
-  { labelKey: 'create.group_int', color: 0x3366ff, statsDesc: 'INT 30 / MNA 15 / WIL 5', weapons: INTELLECT_WEAPONS },
+  { labelKey: 'create.group_str', color: 0xcc3333, statsDesc: '', weapons: STRENGTH_WEAPONS },
+  { labelKey: 'create.group_agi', color: 0x33cc33, statsDesc: '', weapons: AGILITY_WEAPONS },
+  { labelKey: 'create.group_int', color: 0x3366ff, statsDesc: '', weapons: INTELLECT_WEAPONS },
 ];
 
 const STAFF_SCHOOLS: Partial<Record<WeaponType, string>> = {
@@ -299,8 +299,8 @@ export class CharCreateScene extends Phaser.Scene {
       fontSize: '11px', color: '#667788',
     }));
     y += 16;
-    this.infoPanel.add(this.add.text(leftX, y, group.statsDesc, {
-      fontSize: '13px', color: groupHex,
+    this.infoPanel.add(this.add.text(leftX, y, t('create.info.all_stats_10'), {
+      fontSize: '13px', color: '#aabbcc',
     }));
   }
 

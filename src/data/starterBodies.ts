@@ -8,23 +8,32 @@ export function getStarterBody(id: string) {
   return STARTER_BODIES.find(b => b.id === id);
 }
 
+const STARTER_CAPS: Partial<Record<StatName, number>> = {
+  [StatName.Strength]: 10,
+  [StatName.Agility]: 10,
+  [StatName.Accuracy]: 10,
+  [StatName.Evasion]: 10,
+  [StatName.Health]: 10,
+  [StatName.Armor]: 10,
+  [StatName.Intellect]: 10,
+  [StatName.Will]: 10,
+  [StatName.Mana]: 10,
+  [StatName.Luck]: 10,
+};
+
 export function getStarterBodyForWeapon(wt: WeaponType): BodyDefinition {
   const w = WEAPONS[wt];
   let damageType: DamageType;
-  let caps: Partial<Record<StatName, number>>;
   let color: number;
 
   if (STRENGTH_WEAPONS.includes(wt)) {
     damageType = 'melee';
-    caps = { [StatName.Strength]: 30, [StatName.Armor]: 15, [StatName.Health]: 5 };
     color = 0xcc3333;
   } else if (AGILITY_WEAPONS.includes(wt)) {
     damageType = w.isMelee ? 'melee' : 'ranged';
-    caps = { [StatName.Agility]: 30, [StatName.Accuracy]: 15, [StatName.Evasion]: 5 };
     color = 0x33cc33;
   } else {
     damageType = 'magic';
-    caps = { [StatName.Intellect]: 30, [StatName.Mana]: 15, [StatName.Will]: 5 };
     color = 0x3366ff;
   }
 
@@ -34,7 +43,7 @@ export function getStarterBodyForWeapon(wt: WeaponType): BodyDefinition {
     nameRu: w.nameRu,
     type: BodyType.Combat,
     damageType,
-    caps,
+    caps: { ...STARTER_CAPS },
     xpReward: 40,
     weapon: wt,
     color,
