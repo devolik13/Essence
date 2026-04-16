@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../utils/constants';
-import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, CharacterMeta, findFreeSlot } from '../systems/saveLoad';
+import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, findFreeSlot } from '../systems/saveLoad';
 import { t, initLang } from '../i18n/index';
 
 export class TitleScene extends Phaser.Scene {
@@ -156,10 +156,14 @@ export class TitleScene extends Phaser.Scene {
   // ── Helpers ───────────────────────────────────────────
 
   private weaponLabel(bodyId: string): string {
+    if (bodyId.startsWith('starter_')) {
+      const wt = bodyId.substring(8);
+      return t(`weapon.${wt}`);
+    }
     switch (bodyId) {
-      case 'human_warrior': return t('title.sword');
-      case 'human_mage':    return t('title.staff');
-      case 'human_archer':  return t('title.bow');
+      case 'human_warrior': return t('weapon.sword');
+      case 'human_mage':    return t('weapon.staff_fire');
+      case 'human_archer':  return t('weapon.shortbow');
       default: return bodyId;
     }
   }

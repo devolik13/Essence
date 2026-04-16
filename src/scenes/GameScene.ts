@@ -4,6 +4,7 @@ import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
 import { DamageText } from '../entities/DamageText';
 import { STARTER_BODIES, GOBLIN, WEAPON_COOLDOWNS, BodyType } from '../types/bodies';
+import { lookupStarterBody } from '../data/starterBodies';
 import { CREATURE_DB } from '../data/creatureDB';
 import {
   MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH_TILES, MAP_HEIGHT_TILES,
@@ -324,7 +325,7 @@ export class GameScene extends Phaser.Scene {
     // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
     const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
     if (autoBodyId) {
-      const bodyDef = CREATURE_DB[autoBodyId] ?? STARTER_BODIES.find(b => b.id === autoBodyId);
+      const bodyDef = CREATURE_DB[autoBodyId] ?? lookupStarterBody(autoBodyId);
       if (bodyDef) {
         this.playerBody = new Body(this, startX, startY, bodyDef, this.sphere.stats);
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
