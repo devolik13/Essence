@@ -245,10 +245,6 @@ export class CharCreateScene extends Phaser.Scene {
     bg.setStrokeStyle(1, 0x446688);
     this.infoPanel.add(bg);
 
-    // Group color
-    const group = GROUPS.find(g => g.weapons.includes(wt))!;
-    const groupHex = '#' + group.color.toString(16).padStart(6, '0');
-
     let y = 20;
     const leftX = 16;
     const valX = 170;
@@ -290,18 +286,6 @@ export class CharCreateScene extends Phaser.Scene {
       const effectStr = this.getEffectString(weapon);
       this.addInfoRow(leftX, valX, y, t('create.info.effect'), effectStr, '#eebb77');
     }
-    y += 26;
-
-    // Starting stats
-    this.infoPanel.add(this.add.rectangle(px, y, panelW - 20, 1, 0x334455));
-    y += 10;
-    this.infoPanel.add(this.add.text(leftX, y, t('create.info.stats'), {
-      fontSize: '11px', color: '#667788',
-    }));
-    y += 16;
-    this.infoPanel.add(this.add.text(leftX, y, group.statsDesc, {
-      fontSize: '13px', color: groupHex,
-    }));
   }
 
   private addInfoRow(leftX: number, valX: number, y: number, label: string, value: string, valueColor = '#ccddee') {
