@@ -86,8 +86,7 @@ Sometimes helps Bert. Says little — but when she speaks, it's precise.
 
 **Bert trusts her** as a partner.
 **Mira** is her old acquaintance — sometimes Ren brings her herbs from the forest.
-**Farmer Ed** is waiting on her — mentioned wolves are circling the herd again,
-asked her to check the tracks.
+**Farmer Ed** knows her — sees her sometimes near the herd.
 
 *Ren's body quest:* Three days ago she promised Bert
 to check the traps at the northern stream. She didn't.

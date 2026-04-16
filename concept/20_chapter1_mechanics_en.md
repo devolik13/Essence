@@ -106,18 +106,6 @@ glowing eyes. The fastest of the four.
 
 ---
 
-## Side Quests
-
-All delivered through the "I forgot" mechanic —
-the body already had contacts with the village.
-
-| Quest | Given by | Summary | Reward |
-|---|---|---|---|
-| Lost Cattle | Farmer Ed | *"You said you saw tracks near the Grey Forest"* — find the cows, drive off the wolves | Gold, food |
-| Sparring Match | Warrior Rick | *"You promised to show that greatsword move"* — three training bouts | Introduction to a new body |
-| Mage's Diary | Sven (after Quest 3) | Encrypted page in the diary. *"You can read old scripts, right?"* — only Eyla can read it without help | Extra elemental spell |
-| Old Debt | Innkeeper Paul | *"You borrowed from me last week"* — bring an ingredient from the lake | Healing potions |
-
 ---
 
 ## Key NPCs
@@ -163,7 +151,6 @@ stably, not temporarily as before.
 understanding that different bodies serve different purposes.
 
 **Lore:**
-- Mage's diary — encrypted section will open later
 - Valdmar — something is happening between the cities
 - Nameless Stranger — who is he? Why did he know about the Guardians?
 
