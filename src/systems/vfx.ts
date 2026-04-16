@@ -7,10 +7,10 @@ import Phaser from 'phaser';
 
 // ── Spell → Sprite mapping ──────────────────────────────────────────────────
 
-/** Impact animations (play once at target position) */
+/** Impact animations (play once at target position). */
 export const SPELL_IMPACT_ANIM: Record<string, string> = {
-  mob_fire_t1:  'spell_spark',            // Spark
-  mob_fire_t4:  'spell_spark',             // Fireball explosion (spark = explosion sprite)
+  mob_fire_t1:  'spell_spark',            // Spark — small explosion_sheet
+  mob_fire_t4:  'spell_fireball',         // Fireball — big explosion (fireball_sheet is the impact)
   mob_water_t1: 'spell_ice_explosion',    // Ice Shard → ice explosion
   mob_water_t2: 'spell_frost_explosion',  // Ice Arrow splash → frost explosion
   mob_water_t5: 'spell_absolute_zero',    // Absolute Zero
@@ -20,10 +20,12 @@ export const SPELL_IMPACT_ANIM: Record<string, string> = {
   mob_wind_t2:  'spell_wind_blade',       // Wind Blade (per cone)
 };
 
-/** Projectile animations (fly from caster to target, loop) */
+/** Projectile animations (fly from caster to target, loop).
+ * T4 Fireball uses spawnProjectileVFX (red particle trail) for flight —
+ * its spritesheet is used as the impact explosion instead.
+ */
 export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
   mob_fire_t2:  'spell_firebolt',       // Fire Arrow
-  mob_fire_t4:  'spell_fireball',       // Fireball — big flying ball
   mob_water_t2: 'spell_frost_arrow',    // Ice Arrow
   mob_wind_t4:  'spell_lightning',       // Storm Cloud bolts
   mob_wind_t5:  'spell_ball_lightning',  // Ball Lightning
@@ -154,16 +156,6 @@ export function spawnProjectileVFX(
       glow.destroy();
     },
   });
-}
-
-// ── Эффект взрыва огненного шара (animated sprite) ───────────────────────────
-
-export function spawnFireballVFX(scene: Phaser.Scene, x: number, y: number) {
-  if (!scene.anims.exists('spell_fireball')) return;
-  const sprite = scene.add.sprite(x, y, 'spell_fireball').setDepth(55);
-  sprite.setDisplaySize(80, 80);
-  sprite.play('spell_fireball');
-  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
 }
 
 // ── Эффект попадания (взрыв частиц) ─────────────────────────────────────────

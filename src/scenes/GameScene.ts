@@ -30,7 +30,7 @@ import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
-import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnFireballVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
+import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 
@@ -3209,6 +3209,7 @@ export class GameScene extends Phaser.Scene {
     // Spell-specific AoE: projectile flying to point + impact animation
     if (this.playerBody) {
       spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, worldX, worldY, spell.id);
+      spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, worldX, worldY, spell.school ?? 'neutral');
     }
     spawnSpellImpact(this, worldX, worldY, spell.id, (spell.aoeRadius ?? 60) * 2);
 
