@@ -15,10 +15,9 @@
 | [01_core](concept/01_core.md) | Концептуальное ядро, два режима, камень возрождения |
 | [02_stats](concept/02_stats.md) | 10 параметров, ранг, боевые формулы |
 | [03_bodies](concept/03_bodies.md) | Система тел, капы, коллекция, прокачка |
-| [04_archetypes](concept/04_archetypes.md) | 12 архетипов и их фирменные умения |
-| [05_weapons](concept/05_weapons.md) | Ближний и дальний бой, типы умений |
-| [06_armor_professions](concept/06_armor_professions.md) | Астральная броня, 7 профессий |
-| [07_world_zones](concept/07_world_zones.md) | Зоны мира, PvP правила |
+| [05_weapons](concept/05_weapons.md) | Оружие и способности (10 типов, 5-6 на каждое) |
+| [06_armor_professions](concept/06_armor_professions.md) | Снаряжение, 4 верстака, сбор ресурсов |
+| [07_world_zones](concept/07_world_zones.md) | Зоны мира Главы 1, PvP правила |
 | [08_loot_bodies](concept/08_loot_bodies.md) | Распределение тел и лута |
 | [09_economy](concept/09_economy.md) | Валюта |
 | [10_open_questions](concept/10_open_questions.md) | Чеклист нерешённых вопросов |
@@ -28,19 +27,29 @@
 |---|---|
 | [11_game_loop](concept/11_game_loop.md) | Игровой цикл |
 | [12_astral_mode](concept/12_astral_mode.md) | Астральный режим |
-| [13_creature_rarity](concept/13_creature_rarity.md) | Система редкости существ |
+| [13_creature_rarity](concept/13_creature_rarity.md) | Система редкости (дизайн) |
+| [14_creature_list](concept/14_creature_list.md) | Список существ |
 | [15_combat](concept/15_combat.md) | Боевые формулы |
 | [16_statuses](concept/16_statuses.md) | Статусные эффекты |
-| [17_magic](concept/17_magic.md) | Система магии — 10 школ |
+| [17_magic](concept/17_magic.md) | Система магии — 5 школ (T1-T5) + 5 в разработке |
 | [18_прогрессия](concept/18_прогрессия.md) | Прогрессия, XP, ранг |
 
 ### Лор и мир
 | Файл | Содержание |
 |---|---|
 | [19_лор](concept/19_лор.md) | Лор: два мира, Пустота, Тесла и Кюри |
-| [20_глава1](concept/20_глава1.md) | Сюжет и квесты Главы 1 |
+| [20_глава1](concept/20_глава1.md) | Глава 1 — общий обзор |
+| [20_глава1_квесты](concept/20_глава1_квесты.md) | Нарратив квестов Главы 1 |
+| [20_глава1_механика](concept/20_глава1_механика.md) | Механика, NPC, боссы, итоги |
 | [21_глава1_карта](concept/21_глава1_карта.md) | Карта Главы 1 — зоны и спавны |
-| [22_бестиарий_глава1](concept/22_бестиарий_глава1.md) | **Бестиарий Главы 1** — основной справочник существ |
+| [22_бестиарий_глава1](concept/22_бестиарий_глава1.md) | Бестиарий Главы 1 — справочник существ |
+| [23_пролог](concept/23_пролог.md) | Пролог — Первый (стимпанк) |
+| [24_квесты_животных](concept/24_квесты_животных.md) | Квесты тел животных |
+| [25_квесты_гуманоидов](concept/25_квесты_гуманоидов.md) | Квесты тел гуманоидов |
+| [26_квесты_элементалей](concept/26_квесты_элементалей.md) | Квесты тел элементалей |
+
+### English versions
+EN-копии основных лор/квестовых файлов: `19_lore_en`, `20_chapter1_en`, `20_chapter1_quests_en`, `20_chapter1_mechanics_en`, `23_prologue_en`, `24_animal_quests_en`, `25_humanoid_quests_en`, `26_elemental_quests_en`.
 
 ## Черновики
 
