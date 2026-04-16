@@ -915,12 +915,17 @@ export class GameScene extends Phaser.Scene {
   private tryCaptureDead(): boolean {
     if (this.captureProcess?.state === CaptureState.Casting) return false;
 
+    // Позиция: если в теле — от тела, если в астрале — от Сферы
+    const px = this.playerBody?.x ?? this.sphere.x;
+    const py = this.playerBody?.y ?? this.sphere.y;
+
     for (const creature of this.creatures) {
       const canCapturAlive = creature.definition.type === BodyType.Passive || creature.definition.type === BodyType.Fleeing;
-      const eligible = canCapturAlive ? true : creature.isDead;
+      // Пассивных — только вне боя; боевых — только мёртвых
+      const eligible = canCapturAlive ? !this.isInCombat : creature.isDead;
       if (!eligible) continue;
 
-      const dist = distance(this.sphere.x, this.sphere.y, creature.x, creature.y);
+      const dist = distance(px, py, creature.x, creature.y);
       if (dist < CAPTURE_RANGE) {
         this.captureProcess = startCapture(creature.definition.id);
         this.captureTarget = creature;
