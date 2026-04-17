@@ -102,6 +102,8 @@ interface SaveData {
   copper?: number;
   weaponSlotConfigs?: Record<string, (string | null)[]>;
   characterName?: string;
+  sealFrequencies?: Record<string, boolean>;
+  triggeredBodyQuests?: string[];
 }
 
 export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
@@ -130,6 +132,8 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
     copper: sphere.copper,
     weaponSlotConfigs: { ...sphere.weaponSlotConfigs },
     characterName: sphere.characterName,
+    sealFrequencies: { ...sphere.sealFrequencies },
+    triggeredBodyQuests: [...sphere.triggeredBodyQuests],
   };
   try {
     localStorage.setItem(getSaveKey(activeSlotIndex), JSON.stringify(data));
@@ -195,6 +199,12 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     }
     if (data.characterName) {
       sphere.characterName = data.characterName;
+    }
+    if (data.sealFrequencies) {
+      sphere.sealFrequencies = { ...sphere.sealFrequencies, ...data.sealFrequencies };
+    }
+    if (data.triggeredBodyQuests) {
+      sphere.triggeredBodyQuests = [...data.triggeredBodyQuests];
     }
 
     return true;

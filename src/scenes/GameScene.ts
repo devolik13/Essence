@@ -29,7 +29,8 @@ import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
-import { getNPCDialog, PROLOGUE_DIALOG } from '../data/dialogs';
+import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG } from '../data/dialogs';
+import { getBodyQuest } from '../data/bodyQuests';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
@@ -2251,8 +2252,11 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
     }
 
-    // Квест — засчитать убийство
+    // Квест — засчитать убийство (и босса если это Guardian)
     this.handleQuestKill(creature.definition.id, xpTotal);
+    if (creature.definition.isBoss) {
+      this.handleBossKill(creature.definition);
+    }
 
     // Валюта
     const coinDrop = MOB_COPPER_DROPS[creature.definition.id];
@@ -2370,6 +2374,9 @@ export class GameScene extends Phaser.Scene {
       // Квест — засчитать захват
       const captureCompleted = this.questTracker.onCapture(def.id);
       for (const q of captureCompleted) this.onQuestComplete(q);
+
+      // Body quest — show intro dialog on first possession
+      this.tryShowBodyQuest(def.id);
     });
   }
 
@@ -2378,6 +2385,40 @@ export class GameScene extends Phaser.Scene {
   private handleQuestKill(creatureId: string, _xpFromKill: number) {
     const completed = this.questTracker.onKill(creatureId);
     for (const q of completed) this.onQuestComplete(q);
+  }
+
+  private tryShowBodyQuest(bodyId: string) {
+    if (this.sphere.triggeredBodyQuests.includes(bodyId)) return;
+    const bq = getBodyQuest(bodyId);
+    if (!bq) return;
+    this.sphere.triggeredBodyQuests.push(bodyId);
+    this.events.emit('show-dialog', { messages: bq.messages });
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+  }
+
+  private handleBossKill(def: import('../types/bodies').BodyDefinition) {
+    const bossCompleted = this.questTracker.onBossKill(def.id);
+    for (const q of bossCompleted) this.onQuestComplete(q);
+
+    if (def.element && def.element in this.sphere.sealFrequencies) {
+      this.sphere.sealFrequencies[def.element] = true;
+      this.events.emit('seal-frequency-gained', def.element);
+
+      const names: Record<string, string> = { fire: 'Fire', water: 'Water', earth: 'Earth', wind: 'Wind' };
+      this.showMessage(`Seal frequency acquired: ${names[def.element]}!`);
+
+      const allCollected = Object.values(this.sphere.sealFrequencies).every(v => v);
+      if (allCollected) {
+        this.events.emit('show-dialog', {
+          messages: [
+            { speaker: '', text: 'All four frequencies resonate within you. The Seal of Elements is complete.' },
+            { speaker: '', text: 'You feel the power to close the warp rifts. But dark tendrils stir at the edges of the world...' },
+          ],
+        });
+      }
+
+      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    }
   }
 
   private onQuestComplete(q: import('../types/quests').QuestProgress) {
@@ -2399,6 +2440,12 @@ export class GameScene extends Phaser.Scene {
     if (q.def.dialogEnd) {
       this.events.emit('show-dialog', {
         messages: [{ speaker: 'Quest Complete', text: q.def.dialogEnd }],
+      });
+    }
+
+    if (q.def.id === 'q12_guardians_trial') {
+      this.time.delayedCall(2000, () => {
+        this.events.emit('show-dialog', { messages: CHAPTER1_FINALE_DIALOG });
       });
     }
 

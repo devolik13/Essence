@@ -265,6 +265,35 @@ export function getNPCDialog(npcId: string, qt: QuestTracker): DialogResult {
   return { messages: [{ speaker: npcId, text: '...' }] };
 }
 
+export const CHAPTER1_FINALE_DIALOG: DialogMessage[] = [
+  // The Celebration
+  { speaker: '', text: 'Bert told everyone. The village gathered at the tavern. Innkeeper Pol rolled out the best barrel. Lights, noise, laughter.' },
+  { speaker: 'Aldric — Blacksmith', text: 'Good work. For a good fighter.' },
+  { speaker: '', text: 'He holds out a weapon with his personal mark. No more words needed.' },
+  { speaker: 'Mira', text: "You've changed. Not worse — just... different. That's good." },
+
+  // The Messenger
+  { speaker: '', text: 'Amid the noise and firelight — a messenger. Dusty. Rode his horse to exhaustion. From Valdmar — a neighboring city, two days away.' },
+  { speaker: 'Messenger', text: "Hunters haven't returned from the forest for a week now. Livestock disappears at night — without a trace." },
+  { speaker: 'Messenger', text: "People are acting strange. They speak in words that aren't theirs. They stare at one point." },
+  { speaker: '', text: 'Silence.' },
+  { speaker: 'Bert — Hunter', text: 'It started three weeks ago. Around the time you arrived in Ashworth.' },
+  { speaker: '', text: 'The Nameless Stranger stands up. Pulls on his cloak. Leaves without a word. His mug is still warm.' },
+
+  // The Journey Home
+  { speaker: '', text: 'Four frequencies. One pattern. Somewhere in the Steam World a rift is opening right now.' },
+  { speaker: '', text: 'The Sphere feels it — like a pull, like a call. The Machine is calling.' },
+  { speaker: '', text: '[Screen fades to black.]' },
+
+  // Steam World — the rift
+  { speaker: '', text: 'A warp rift on the street. A Void creature is already here. The skills from the Fantasy World work.' },
+  { speaker: '', text: 'The Seal of Elements activates — the rift closes.' },
+  { speaker: 'Marie Curie', text: 'A stable closure. The first real one.' },
+  { speaker: 'Nikola Tesla', text: 'We need more Seals like this.' },
+  { speaker: '', text: 'Valdmar is waiting. This is no longer coincidence.' },
+  { speaker: '', text: 'Chapter 1 — Complete.\n\n[Chapter 2 — The Shadow]' },
+];
+
 export const PROLOGUE_DIALOG: DialogMessage[] = [
   // ACT 1 — Warp Rifts
   { speaker: '', text: "Late 19th century. The age of steam and electricity." },

@@ -55,6 +55,14 @@ export class Sphere extends Phaser.GameObjects.Container {
 
   public characterName: string = '';
 
+  /** Seal of Elements — 4 frequencies collected from Guardian bosses */
+  public sealFrequencies: Record<string, boolean> = {
+    fire: false, water: false, earth: false, wind: false,
+  };
+
+  /** Body quest IDs that have been triggered (shown intro dialog) */
+  public triggeredBodyQuests: string[] = [];
+
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
   private keys!: {

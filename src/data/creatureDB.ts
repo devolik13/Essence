@@ -471,6 +471,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffFire, color: 0xff3300, abilityName: 'Fire Wall',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3],
+    isBoss: true,
   },
 
   aquaris: {
@@ -485,6 +486,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffWater, color: 0x0066ff, abilityName: 'Ice Rain',
     npcSpells: [MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3],
+    isBoss: true,
   },
 
   terra: {
@@ -499,6 +501,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffEarth, color: 0x886622, abilityName: 'Earth Wall',
     npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3],
+    isBoss: true,
   },
 
   aeros: {
@@ -513,6 +516,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffWind, color: 0xccddff, abilityName: 'Wind Barrier',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3],
+    isBoss: true,
   },
 
   // ─── Тестовые сферы (пассивные, 1 заклинание, порог 1 XP) ────────────────────

@@ -128,6 +128,10 @@ export class UIScene extends Phaser.Scene {
   private cachedInCombat:    boolean = false;
   private cachedBody:        Body | null = null;
 
+  // ── Seal of Elements indicator ─────────────────────────
+  private sealIcons: Phaser.GameObjects.Text[] = [];
+  private sealContainer!: Phaser.GameObjects.Container;
+
   // ── Log ───────────────────────────────────────────────
   private logMessages: string[] = [];
 
@@ -192,6 +196,28 @@ export class UIScene extends Phaser.Scene {
     this.castLabel = this.add.text(GAME_WIDTH / 2, castY - 14, '', {
       fontSize: '11px', color: '#ff8800',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
+
+    // ── Seal of Elements indicator ──────────────────────────
+    {
+      const sealX = 10;
+      const sealY = GAME_HEIGHT - 30;
+      this.sealContainer = this.add.container(sealX, sealY).setScrollFactor(0).setDepth(1000).setVisible(false);
+      const elements: { key: string; symbol: string; color: string }[] = [
+        { key: 'fire', symbol: '🔥', color: '#ff4400' },
+        { key: 'water', symbol: '💧', color: '#0088ff' },
+        { key: 'earth', symbol: '🪨', color: '#886633' },
+        { key: 'wind', symbol: '🌀', color: '#99ddbb' },
+      ];
+      const label = this.add.text(0, 0, 'Seal:', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0, 0.5);
+      this.sealContainer.add(label);
+      let ox = 32;
+      for (const el of elements) {
+        const icon = this.add.text(ox, 0, el.symbol, { fontSize: '14px' }).setOrigin(0, 0.5).setAlpha(0.2);
+        this.sealContainer.add(icon);
+        this.sealIcons.push(icon);
+        ox += 22;
+      }
+    }
 
     // ── Tracked quest HUD (right side, draggable) ─────────
     this._questHudX = GAME_WIDTH - 220;
@@ -359,6 +385,10 @@ export class UIScene extends Phaser.Scene {
       if (data.done.length > 0) {
         this.addLog(`  ✓ Completed: ${data.done.length}`);
       }
+    });
+    gs.events.on('seal-frequency-gained', (element: string) => {
+      this.addLog(`✦ Seal frequency: ${element}`);
+      this.updateSealIndicator();
     });
     gs.events.on('save-loaded', () => this.addLog(t('log.progress_loaded')));
     gs.events.on('open-vendor', () => {
@@ -547,6 +577,8 @@ export class UIScene extends Phaser.Scene {
     this.cachedInCombat = data.inCombat ?? false;
     this.cachedBody = body;
     if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
+
+    this.updateSealIndicator(sphere);
 
     // ── Tracked quest HUD (right side) ─────────────────────
     {
@@ -1718,6 +1750,18 @@ export class UIScene extends Phaser.Scene {
         }
         break;
       }
+    }
+  }
+
+  private updateSealIndicator(sphere?: import('../entities/Sphere').Sphere) {
+    const freq = sphere?.sealFrequencies ?? this.cachedUIData?.sphere?.sealFrequencies;
+    if (!freq) return;
+    const hasAny = Object.values(freq).some(v => v);
+    this.sealContainer.setVisible(hasAny);
+    if (!hasAny) return;
+    const keys = ['fire', 'water', 'earth', 'wind'];
+    for (let i = 0; i < keys.length; i++) {
+      this.sealIcons[i]?.setAlpha(freq[keys[i]] ? 1 : 0.2);
     }
   }
 
