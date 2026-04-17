@@ -6,10 +6,7 @@ import { DamageText } from '../entities/DamageText';
 import { STARTER_BODIES, GOBLIN, WEAPON_COOLDOWNS, BodyType } from '../types/bodies';
 import { lookupStarterBody } from '../data/starterBodies';
 import { CREATURE_DB } from '../data/creatureDB';
-import {
-  MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH_TILES, MAP_HEIGHT_TILES,
-  TILE_SIZE, CAPTURE_RANGE,
-} from '../utils/constants';
+import { TILE_SIZE, CAPTURE_RANGE } from '../utils/constants';
 import { distance, clamp } from '../utils/math';
 import { calcMeleeDamage, calcRangedDamage, calcMagicDamage } from '../systems/combat';
 import { WEAPONS } from '../data/weapons';
@@ -325,6 +322,10 @@ export class GameScene extends Phaser.Scene {
     const startX = this.spawnX ?? this.currentZone.respawnPoint.x;
     const startY = this.spawnY ?? this.currentZone.respawnPoint.y;
     this.sphere = new Sphere(this, startX, startY);
+    const zoneW = this.currentZone.widthTiles * TILE_SIZE;
+    const zoneH = this.currentZone.heightTiles * TILE_SIZE;
+    this.sphere.mapW = zoneW;
+    this.sphere.mapH = zoneH;
 
     if (this.isNewGame) {
       this.sphere.characterName = this.newGameCharName ?? '';
@@ -353,6 +354,7 @@ export class GameScene extends Phaser.Scene {
       const bodyDef = CREATURE_DB[autoBodyId] ?? lookupStarterBody(autoBodyId);
       if (bodyDef) {
         this.playerBody = new Body(this, startX, startY, bodyDef, this.sphere.stats);
+        this.playerBody.mapW = zoneW; this.playerBody.mapH = zoneH;
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
         this.playerBody.possess(this);
         this.fillBodySlots(this.playerBody);
@@ -378,8 +380,6 @@ export class GameScene extends Phaser.Scene {
     this.createExitArrows();
 
     // ─── Камера ──────────────────────────────────────
-    const zoneW = this.currentZone.widthTiles * TILE_SIZE;
-    const zoneH = this.currentZone.heightTiles * TILE_SIZE;
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
     this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
 
@@ -766,17 +766,28 @@ export class GameScene extends Phaser.Scene {
     const wt = zone.widthTiles;
     const ht = zone.heightTiles;
 
-    // Фоновые тайлы
+    // Фоновые тайлы (with biome tints)
+    const biomes = zone.biomes;
     for (let ty = 0; ty < ht; ty++) {
       for (let tx = 0; tx < wt; tx++) {
-        const tile = this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, zone.baseTile);
-        if (zone.tint) tile.setTint(zone.tint);
+        const px = tx * TILE_SIZE + 16;
+        const py = ty * TILE_SIZE + 16;
+        const tile = this.add.image(px, py, zone.baseTile);
+        let tint = zone.tint;
+        if (biomes) {
+          for (const b of biomes) {
+            if (b.tint && px >= b.bounds.x1 && px <= b.bounds.x2 && py >= b.bounds.y1 && py <= b.bounds.y2) {
+              tint = b.tint; break;
+            }
+          }
+        }
+        if (tint) tile.setTint(tint);
       }
     }
 
-    // Безопасная зона (каменные тайлы)
-    if (zone.safeBounds) {
-      const sb = zone.safeBounds;
+    // Безопасные зоны (каменные тайлы)
+    const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
+    for (const sb of safeAreas) {
       const tx1 = Math.floor(sb.x1 / TILE_SIZE);
       const ty1 = Math.floor(sb.y1 / TILE_SIZE);
       const tx2 = Math.ceil(sb.x2 / TILE_SIZE);
@@ -788,12 +799,16 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Камень возрождения
-    const rp = zone.respawnPoint;
-    this.add.image(rp.x, rp.y - 80, 'respawn_stone');
-    this.add.text(rp.x, rp.y - 106, t('misc.respawn_stone'), {
-      fontSize: '11px', color: '#aaaaee', align: 'center',
-    }).setOrigin(0.5);
+    // Камни возрождения
+    const respawnPoints = zone.safeZones
+      ? zone.safeZones.map(sz => sz.respawnPoint)
+      : [zone.respawnPoint];
+    for (const rp of respawnPoints) {
+      this.add.image(rp.x, rp.y - 80, 'respawn_stone');
+      this.add.text(rp.x, rp.y - 106, t('misc.respawn_stone'), {
+        fontSize: '11px', color: '#aaaaee', align: 'center',
+      }).setOrigin(0.5);
+    }
 
     // Название зоны
     this.add.text(wt * TILE_SIZE / 2, 40, zone.nameRu, {
@@ -825,35 +840,40 @@ export class GameScene extends Phaser.Scene {
   private spawnDecorations(wt: number, ht: number) {
     const zw = wt * TILE_SIZE;
     const zh = ht * TILE_SIZE;
-    const sb = this.currentZone.safeBounds;
+    const safeAreas = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
     const rng = new Phaser.Math.RandomDataGenerator([this.currentZone.id]);
     const zoneId = this.currentZone.id;
 
     const isInSafe = (x: number, y: number) =>
-      sb && x > sb.x1 - 40 && x < sb.x2 + 40 && y > sb.y1 - 40 && y < sb.y2 + 40;
+      safeAreas.some(sb => x > sb.x1 - 40 && x < sb.x2 + 40 && y > sb.y1 - 40 && y < sb.y2 + 40);
 
-    // ── Дороги (из центра к выходам) ─────────────────────
+    // ── Дороги ───────────────────────────────────────────
     const gfxRoads = this.add.graphics().setDepth(0).setAlpha(0.4);
     gfxRoads.fillStyle(0x998866, 1);
-    const cx = zw / 2, cy = zh / 2;
-    for (const exit of this.currentZone.exits) {
-      let ex = cx, ey = cy;
-      if (exit.edge === 'north') { ex = cx; ey = 0; }
-      if (exit.edge === 'south') { ex = cx; ey = zh; }
-      if (exit.edge === 'east')  { ex = zw; ey = cy; }
-      if (exit.edge === 'west')  { ex = 0; ey = cy; }
-      // Рисуем полосу дороги
-      const dx = ex - cx, dy = ey - cy;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      const nx = dx / len, ny = dy / len;
-      const roadWidth = 20;
-      for (let t = 0; t < len; t += 8) {
-        const px = cx + nx * t;
-        const py = cy + ny * t;
-        // Немного "вибрации" для натуральности
+    const roadOrigin = this.currentZone.respawnPoint;
+    const drawRoad = (x1: number, y1: number, x2: number, y2: number, width = 20) => {
+      const rdx = x2 - x1, rdy = y2 - y1;
+      const rlen = Math.sqrt(rdx * rdx + rdy * rdy);
+      if (rlen < 1) return;
+      const rnx = rdx / rlen, rny = rdy / rlen;
+      for (let t = 0; t < rlen; t += 8) {
+        const px = x1 + rnx * t, py = y1 + rny * t;
         const wobble = Math.sin(t * 0.02) * 6;
-        gfxRoads.fillRect(px - roadWidth / 2 + ny * wobble, py - roadWidth / 2 - nx * wobble, roadWidth, 8);
+        gfxRoads.fillRect(px - width / 2 + rny * wobble, py - width / 2 - rnx * wobble, width, 8);
       }
+    };
+    for (const exit of this.currentZone.exits) {
+      let ex = roadOrigin.x, ey = roadOrigin.y;
+      if (exit.edge === 'north') { ex = roadOrigin.x; ey = 0; }
+      if (exit.edge === 'south') { ex = roadOrigin.x; ey = zh; }
+      if (exit.edge === 'east')  { ex = zw; ey = roadOrigin.y; }
+      if (exit.edge === 'west')  { ex = 0; ey = roadOrigin.y; }
+      drawRoad(roadOrigin.x, roadOrigin.y, ex, ey);
+    }
+    // Trade road between safe zones
+    if (this.currentZone.safeZones && this.currentZone.safeZones.length >= 2) {
+      const sz = this.currentZone.safeZones;
+      drawRoad(sz[0].respawnPoint.x, sz[0].respawnPoint.y, sz[1].respawnPoint.x, sz[1].respawnPoint.y, 24);
     }
 
     // ── Река (извилистая линия, разная для каждой зоны) ───
@@ -874,8 +894,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // ── Деревья (150-200) ────────────────────────────────
-    const treeCount = 150 + rng.between(0, 50);
+    // ── Деревья (масштабируем по площади) ─────────────────
+    const areaScale = (zw * zh) / (3840 * 3200);
+    const treeCount = Math.floor((150 + rng.between(0, 50)) * areaScale);
     for (let i = 0; i < treeCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
@@ -883,11 +904,12 @@ export class GameScene extends Phaser.Scene {
       const tree = this.add.image(x, y, 'deco_tree').setDepth(1);
       tree.setScale(0.8 + rng.frac() * 0.8);
       tree.setAlpha(0.7 + rng.frac() * 0.3);
-      if (this.currentZone.tint) tree.setTint(this.currentZone.tint);
+      const treeTint = this.getBiomeTint(x, y);
+      if (treeTint) tree.setTint(treeTint);
     }
 
-    // ── Камни (80-120) ───────────────────────────────────
-    const rockCount = 80 + rng.between(0, 40);
+    // ── Камни ────────────────────────────────────────────
+    const rockCount = Math.floor((80 + rng.between(0, 40)) * areaScale);
     for (let i = 0; i < rockCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
@@ -895,11 +917,12 @@ export class GameScene extends Phaser.Scene {
       const rock = this.add.image(x, y, 'deco_rock').setDepth(1);
       rock.setScale(0.6 + rng.frac() * 1.0);
       rock.setAlpha(0.5 + rng.frac() * 0.3);
-      if (this.currentZone.tint) rock.setTint(Phaser.Display.Color.IntegerToColor(this.currentZone.tint).brighten(20).color);
+      const rockTint = this.getBiomeTint(x, y);
+      if (rockTint) rock.setTint(Phaser.Display.Color.IntegerToColor(rockTint).brighten(20).color);
     }
 
-    // ── Кусты (100-140) ──────────────────────────────────
-    const bushCount = 100 + rng.between(0, 40);
+    // ── Кусты ────────────────────────────────────────────
+    const bushCount = Math.floor((100 + rng.between(0, 40)) * areaScale);
     for (let i = 0; i < bushCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
@@ -907,7 +930,8 @@ export class GameScene extends Phaser.Scene {
       const bush = this.add.image(x, y, 'deco_bush').setDepth(1);
       bush.setScale(0.5 + rng.frac() * 0.8);
       bush.setAlpha(0.5 + rng.frac() * 0.3);
-      if (this.currentZone.tint) bush.setTint(this.currentZone.tint);
+      const bushTint = this.getBiomeTint(x, y);
+      if (bushTint) bush.setTint(bushTint);
     }
   }
 
@@ -1002,6 +1026,8 @@ export class GameScene extends Phaser.Scene {
     const pos = this.starterPositions[index];
     this.spawnCaptureFlash(pos.x, pos.y, () => {
       this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
+      this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
+      this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
       this.playerBody.possess(this);
       this.fillBodySlots(this.playerBody);
@@ -1066,7 +1092,36 @@ export class GameScene extends Phaser.Scene {
 
   // ─── Выход из тела ────────────────────────────────────
 
+  private getBiomeTint(x: number, y: number): number | undefined {
+    const biomes = this.currentZone.biomes;
+    if (biomes) {
+      for (const b of biomes) {
+        if (b.tint && x >= b.bounds.x1 && x <= b.bounds.x2 && y >= b.bounds.y1 && y <= b.bounds.y2) {
+          return b.tint;
+        }
+      }
+    }
+    return this.currentZone.tint;
+  }
+
+  private getNearestRespawn(x: number, y: number): { x: number; y: number } {
+    const zones = this.currentZone.safeZones;
+    if (!zones || zones.length === 0) return this.currentZone.respawnPoint;
+    let best = zones[0].respawnPoint;
+    let bestDist = Infinity;
+    for (const sz of zones) {
+      const dx = sz.respawnPoint.x - x, dy = sz.respawnPoint.y - y;
+      const d = dx * dx + dy * dy;
+      if (d < bestDist) { bestDist = d; best = sz.respawnPoint; }
+    }
+    return best;
+  }
+
   private isInSafeZone(x: number, y: number): boolean {
+    const zones = this.currentZone.safeZones;
+    if (zones && zones.length > 0) {
+      return zones.some(sz => x >= sz.x1 && x <= sz.x2 && y >= sz.y1 && y <= sz.y2);
+    }
     const sb = this.currentZone.safeBounds;
     if (!sb) return false;
     return x >= sb.x1 && x <= sb.x2 && y >= sb.y1 && y <= sb.y2;
@@ -1113,12 +1168,12 @@ export class GameScene extends Phaser.Scene {
     // Спавним мобов текущей зоны
     spawnGroup(this.currentZone.spawnGroups);
 
-    // Подключаем проверку стен и сейф-зону ко всем существам
+    // Подключаем проверку стен и сейф-зоны ко всем существам
     const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);
-    const sb = this.currentZone.safeBounds;
+    const safeArr = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
     for (const c of this.creatures) {
       c.wallCheckFn = wallCheck;
-      if (sb) c.safeBounds = sb;
+      c.safeBoundsArr = safeArr;
     }
   }
 
@@ -2392,14 +2447,17 @@ export class GameScene extends Phaser.Scene {
     // Дебафф урона (TODO: применять в боевых формулах после тестирования)
     this.sphere.deathDebuffRemaining = DEATH_DEBUFF_DURATION;
 
-    // ── Телепорт к камню возрождения в том же теле ─────────
+    // ── Телепорт к ближайшему камню возрождения в том же теле ──
+    const deathX = this.playerBody?.x ?? this.sphere.x;
+    const deathY = this.playerBody?.y ?? this.sphere.y;
+    const rp = this.getNearestRespawn(deathX, deathY);
     if (this.playerBody) {
-      this.playerBody.x = this.currentZone.respawnPoint.x;
-      this.playerBody.y = this.currentZone.respawnPoint.y;
+      this.playerBody.x = rp.x;
+      this.playerBody.y = rp.y;
       this.playerBody.currentHP = this.playerBody.maxHP;
       this.playerBody.currentMana = this.playerBody.maxMana;
     } else {
-      this.sphere.enterAstral(this.currentZone.respawnPoint.x, this.currentZone.respawnPoint.y);
+      this.sphere.enterAstral(rp.x, rp.y);
     }
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
@@ -2426,6 +2484,8 @@ export class GameScene extends Phaser.Scene {
       }
 
       this.playerBody = new Body(this, cx, cy, def, this.sphere.stats);
+      this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
+      this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
       this.playerBody.possess(this);
       this.fillBodySlots(this.playerBody);
@@ -2707,8 +2767,8 @@ export class GameScene extends Phaser.Scene {
       const dir = this.playerBody.getFacingVector();
       const startX = this.playerBody.x;
       const startY = this.playerBody.y;
-      this.playerBody.x = clamp(startX + dir.x * dist, 16, MAP_WIDTH  - 16);
-      this.playerBody.y = clamp(startY + dir.y * dist, 16, MAP_HEIGHT - 16);
+      this.playerBody.x = clamp(startX + dir.x * dist, 16, this.playerBody.mapW - 16);
+      this.playerBody.y = clamp(startY + dir.y * dist, 16, this.playerBody.mapH - 16);
 
       // Таран: отталкивание врагов вдоль пути рывка
       if (spell.statusEffect === 'knockback') {
@@ -3145,8 +3205,8 @@ export class GameScene extends Phaser.Scene {
       const dx = this.playerBody.x - target.x;
       const dy = this.playerBody.y - target.y;
       const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      this.playerBody.x = clamp(this.playerBody.x + (dx / len) * dist, 16, MAP_WIDTH  - 16);
-      this.playerBody.y = clamp(this.playerBody.y + (dy / len) * dist, 16, MAP_HEIGHT - 16);
+      this.playerBody.x = clamp(this.playerBody.x + (dx / len) * dist, 16, this.playerBody.mapW - 16);
+      this.playerBody.y = clamp(this.playerBody.y + (dy / len) * dist, 16, this.playerBody.mapH - 16);
     }
 
     // ── Cone AoE: удар по всем в конусе перед игроком ────────────────────

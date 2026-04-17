@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
-import { SPHERE_SPEED, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
+import { SPHERE_SPEED } from '../utils/constants';
 import { calcRank, StatXP, createEmptyXP } from '../systems/progression';
 import { AbilityDef } from '../types/abilities';
 import { InventoryItem } from '../types/items';
@@ -62,6 +62,9 @@ export class Sphere extends Phaser.GameObjects.Container {
 
   /** Body quest IDs that have been triggered (shown intro dialog) */
   public triggeredBodyQuests: string[] = [];
+
+  public mapW = 3840;
+  public mapH = 3200;
 
   private glow: Phaser.GameObjects.Arc;
   private innerOrb: Phaser.GameObjects.Arc;
@@ -128,8 +131,8 @@ export class Sphere extends Phaser.GameObjects.Container {
       vy *= norm;
     }
 
-    this.x = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * speed * dt));
-    this.y = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * speed * dt));
+    this.x = Math.max(16, Math.min(this.mapW - 16, this.x + vx * speed * dt));
+    this.y = Math.max(16, Math.min(this.mapH - 16, this.y + vy * speed * dt));
 
     // Пульсация свечения
     const pulse = 0.3 + Math.sin(_time / 300) * 0.1;

@@ -4,7 +4,7 @@ import { Stats, StatName } from '../types/stats';
 import { AbilitySlot, createEmptySlots } from '../types/abilities';
 import { StatusEffectId, ActiveStatusEffect, STATUS_DEFS } from '../types/statuses';
 import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/combat';
-import { BODY_SPEED, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
+import { BODY_SPEED } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
 import { clamp } from '../utils/math';
 
@@ -47,6 +47,8 @@ export class Body extends Phaser.GameObjects.Container {
   public enchantRegenPenalty: number = 0;
   /** Внешний callback для проверки блокировки стенами */
   public wallCheckFn?: (x: number, y: number) => boolean;
+  public mapW = 3840;
+  public mapH = 3200;
 
   private bodySprite: Phaser.GameObjects.Sprite;
   private hpBar: Phaser.GameObjects.Rectangle;
@@ -325,8 +327,8 @@ export class Body extends Phaser.GameObjects.Container {
       }
 
       const speedMult = this.getSpeedMult();
-      const newX = Math.max(16, Math.min(MAP_WIDTH  - 16, this.x + vx * BODY_SPEED * speedMult * dt));
-      const newY = Math.max(16, Math.min(MAP_HEIGHT - 16, this.y + vy * BODY_SPEED * speedMult * dt));
+      const newX = Math.max(16, Math.min(this.mapW - 16, this.x + vx * BODY_SPEED * speedMult * dt));
+      const newY = Math.max(16, Math.min(this.mapH - 16, this.y + vy * BODY_SPEED * speedMult * dt));
       if (!(this.wallCheckFn && this.wallCheckFn(newX, newY))) {
         this.x = newX;
         this.y = newY;
