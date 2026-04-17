@@ -1,77 +1,50 @@
 /**
- * Единый реестр всех известных заклинаний/способностей.
- * Используется для save/load — при добавлении нового заклинания
- * достаточно добавить его ТОЛЬКО СЮДА.
+ * Единый реестр всех заклинаний/способностей.
+ *
+ * Чтобы добавить новое заклинание:
+ *   1. Определи AbilityDef в соответствующем файле школы/оружия
+ *   2. Добавь объект в массив *_SPELLS / WEAPON_ABILITIES / NEUTRAL_SPELLS
+ *   — Всё. Реестр, Map, save/load подхватят автоматически.
+ *
+ * Для быстрого поиска по ID используй SPELL_MAP.get(id).
  */
 import { AbilityDef } from '../types/abilities';
 
-import { MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, MOB_FIRE_T4, MOB_FIRE_T5 } from './spells/fire';
-import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, MOB_WATER_T4, MOB_WATER_T5 } from './spells/water';
-import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, MOB_EARTH_T4, MOB_EARTH_T5 } from './spells/earth';
-import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, MOB_WIND_T4, MOB_WIND_T5 } from './spells/wind';
-import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3, MOB_NATURE_T4, MOB_NATURE_T5 } from './spells/nature';
+import { FIRE_SPELLS } from './spells/fire';
+import { WATER_SPELLS } from './spells/water';
+import { EARTH_SPELLS } from './spells/earth';
+import { WIND_SPELLS } from './spells/wind';
+import { NATURE_SPELLS } from './spells/nature';
+import { NEUTRAL_SPELLS } from './neutralSpells';
+import { WEAPON_ABILITIES } from './specialAbilities';
 
-import {
-  MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL,
-  ABILITY_MANEUVER, ABILITY_COVER, ABILITY_SHIELD_STANCE,
-  ABILITY_DESPERATION, ABILITY_EXPOSE,
-  ABILITY_ADAPTATION, ABILITY_IRON_SKIN, ABILITY_FORTUNE, ABILITY_MANA_FLOW,
-  ABILITY_MANA_LINK, ABILITY_SUSTAIN, ABILITY_SPIRIT_RESILIENCE,
-  ABILITY_RANGED_RESIST, ABILITY_PURIFY, ABILITY_UNSHAKEABLE,
-  ABILITY_FIRM_STANCE, ABILITY_BATTLE_MARCH, ABILITY_EXECUTE,
-  ABILITY_PURE_STRIKE, ABILITY_ALLY_HEAL,
-  ABILITY_FIRE_TRAP, ABILITY_POISON_TRAP, ABILITY_RAM,
-  ABILITY_SHADOW_STEP, ABILITY_WHIRLWIND, ABILITY_RICOCHET, ABILITY_COMBO,
-} from './neutralSpells';
-
-import {
-  ABILITY_STING, ABILITY_KNIFE_THROW,
-  ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE,
-  ABILITY_MACE_STRIKE, ABILITY_MACE_BASH,
-  ABILITY_SLASH, ABILITY_SLASH_SWEEP,
-  ABILITY_BOW_SHOT, ABILITY_BOW_BACKSHOT,
-  ABILITY_LONGBOW_SHOT, ABILITY_ARROW_RAIN,
-  ABILITY_CROSSBOW_BOLT, ABILITY_CROSSBOW_SNARE,
-  ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT,
-  ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH,
-  ABILITY_HOOK, ABILITY_FIST_STRIKE,
-  // Оружейные T3
-  ABILITY_SWORD_REND, ABILITY_MACE_CONCUSS, ABILITY_BLOODY_SWEEP,
-  ABILITY_SPEAR_THROW, ABILITY_EARTHQUAKE, ABILITY_LETHAL_DOSE,
-  ABILITY_CLEANSING_STRIKE,
-  ABILITY_TRAP, ABILITY_POWER_SHOT, ABILITY_SUPPORT_BOLT,
-  // Универсальные
-  ABILITY_FOCUS, ABILITY_WAR_CRY,
-} from './specialAbilities';
-
-/** Все заклинания и способности, известные игре */
+/** Плоский массив всех заклинаний (для итерации, save/load) */
 export const ALL_KNOWN_SPELLS: AbilityDef[] = [
-  // Стихийные школы
-  MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, MOB_FIRE_T4, MOB_FIRE_T5,
-  MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, MOB_WATER_T4, MOB_WATER_T5,
-  MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, MOB_EARTH_T4, MOB_EARTH_T5,
-  MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, MOB_WIND_T4, MOB_WIND_T5,
-  // Природа
-  MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3, MOB_NATURE_T4, MOB_NATURE_T5,
-  // Нейтральная школа
-  MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL,
-  ABILITY_MANEUVER, ABILITY_COVER, ABILITY_SHIELD_STANCE,
-  ABILITY_DESPERATION, ABILITY_EXPOSE,
-  ABILITY_ADAPTATION, ABILITY_IRON_SKIN, ABILITY_FORTUNE, ABILITY_MANA_FLOW,
-  ABILITY_MANA_LINK, ABILITY_SUSTAIN, ABILITY_SPIRIT_RESILIENCE,
-  ABILITY_RANGED_RESIST, ABILITY_PURIFY, ABILITY_UNSHAKEABLE,
-  ABILITY_FIRM_STANCE, ABILITY_BATTLE_MARCH, ABILITY_EXECUTE,
-  ABILITY_PURE_STRIKE, ABILITY_ALLY_HEAL,
-  ABILITY_FIRE_TRAP, ABILITY_POISON_TRAP, ABILITY_RAM,
-  ABILITY_SHADOW_STEP, ABILITY_WHIRLWIND, ABILITY_RICOCHET, ABILITY_COMBO,
-  // Оружейные T1
-  ABILITY_STING, ABILITY_SWORD_STRIKE, ABILITY_MACE_STRIKE,
-  ABILITY_SLASH, ABILITY_BOW_SHOT, ABILITY_LONGBOW_SHOT,
-  ABILITY_CROSSBOW_BOLT, ABILITY_SPEAR_THRUST, ABILITY_HAMMER_STRIKE,
-  // Оружейные T2
-  ABILITY_KNIFE_THROW, ABILITY_DOUBLE_STRIKE, ABILITY_MACE_BASH,
-  ABILITY_SLASH_SWEEP, ABILITY_BOW_BACKSHOT, ABILITY_ARROW_RAIN,
-  ABILITY_CROSSBOW_SNARE, ABILITY_SPEAR_BUTT, ABILITY_HAMMER_SMASH,
-  // Кастеты
-  ABILITY_HOOK, ABILITY_FIST_STRIKE,
+  ...FIRE_SPELLS,
+  ...WATER_SPELLS,
+  ...EARTH_SPELLS,
+  ...WIND_SPELLS,
+  ...NATURE_SPELLS,
+  ...NEUTRAL_SPELLS,
+  ...WEAPON_ABILITIES,
 ];
+
+/** O(1) поиск заклинания по id */
+export const SPELL_MAP: ReadonlyMap<string, AbilityDef> = new Map(
+  ALL_KNOWN_SPELLS.map(s => [s.id, s]),
+);
+
+/** Поиск заклинания по id (shorthand) */
+export function getSpellById(id: string): AbilityDef | undefined {
+  return SPELL_MAP.get(id);
+}
+
+/** Собрать AbilityDef[] из массива id (для save/load) */
+export function resolveSpellIds(ids: string[]): AbilityDef[] {
+  const result: AbilityDef[] = [];
+  for (const id of ids) {
+    const spell = SPELL_MAP.get(id);
+    if (spell) result.push(spell);
+  }
+  return result;
+}

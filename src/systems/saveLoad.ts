@@ -4,6 +4,7 @@ import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { QuestTracker } from './questTracker';
 import { InventoryItem } from '../types/items';
 import { calcRank } from './progression';
+import { resolveSpellIds } from '../data/allSpells';
 
 // ── Multi-slot save system ──────────────────────────────
 const CHARACTERS_KEY = 'essence_characters';
@@ -106,7 +107,7 @@ interface SaveData {
   triggeredBodyQuests?: string[];
 }
 
-export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: QuestTracker): void {
+export function saveSphere(sphere: Sphere, _knownSpells?: AbilityDef[], quests?: QuestTracker): void {
   const questCompleted: string[] = [];
   const questCounts: Record<string, number[]> = {};
   if (quests) {
@@ -150,7 +151,7 @@ export function saveSphere(sphere: Sphere, knownSpells: AbilityDef[], quests?: Q
   });
 }
 
-export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: QuestTracker): boolean {
+export function loadSphere(sphere: Sphere, _allSpells?: AbilityDef[], quests?: QuestTracker): boolean {
   try {
     const raw = localStorage.getItem(getSaveKey(activeSlotIndex));
     if (!raw) return false;
@@ -167,7 +168,7 @@ export function loadSphere(sphere: Sphere, allSpells: AbilityDef[], quests?: Que
     }
 
     sphere.spellProgress = { ...(data.spellProgress ?? {}) };
-    sphere.learnedSpells = allSpells.filter(s => data.learnedSpellIds?.includes(s.id));
+    sphere.learnedSpells = resolveSpellIds(data.learnedSpellIds ?? []);
 
     if (quests && data.questCounts) {
       quests.restoreState(data.questCompleted ?? [], data.questCounts);

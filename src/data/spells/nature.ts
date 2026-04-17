@@ -71,3 +71,7 @@ export const MOB_NATURE_T5: AbilityDef = {
   castTime: 2, cooldown: 30, manaCost: 15, range: 0, baseDamage: 0,
   description: 'All enemies in r250 take +50% magic damage for 8 sec.',
 };
+
+export const NATURE_SPELLS: AbilityDef[] = [
+  MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3, MOB_NATURE_T4, MOB_NATURE_T5,
+];

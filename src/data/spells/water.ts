@@ -68,3 +68,7 @@ export const MOB_WATER_T5: AbilityDef = {
   statusEffect: 'freeze', statusChance: 1.0,
   description: 'Instant ice nova. r150, freeze all 1 sec.',
 };
+
+export const WATER_SPELLS: AbilityDef[] = [
+  MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3, MOB_WATER_T4, MOB_WATER_T5,
+];

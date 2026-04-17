@@ -74,3 +74,7 @@ export const MOB_FIRE_T5: AbilityDef = {
   zoneDps: 25,          // burning ground DPS
   description: 'Fire wave sweeps toward caster. 30 dmg on hit + burning ground 25 dps, 6 sec.',
 };
+
+export const FIRE_SPELLS: AbilityDef[] = [
+  MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3, MOB_FIRE_T4, MOB_FIRE_T5,
+];

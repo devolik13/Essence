@@ -23,7 +23,7 @@ import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
 import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
-import { ALL_KNOWN_SPELLS } from '../data/allSpells';
+import { ALL_KNOWN_SPELLS, getSpellById } from '../data/allSpells';
 import { ALL_ZONES, ZoneConfig } from '../data/zones';
 import { rollLoot, ITEMS } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
@@ -2426,7 +2426,7 @@ export class GameScene extends Phaser.Scene {
       };
       const rewardId = rewardSpellIds[def.element];
       if (rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {
-        const spell = ALL_KNOWN_SPELLS.find(s => s.id === rewardId);
+        const spell = getSpellById(rewardId);
         if (spell) {
           this.sphere.learnedSpells.push(spell);
           this.sphere.spellProgress[spell.id] = 9999;

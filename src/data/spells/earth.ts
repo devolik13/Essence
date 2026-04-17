@@ -72,3 +72,7 @@ export const MOB_EARTH_T5: AbilityDef = {
   statusEffect: 'armor_break', statusChance: 0.5,
   description: 'Meteors rain around caster. r200, 30 dmg, 50% armor break.',
 };
+
+export const EARTH_SPELLS: AbilityDef[] = [
+  MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3, MOB_EARTH_T4, MOB_EARTH_T5,
+];

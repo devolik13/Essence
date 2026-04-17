@@ -72,3 +72,7 @@ export const MOB_WIND_T5: AbilityDef = {
   doubleDamageChance: 0.3, statusEffect: 'stun', statusChance: 0.05,
   description: 'Ball lightning hits target then chains to 4 nearby enemies. 30% double dmg, 5% stun.',
 };
+
+export const WIND_SPELLS: AbilityDef[] = [
+  MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3, MOB_WIND_T4, MOB_WIND_T5,
+];
