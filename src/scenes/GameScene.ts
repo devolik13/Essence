@@ -187,7 +187,7 @@ export class GameScene extends Phaser.Scene {
   // World objects
   private resourceNodes: { x: number; y: number; def: import('../data/itemDB').ResourceNodeDef; gfx: Phaser.GameObjects.Container; cooldown: number; depleted: boolean }[] = [];
   private workbenches: { x: number; y: number; type: string; nameRu: string; gfx: Phaser.GameObjects.Container }[] = [];
-  private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container }[] = [];
+  private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container; questMarker?: Phaser.GameObjects.Text }[] = [];
 
   // Fire tsunamis
   private fireTsunamis: FireTsunami[] = [];
@@ -366,6 +366,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Ресурсные ноды, верстаки, NPC ───────────────
     this.spawnWorldObjects();
+    this.updateQuestMarkers();
 
     // ─── Exit arrows (hidden, shown near edge) ──────
     this.createExitArrows();
@@ -1132,9 +1133,11 @@ export class GameScene extends Phaser.Scene {
       const circle = this.add.circle(0, 0, 12, 0xffdd55, 0.9);
       const glow = this.add.circle(0, 0, 16, 0xffaa00, 0.3);
       const label = this.add.text(0, -22, npc.nameRu, { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
-      const eKey = this.add.text(0, 18, t('misc.shop'), { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
-      container.add([glow, circle, label, eKey]);
-      this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: npc.nameRu, role: npc.role, gfx: container });
+      const eLabel = npc.role === 'vendor' || npc.role === 'weapon_vendor' ? t('misc.shop') : t('misc.talk');
+      const eKey = this.add.text(0, 18, eLabel, { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+      const questMarker = this.add.text(12, -28, '!', { fontSize: '14px', color: '#ffff00', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setVisible(false);
+      container.add([glow, circle, label, eKey, questMarker]);
+      this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: npc.nameRu, role: npc.role, gfx: container, questMarker });
     }
   }
 
@@ -1309,6 +1312,7 @@ export class GameScene extends Phaser.Scene {
       const talkCompleted = this.questTracker.onTalk(npcId);
       for (const q of talkCompleted) this.onQuestComplete(q);
       saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.updateQuestMarkers();
     };
 
     this.events.emit('show-dialog', { messages: result.messages, onEnd });
@@ -2399,6 +2403,19 @@ export class GameScene extends Phaser.Scene {
     }
 
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.updateQuestMarkers();
+  }
+
+  private updateQuestMarkers() {
+    const allQuests = this.questTracker.getAll();
+    for (const npc of this.worldNPCs) {
+      if (!npc.questMarker) continue;
+      const hasQuest = allQuests.some(q =>
+        !q.completed && q.def.giverNpcId === npc.id && this.questTracker.isQuestAvailable(q) &&
+        q.counts.every(c => c === 0)
+      );
+      npc.questMarker.setVisible(hasQuest);
+    }
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */
