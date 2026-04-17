@@ -106,6 +106,7 @@ export class UIScene extends Phaser.Scene {
   private dialogSpeaker!: Phaser.GameObjects.Text;
   private dialogQueue: { speaker: string; text: string }[] = [];
   private dialogVisible: boolean = false;
+  private dialogOnEnd?: () => void;
   /** Активный крафт таймер */
   private craftingProgress: { remaining: number; total: number; name: string } | null = null;
   private captureBarBg!:Phaser.GameObjects.Rectangle;
@@ -325,7 +326,13 @@ export class UIScene extends Phaser.Scene {
       this.addLog(`  ✦ Weakness: -15% dmg for ${data?.debuffDuration ?? 30}с`);
     });
     gs.events.on('body-captured', (name: string) => this.addLog(`${t('log.captured')} ${name}`));
-    gs.events.on('show-dialog', (msgs: { speaker: string; text: string }[]) => this.showDialog(msgs));
+    gs.events.on('show-dialog', (data: { speaker: string; text: string }[] | { messages: { speaker: string; text: string }[]; onEnd?: () => void }) => {
+      if (Array.isArray(data)) {
+        this.showDialog(data);
+      } else {
+        this.showDialog(data.messages, data.onEnd);
+      }
+    });
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} ${t('log.capture_prompt')}`));
     gs.events.on('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
@@ -1233,8 +1240,9 @@ export class UIScene extends Phaser.Scene {
 
   // ── Dialog system ──────────────────────────────────────
 
-  public showDialog(messages: { speaker: string; text: string }[]) {
+  public showDialog(messages: { speaker: string; text: string }[], onEnd?: () => void) {
     this.dialogQueue = [...messages];
+    this.dialogOnEnd = onEnd;
     this.dialogVisible = true;
     this.advanceDialog();
   }
@@ -1243,6 +1251,11 @@ export class UIScene extends Phaser.Scene {
     if (this.dialogQueue.length === 0) {
       this.dialogContainer.setVisible(false);
       this.dialogVisible = false;
+      if (this.dialogOnEnd) {
+        const cb = this.dialogOnEnd;
+        this.dialogOnEnd = undefined;
+        cb();
+      }
       return;
     }
     const msg = this.dialogQueue.shift()!;

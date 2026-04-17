@@ -17,6 +17,8 @@ export interface QuestDef {
   xpReward: number;
   /** Prerequisite quest IDs — must be completed before this quest activates */
   prerequisiteIds?: string[];
+  /** NPC id who gives/completes this quest (for dialog integration) */
+  giverNpcId?: string;
   /** Dialog text shown when quest is given */
   dialogStart?: string;
   /** Dialog text shown when quest is completed */
