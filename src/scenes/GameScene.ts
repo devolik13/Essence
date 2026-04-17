@@ -190,6 +190,7 @@ export class GameScene extends Phaser.Scene {
   private resourceNodes: { x: number; y: number; def: import('../data/itemDB').ResourceNodeDef; gfx: Phaser.GameObjects.Container; cooldown: number; depleted: boolean }[] = [];
   private workbenches: { x: number; y: number; type: string; nameRu: string; gfx: Phaser.GameObjects.Container }[] = [];
   private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container; questMarker?: Phaser.GameObjects.Text }[] = [];
+  private questObjects: { x: number; y: number; objectId: string; nameRu: string; objType: string; gfx: Phaser.GameObjects.Container; used: boolean }[] = [];
 
   // Fire tsunamis
   private fireTsunamis: FireTsunami[] = [];
@@ -309,6 +310,7 @@ export class GameScene extends Phaser.Scene {
     this.fireTsunamis = [];
     this.summonedEnts = [];
     this.exitArrows = [];
+    this.questObjects = [];
     this.bodyQuestTracker.clear();
   }
 
@@ -717,13 +719,14 @@ export class GameScene extends Phaser.Scene {
     // Респаун
     this.tickRespawn(delta);
 
-    // Body quest survive timers
+    // Body quest: survive timers + waypoint proximity
     if (this.bodyQuestTracker.getActive() && !this.bodyQuestTracker.getActive()!.completed) {
       const wasComplete = this.bodyQuestTracker.isComplete();
       this.bodyQuestTracker.update(delta / 1000);
       if (!wasComplete && this.bodyQuestTracker.isComplete()) {
         this.onBodyQuestComplete();
       }
+      this.checkWaypointProximity();
     }
 
     // Передаём данные в UIScene
@@ -1159,6 +1162,18 @@ export class GameScene extends Phaser.Scene {
       container.add([glow, circle, label, eKey, questMarker]);
       this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: npc.nameRu, role: npc.role, gfx: container, questMarker });
     }
+
+    // Quest objects (waypoints, collectibles, destructibles)
+    for (const qo of zone.questObjects ?? []) {
+      const container = this.add.container(qo.x, qo.y).setDepth(3);
+      const glow = this.add.circle(0, 0, 14, qo.color, 0.3);
+      const icon = this.add.text(0, 0, qo.icon, { fontSize: '16px' }).setOrigin(0.5);
+      const label = this.add.text(0, -22, qo.nameRu, { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+      const eKey = this.add.text(0, 18, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+      container.add([glow, icon, label, eKey]);
+      this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1200, yoyo: true, repeat: -1 });
+      this.questObjects.push({ x: qo.x, y: qo.y, objectId: qo.objectId, nameRu: qo.nameRu, objType: qo.type, gfx: container, used: false });
+    }
   }
 
   /** Try interact with nearby world object (E key) */
@@ -1202,7 +1217,66 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // Quest objects (collectible / destructible via [E])
+    for (const qo of this.questObjects) {
+      if (qo.used) continue;
+      const d = distance(px, py, qo.x, qo.y);
+      if (d < interactRange) {
+        if (this.interactQuestObject(qo)) return true;
+      }
+    }
+
     return false;
+  }
+
+  private interactQuestObject(qo: typeof this.questObjects[0]): boolean {
+    const bq = this.bodyQuestTracker.getActive();
+    if (!bq || bq.completed) return false;
+
+    let advanced = false;
+    if (qo.objType === 'collectible') {
+      advanced = this.bodyQuestTracker.onCollect(qo.objectId) || this.bodyQuestTracker.onSteal(qo.objectId);
+    } else if (qo.objType === 'destructible') {
+      advanced = this.bodyQuestTracker.onDestroy(qo.objectId);
+    } else if (qo.objType === 'waypoint') {
+      advanced = this.bodyQuestTracker.onReach(qo.objectId);
+    }
+
+    if (advanced) {
+      qo.used = true;
+      qo.gfx.setAlpha(0.3);
+      sfxBuff();
+      this.showMessage(`${qo.nameRu} ✓`);
+      if (this.bodyQuestTracker.isComplete()) {
+        this.onBodyQuestComplete();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private checkWaypointProximity(): void {
+    if (!this.playerBody) return;
+    const bq = this.bodyQuestTracker.getActive();
+    if (!bq || bq.completed) return;
+
+    const px = this.playerBody.x, py = this.playerBody.y;
+    for (const qo of this.questObjects) {
+      if (qo.used || qo.objType !== 'waypoint') continue;
+      const d = distance(px, py, qo.x, qo.y);
+      if (d < 60) {
+        const advanced = this.bodyQuestTracker.onReach(qo.objectId);
+        if (advanced) {
+          qo.used = true;
+          qo.gfx.setAlpha(0.3);
+          sfxBuff();
+          this.showMessage(`${qo.nameRu} ✓`);
+          if (this.bodyQuestTracker.isComplete()) {
+            this.onBodyQuestComplete();
+          }
+        }
+      }
+    }
   }
 
   /** Create exit arrows — large arrows at zone edges, hidden by default */

@@ -714,6 +714,48 @@ T3 заклинания — только NPC-касты боссов. Игрок
 
 Механика «я забыл»: тело уже знакомо с NPC, Сфера — нет. Диалоги построены на этом.
 
+### NPC деревни Вальдмар
+| NPC | Роль |
+|-----|------|
+| Captain Vern | Капитан стражи |
+| Healer Lena | Целительница |
+| Blacksmith Gorm | Кузнец |
+| Merchant | Торговец (vendor) |
+| Arms Dealer | Оружейник (weapon_vendor) |
+
+## Карта мира (8 зон)
+
+### Топология
+```
+             Water (N)
+               ↑
+Earth (W) ← Village → Wind (E)
+  ↓              ↓           ↓
+ Cave         Fire (S)   Trade Road
+                              ↓
+                           Waldmar
+```
+
+### Все зоны
+| Зона | ID | Тинт | Мобы | Ресурсы | Особенности |
+|------|----|-------|------|---------|-------------|
+| Eshworth Village | village | — | rabbit, spirit, goblin, wolf, bear, orc, scout | Cu, Wood, Hide | Хаб, 4 верстака, 7 NPC, сейф-зона |
+| Misty Lake | water | 0x3377cc | splasher, fogger, shaman, spirit_wolf, aquaris | — | Босс Акварис, туман |
+| Ashen Grove | fire | 0xff7733 | spark, asher, goblin, bandits, ignis | — | Босс Игнис, лагерь разбойников |
+| Wind Peaks | wind | 0x99ddbb | gusty, whistler, spirit, shaman, aeros | — | Босс Аэрос, выход на Trade Road |
+| Stone Hills | earth | 0x886633 | pebble, mudder, spirit_wolf, terra | — | Босс Терра, вход в пещеру |
+| Deep Mines | cave | 0x443322 | pebble, mudder, wolf, bear, veterans | Cu ×5 | Пещера, много руды, тёмная |
+| Trade Road | trade_road | 0x77aa55 | bandits, scout, orc, wolf, bear, goblin | Wood, Hide | Дорога между деревнями, засады |
+| Waldmar | waldmar | 0x667755 | rabbit, spirit, scout, wolf, bear, orc, bandits | Cu, Wood, Hide | 2-я деревня, верстаки, 5 NPC |
+
+### Квестовые объекты (QuestObjectSpawn)
+Новый тип мировых объектов для квестов тел:
+- **waypoint** — автоматически активируется при приближении (60px), или через [E]
+- **collectible** — подбирается через [E], засчитывает collect/steal
+- **destructible** — уничтожается через [E], засчитывает destroy
+
+Определяются в `ZoneConfig.questObjects[]`, спавнятся в `spawnWorldObjects()`, светятся пульсацией.
+
 ## Поток сцен
 
 ```
@@ -783,9 +825,11 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 - **Фоновая музыка**: нет (есть 12 процедурных SFX)
 - **Боссы Главы 1**: механики боссов (HP бар, фазы, AI) не реализованы — используются стандартные существа
 - **Стартовые тела**: в лоре именованные (Конрад/Рен/Эйла), в коде — generic
-- **Квесты тел**: kill и survive работают в реальном времени. Нужны: reach (точки на карте), collect/steal (объекты взаимодействия), escort/protect (NPC AI), destroy (целевые объекты)
-- **Конфликтные квесты**: `ConflictQuestDef` определён, караван готов как данные. Нужен спавн каравана, AI эскорта, NPC-противников
+- **Квесты тел**: kill, survive, reach, collect, steal, destroy работают. Нужны: escort/protect (NPC AI движение + защита)
+- **Конфликтные квесты**: `ConflictQuestDef` определён, караван готов как данные + Trade Road зона. Нужен спавн каравана, AI эскорта, NPC-противников
 - **Экипировка мана-бонус**: поле `manaBonus` поддержано в формуле, но ни один предмет его не использует (маны идёт через statBonuses.mana)
+- **Вальдмар NPC**: Captain Vern, Healer Lena, Blacksmith Gorm — нет диалогов. Нужны квесты и диалоги для второй деревни
+- **Пещера**: зона готова (мобы, руда), но нет уникальной визуальной стилизации (темнее, без деревьев/кустов, больше камней)
 
 ## Правила для Claude
 
