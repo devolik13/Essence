@@ -403,13 +403,42 @@ T3 заклинания — только NPC-касты боссов. Игрок
 - `concept/26_квесты_элементалей.md` — квесты тел элементалей
 - `concept/22_бестиарий_глава1.md` — справочник существ
 
+## Архитектура данных (авторегистрация)
+
+### Как добавить заклинание
+1. Определи `AbilityDef` объект в файле школы (`src/data/spells/fire.ts` и т.д.)
+2. Добавь объект в массив `FIRE_SPELLS` / `WATER_SPELLS` / `NEUTRAL_SPELLS` / `WEAPON_ABILITIES`
+3. **Всё.** Реестр `ALL_KNOWN_SPELLS`, `SPELL_MAP`, save/load подхватят автоматически.
+
+### Как добавить предмет/экипировку
+1. Определи `ItemDef` в `src/data/itemDB.ts` (в объект `ITEMS`)
+2. Поля `statBonuses`, `armorBonus`, `manaBonus` автоматически учитываются в `getEffectiveStats()`
+3. Формулы урона/защиты считают всё автоматически из статов
+
+### Spell Registry
+- `ALL_KNOWN_SPELLS: AbilityDef[]` — плоский массив (для итерации)
+- `SPELL_MAP: Map<string, AbilityDef>` — O(1) поиск по id
+- `getSpellById(id)` — shorthand для Map lookup
+- `resolveSpellIds(ids)` — восстановление `AbilityDef[]` из массива id (save/load)
+
+### Файлы данных
+| Файл | Экспортирует | Содержание |
+|------|-------------|------------|
+| `spells/fire.ts` | `FIRE_SPELLS[]` + индивидуальные | 5 заклинаний огня T1-T5 |
+| `spells/water.ts` | `WATER_SPELLS[]` | 5 заклинаний воды |
+| `spells/earth.ts` | `EARTH_SPELLS[]` | 5 заклинаний земли |
+| `spells/wind.ts` | `WIND_SPELLS[]` | 5 заклинаний ветра |
+| `spells/nature.ts` | `NATURE_SPELLS[]` | 5 заклинаний природы |
+| `neutralSpells.ts` | `NEUTRAL_SPELLS[]` | ~30 нейтральных/утилитарных |
+| `specialAbilities.ts` | `WEAPON_ABILITIES[]` | ~32 оружейных T1/T2/T3 |
+| `allSpells.ts` | `ALL_KNOWN_SPELLS`, `SPELL_MAP` | Авто-сборка из массивов |
+
 ## Ключевые файлы
 
-- `src/data/allSpells.ts` — единый реестр всех заклинаний (добавлять новые ТОЛЬКО сюда)
+- `src/data/allSpells.ts` — реестр + Map (авто-сборка из школьных массивов)
 - `src/data/magicSchools.ts` — школьные бонусы (burn/chill/etc. применяются автоматически)
-- `src/data/elementalSpells.ts` — определения стихийных заклинаний и enchantment'ов
-- `src/data/neutralSpells.ts` — нейтральные заклинания
-- `src/data/specialAbilities.ts` — оружейные способности T1/T2/T3 + универсальные
+- `src/data/neutralSpells.ts` — нейтральные заклинания (NEUTRAL_SPELLS[])
+- `src/data/specialAbilities.ts` — оружейные способности (WEAPON_ABILITIES[])
 - `src/scenes/TitleScene.ts` — титульный экран + загрузка (3 слота)
 - `src/scenes/CharCreateScene.ts` — создание персонажа (имя + 2 оружия)
 - `src/data/starterBodies.ts` — динамическая генерация стартовых тел по оружию
@@ -631,7 +660,7 @@ T3 заклинания — только NPC-касты боссов. Игрок
 - **Загрузка (TitleScene load view)**: 3 слота, Play/Delete, имя + оружие + ранг
 - **Мульти-слот сохранение**: 3 слота в localStorage (essence_slot_0/1/2 + essence_characters)
 - **Инвентарь D3 стиль**: экипировка слева (11 слотов + weapon2), сумка справа (8 колонок)
-- **Окна**: Stats, Inventory, Quests, Achievements, Vendor, Crafting
+- **Окна**: Stats, Inventory, Quests, Achievements, Spells, Vendor, Crafting
 - **Скролл**: колёсико мыши в окнах
 - **Drag**: окна перетаскиваются за заголовок
 - **Quest HUD**: справа на экране, полупрозрачный, перетаскиваемый, основной квест + помеченные
@@ -641,7 +670,7 @@ T3 заклинания — только NPC-касты боссов. Игрок
 - **Стартовые тела**: воин и маг — анимированные спрайты, лучник — круг
 - **Статы**: показывают base/cap (+equip) = total
 - **Валюта на HUD**: 💰 рядом с HP/Mana
-- **Скилл-бар**: разделитель Weapon [Tab] | Neutral
+- **Скилл-бар**: разделитель Weapon [Tab] | Neutral, клик по слоту при 🔒 = каст заклинания
 
 ## Система переключения оружия (dual weapon)
 
@@ -730,14 +759,13 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 ## Известные задачи
 
 - **5 школ Главы 2 не реализовано** (Яд, Свет, Тьма, Некромантия, Кровь — по 5 тиров = 25 заклинаний к проработке). Реализовано: Fire/Water/Earth/Wind/Nature × T1-T5.
-- **Spell picker**: нет визуального отличия оружейных / нейтральных / стихийных ��аклинаний в списке
 - **Баланс**: T3 крафт и боссы требуют тестирования
 - **Спрайты**: лучник, мобы — нет анимированных спрайтов
 - **Фоновая музыка**: нет (есть 12 процедурных SFX)
-- **Экипировка мана-бонус**: бонус маны от брони (до +50) не реализован
 - **Боссы Главы 1**: механики боссов (HP бар, фазы, AI) не реализованы — используются стандартные существа
 - **Стартовые тела**: в лоре именованные (Конрад/Рен/Эйла), в коде — generic
 - **Квесты тел**: сейчас только вводный диалог при первом вселении; полноценные цели (стелс, загон, гонки) не реализованы
+- **Экипировка мана-бонус**: поле `manaBonus` поддержано в формуле, но ни один предмет его не использует (маны идёт через statBonuses.mana)
 
 ## Правила для Claude
 
