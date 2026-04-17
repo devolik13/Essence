@@ -266,10 +266,29 @@ export function getNPCDialog(npcId: string, qt: QuestTracker): DialogResult {
 }
 
 export const PROLOGUE_DIALOG: DialogMessage[] = [
-  { speaker: 'Nikola Tesla', text: "They came from nowhere. Bullets pass through them. Shells crumble to dust. We tried everything — electricity, explosives, chemicals. Nothing works." },
-  { speaker: 'Marie Curie', text: "I found the same frequency in my radiation readings — but from empty air. As if another world vibrates on the same wavelength as these creatures." },
-  { speaker: 'Nikola Tesla', text: "We built the Transfer Machine. It separates consciousness from body and sends it to that other world — as a Sphere. A pure mind, able to inhabit any creature." },
-  { speaker: 'Marie Curie', text: "Magic there isn't magic. It's physics at a different frequency. Learn it. Master it. Bring it back. It's the only weapon that works against the Void." },
-  { speaker: 'Nikola Tesla', text: "You're not the first volunteer. But you might be the first to return strong enough. Go. Find a body. Learn everything you can." },
-  { speaker: '', text: "You feel yourself dissolving... fading... and then reforming. A bright sphere of light in an unfamiliar world. You are the Essence." },
+  // ACT 1 — Warp Rifts
+  { speaker: '', text: "Late 19th century. The age of steam and electricity." },
+  { speaker: '', text: "They began appearing without warning. Warp rifts — tears in space that open for seconds and vanish. From them emerge creatures — translucent, almost non-material. They seize people and drag them into the rift." },
+  { speaker: '', text: "Bullets pass through. Explosions scatter. Electric discharge leaves no trace. Armies are powerless." },
+
+  // The Discovery
+  { speaker: '', text: "Nikola Tesla and Marie Curie work with wave measurements near the rifts. Tesla builds an unconventional resonator — and finds something. A frequency that should not exist." },
+  { speaker: 'Nikola Tesla', text: "Somewhere there is another place. It vibrates at the same frequency as they do." },
+  { speaker: '', text: "Physical matter cannot be transferred — flesh won't pass through. But brain waves resonate perfectly. Conclusion: consciousness can be transferred." },
+
+  // The First Volunteer
+  { speaker: '', text: "A colleague — a young assistant — has been listening to their arguments for three nights. Tesla insists: more time is needed. Curie says quietly: yesterday a rift opened two blocks from the laboratory." },
+  { speaker: '', text: "The assistant sets down his papers." },
+  { speaker: 'You', text: "I'll go first." },
+
+  // Before the Machine
+  { speaker: '', text: "The Transfer Machine looks like a copper-and-glass coffin. Inside — grilles, wires, the smell of ozone." },
+  { speaker: 'Nikola Tesla', text: "..." },
+  { speaker: 'Marie Curie', text: "We don't know what's there. We don't know how long. We don't know if you'll come back as yourself." },
+  { speaker: '', text: "You lie down. The lid closes. Darkness." },
+
+  // Awakening
+  { speaker: '', text: "No hands. No weight. Only light and the sensation of vast space." },
+  { speaker: '', text: "Below — a village. Living people. The smell of smoke and bread. Near the resurrection stone stand bodies — as if waiting." },
+  { speaker: '', text: "You are the Essence. Find a body. Press [E] to possess it." },
 ];
