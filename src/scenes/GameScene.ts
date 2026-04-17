@@ -2012,6 +2012,10 @@ export class GameScene extends Phaser.Scene {
       const boost = STATUS_DEFS['damage_boost'].outgoingDamageIncrease ?? 0;
       finalDmg = Math.round(finalDmg * (1 + boost));
     }
+    // Vulnerability: +10% incoming damage on target
+    if (result.hit) {
+      finalDmg = this.applyTargetVulnerability(closestCreature, finalDmg, dt === 'magic');
+    }
 
     if (result.hit) {
       closestCreature.takeDamage(finalDmg);
@@ -2088,6 +2092,8 @@ export class GameScene extends Phaser.Scene {
 
     if (result.hit) {
       let finalDmg = result.final;
+      // Vulnerability on player: +incoming damage
+      finalDmg = this.applyPlayerVulnerability(finalDmg, cdt === 'magic');
       // Ветряной барьер снижает урон если снаряд пролетает через него
       const barrierRed = this.getWindBarrierReduction(creature.x, creature.y, this.playerBody.x, this.playerBody.y, true);
       if (barrierRed > 0) finalDmg = Math.round(finalDmg * (1 - barrierRed));
@@ -2160,7 +2166,8 @@ export class GameScene extends Phaser.Scene {
 
     // Ветряной барьер снижает урон
     const barrierRed = this.getWindBarrierReduction(creature.x, creature.y, this.playerBody.x, this.playerBody.y, true);
-    const npcDmg = barrierRed > 0 ? Math.round(result.final * (1 - barrierRed)) : result.final;
+    let npcDmg = barrierRed > 0 ? Math.round(result.final * (1 - barrierRed)) : result.final;
+    npcDmg = this.applyPlayerVulnerability(npcDmg, true);
 
     if (result.hit) {
       if (spell.isAoe) {
@@ -2407,6 +2414,22 @@ export class GameScene extends Phaser.Scene {
       const names: Record<string, string> = { fire: 'Fire', water: 'Water', earth: 'Earth', wind: 'Wind' };
       this.showMessage(`Seal frequency acquired: ${names[def.element]}!`);
 
+      // Boss reward: auto-learn T2 spell of the Guardian's school
+      const rewardSpellIds: Record<string, string> = {
+        fire: 'mob_fire_t2', water: 'mob_water_t2',
+        earth: 'mob_earth_t2', wind: 'mob_wind_t2',
+      };
+      const rewardId = rewardSpellIds[def.element];
+      if (rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {
+        const spell = ALL_KNOWN_SPELLS.find(s => s.id === rewardId);
+        if (spell) {
+          this.sphere.learnedSpells.push(spell);
+          this.sphere.spellProgress[spell.id] = 9999;
+          this.events.emit('spell-learned', spell);
+          sfxLevelUp();
+        }
+      }
+
       const allCollected = Object.values(this.sphere.sealFrequencies).every(v => v);
       if (allCollected) {
         this.events.emit('show-dialog', {
@@ -2466,6 +2489,31 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Возвращает первый (основной) стат тела — тот в который идёт XP за атаки */
+  private applyTargetVulnerability(target: Creature, dmg: number, isMagic: boolean): number {
+    if (target.hasStatus('vulnerability')) {
+      const inc = STATUS_DEFS['vulnerability'].incomingDamageIncrease ?? 0;
+      dmg = Math.round(dmg * (1 + inc));
+    }
+    if (isMagic && target.hasStatus('magic_vulnerability')) {
+      const inc = STATUS_DEFS['magic_vulnerability'].elementalDamageIncrease ?? 0;
+      dmg = Math.round(dmg * (1 + inc));
+    }
+    return dmg;
+  }
+
+  private applyPlayerVulnerability(dmg: number, isMagic: boolean): number {
+    if (!this.playerBody) return dmg;
+    if (this.playerBody.hasStatus('vulnerability')) {
+      const inc = STATUS_DEFS['vulnerability'].incomingDamageIncrease ?? 0;
+      dmg = Math.round(dmg * (1 + inc));
+    }
+    if (isMagic && this.playerBody.hasStatus('magic_vulnerability')) {
+      const inc = STATUS_DEFS['magic_vulnerability'].elementalDamageIncrease ?? 0;
+      dmg = Math.round(dmg * (1 + inc));
+    }
+    return dmg;
+  }
+
   private getBodyPrimaryStat(): StatName {
     if (!this.playerBody) return StatName.Strength;
     const caps = this.playerBody.definition.caps;
@@ -2770,6 +2818,10 @@ export class GameScene extends Phaser.Scene {
       const boost = STATUS_DEFS['damage_boost'].outgoingDamageIncrease ?? 0;
       dmg = Math.round(dmg * (1 + boost));
     }
+
+    // ── Vulnerability / elementalDamageIncrease on target ────────────────
+    const isMagicSpell = spell.damageType === 'magic';
+    dmg = this.applyTargetVulnerability(target, dmg, isMagicSpell);
 
     // ── Бурст яда (Смертельная доза: 5 стаков → мгновенный урон) ────────
     if (spell.poisonBurstDamage && target.hasStatus('poison')) {

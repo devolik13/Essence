@@ -928,13 +928,19 @@ export class UIScene extends Phaser.Scene {
         .map(s => s.ability!.id) ?? []
     );
     const weaponSchool = this.cachedUIData?.weaponSchool ?? null;
+    const bodyWeapon = this.cachedBody?.definition.weapon ?? null;
     const spells = this.cachedLearnedSpells.filter(sp => {
       if (usedIds.has(sp.id)) return false;
       // Filter by weapon school: elemental spells need matching staff
       if (sp.school && sp.school !== 'neutral') {
         return sp.school === weaponSchool;
       }
-      return true; // neutral/weapon spells always available
+      // Filter by requiredWeapons
+      if (sp.requiredWeapons && sp.requiredWeapons.length > 0) {
+        if (slotIndex >= 5) return false;
+        if (!bodyWeapon || !sp.requiredWeapons.includes(bodyWeapon)) return false;
+      }
+      return true;
     });
     this.spellPickerContainer.removeAll(true);
 
