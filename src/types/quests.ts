@@ -1,4 +1,4 @@
-export type ObjectiveType = 'kill' | 'capture' | 'learn_spell' | 'craft_t3' | 'talk' | 'kill_boss';
+export type ObjectiveType = 'kill' | 'capture' | 'learn_spell' | 'craft_t3' | 'talk' | 'kill_boss' | 'escort' | 'survive' | 'collect' | 'reach';
 
 export interface QuestObjective {
   type: ObjectiveType;

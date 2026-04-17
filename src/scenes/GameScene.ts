@@ -2229,36 +2229,6 @@ export class GameScene extends Phaser.Scene {
         if (levelUp) this.events.emit('stat-up', levelUp);
       }
 
-      // 2. Spell XP — полный xpReward идёт в заклинание тела (дублируется)
-      const spell = this.playerBody.definition.signatureSpell;
-      const threshold = this.playerBody.definition.spellXPThreshold;
-      if (spell && threshold) {
-        const prev = this.sphere.spellProgress[spell.id] ?? 0;
-        const alreadyLearned = this.sphere.learnedSpells.some(s => s.id === spell.id);
-
-        if (!alreadyLearned) {
-          // Проверка prerequisite — нельзя выучить T2 без T1
-          const prereqId = spell.prerequisiteId;
-          const hasPrereq = !prereqId || this.sphere.learnedSpells.some(s => s.id === prereqId);
-
-          if (!hasPrereq) {
-            this.events.emit('spell-locked', { spell, prereqId });
-          } else {
-            const next = prev + xpTotal;
-            this.sphere.spellProgress[spell.id] = next;
-
-            if (next >= threshold) {
-              // Заклинание выучено!
-              this.sphere.learnedSpells.push(spell);
-              sfxLevelUp();
-      this.events.emit('spell-learned', spell);
-            } else {
-              this.events.emit('spell-progress', { spell, current: next, threshold });
-            }
-          }
-        }
-      }
-
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: xpTotal, stats: capStats });
     } else {
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
@@ -2404,7 +2374,26 @@ export class GameScene extends Phaser.Scene {
     const bq = getBodyQuest(bodyId);
     if (!bq) return;
     this.sphere.triggeredBodyQuests.push(bodyId);
-    this.events.emit('show-dialog', { messages: bq.messages });
+
+    const onIntroEnd = () => {
+      const spellId = bq.rewardSpellId;
+      if (spellId && !this.sphere.learnedSpells.some(s => s.id === spellId)) {
+        const spell = getSpellById(spellId);
+        if (spell) {
+          const prereqId = spell.prerequisiteId;
+          const hasPrereq = !prereqId || this.sphere.learnedSpells.some(s => s.id === prereqId);
+          if (hasPrereq) {
+            this.sphere.learnedSpells.push(spell);
+            this.sphere.spellProgress[spell.id] = 9999;
+            this.events.emit('spell-learned', spell);
+            sfxLevelUp();
+            this.events.emit('show-dialog', { messages: bq.completeMessages });
+          }
+        }
+      }
+    };
+
+    this.events.emit('show-dialog', { messages: bq.introMessages, onEnd: onIntroEnd });
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
