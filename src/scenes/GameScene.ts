@@ -30,7 +30,8 @@ import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
 import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG } from '../data/dialogs';
-import { getBodyQuest } from '../data/bodyQuests';
+import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
+import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
@@ -227,6 +228,7 @@ export class GameScene extends Phaser.Scene {
 
   // Квесты
   private questTracker!: QuestTracker;
+  private bodyQuestTracker = new BodyQuestTracker();
 
   // NPC-квестодатель — рядом с респауном
   private get questGiverPos() {
@@ -307,6 +309,7 @@ export class GameScene extends Phaser.Scene {
     this.fireTsunamis = [];
     this.summonedEnts = [];
     this.exitArrows = [];
+    this.bodyQuestTracker.clear();
   }
 
   create() {
@@ -714,6 +717,15 @@ export class GameScene extends Phaser.Scene {
     // Респаун
     this.tickRespawn(delta);
 
+    // Body quest survive timers
+    if (this.bodyQuestTracker.getActive() && !this.bodyQuestTracker.getActive()!.completed) {
+      const wasComplete = this.bodyQuestTracker.isComplete();
+      this.bodyQuestTracker.update(delta / 1000);
+      if (!wasComplete && this.bodyQuestTracker.isComplete()) {
+        this.onBodyQuestComplete();
+      }
+    }
+
     // Передаём данные в UIScene
     this.events.emit('update-ui', {
       sphere: this.sphere,
@@ -740,6 +752,7 @@ export class GameScene extends Phaser.Scene {
       unlockedAchievements: this.sphere.unlockedAchievements,
       trackedQuestIds: this.sphere.trackedQuestIds,
       weaponSchool: this.getWeaponSchool(),
+      bodyQuest: this.bodyQuestTracker.getActive(),
     });
   }
 
@@ -1068,6 +1081,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    this.bodyQuestTracker.clear();
     this.playerBody.release();
     this.playerBody.destroy();
     this.playerBody = null;
@@ -2288,6 +2302,7 @@ export class GameScene extends Phaser.Scene {
 
   private onPlayerDeath() {
     sfxDeath();
+    this.bodyQuestTracker.clear();
     // ── Штраф за смерть ──────────────────────────────────
     let totalXpLost = 0;
     if (this.playerBody) {
@@ -2330,6 +2345,7 @@ export class GameScene extends Phaser.Scene {
     // Вспышка захвата → появление тела
     this.spawnCaptureFlash(cx, cy, () => {
       // Уничтожаем старое тело (Сфера покидает его)
+      this.bodyQuestTracker.clear();
       if (this.playerBody) {
         this.playerBody.destroy();
         this.playerBody = null;
@@ -2367,34 +2383,76 @@ export class GameScene extends Phaser.Scene {
   private handleQuestKill(creatureId: string, _xpFromKill: number) {
     const completed = this.questTracker.onKill(creatureId);
     for (const q of completed) this.onQuestComplete(q);
+
+    // Body quest kill tracking
+    if (this.bodyQuestTracker.getActive() && !this.bodyQuestTracker.isComplete()) {
+      const wasComplete = this.bodyQuestTracker.isComplete();
+      this.bodyQuestTracker.onKill(creatureId);
+      if (!wasComplete && this.bodyQuestTracker.isComplete()) {
+        this.onBodyQuestComplete();
+      }
+    }
   }
 
   private tryShowBodyQuest(bodyId: string) {
-    if (this.sphere.triggeredBodyQuests.includes(bodyId)) return;
-    const bq = getBodyQuest(bodyId);
+    // Find the next available quest for this body (respecting prerequisites)
+    const quests = getBodyQuests(bodyId);
+    const bq = quests.find(q => {
+      if (this.sphere.triggeredBodyQuests.includes(q.id)) return false;
+      if (q.prerequisiteBodyQuestId && !this.sphere.triggeredBodyQuests.includes(q.prerequisiteBodyQuestId)) return false;
+      return true;
+    });
     if (!bq) return;
-    this.sphere.triggeredBodyQuests.push(bodyId);
+
+    const hasObjectives = bq.objectives.length > 0;
 
     const onIntroEnd = () => {
-      const spellId = bq.rewardSpellId;
-      if (spellId && !this.sphere.learnedSpells.some(s => s.id === spellId)) {
-        const spell = getSpellById(spellId);
-        if (spell) {
-          const prereqId = spell.prerequisiteId;
-          const hasPrereq = !prereqId || this.sphere.learnedSpells.some(s => s.id === prereqId);
-          if (hasPrereq) {
-            this.sphere.learnedSpells.push(spell);
-            this.sphere.spellProgress[spell.id] = 9999;
-            this.events.emit('spell-learned', spell);
-            sfxLevelUp();
-            this.events.emit('show-dialog', { messages: bq.completeMessages });
-          }
-        }
+      if (hasObjectives) {
+        this.bodyQuestTracker.start(bq);
+        this.showMessage(`Quest started: ${bq.nameRu}`);
+      } else {
+        this.grantBodyQuestReward(bq);
       }
     };
 
     this.events.emit('show-dialog', { messages: bq.introMessages, onEnd: onIntroEnd });
+  }
+
+  private onBodyQuestComplete(): void {
+    const progress = this.bodyQuestTracker.getActive();
+    if (!progress) return;
+    const bq = progress.def;
+    this.sphere.triggeredBodyQuests.push(bq.id);
+    this.bodyQuestTracker.clear();
+    this.grantBodyQuestReward(bq);
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+  }
+
+  private grantBodyQuestReward(bq: import('../types/bodyQuests').BodyQuestDef): void {
+    const spellId = bq.rewardSpellId;
+    if (spellId && !this.sphere.learnedSpells.some(s => s.id === spellId)) {
+      const spell = getSpellById(spellId);
+      if (spell) {
+        const prereqId = spell.prerequisiteId;
+        const hasPrereq = !prereqId || this.sphere.learnedSpells.some(s => s.id === prereqId);
+        if (hasPrereq) {
+          this.sphere.learnedSpells.push(spell);
+          this.sphere.spellProgress[spell.id] = 9999;
+          this.events.emit('spell-learned', spell);
+          sfxLevelUp();
+        }
+      }
+    }
+    if (bq.xpReward > 0 && this.playerBody) {
+      const caps = this.playerBody.definition.caps;
+      const capStats = Object.keys(caps) as StatName[];
+      const xpEach = Math.floor(bq.xpReward / capStats.length);
+      for (const stat of capStats) {
+        const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
+        if (levelUp) this.events.emit('stat-up', levelUp);
+      }
+    }
+    this.events.emit('show-dialog', { messages: bq.completeMessages });
   }
 
   private handleBossKill(def: import('../types/bodies').BodyDefinition) {

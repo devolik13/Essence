@@ -47,6 +47,7 @@ interface UIData {
   unlockedAchievements: string[];
   trackedQuestIds: string[];
   weaponSchool: string | null;
+  bodyQuest: import('../systems/bodyQuestTracker').BodyQuestProgress | null;
 }
 
 interface PanelState {
@@ -611,6 +612,25 @@ export class UIScene extends Phaser.Scene {
           const cur = q.counts[i];
           const isDone = cur >= obj.count;
           lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? ''}`);
+        }
+      }
+
+      // Active body quest
+      const bq = data.bodyQuest;
+      if (bq && !bq.completed) {
+        if (lines.length > 0) lines.push('');
+        lines.push(`★ ${bq.def.nameRu}`);
+        for (let i = 0; i < bq.def.objectives.length; i++) {
+          const obj = bq.def.objectives[i];
+          const cur = bq.counts[i];
+          const isDone = cur >= obj.count;
+          if (obj.type === 'survive' && !isDone) {
+            const secs = Math.ceil(bq.surviveTimers[i]);
+            lines.push(`  ${secs}s ${obj.description}`);
+          } else {
+            const label = obj.description || obj.targetNameRu || '';
+            lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${label}`);
+          }
         }
       }
 
