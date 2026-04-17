@@ -21,7 +21,7 @@ const HEADER_H = 20;
 const WIN_W = 310;
 const WIN_TITLE_H = 22;
 
-type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting';
+type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -76,7 +76,7 @@ export class UIScene extends Phaser.Scene {
   // ── Menu buttons ──────────────────────────────────────
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
-  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements'];
+  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells'];
 
   // ── Floating window ───────────────────────────────────
   private currentWindow: WindowType | null = null;
@@ -894,16 +894,17 @@ export class UIScene extends Phaser.Scene {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
       this.skillSlotsCdText.push(cdText);
 
-      if (i >= 1) {
-        bg.setInteractive({ useHandCursor: true })
-          .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-            ptr.event.stopPropagation();
-            if (this.skillBarLocked) { this.addLog(t('skill.locked')); return; }
-            if (this.cachedInCombat) { this.addLog(t('skill.no_combat')); return; }
-            if (this.spellPickerSlot === i) this.closeSpellPicker();
-            else this.openSpellPicker(i);
-          });
-      }
+      bg.setInteractive({ useHandCursor: true })
+        .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+          ptr.event.stopPropagation();
+          if (i === 0 || this.skillBarLocked) {
+            this.scene.get('GameScene').events.emit('activate-spell-slot', i);
+            return;
+          }
+          if (this.cachedInCombat) { this.addLog(t('skill.no_combat')); return; }
+          if (this.spellPickerSlot === i) this.closeSpellPicker();
+          else this.openSpellPicker(i);
+        });
     }
 
     const barStartX = (GAME_WIDTH - (SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP)) / 2;
@@ -1112,7 +1113,7 @@ export class UIScene extends Phaser.Scene {
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
-    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve')];
+    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells')];
     const btnW = 76;
     const btnH = 22;
     const gap = 4;
@@ -1255,6 +1256,10 @@ export class UIScene extends Phaser.Scene {
       this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
       this.windowY = 30;
       this.resizeWindow(400, 420);
+    } else if (type === 'spells') {
+      this.windowX = Math.floor((GAME_WIDTH - 380) / 2);
+      this.windowY = 20;
+      this.resizeWindow(380, 460);
     } else {
       this.windowX = Math.floor((GAME_WIDTH - 320) / 2);
       this.windowY = 30;
@@ -1431,6 +1436,7 @@ export class UIScene extends Phaser.Scene {
             }
           }
           if (def.armorBonus) equipBonuses[StatName.Armor] = (equipBonuses[StatName.Armor] ?? 0) + def.armorBonus;
+          if (def.manaBonus) equipBonuses[StatName.Mana] = (equipBonuses[StatName.Mana] ?? 0) + def.manaBonus;
         }
 
         for (const stat of STAT_ORDER) {
@@ -1754,6 +1760,66 @@ export class UIScene extends Phaser.Scene {
           this.windowInteractables.push(btn);
           btnY += 80; // space per recipe
         }
+        break;
+      }
+
+      case 'spells': {
+        const learned = this.cachedLearnedSpells;
+        if (learned.length === 0) {
+          this.windowTitleText.setText(`✦ ${t('menu.spells')}  (0)`);
+          this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText('No spells learned yet.');
+          break;
+        }
+
+        const schoolOrder = ['fire', 'water', 'earth', 'wind', 'nature', 'neutral'];
+        const schoolNames: Record<string, string> = {
+          fire: '🔥 Fire', water: '💧 Water', earth: '🪨 Earth',
+          wind: '🌀 Wind', nature: '🌿 Nature', neutral: '⚡ Neutral',
+        };
+        const weaponGroup: Record<string, string> = {};
+        for (const sp of learned) {
+          if (sp.requiredWeapons?.length) {
+            for (const w of sp.requiredWeapons) {
+              if (!weaponGroup[w]) weaponGroup[w] = '';
+            }
+          }
+        }
+
+        const lines: string[] = [];
+
+        for (const school of schoolOrder) {
+          const schoolSpells = learned.filter(sp => (sp.school ?? 'neutral') === school && !sp.requiredWeapons?.length);
+          if (schoolSpells.length === 0) continue;
+          lines.push(`═══ ${schoolNames[school] ?? school} ═══`);
+          for (const sp of schoolSpells) {
+            const cast = sp.castTime ? `${sp.castTime}s` : 'instant';
+            lines.push(`  ${sp.nameRu}  [${sp.manaCost}mp  ${sp.cooldown}s cd  ${cast}]`);
+            if (sp.description) lines.push(`    ${sp.description}`);
+          }
+          lines.push('');
+        }
+
+        const weaponSpells = learned.filter(sp => sp.requiredWeapons?.length);
+        if (weaponSpells.length > 0) {
+          const byWeapon: Record<string, typeof weaponSpells> = {};
+          for (const sp of weaponSpells) {
+            const w = sp.requiredWeapons![0];
+            if (!byWeapon[w]) byWeapon[w] = [];
+            byWeapon[w].push(sp);
+          }
+          for (const [weapon, spells] of Object.entries(byWeapon)) {
+            lines.push(`═══ ⚔ ${weapon} ═══`);
+            for (const sp of spells) {
+              const cast = sp.castTime ? `${sp.castTime}s` : 'instant';
+              lines.push(`  ${sp.nameRu}  [${sp.manaCost}mp  ${sp.cooldown}s cd  ${cast}]`);
+              if (sp.description) lines.push(`    ${sp.description}`);
+            }
+            lines.push('');
+          }
+        }
+
+        this.windowTitleText.setText(`✦ ${t('menu.spells')}  (${learned.length})`);
+        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
     }

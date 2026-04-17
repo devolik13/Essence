@@ -443,6 +443,11 @@ export class GameScene extends Phaser.Scene {
       saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     });
 
+    this.events.on('activate-spell-slot', (slotIndex: number) => {
+      if (slotIndex === 0) this.handleAttack();
+      else this.activateSpellSlot(slotIndex);
+    });
+
     // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       resumeAudio(); // Unlock audio on first click
@@ -1937,8 +1942,8 @@ export class GameScene extends Phaser.Scene {
           if (sn && val) s[sn] += val;
         }
       }
-      // Armor bonus from equipment
       if (def.armorBonus) s[StatName.Armor] += def.armorBonus;
+      if (def.manaBonus) s[StatName.Mana] += def.manaBonus;
     }
 
     // Бонусы от статус-эффектов

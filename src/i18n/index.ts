@@ -47,6 +47,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'menu.inventory': 'Inventory',
     'menu.quests': 'Quests',
     'menu.achieve': 'Achieve',
+    'menu.spells': 'Spells',
 
     // Stats window
     'stats.title': '◉ Sphere Stats',
@@ -218,6 +219,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'menu.inventory': 'Инвентарь',
     'menu.quests': 'Квесты',
     'menu.achieve': 'Ачивки',
+    'menu.spells': 'Заклинания',
 
     // Stats window
     'stats.title': '◉ Статы сферы',
