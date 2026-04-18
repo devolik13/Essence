@@ -1253,28 +1253,26 @@ export class UIScene extends Phaser.Scene {
   }
 
   private buildFloatingWindow() {
-    // All elements use origin(0,0) and RELATIVE positions inside container
+    // Background — dark ink with brass border
+    this.winBg = this.add.rectangle(0, WIN_TITLE_H, this.windowW, this.windowH, THEME.ink1, 0.96)
+      .setOrigin(0, 0).setStrokeStyle(1, THEME.brass1, 0.9);
 
-    // Background (starts at y=WIN_TITLE_H to leave space for title bar)
-    this.winBg = this.add.rectangle(0, WIN_TITLE_H, this.windowW, this.windowH, 0x070d18, 0.96)
-      .setOrigin(0, 0).setStrokeStyle(1, 0x2d4a66, 0.9);
+    // Title bar — slightly lighter with brass border
+    this.winTitleBg = this.add.rectangle(0, 0, this.windowW, WIN_TITLE_H, THEME.ink2, 0.97)
+      .setOrigin(0, 0).setStrokeStyle(1, THEME.brass1, 0.9);
 
-    // Title bar
-    this.winTitleBg = this.add.rectangle(0, 0, this.windowW, WIN_TITLE_H, 0x0e1828, 0.97)
-      .setOrigin(0, 0).setStrokeStyle(1, 0x2d4a66, 0.9);
-
-    // Title text
+    // Title text — brass accent
     this.windowTitleText = this.add.text(8, 4, '', {
-      fontSize: '11px', color: '#8899bb',
+      fontSize: '11px', fontFamily: 'serif', color: TC.brass3,
     }).setOrigin(0, 0);
 
-    // Close button
+    // Close button — brass styled
     this.winCloseBtn = this.add.text(this.windowW - 6, 4, '[×]', {
-      fontSize: '10px', color: '#aa4444',
+      fontSize: '10px', color: TC.brass2,
     }).setOrigin(1, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerover', () => this.winCloseBtn.setColor('#ff6666'))
-      .on('pointerout',  () => this.winCloseBtn.setColor('#aa4444'))
+      .on('pointerout',  () => this.winCloseBtn.setColor(TC.brass2))
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
         this.closeWindow();
@@ -1282,7 +1280,7 @@ export class UIScene extends Phaser.Scene {
 
     // Content text
     this.windowContentText = this.add.text(8, WIN_TITLE_H + 8, '', {
-      fontSize: '11px', color: '#cccccc', lineSpacing: 4,
+      fontSize: '11px', color: TC.text1, lineSpacing: 4,
     }).setOrigin(0, 0);
 
     // Drag via title bar
@@ -1363,9 +1361,9 @@ export class UIScene extends Phaser.Scene {
 
     // Resize + center based on window type
     if (type === 'inventory') {
-      this.windowX = Math.floor((GAME_WIDTH - 620) / 2);
+      this.windowX = Math.floor((GAME_WIDTH - 860) / 2);
       this.windowY = 10;
-      this.resizeWindow(620, 560);
+      this.resizeWindow(860, 540);
     } else if (type === 'vendor' || type === 'crafting') {
       this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
       this.windowY = 30;
@@ -1598,104 +1596,263 @@ export class UIScene extends Phaser.Scene {
       case 'inventory': {
         const inv = data.inventory ?? [];
         const equip = data.sphere?.equipment ?? {};
-        this.windowInteractables.forEach(t => t.destroy());
+        this.windowInteractables.forEach(o => o.destroy());
         this.windowInteractables = [];
         this.windowContentText.setText('');
         this.windowTitleText.setText('');
 
-        const SLOT = 50;
-        const GAP = 5;
-        const rarityColors: Record<string, number> = { common: 0x444444, uncommon: 0x225522, rare: 0x333366, epic: 0x442266, legendary: 0x664400 };
+        const SLOT = 54;
+        const GAP = 6;
+        const BAG_SLOT = 72;
+        const BAG_GAP = 8;
+        const rarityColors: Record<string, number> = {
+          common: THEME.rCommon, uncommon: THEME.rUncommon,
+          rare: THEME.rRare, epic: THEME.rEpic, legendary: THEME.rLegendary,
+        };
+        const rarityTint: Record<string, number> = {
+          common: 0x1a1916, uncommon: 0x141e12, rare: 0x121822, epic: 0x1a1224, legendary: 0x221a0e,
+        };
 
-        // All positions RELATIVE to windowContainer (0,0 = top-left of window)
+        // Helper: add object to container + interactables
+        const add = <T extends Phaser.GameObjects.GameObject>(obj: T): T => {
+          this.windowContainer.add(obj); this.windowInteractables.push(obj); return obj;
+        };
 
-        // ── LEFT: Character Equipment ──────────────────────
-        const eqX = 12;
-        const eqY = 30;
+        // Helper: draw themed slot (returns bg for interaction)
+        const drawSlot = (cx: number, cy: number, size: number, itemDef: import('../types/items').ItemDef | null) => {
+          const rarity = itemDef?.rarity;
+          const bgColor = rarity ? (rarityTint[rarity] ?? THEME.ink0) : THEME.ink0;
+          const borderColor = rarity ? (rarityColors[rarity] ?? THEME.brass0) : THEME.ink4;
+          const bg = add(this.add.rectangle(cx, cy, size, size, bgColor, 0.95)
+            .setStrokeStyle(1, borderColor, rarity ? 1 : 0.6));
+          add(this.add.rectangle(cx, cy, size - 4, size - 4)
+            .setStrokeStyle(1, THEME.brass2, rarity ? 0.25 : 0.12).setFillStyle(0, 0));
+          return bg;
+        };
 
-        const eqTitle = this.add.text(eqX + 50, eqY - 4, t('inv.equipment'), { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
-        this.windowContainer.add(eqTitle);
-        this.windowInteractables.push(eqTitle);
+        // ── HEADER BAR ────────────────────────────────────
+        const hdrY = WIN_TITLE_H + 6;
+        // Sphere badge (left)
+        add(this.add.circle(16, hdrY + 8, 5, THEME.ether2, 0.9));
+        add(this.add.text(26, hdrY + 2, sphere.characterName || 'Sphere', {
+          fontSize: '11px', fontFamily: 'serif', color: TC.paper0,
+        }));
+        // Body chip
+        const bodyName = data.body?.definition.nameRu ?? '—';
+        add(this.add.text(26, hdrY + 14, `${t('ui.body')}: ${bodyName}`, {
+          fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
+        }));
+        // Currency (right)
+        const coins = formatCurrency(sphere.copper ?? 0);
+        add(this.add.text(this.windowW - 12, hdrY + 8, `💰 ${coins}`, {
+          fontSize: '10px', fontFamily: 'monospace', color: TC.brass3,
+        }).setOrigin(1, 0.5));
+        // Brass separator line
+        add(this.add.rectangle(this.windowW / 2, hdrY + 26, this.windowW - 24, 1, THEME.brass1, 0.4));
 
-        const eqSlots: { key: string; label: string; col: number; row: number }[] = [
-          { key: 'helmet',      label: 'Head',    col: 1, row: 0 },
-          { key: 'amulet',      label: 'Neck',    col: 0, row: 1 },
-          { key: 'chest',       label: 'Chest',   col: 1, row: 1 },
-          { key: 'weapon',      label: 'Wpn 1',   col: 2, row: 0 },
-          { key: 'weapon2',     label: 'Wpn 2',   col: 2, row: 1 },
-          { key: 'ring',        label: 'Ring',     col: 0, row: 2 },
-          { key: 'gloves',      label: 'Hands',   col: 1, row: 2 },
-          { key: 'shield',      label: 'Shield',  col: 2, row: 2 },
-          { key: 'boots',       label: 'Feet',    col: 1, row: 3 },
-          { key: 'weapon_rune', label: 'W.Rune',  col: 0, row: 4 },
-          { key: 'armor_rune',  label: 'A.Rune',  col: 2, row: 4 },
+        // ── LEFT COLUMN: Equipment ────────────────────────
+        const EQ_X = 16; // left margin
+        const EQ_Y = hdrY + 34;
+        const EQ_W = 400;
+
+        // Section header
+        add(this.add.text(EQ_X, EQ_Y, t('inv.equipment').toUpperCase(), {
+          fontSize: '10px', fontFamily: 'monospace', color: TC.text3,
+        }));
+
+        // Anatomical slot layout (centered in EQ_W area)
+        const figCx = EQ_X + EQ_W / 2; // center of figure area
+        const figY = EQ_Y + 20; // top of figure area
+        const S = SLOT; // shorthand
+        const SH = S / 2;
+
+        const eqSlots: { key: string; label: string; cx: number; cy: number }[] = [
+          // Top row: A.Rune — Helmet — W.Rune
+          { key: 'armor_rune',  label: 'A.Rune',  cx: figCx - 120, cy: figY + SH },
+          { key: 'helmet',      label: 'Helmet',   cx: figCx,       cy: figY + SH },
+          { key: 'weapon_rune', label: 'W.Rune',  cx: figCx + 120, cy: figY + SH },
+          // Second row: Amulet (center)
+          { key: 'amulet',      label: 'Amulet',   cx: figCx,       cy: figY + SH + 64 },
+          // Third row: Weapon1 — Chest — Weapon2
+          { key: 'weapon',      label: 'Wpn I',    cx: figCx - 140, cy: figY + SH + 128 },
+          { key: 'chest',       label: 'Chest',    cx: figCx,       cy: figY + SH + 128 },
+          { key: 'weapon2',     label: 'Wpn II',   cx: figCx + 140, cy: figY + SH + 128 },
+          // Fourth row: Gloves — Ring
+          { key: 'gloves',      label: 'Gloves',   cx: figCx - 80,  cy: figY + SH + 196 },
+          { key: 'ring',        label: 'Ring',      cx: figCx + 80,  cy: figY + SH + 196 },
+          // Fifth row: Shield (left) — Boots (center)
+          { key: 'shield',      label: 'Shield',   cx: figCx - 140, cy: figY + SH + 264 },
+          { key: 'boots',       label: 'Boots',    cx: figCx,       cy: figY + SH + 264 },
         ];
 
+        // Simple silhouette hint: vertical line + horizontal shoulders
+        const silGfx = add(this.add.graphics());
+        silGfx.lineStyle(1, THEME.brass2, 0.15);
+        // Body line
+        silGfx.lineBetween(figCx, figY + 40, figCx, figY + 280);
+        // Shoulders
+        silGfx.lineBetween(figCx - 60, figY + 110, figCx + 60, figY + 110);
+        // Arms
+        silGfx.lineBetween(figCx - 60, figY + 110, figCx - 80, figY + 200);
+        silGfx.lineBetween(figCx + 60, figY + 110, figCx + 80, figY + 200);
+        // Hips
+        silGfx.lineBetween(figCx - 30, figY + 200, figCx + 30, figY + 200);
+        // Legs
+        silGfx.lineBetween(figCx - 30, figY + 200, figCx - 30, figY + 270);
+        silGfx.lineBetween(figCx + 30, figY + 200, figCx + 30, figY + 270);
+        // Head circle
+        silGfx.strokeCircle(figCx, figY + 28, 14);
+
+        // Ether glow behind silhouette
+        add(this.add.circle(figCx, figY + 140, 70, THEME.ether1, 0.12));
+
         for (const es of eqSlots) {
-          const sx = eqX + es.col * (SLOT + GAP);
-          const sy = eqY + 14 + es.row * (SLOT + GAP);
           const itemId = (equip as any)[es.key];
           const itemDef = itemId ? ITEMS[itemId] : null;
-          const bgColor = itemDef ? (rarityColors[itemDef.rarity] ?? 0x333333) : 0x1a1a2a;
 
-          const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.9)
-            .setStrokeStyle(1, itemDef ? 0x888888 : 0x333344).setInteractive();
-          this.windowContainer.add(bg);
-        this.windowInteractables.push(bg);
+          const bg = drawSlot(es.cx, es.cy, S, itemDef);
+          bg.setInteractive({ useHandCursor: true });
 
-          const txt = this.add.text(sx + SLOT / 2, sy + SLOT / 2,
-            itemDef ? (itemDef.icon ?? '?') : es.label,
-            { fontSize: itemDef ? '22px' : '9px', color: itemDef ? '#ffffff' : '#555566' }
-          ).setOrigin(0.5);
-          this.windowContainer.add(txt);
-        this.windowInteractables.push(txt);
+          // Slot label (below or above based on position)
+          const labelBelow = es.key === 'boots' || es.key === 'shield';
+          add(this.add.text(es.cx, es.cy + (labelBelow ? SH + 4 : -(SH + 4)), es.label, {
+            fontSize: '7px', fontFamily: 'monospace', color: TC.text3,
+          }).setOrigin(0.5, labelBelow ? 0 : 1));
 
+          // Item icon or empty hint
           if (itemDef) {
+            add(this.add.text(es.cx, es.cy, itemDef.icon ?? '?', {
+              fontSize: '22px',
+            }).setOrigin(0.5));
             bg.on('pointerdown', () => {
               (equip as any)[es.key] = undefined;
               this.refreshWindow();
             });
+            // Hover: show item name
+            const hoverLabel = add(this.add.text(es.cx, es.cy - SH - 14, itemDef.nameRu, {
+              fontSize: '9px', fontFamily: 'serif', color: TC.paper0,
+              backgroundColor: '#0d0b08cc', padding: { x: 4, y: 2 },
+            }).setOrigin(0.5).setVisible(false));
+            bg.on('pointerover', () => hoverLabel.setVisible(true));
+            bg.on('pointerout',  () => hoverLabel.setVisible(false));
+          } else {
+            add(this.add.text(es.cx, es.cy, '✦', {
+              fontSize: '14px', color: TC.text3,
+            }).setOrigin(0.5).setAlpha(0.3));
           }
         }
 
-        // ── RIGHT: Inventory Bag ──────────────────────────
-        const bagX = 185;
-        const bagY = 30;
-        const COLS = 8;
+        // Weapon strip below equipment (dual weapon toggle indicator)
+        const wsY = figY + S + 286;
+        const wsW = 160;
+        const activeWpn = sphere.activeWeaponSlot ?? 0;
+        for (let wi = 0; wi < 2; wi++) {
+          const wKey = wi === 0 ? 'weapon' : 'weapon2';
+          const wItemId = (equip as any)[wKey];
+          const wDef = wItemId ? ITEMS[wItemId] : null;
+          const wx = figCx - wsW - 4 + wi * (wsW + 8);
+          const isActive = wi === activeWpn;
 
-        const bagTitle = this.add.text(bagX + 45, bagY - 4, t('inv.inventory'), { fontSize: '10px', color: '#bbaa88' }).setOrigin(0.5, 0);
-        this.windowContainer.add(bagTitle);
-        this.windowInteractables.push(bagTitle);
+          // Card bg
+          add(this.add.rectangle(wx + wsW / 2, wsY + 22, wsW, 44,
+            isActive ? THEME.ink3 : THEME.ink0, 0.9)
+            .setStrokeStyle(1, isActive ? THEME.brass2 : THEME.ink4));
+          // Label
+          add(this.add.text(wx + 6, wsY + 6, `${wi === 0 ? 'I' : 'II'}`, {
+            fontSize: '8px', fontFamily: 'monospace', color: isActive ? TC.brass3 : TC.text3,
+          }));
+          // Tab hint
+          if (wi === 1) {
+            add(this.add.text(wx + wsW - 6, wsY + 6, 'TAB', {
+              fontSize: '7px', fontFamily: 'monospace', color: TC.brass3,
+            }).setOrigin(1, 0));
+          }
+          // Weapon name
+          add(this.add.text(wx + 6, wsY + 20, wDef ? wDef.nameRu : '— empty —', {
+            fontSize: '11px', fontFamily: 'serif',
+            color: wDef ? TC.paper0 : TC.text3,
+          }));
+          // Weapon meta
+          if (wDef) {
+            add(this.add.text(wx + 6, wsY + 34, `${wDef.icon ?? ''} ${wDef.rarity}`, {
+              fontSize: '8px', fontFamily: 'monospace', color: TC.text2,
+            }));
+          }
+        }
 
-        for (let i = 0; i < Math.max(inv.length, 20); i++) {
+        // ── Vertical divider between columns ──────────────
+        const divX = EQ_X + EQ_W + 10;
+        const divGfx = add(this.add.graphics());
+        divGfx.lineStyle(1, THEME.ink4, 0.8);
+        divGfx.lineBetween(divX, EQ_Y, divX, EQ_Y + 420);
+        divGfx.lineStyle(1, THEME.brass1, 0.3);
+        divGfx.lineBetween(divX + 1, EQ_Y + 20, divX + 1, EQ_Y + 400);
+
+        // ── RIGHT COLUMN: Bag ─────────────────────────────
+        const BAG_X = divX + 16;
+        const BAG_Y = EQ_Y;
+        const COLS = 4;
+        const ROWS = 4;
+        const gridW = COLS * BAG_SLOT + (COLS - 1) * BAG_GAP;
+        const gridX = BAG_X + 10;
+
+        // Section header
+        add(this.add.text(BAG_X, BAG_Y, t('inv.inventory').toUpperCase(), {
+          fontSize: '10px', fontFamily: 'monospace', color: TC.text3,
+        }));
+        // Capacity
+        add(this.add.text(BAG_X + 380, BAG_Y, `${inv.length}/64`, {
+          fontSize: '9px', fontFamily: 'monospace', color: TC.text2,
+        }).setOrigin(1, 0));
+
+        // Filter chips
+        const chipY = BAG_Y + 18;
+        const chipTypes = ['all', 'equipment', 'material', 'consumable'];
+        const chipW = 90;
+        for (let ci = 0; ci < chipTypes.length; ci++) {
+          const cx = gridX + ci * (chipW + 4) + chipW / 2;
+          const isActive = ci === 0; // default: all
+          add(this.add.rectangle(cx, chipY + 10, chipW, 20,
+            isActive ? THEME.brass1 : THEME.ink0, isActive ? 0.9 : 0.7)
+            .setStrokeStyle(1, isActive ? THEME.brass2 : THEME.ink4));
+          add(this.add.text(cx, chipY + 10, chipTypes[ci].toUpperCase(), {
+            fontSize: '8px', fontFamily: 'monospace',
+            color: isActive ? TC.paper0 : TC.text2,
+          }).setOrigin(0.5));
+        }
+
+        // Bag grid — 4×4 with brass-themed slots
+        const gridY = chipY + 28;
+
+        // Grid background (like the CSS .bag-grid)
+        add(this.add.rectangle(gridX + gridW / 2, gridY + gridW / 2, gridW + 20, gridW + 20, THEME.ink0, 0.5)
+          .setStrokeStyle(1, THEME.ink4, 0.6));
+
+        for (let i = 0; i < COLS * ROWS; i++) {
           const col = i % COLS;
           const row = Math.floor(i / COLS);
-          const sx = bagX + col * (SLOT + GAP);
-          const sy = bagY + 14 + row * (SLOT + GAP);
+          const cx = gridX + 10 + col * (BAG_SLOT + BAG_GAP) + BAG_SLOT / 2;
+          const cy = gridY + 10 + row * (BAG_SLOT + BAG_GAP) + BAG_SLOT / 2;
           const item = inv[i];
           const itemDef = item ? ITEMS[item.itemId] : null;
-          const bgColor = itemDef ? (rarityColors[itemDef.rarity] ?? 0x333333) : 0x111118;
 
-          const bg = this.add.rectangle(sx + SLOT / 2, sy + SLOT / 2, SLOT, SLOT, bgColor, 0.8)
-            .setStrokeStyle(1, item ? 0x666666 : 0x222233).setInteractive();
-          this.windowContainer.add(bg);
-        this.windowInteractables.push(bg);
+          const bg = drawSlot(cx, cy, BAG_SLOT, itemDef);
+          bg.setInteractive({ useHandCursor: true });
 
           if (itemDef && item) {
-            const icon = this.add.text(sx + SLOT / 2, sy + SLOT / 2 - 4,
-              itemDef.icon ?? '?', { fontSize: '20px' }
-            ).setOrigin(0.5);
-            this.windowContainer.add(icon);
-        this.windowInteractables.push(icon);
+            add(this.add.text(cx, cy - 4, itemDef.icon ?? '?', {
+              fontSize: '28px',
+            }).setOrigin(0.5));
 
             if (item.quantity > 1) {
-              const qty = this.add.text(sx + SLOT - 2, sy + SLOT - 2,
-                `${item.quantity}`, { fontSize: '10px', color: '#cccccc', stroke: '#000', strokeThickness: 2 }
-              ).setOrigin(1);
-              this.windowContainer.add(qty);
-        this.windowInteractables.push(qty);
+              add(this.add.text(cx + BAG_SLOT / 2 - 4, cy + BAG_SLOT / 2 - 4,
+                `${item.quantity}`, {
+                  fontSize: '11px', fontFamily: 'monospace', color: TC.paper0,
+                  stroke: TC.ink0, strokeThickness: 3,
+                }).setOrigin(1, 1));
             }
 
+            // Click: equip if equipment
             if (itemDef.type === 'equipment' && itemDef.equipSlot) {
               const slot = itemDef.equipSlot;
               bg.on('pointerdown', () => {
@@ -1703,8 +1860,143 @@ export class UIScene extends Phaser.Scene {
                 this.refreshWindow();
               });
             }
+
+            // Hover: show item name + rarity
+            const hoverLabel = add(this.add.text(cx, cy - BAG_SLOT / 2 - 12, itemDef.nameRu, {
+              fontSize: '10px', fontFamily: 'serif', color: TC.paper0,
+              backgroundColor: '#0d0b08cc', padding: { x: 6, y: 2 },
+            }).setOrigin(0.5).setVisible(false));
+            bg.on('pointerover', () => hoverLabel.setVisible(true));
+            bg.on('pointerout',  () => hoverLabel.setVisible(false));
+          } else {
+            // Empty slot diamond hint
+            add(this.add.text(cx, cy, '◇', {
+              fontSize: '20px', color: TC.text3,
+            }).setOrigin(0.5).setAlpha(0.2));
           }
         }
+
+        // Page navigation (placeholder visual)
+        const pageY = gridY + gridW + 24;
+        add(this.add.text(gridX + gridW / 2 + 10, pageY, '1 / 4', {
+          fontSize: '10px', fontFamily: 'monospace', color: TC.text2,
+        }).setOrigin(0.5));
+        // Page dots
+        for (let pi = 0; pi < 4; pi++) {
+          const dotX = gridX + gridW / 2 - 20 + 10 + pi * 14;
+          add(this.add.rectangle(dotX, pageY + 16, 6, 6,
+            pi === 0 ? THEME.brass3 : THEME.ink0)
+            .setStrokeStyle(1, pi === 0 ? THEME.brass3 : THEME.brass0, pi < 2 ? 1 : 0.5));
+        }
+
+        // ── FOOTER: Stats bar ─────────────────────────────
+        const footY = this.windowH + WIN_TITLE_H - 70;
+        // Separator line
+        add(this.add.rectangle(this.windowW / 2, footY, this.windowW - 24, 1, THEME.brass1, 0.4));
+
+        // Compute equipment bonuses
+        const statMap: Record<string, StatName> = {
+          strength: StatName.Strength, agility: StatName.Agility,
+          accuracy: StatName.Accuracy, evasion: StatName.Evasion,
+          health: StatName.Health, armor: StatName.Armor,
+          intellect: StatName.Intellect, will: StatName.Will,
+          mana: StatName.Mana, luck: StatName.Luck,
+        };
+        const bonuses: Record<StatName, number> = {} as Record<StatName, number>;
+        for (const sn of Object.values(StatName)) bonuses[sn] = 0;
+        for (const slotKey of Object.keys(equip)) {
+          const iid = (equip as any)[slotKey];
+          if (!iid) continue;
+          const def = ITEMS[iid];
+          if (!def) continue;
+          if (def.statBonuses) {
+            for (const [stat, val] of Object.entries(def.statBonuses)) {
+              const sn = statMap[stat];
+              if (sn && val) bonuses[sn] += val;
+            }
+          }
+          if (def.armorBonus) bonuses[StatName.Armor] += def.armorBonus;
+          if (def.manaBonus) bonuses[StatName.Mana] += def.manaBonus;
+        }
+
+        // Stat items — 10 stats in a row
+        const statOrder: StatName[] = [
+          StatName.Strength, StatName.Agility, StatName.Accuracy, StatName.Evasion, StatName.Health,
+          StatName.Armor, StatName.Intellect, StatName.Will, StatName.Mana, StatName.Luck,
+        ];
+        const statAbbr: Record<StatName, string> = {
+          [StatName.Strength]: 'STR', [StatName.Agility]: 'AGI',
+          [StatName.Accuracy]: 'ACC', [StatName.Evasion]: 'EVA',
+          [StatName.Health]: 'HP',    [StatName.Armor]: 'ARM',
+          [StatName.Intellect]: 'INT',[StatName.Will]: 'WIL',
+          [StatName.Mana]: 'MNA',     [StatName.Luck]: 'LCK',
+        };
+
+        const statStartX = 16;
+        const statY = footY + 10;
+        const statGap = 60;
+        for (let si = 0; si < statOrder.length; si++) {
+          const sn = statOrder[si];
+          const base = sphere.stats[sn];
+          const bonus = bonuses[sn];
+          const sx = statStartX + si * statGap;
+
+          // Label
+          add(this.add.text(sx, statY, statAbbr[sn], {
+            fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
+          }));
+          // Value
+          const valStr = bonus > 0 ? `${base}+${bonus}` : `${base}`;
+          add(this.add.text(sx, statY + 12, `${base + bonus}`, {
+            fontSize: '16px', fontFamily: 'serif', color: TC.paper0,
+          }));
+          if (bonus > 0) {
+            add(this.add.text(sx + 24, statY + 16, `+${bonus}`, {
+              fontSize: '9px', fontFamily: 'monospace', color: '#8cc86a',
+            }));
+          }
+        }
+
+        // HP/Mana bars (right side)
+        const barX = statStartX + 10 * statGap + 20;
+        const barW = this.windowW - barX - 80;
+        // HP
+        const maxHP = 50 + sphere.stats[StatName.Health] * 5;
+        const curHP = data.body ? (data as any).body.hp ?? maxHP : maxHP;
+        add(this.add.text(barX, statY, 'HP', {
+          fontSize: '8px', fontFamily: 'monospace', color: TC.text2,
+        }));
+        add(this.add.text(barX + barW, statY, `${Math.floor(curHP)}/${maxHP}`, {
+          fontSize: '9px', fontFamily: 'monospace', color: TC.paper0,
+        }).setOrigin(1, 0));
+        add(this.add.rectangle(barX + barW / 2, statY + 14, barW, 8, THEME.ink0)
+          .setStrokeStyle(1, THEME.ink4));
+        const hpRatio = Math.min(curHP / maxHP, 1);
+        add(this.add.rectangle(barX + (barW * hpRatio) / 2, statY + 14, barW * hpRatio, 8, 0xc64040));
+
+        // Mana
+        const maxMana = Math.min(50 + sphere.stats[StatName.Mana] * 0.1, 150);
+        add(this.add.text(barX, statY + 26, 'MANA', {
+          fontSize: '8px', fontFamily: 'monospace', color: TC.text2,
+        }));
+        add(this.add.text(barX + barW, statY + 26, `${Math.floor(maxMana)}/${Math.floor(maxMana)}`, {
+          fontSize: '9px', fontFamily: 'monospace', color: TC.paper0,
+        }).setOrigin(1, 0));
+        add(this.add.rectangle(barX + barW / 2, statY + 40, barW, 8, THEME.ink0)
+          .setStrokeStyle(1, THEME.ink4));
+        add(this.add.rectangle(barX + barW / 2, statY + 40, barW, 8, THEME.ether2));
+
+        // Rank badge (far right)
+        const rankX = this.windowW - 60;
+        add(this.add.rectangle(rankX + 20, statY + 20, 48, 48, THEME.ink1)
+          .setStrokeStyle(1, THEME.brass1));
+        add(this.add.text(rankX + 20, statY + 6, 'RANK', {
+          fontSize: '7px', fontFamily: 'monospace', color: TC.text3,
+        }).setOrigin(0.5));
+        add(this.add.text(rankX + 20, statY + 24, `${sphere.rank}`, {
+          fontSize: '22px', fontFamily: 'serif', color: TC.brass4,
+        }).setOrigin(0.5));
+
         break;
       }
       case 'quests': {
