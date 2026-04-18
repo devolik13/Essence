@@ -1720,6 +1720,7 @@ export class UIScene extends Phaser.Scene {
           if (itemDef) {
             add(this.add.text(es.cx, es.cy, itemDef.icon ?? '?', {
               fontSize: '22px',
+              fontFamily: '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif',
             }).setOrigin(0.5));
             // Detailed tooltip on hover
             const ttLines: string[] = [itemDef.nameRu, `${itemDef.rarity.toUpperCase()} · ${itemDef.type.toUpperCase()}`];
@@ -1828,6 +1829,7 @@ export class UIScene extends Phaser.Scene {
         const chipY = BAG_Y + 18;
         const chipTypes = ['all', 'equipment', 'material', 'consumable'];
         const chipW = 90;
+        const chipH = 22;
         // Counts per category for chip labels
         const counts: Record<string, number> = { all: inv.length };
         for (const it of inv) {
@@ -1840,26 +1842,33 @@ export class UIScene extends Phaser.Scene {
           const kind = chipTypes[ci];
           const isActive = this.inventoryFilter === kind;
           const cnt = counts[kind] ?? 0;
-          const chipBg = add(this.add.rectangle(cx, chipY + 10, chipW, 20,
-            isActive ? THEME.brass2 : THEME.ink0, isActive ? 1 : 0.7)
-            .setStrokeStyle(1, isActive ? THEME.brass3 : THEME.ink4)
-            .setInteractive({ useHandCursor: true }));
+          // Chip background: strong contrast when active (brass fill + gold border)
+          const chipBg = add(this.add.rectangle(cx, chipY + 10, chipW, chipH,
+            isActive ? THEME.brass3 : THEME.ink0, isActive ? 1 : 0.85)
+            .setStrokeStyle(isActive ? 2 : 1, isActive ? THEME.brass4 : THEME.ink4));
           add(this.add.text(cx - 8, chipY + 10, kind.toUpperCase(), {
-            fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+            fontSize: '11px', fontFamily: 'serif', fontStyle: '700',
             color: isActive ? '#0d0b08' : '#ffffff',
-            stroke: isActive ? '#f0d896' : '#0d0b08', strokeThickness: 2,
+            stroke: isActive ? '#ffffff' : '#0d0b08', strokeThickness: 2,
           }).setOrigin(0.5));
-          add(this.add.text(cx + chipW / 2 - 6, chipY + 10, `${cnt}`, {
-            fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+          add(this.add.text(cx + chipW / 2 - 8, chipY + 10, `${cnt}`, {
+            fontSize: '11px', fontFamily: 'serif', fontStyle: '700',
             color: isActive ? '#0d0b08' : '#d9b46a',
-            stroke: isActive ? '#f0d896' : '#0d0b08', strokeThickness: 2,
+            stroke: isActive ? '#ffffff' : '#0d0b08', strokeThickness: 2,
           }).setOrigin(1, 0.5));
-          chipBg.on('pointerdown', () => {
+          // Transparent interactive overlay on top — guarantees click capture above labels
+          const chipOverlay = add(this.add.rectangle(cx, chipY + 10, chipW, chipH, 0x000000, 0.001)
+            .setInteractive({ useHandCursor: true }));
+          chipOverlay.on('pointerdown', () => {
             this.inventoryFilter = kind;
             this.refreshWindow();
           });
-          chipBg.on('pointerover', () => { if (!isActive) chipBg.setStrokeStyle(1, THEME.brass2); });
-          chipBg.on('pointerout',  () => { if (!isActive) chipBg.setStrokeStyle(1, THEME.ink4); });
+          chipOverlay.on('pointerover', () => {
+            if (!isActive) chipBg.setStrokeStyle(2, THEME.brass2);
+          });
+          chipOverlay.on('pointerout', () => {
+            if (!isActive) chipBg.setStrokeStyle(1, THEME.ink4);
+          });
         }
 
         // Bag grid — 4×4 with brass-themed slots
@@ -1888,6 +1897,7 @@ export class UIScene extends Phaser.Scene {
           if (itemDef && item) {
             add(this.add.text(cx, cy - 4, itemDef.icon ?? '?', {
               fontSize: '28px',
+              fontFamily: '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif',
             }).setOrigin(0.5));
 
             if (item.quantity > 1) {
