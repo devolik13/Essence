@@ -38,20 +38,13 @@ function buildSpellCard(spell: AbilityDef): HTMLElement {
   const school = spell.school ?? 'neutral';
   card.style.setProperty('--school-color', SCHOOL_COLORS[school] ?? '#a78fc4');
 
-  const tierBadge = el('span', 'sp-tier', tier(spell));
-  card.appendChild(tierBadge);
-
-  const body = el('div', 'sp-body');
   const name = el('div', 'sp-name', spell.nameRu);
   name.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
-  body.appendChild(name);
+  card.appendChild(name);
 
   const meta = el('div', 'sp-meta');
-  const cast = spell.castTime ? `${spell.castTime}s` : 'instant';
-  meta.textContent = `${spell.manaCost}mp · ${spell.cooldown}s cd · ${cast}`;
-  body.appendChild(meta);
-
-  card.appendChild(body);
+  meta.textContent = `${spell.manaCost}mp · ${spell.cooldown}s`;
+  card.appendChild(meta);
 
   card.addEventListener('mouseenter', (e) => showSpellTooltip(spell, e.clientX, e.clientY));
   card.addEventListener('mousemove', (e) => moveSpellTooltip(e.clientX, e.clientY));
