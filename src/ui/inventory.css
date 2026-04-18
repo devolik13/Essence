@@ -68,6 +68,134 @@
 
 #ess-inv-root.hidden { display: none; }
 
+/* Shared root for secondary DOM windows — re-uses tokens */
+#ess-spells-root {
+  --ink-0: #0d0b08; --ink-1: #14110c; --ink-2: #1d1811; --ink-3: #2a2218; --ink-4: #3a2f21;
+  --paper-0: #e8dcc0; --paper-1: #d4c69c; --paper-2: #b8a878;
+  --brass-0: #6b4e1f; --brass-1: #8a6a2f; --brass-2: #b48a42; --brass-3: #d9b46a; --brass-4: #f0d896;
+  --ether-0: #1a2840; --ether-1: #2a4a74; --ether-2: #5a8fc4; --ether-3: #8ab8e0;
+  --text-0: #f4e9cf; --text-1: #d8c9a4; --text-2: #9c8c6a; --text-3: #6a5c42;
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-mech: 'Special Elite', ui-monospace, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-ui: 'Inter', system-ui, sans-serif;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.4;
+}
+#ess-spells-root *,
+#ess-spells-root *::before,
+#ess-spells-root *::after { box-sizing: border-box; }
+
+.ess-spells-window {
+  width: min(960px, 90vw);
+  height: min(720px, 92vh);
+  grid-template-rows: 56px 1fr;
+}
+
+.ess-spells-body {
+  padding: 20px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.ess-spells-body::-webkit-scrollbar { width: 8px; }
+.ess-spells-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+.ess-spells-body::-webkit-scrollbar-thumb { background: var(--brass-0); border: 1px solid var(--ink-4); }
+
+.ess-empty {
+  text-align: center;
+  color: var(--text-3);
+  font-family: var(--font-mech);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  padding: 60px 20px;
+  text-transform: uppercase;
+}
+
+.ess-school-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ess-school-group .sg-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(138,106,47,0.3);
+}
+.sg-head .sg-icon { font-size: 16px; }
+.sg-head .sg-label {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+.sg-head .sg-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--brass-3);
+  margin-left: auto;
+}
+.ess-school-group .sg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.ess-spell-card {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.15));
+  border: 1px solid var(--ink-4);
+  border-left: 3px solid var(--school-color, var(--brass-1));
+  cursor: default;
+  transition: border-color 0.15s, transform 0.08s, background 0.15s;
+}
+.ess-spell-card:hover {
+  border-color: var(--brass-2);
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, rgba(138,106,47,0.15), rgba(0,0,0,0.2));
+}
+.ess-spell-card .sp-tier {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--school-color, var(--brass-3));
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.ess-spell-card .sp-body {
+  min-width: 0;
+}
+.ess-spell-card .sp-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ess-spell-card .sp-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
 /* ─── Layout shell ─────────────────────────────────── */
 .ess-backdrop {
   position: absolute;

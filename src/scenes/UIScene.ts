@@ -18,6 +18,7 @@ import { STATUS_DEFS } from '../types/statuses';
 import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
+import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
@@ -1390,14 +1391,22 @@ export class UIScene extends Phaser.Scene {
       return;
     }
 
+    // DOM-based spellbook
+    if (type === 'spells') {
+      this.windowContainer.setVisible(false);
+      showSpellsWindowDom(this.cachedLearnedSpells, () => this.closeWindow());
+      for (let i = 0; i < this.menuBtnTypes.length; i++) {
+        const active = this.menuBtnTypes[i] === type;
+        this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
+        this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+      }
+      return;
+    }
+
     if (type === 'vendor' || type === 'crafting') {
       this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
       this.windowY = 30;
       this.resizeWindow(400, 420);
-    } else if (type === 'spells') {
-      this.windowX = Math.floor((GAME_WIDTH - 380) / 2);
-      this.windowY = 20;
-      this.resizeWindow(380, 460);
     } else {
       this.windowX = Math.floor((GAME_WIDTH - 320) / 2);
       this.windowY = 30;
@@ -1532,6 +1541,9 @@ export class UIScene extends Phaser.Scene {
     if (this.currentWindow === 'inventory' && isInventoryDomOpen()) {
       hideInventoryDom();
     }
+    if (this.currentWindow === 'spells' && isSpellsWindowDomOpen()) {
+      hideSpellsWindowDom();
+    }
     this.currentWindow = null;
     this.windowContainer.setVisible(false);
     for (const btn of this.windowInteractables) btn.destroy();
@@ -1623,6 +1635,7 @@ export class UIScene extends Phaser.Scene {
   private buildWindowContent(data: UIData) {
     if (!this.currentWindow) return;
     if (this.currentWindow === 'inventory') return; // handled by DOM overlay
+    if (this.currentWindow === 'spells') return;    // handled by DOM overlay
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
 
@@ -1874,65 +1887,6 @@ export class UIScene extends Phaser.Scene {
         break;
       }
 
-      case 'spells': {
-        const learned = this.cachedLearnedSpells;
-        if (learned.length === 0) {
-          this.windowTitleText.setText(`✦ ${t('menu.spells')}  (0)`);
-          this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText('No spells learned yet.');
-          break;
-        }
-
-        const schoolOrder = ['fire', 'water', 'earth', 'wind', 'nature', 'neutral'];
-        const schoolNames: Record<string, string> = {
-          fire: '🔥 Fire', water: '💧 Water', earth: '🪨 Earth',
-          wind: '🌀 Wind', nature: '🌿 Nature', neutral: '⚡ Neutral',
-        };
-        const weaponGroup: Record<string, string> = {};
-        for (const sp of learned) {
-          if (sp.requiredWeapons?.length) {
-            for (const w of sp.requiredWeapons) {
-              if (!weaponGroup[w]) weaponGroup[w] = '';
-            }
-          }
-        }
-
-        const lines: string[] = [];
-
-        for (const school of schoolOrder) {
-          const schoolSpells = learned.filter(sp => (sp.school ?? 'neutral') === school && !sp.requiredWeapons?.length);
-          if (schoolSpells.length === 0) continue;
-          lines.push(`═══ ${schoolNames[school] ?? school} ═══`);
-          for (const sp of schoolSpells) {
-            const cast = sp.castTime ? `${sp.castTime}s` : 'instant';
-            lines.push(`  ${sp.nameRu}  [${sp.manaCost}mp  ${sp.cooldown}s cd  ${cast}]`);
-            if (sp.description) lines.push(`    ${sp.description}`);
-          }
-          lines.push('');
-        }
-
-        const weaponSpells = learned.filter(sp => sp.requiredWeapons?.length);
-        if (weaponSpells.length > 0) {
-          const byWeapon: Record<string, typeof weaponSpells> = {};
-          for (const sp of weaponSpells) {
-            const w = sp.requiredWeapons![0];
-            if (!byWeapon[w]) byWeapon[w] = [];
-            byWeapon[w].push(sp);
-          }
-          for (const [weapon, spells] of Object.entries(byWeapon)) {
-            lines.push(`═══ ⚔ ${weapon} ═══`);
-            for (const sp of spells) {
-              const cast = sp.castTime ? `${sp.castTime}s` : 'instant';
-              lines.push(`  ${sp.nameRu}  [${sp.manaCost}mp  ${sp.cooldown}s cd  ${cast}]`);
-              if (sp.description) lines.push(`    ${sp.description}`);
-            }
-            lines.push('');
-          }
-        }
-
-        this.windowTitleText.setText(`✦ ${t('menu.spells')}  (${learned.length})`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-        break;
-      }
     }
   }
 
