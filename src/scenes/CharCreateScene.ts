@@ -4,6 +4,7 @@ import { setActiveSlot, findFreeSlot, saveCharacterMeta } from '../systems/saveL
 import { t } from '../i18n/index';
 import { WeaponType } from '../types/bodies';
 import { WEAPONS, WeaponDef, STRENGTH_WEAPONS, AGILITY_WEAPONS, INTELLECT_WEAPONS } from '../data/weapons';
+import { THEME, TC } from '../ui/theme';
 
 const MAX_NAME_LENGTH = 16;
 
@@ -47,7 +48,7 @@ export class CharCreateScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#111111');
+    this.cameras.main.setBackgroundColor('#0d0b08');
     this.playerName = '';
     this.selectedWeapons = [];
     this.cardBorders.clear();
@@ -58,35 +59,36 @@ export class CharCreateScene extends Phaser.Scene {
 
     // Title
     this.add.text(cx, 30, t('create.title'), {
-      fontSize: '28px', color: '#66ccff',
-      stroke: '#224466', strokeThickness: 3,
+      fontSize: '28px', fontFamily: '"Cormorant Garamond", serif',
+      color: TC.brass3,
+      stroke: '#2a1a08', strokeThickness: 3,
     }).setOrigin(0.5);
 
     // ── Name input ────────────────────────────────────
     this.add.text(280, 70, t('create.name'), {
-      fontSize: '14px', color: '#778899',
+      fontSize: '12px', fontFamily: '"Special Elite", monospace', color: TC.text2,
     }).setOrigin(0.5);
 
-    this.add.rectangle(280, 100, 280, 34, 0x1a1a2a, 0.9)
-      .setStrokeStyle(1, 0x446688);
+    this.add.rectangle(280, 100, 280, 34, THEME.ink1, 0.9)
+      .setStrokeStyle(1, THEME.brass0);
 
     this.nameDisplay = this.add.text(148, 92, '', {
-      fontSize: '16px', color: '#ccddee',
+      fontSize: '16px', fontFamily: '"Inter", sans-serif', color: TC.paper0,
     });
 
-    this.nameCursor = this.add.rectangle(150, 100, 2, 22, 0xaaccee);
+    this.nameCursor = this.add.rectangle(150, 100, 2, 22, THEME.brass3);
 
     this.keyHandler = (e: KeyboardEvent) => this.onKeyDown(e);
     window.addEventListener('keydown', this.keyHandler);
 
     // ── Weapon choice label ───────────────────────────
     this.add.text(280, 140, t('create.choose_weapons'), {
-      fontSize: '14px', color: '#778899',
+      fontSize: '12px', fontFamily: '"Special Elite", monospace', color: TC.text2,
     }).setOrigin(0.5);
 
     // Selection hint (shows "1/2" or "2/2")
     this.selectionHint = this.add.text(420, 140, '', {
-      fontSize: '12px', color: '#556677',
+      fontSize: '12px', fontFamily: '"JetBrains Mono", monospace', color: TC.text3,
     }).setOrigin(0, 0.5);
 
     // ── Weapon grid ───────────────────────────────────
@@ -163,25 +165,25 @@ export class CharCreateScene extends Phaser.Scene {
   // ── Weapon card ───────────────────────────────────
 
   private createWeaponCard(x: number, y: number, w: number, h: number, wt: WeaponType, groupColor: number) {
-    const bg = this.add.rectangle(x, y, w, h, 0x1a1a2a, 0.9);
+    const bg = this.add.rectangle(x, y, w, h, THEME.ink1, 0.9);
     const border = this.add.rectangle(x, y, w, h);
-    border.setStrokeStyle(1, 0x333344);
+    border.setStrokeStyle(1, THEME.ink4);
     border.setFillStyle(0, 0);
 
     this.add.rectangle(x, y - h / 2 + 3, w - 4, 4, groupColor, 0.6);
 
     this.add.text(x, y + 2, t(`weapon.${wt}`), {
-      fontSize: '11px', color: '#bbccdd',
+      fontSize: '11px', fontFamily: '"Inter", sans-serif', color: TC.text1,
     }).setOrigin(0.5);
 
     // Selection order label (hidden initially)
     const orderLabel = this.add.text(x + w / 2 - 10, y - h / 2 + 6, '', {
-      fontSize: '10px', color: '#66ccff',
-      fontStyle: 'bold',
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace',
+      color: TC.ether2, fontStyle: 'bold',
     }).setOrigin(0.5);
 
     this.add.text(x, y + 17, '10', {
-      fontSize: '10px', color: '#667788',
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text3,
     }).setOrigin(0.5);
 
     bg.setInteractive({ useHandCursor: true });
@@ -192,14 +194,14 @@ export class CharCreateScene extends Phaser.Scene {
 
     bg.on('pointerover', () => {
       if (!this.selectedWeapons.includes(wt)) {
-        border.setStrokeStyle(1, 0x557799);
+        border.setStrokeStyle(1, THEME.brass0);
       }
       this.buildInfoPanel(wt);
     });
 
     bg.on('pointerout', () => {
       if (!this.selectedWeapons.includes(wt)) {
-        border.setStrokeStyle(1, 0x333344);
+        border.setStrokeStyle(1, THEME.ink4);
       }
       const last = this.selectedWeapons[this.selectedWeapons.length - 1];
       if (last) {
@@ -239,13 +241,13 @@ export class CharCreateScene extends Phaser.Scene {
       const idx = this.selectedWeapons.indexOf(wt);
 
       if (idx >= 0) {
-        border.setStrokeStyle(2, idx === 0 ? 0x66ccff : 0xffcc44);
-        bg.setFillStyle(0x223344, 0.9);
+        border.setStrokeStyle(2, idx === 0 ? THEME.ether2 : THEME.brass3);
+        bg.setFillStyle(THEME.ink2, 0.9);
         label.setText(`${idx + 1}`);
-        label.setColor(idx === 0 ? '#66ccff' : '#ffcc44');
+        label.setColor(idx === 0 ? TC.ether2 : TC.brass3);
       } else {
-        border.setStrokeStyle(1, 0x333344);
-        bg.setFillStyle(0x1a1a2a, 0.9);
+        border.setStrokeStyle(1, THEME.ink4);
+        bg.setFillStyle(THEME.ink1, 0.9);
         label.setText('');
       }
     }
@@ -253,18 +255,18 @@ export class CharCreateScene extends Phaser.Scene {
 
   private updateSelectionHint() {
     this.selectionHint.setText(`(${this.selectedWeapons.length}/2)`);
-    this.selectionHint.setColor(this.selectedWeapons.length === 2 ? '#66ccff' : '#556677');
+    this.selectionHint.setColor(this.selectedWeapons.length === 2 ? TC.ether2 : TC.text3);
   }
 
   // ── Info panel ────────────────────────────────────
 
   private buildInfoPanelEmpty() {
     this.infoPanel.removeAll(true);
-    const bg = this.add.rectangle(175, 110, 340, 230, 0x1a1a2a, 0.7);
-    bg.setStrokeStyle(1, 0x333344);
+    const bg = this.add.rectangle(175, 110, 340, 230, THEME.ink1, 0.7);
+    bg.setStrokeStyle(1, THEME.ink4);
     this.infoPanel.add(bg);
     this.infoPanel.add(this.add.text(175, 110, t('create.info.hover'), {
-      fontSize: '13px', color: '#445566',
+      fontSize: '13px', fontFamily: '"Special Elite", monospace', color: TC.text3,
     }).setOrigin(0.5));
   }
 
@@ -277,8 +279,8 @@ export class CharCreateScene extends Phaser.Scene {
     const px = panelW / 2;
     const py = panelH / 2;
 
-    const bg = this.add.rectangle(px, py, panelW, panelH, 0x1a1a2a, 0.9);
-    bg.setStrokeStyle(1, 0x446688);
+    const bg = this.add.rectangle(px, py, panelW, panelH, THEME.ink1, 0.9);
+    bg.setStrokeStyle(1, THEME.brass0);
     this.infoPanel.add(bg);
 
     let y = 20;
@@ -286,12 +288,12 @@ export class CharCreateScene extends Phaser.Scene {
     const valX = 170;
 
     this.infoPanel.add(this.add.text(px, y, t(`weapon.${wt}`), {
-      fontSize: '18px', color: '#ccddee',
-      stroke: '#000000', strokeThickness: 2,
+      fontSize: '18px', fontFamily: '"Cormorant Garamond", serif', color: TC.paper0,
+      stroke: '#0d0b08', strokeThickness: 2,
     }).setOrigin(0.5));
     y += 28;
 
-    this.infoPanel.add(this.add.rectangle(px, y, panelW - 20, 1, 0x334455));
+    this.infoPanel.add(this.add.rectangle(px, y, panelW - 20, 1, THEME.brass0));
     y += 12;
 
     const typeKey = INTELLECT_WEAPONS.includes(wt) ? 'create.type.magic'
@@ -310,19 +312,19 @@ export class CharCreateScene extends Phaser.Scene {
 
     const school = STAFF_SCHOOLS[wt];
     if (school) {
-      this.addInfoRow(leftX, valX, y, t('create.info.school'), t(school), '#aaaaff');
+      this.addInfoRow(leftX, valX, y, t('create.info.school'), t(school), TC.ether2);
     } else {
       const effectStr = this.getEffectString(weapon);
-      this.addInfoRow(leftX, valX, y, t('create.info.effect'), effectStr, '#eebb77');
+      this.addInfoRow(leftX, valX, y, t('create.info.effect'), effectStr, TC.brass3);
     }
   }
 
-  private addInfoRow(leftX: number, valX: number, y: number, label: string, value: string, valueColor = '#ccddee') {
+  private addInfoRow(leftX: number, valX: number, y: number, label: string, value: string, valueColor: string = TC.text1) {
     this.infoPanel.add(this.add.text(leftX, y, label, {
-      fontSize: '12px', color: '#778899',
+      fontSize: '12px', fontFamily: '"Special Elite", monospace', color: TC.text2,
     }));
     this.infoPanel.add(this.add.text(valX, y, value, {
-      fontSize: '12px', color: valueColor,
+      fontSize: '12px', fontFamily: '"JetBrains Mono", monospace', color: valueColor,
     }));
   }
 
@@ -351,9 +353,9 @@ export class CharCreateScene extends Phaser.Scene {
 
   private updateStartButton() {
     const ok = this.canStart();
-    this.startBg.setFillStyle(ok ? 0x334455 : 0x222222, 0.9);
-    this.startBg.setStrokeStyle(1, ok ? 0x557799 : 0x333333);
-    this.startTxt.setColor(ok ? '#aaccee' : '#555555');
+    this.startBg.setFillStyle(ok ? THEME.ink2 : THEME.ink1, 0.9);
+    this.startBg.setStrokeStyle(1, ok ? THEME.brass0 : THEME.ink4);
+    this.startTxt.setColor(ok ? TC.text1 : TC.text3);
     if (ok) {
       this.startBg.setInteractive({ useHandCursor: true });
     } else {
@@ -364,15 +366,15 @@ export class CharCreateScene extends Phaser.Scene {
   private createActionButton(
     x: number, y: number, label: string, callback: () => void,
   ): { bg: Phaser.GameObjects.Rectangle; txt: Phaser.GameObjects.Text } {
-    const bg = this.add.rectangle(x, y, 180, 44, 0x334455, 0.9);
-    bg.setStrokeStyle(1, 0x557799);
+    const bg = this.add.rectangle(x, y, 180, 44, THEME.ink2, 0.9);
+    bg.setStrokeStyle(1, THEME.brass0);
     const txt = this.add.text(x, y, label, {
-      fontSize: '16px', color: '#aaccee',
+      fontSize: '16px', fontFamily: '"Special Elite", monospace', color: TC.text1,
     }).setOrigin(0.5);
 
     bg.setInteractive({ useHandCursor: true });
-    bg.on('pointerover', () => { bg.setFillStyle(0x445566); txt.setColor('#ffffff'); });
-    bg.on('pointerout', () => { bg.setFillStyle(0x334455); txt.setColor('#aaccee'); });
+    bg.on('pointerover', () => { bg.setFillStyle(THEME.ink3); txt.setColor(TC.paper0); });
+    bg.on('pointerout', () => { bg.setFillStyle(THEME.ink2); txt.setColor(TC.text1); });
     bg.on('pointerdown', callback);
 
     return { bg, txt };

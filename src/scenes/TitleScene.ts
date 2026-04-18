@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH } from '../utils/constants';
 import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, findFreeSlot } from '../systems/saveLoad';
 import { t, initLang } from '../i18n/index';
+import { THEME, TC } from '../ui/theme';
 
 export class TitleScene extends Phaser.Scene {
   private menuContainer!: Phaser.GameObjects.Container;
@@ -14,7 +15,7 @@ export class TitleScene extends Phaser.Scene {
   create() {
     initLang();
     migrateOldSave();
-    this.cameras.main.setBackgroundColor('#111111');
+    this.cameras.main.setBackgroundColor('#0d0b08');
 
     this.menuContainer = this.add.container(0, 0);
     this.loadContainer = this.add.container(0, 0);
@@ -32,8 +33,8 @@ export class TitleScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
 
     // Animated sphere
-    const glow = this.add.arc(cx, 150, 30, 0, 360, false, 0x66ccff, 0.3);
-    const inner = this.add.arc(cx, 150, 16, 0, 360, false, 0xaaeeff, 0.9);
+    const glow = this.add.arc(cx, 150, 30, 0, 360, false, THEME.ether2, 0.3);
+    const inner = this.add.arc(cx, 150, 16, 0, 360, false, THEME.ether3, 0.9);
     this.menuContainer.add([glow, inner]);
 
     this.tweens.add({
@@ -49,16 +50,18 @@ export class TitleScene extends Phaser.Scene {
     // Title
     this.menuContainer.add(this.add.text(cx, 220, 'ESSENCE', {
       fontSize: '56px',
-      fontFamily: 'Georgia, serif',
-      color: '#66ccff',
-      stroke: '#224466',
+      fontFamily: '"Cormorant Garamond", serif',
+      color: TC.brass4,
+      stroke: '#2a1a08',
       strokeThickness: 4,
     }).setOrigin(0.5));
 
     // Subtitle
     this.menuContainer.add(this.add.text(cx, 270, 'PvP MMORPG', {
-      fontSize: '16px',
-      color: '#556677',
+      fontSize: '14px',
+      fontFamily: '"Special Elite", monospace',
+      color: TC.text3,
+      letterSpacing: 6,
     }).setOrigin(0.5));
 
     // New Game button
@@ -84,8 +87,10 @@ export class TitleScene extends Phaser.Scene {
 
     // Title
     this.loadContainer.add(this.add.text(cx, 80, t('title.load'), {
-      fontSize: '32px', color: '#66ccff',
-      stroke: '#224466', strokeThickness: 3,
+      fontSize: '32px',
+      fontFamily: '"Cormorant Garamond", serif',
+      color: TC.brass3,
+      stroke: '#2a1a08', strokeThickness: 3,
     }).setOrigin(0.5));
 
     const chars = getCharacters();
@@ -95,18 +100,18 @@ export class TitleScene extends Phaser.Scene {
       const meta = chars.find(c => c.slotIndex === i);
 
       // Slot background
-      const bg = this.add.rectangle(cx, y, 500, 70, meta ? 0x223344 : 0x1a1a2a, 0.8);
-      bg.setStrokeStyle(1, meta ? 0x446688 : 0x333344);
+      const bg = this.add.rectangle(cx, y, 500, 70, meta ? THEME.ink2 : THEME.ink1, 0.8);
+      bg.setStrokeStyle(1, meta ? THEME.brass0 : THEME.ink4);
       this.loadContainer.add(bg);
 
       if (meta) {
         const weaponName = this.weaponLabel(meta.bodyId);
         this.loadContainer.add(this.add.text(cx - 220, y - 12, meta.name, {
-          fontSize: '18px', color: '#ccddee',
+          fontSize: '18px', fontFamily: '"Cormorant Garamond", serif', color: TC.paper0,
         }));
         this.loadContainer.add(this.add.text(cx - 220, y + 10,
           `${weaponName}  |  ${t('stats.rank')} ${meta.rank}`, {
-          fontSize: '12px', color: '#778899',
+          fontSize: '12px', fontFamily: '"JetBrains Mono", monospace', color: TC.text2,
         }));
 
         // Play
@@ -118,10 +123,10 @@ export class TitleScene extends Phaser.Scene {
         this.addButton(cx + 225, y, t('title.delete'), () => {
           deleteCharacter(meta.slotIndex);
           this.buildLoadView();
-        }, this.loadContainer, false, 70, 36, 0x553333, '#cc8888');
+        }, this.loadContainer, false, 70, 36, 0x2a1111, '#c86a6a');
       } else {
         this.loadContainer.add(this.add.text(cx, y, t('title.empty_slot'), {
-          fontSize: '14px', color: '#445566',
+          fontSize: '14px', fontFamily: '"Special Elite", monospace', color: TC.text3,
         }).setOrigin(0.5));
       }
     }
@@ -174,21 +179,22 @@ export class TitleScene extends Phaser.Scene {
     disabled = false, w = 200, h = 44,
     bgColor?: number, textColor?: string,
   ) {
-    const fillColor = disabled ? 0x222222 : (bgColor ?? 0x334455);
-    const strokeColor = disabled ? 0x333333 : 0x557799;
-    const txtColor = disabled ? '#555555' : (textColor ?? '#aaccee');
+    const fillColor = disabled ? THEME.ink1 : (bgColor ?? THEME.ink2);
+    const strokeColor = disabled ? THEME.ink4 : THEME.brass0;
+    const txtColor = disabled ? TC.text3 : (textColor ?? TC.text1);
 
     const bg = this.add.rectangle(x, y, w, h, fillColor, 0.9);
     bg.setStrokeStyle(1, strokeColor);
     const txt = this.add.text(x, y, label, {
       fontSize: h > 40 ? '16px' : '13px',
+      fontFamily: '"Special Elite", monospace',
       color: txtColor,
     }).setOrigin(0.5);
     container.add([bg, txt]);
 
     if (!disabled) {
       bg.setInteractive({ useHandCursor: true });
-      bg.on('pointerover', () => { bg.setFillStyle(0x445566); txt.setColor('#ffffff'); });
+      bg.on('pointerover', () => { bg.setFillStyle(THEME.ink3); txt.setColor(TC.paper0); });
       bg.on('pointerout', () => { bg.setFillStyle(fillColor); txt.setColor(txtColor); });
       bg.on('pointerdown', callback);
     }
