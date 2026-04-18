@@ -12,13 +12,13 @@ import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
 import { ITEMS, RECIPES } from '../data/itemDB';
 import { formatCurrency } from '../systems/currency';
-import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
-import { getAllAchievementStatus } from '../systems/achievements';
+import { AchievementDef } from '../data/achievementDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
+import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
@@ -1405,6 +1405,21 @@ export class UIScene extends Phaser.Scene {
       return;
     }
 
+    // DOM-based achievements
+    if (type === 'achievements') {
+      this.windowContainer.setVisible(false);
+      const sphere = this.cachedUIData?.sphere;
+      if (sphere) {
+        showAchievementsWindowDom(sphere, () => this.closeWindow());
+      }
+      for (let i = 0; i < this.menuBtnTypes.length; i++) {
+        const active = this.menuBtnTypes[i] === type;
+        this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
+        this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+      }
+      return;
+    }
+
     if (type === 'vendor' || type === 'crafting') {
       this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
       this.windowY = 30;
@@ -1545,6 +1560,9 @@ export class UIScene extends Phaser.Scene {
     }
     if (this.currentWindow === 'spells' && isSpellsWindowDomOpen()) {
       hideSpellsWindowDom();
+    }
+    if (this.currentWindow === 'achievements' && isAchievementsWindowDomOpen()) {
+      hideAchievementsWindowDom();
     }
     this.currentWindow = null;
     this.windowContainer.setVisible(false);
@@ -1774,16 +1792,8 @@ export class UIScene extends Phaser.Scene {
         this.windowContentText.setWordWrapWidth(this.windowW - 30, true).setText(lines.join('\n'));
         break;
       }
-      case 'achievements': {
-        const statuses = getAllAchievementStatus(sphere);
-        const cnt = statuses.filter(s => s.unlocked).length;
-        const lines = statuses.map(({ def, unlocked }) =>
-          `${unlocked ? '✓' : '✗'} ${def.icon} ${def.nameRu}\n   ${def.descRu}`
-        );
-        this.windowTitleText.setText(`★ Achievements  ${cnt}/${ACHIEVEMENTS.length}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
+      case 'achievements':
         break;
-      }
 
       case 'vendor': {
         const coins = data.sphere?.copper ?? 0;
