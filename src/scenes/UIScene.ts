@@ -98,6 +98,7 @@ export class UIScene extends Phaser.Scene {
   private craftingWorkbenchType: string = '';
   /** Vendor filter */
   private vendorFilter: string = 'all';
+  private inventoryFilter: string = 'all';
   private vendorButtons: Phaser.GameObjects.Text[] = [];
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   private _contentScrollY: number = 0;
@@ -1657,7 +1658,8 @@ export class UIScene extends Phaser.Scene {
 
         // Section header
         add(this.add.text(EQ_X, EQ_Y, t('inv.equipment').toUpperCase(), {
-          fontSize: '11px', fontFamily: 'serif', color: TC.brass3, fontStyle: '600',
+          fontSize: '12px', fontFamily: 'serif', fontStyle: '700',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 3,
         }));
 
         // Anatomical slot layout (centered in EQ_W area)
@@ -1713,10 +1715,11 @@ export class UIScene extends Phaser.Scene {
           const bg = drawSlot(es.cx, es.cy, S, itemDef);
           bg.setInteractive({ useHandCursor: true });
 
-          // Slot label (below or above based on position)
+          // Slot label (below or above based on position) — white w/ dark stroke for readability
           const labelBelow = es.key === 'boots' || es.key === 'shield';
           add(this.add.text(es.cx, es.cy + (labelBelow ? SH + 4 : -(SH + 4)), es.label, {
-            fontSize: '8px', fontFamily: 'monospace', color: TC.text1,
+            fontSize: '9px', fontFamily: 'monospace', fontStyle: '600',
+            color: '#ffffff', stroke: '#0d0b08', strokeThickness: 3,
           }).setOrigin(0.5, labelBelow ? 0 : 1));
 
           // Item icon or empty hint
@@ -1728,13 +1731,23 @@ export class UIScene extends Phaser.Scene {
               (equip as any)[es.key] = undefined;
               this.refreshWindow();
             });
-            // Hover: show item name
-            const hoverLabel = add(this.add.text(es.cx, es.cy - SH - 14, itemDef.nameRu, {
-              fontSize: '9px', fontFamily: 'serif', color: TC.paper0,
-              backgroundColor: '#0d0b08cc', padding: { x: 4, y: 2 },
-            }).setOrigin(0.5).setVisible(false));
-            bg.on('pointerover', () => hoverLabel.setVisible(true));
-            bg.on('pointerout',  () => hoverLabel.setVisible(false));
+            // Detailed tooltip on hover
+            const ttLines: string[] = [itemDef.nameRu, `${itemDef.rarity.toUpperCase()} · ${itemDef.type.toUpperCase()}`];
+            if (itemDef.statBonuses) {
+              for (const [k, v] of Object.entries(itemDef.statBonuses)) {
+                if (v) ttLines.push(`+${v} ${k}`);
+              }
+            }
+            if (itemDef.armorBonus) ttLines.push(`+${itemDef.armorBonus} armor`);
+            if (itemDef.descRu)     ttLines.push(itemDef.descRu);
+            ttLines.push('[Click] Unequip');
+            const tooltip = add(this.add.text(es.cx, es.cy - SH - 6, ttLines.join('\n'), {
+              fontSize: '10px', fontFamily: 'monospace', color: TC.paper0,
+              backgroundColor: '#0d0b08f0', padding: { x: 8, y: 6 },
+              align: 'left',
+            }).setOrigin(0.5, 1).setDepth(50).setVisible(false));
+            bg.on('pointerover', () => tooltip.setVisible(true));
+            bg.on('pointerout',  () => tooltip.setVisible(false));
           } else {
             add(this.add.text(es.cx, es.cy, '✦', {
               fontSize: '14px', color: TC.text3,
@@ -1798,7 +1811,8 @@ export class UIScene extends Phaser.Scene {
 
         // Section header
         add(this.add.text(BAG_X, BAG_Y, t('inv.inventory').toUpperCase(), {
-          fontSize: '11px', fontFamily: 'serif', color: TC.brass3, fontStyle: '600',
+          fontSize: '12px', fontFamily: 'serif', fontStyle: '700',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 3,
         }));
         // Capacity
         add(this.add.text(BAG_X + 380, BAG_Y, `${inv.length}/64`, {
@@ -1809,16 +1823,38 @@ export class UIScene extends Phaser.Scene {
         const chipY = BAG_Y + 18;
         const chipTypes = ['all', 'equipment', 'material', 'consumable'];
         const chipW = 90;
+        // Counts per category for chip labels
+        const counts: Record<string, number> = { all: inv.length };
+        for (const it of inv) {
+          const d = ITEMS[it.itemId];
+          if (!d) continue;
+          counts[d.type] = (counts[d.type] ?? 0) + 1;
+        }
         for (let ci = 0; ci < chipTypes.length; ci++) {
           const cx = gridX + ci * (chipW + 4) + chipW / 2;
-          const isActive = ci === 0; // default: all
-          add(this.add.rectangle(cx, chipY + 10, chipW, 20,
+          const kind = chipTypes[ci];
+          const isActive = this.inventoryFilter === kind;
+          const cnt = counts[kind] ?? 0;
+          const chipBg = add(this.add.rectangle(cx, chipY + 10, chipW, 20,
             isActive ? THEME.brass2 : THEME.ink0, isActive ? 1 : 0.7)
-            .setStrokeStyle(1, isActive ? THEME.brass3 : THEME.ink4));
-          add(this.add.text(cx, chipY + 10, chipTypes[ci].toUpperCase(), {
-            fontSize: '9px', fontFamily: 'monospace', fontStyle: '600',
-            color: isActive ? TC.ink0 : TC.text1,
+            .setStrokeStyle(1, isActive ? THEME.brass3 : THEME.ink4)
+            .setInteractive({ useHandCursor: true }));
+          add(this.add.text(cx - 8, chipY + 10, kind.toUpperCase(), {
+            fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+            color: isActive ? '#0d0b08' : '#ffffff',
+            stroke: isActive ? '#f0d896' : '#0d0b08', strokeThickness: 2,
           }).setOrigin(0.5));
+          add(this.add.text(cx + chipW / 2 - 6, chipY + 10, `${cnt}`, {
+            fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+            color: isActive ? '#0d0b08' : '#d9b46a',
+            stroke: isActive ? '#f0d896' : '#0d0b08', strokeThickness: 2,
+          }).setOrigin(1, 0.5));
+          chipBg.on('pointerdown', () => {
+            this.inventoryFilter = kind;
+            this.refreshWindow();
+          });
+          chipBg.on('pointerover', () => { if (!isActive) chipBg.setStrokeStyle(1, THEME.brass2); });
+          chipBg.on('pointerout',  () => { if (!isActive) chipBg.setStrokeStyle(1, THEME.ink4); });
         }
 
         // Bag grid — 4×4 with brass-themed slots
@@ -1828,12 +1864,17 @@ export class UIScene extends Phaser.Scene {
         add(this.add.rectangle(gridX + gridW / 2, gridY + gridW / 2, gridW + 20, gridW + 20, THEME.ink0, 0.5)
           .setStrokeStyle(1, THEME.ink4, 0.6));
 
+        // Filter items by selected category
+        const visibleInv = this.inventoryFilter === 'all'
+          ? inv
+          : inv.filter(it => ITEMS[it.itemId]?.type === this.inventoryFilter);
+
         for (let i = 0; i < COLS * ROWS; i++) {
           const col = i % COLS;
           const row = Math.floor(i / COLS);
           const cx = gridX + 10 + col * (BAG_SLOT + BAG_GAP) + BAG_SLOT / 2;
           const cy = gridY + 10 + row * (BAG_SLOT + BAG_GAP) + BAG_SLOT / 2;
-          const item = inv[i];
+          const item = visibleInv[i];
           const itemDef = item ? ITEMS[item.itemId] : null;
 
           const bg = drawSlot(cx, cy, BAG_SLOT, itemDef);
@@ -1852,22 +1893,48 @@ export class UIScene extends Phaser.Scene {
                 }).setOrigin(1, 1));
             }
 
-            // Click: equip if equipment
-            if (itemDef.type === 'equipment' && itemDef.equipSlot) {
-              const slot = itemDef.equipSlot;
-              bg.on('pointerdown', () => {
-                (equip as any)[slot] = item.itemId;
+            // Click action depends on item type
+            bg.on('pointerdown', () => {
+              if (itemDef.type === 'equipment' && itemDef.equipSlot) {
+                // Weapons go to active weapon slot, or second weapon if first is taken
+                let targetSlot: string = itemDef.equipSlot;
+                if (targetSlot === 'weapon' && (equip as any).weapon && !(equip as any).weapon2) {
+                  targetSlot = 'weapon2';
+                }
+                (equip as any)[targetSlot] = item.itemId;
                 this.refreshWindow();
-              });
-            }
+              } else if (itemDef.type === 'consumable') {
+                // Use consumable via GameScene (handles hp/mana restore + inventory decrement)
+                this.scene.get('GameScene').events.emit('use-item', item.itemId);
+                this.refreshWindow();
+              }
+              // Materials: no click action
+            });
 
-            // Hover: show item name + rarity
-            const hoverLabel = add(this.add.text(cx, cy - BAG_SLOT / 2 - 12, itemDef.nameRu, {
-              fontSize: '10px', fontFamily: 'serif', color: TC.paper0,
-              backgroundColor: '#0d0b08cc', padding: { x: 6, y: 2 },
-            }).setOrigin(0.5).setVisible(false));
-            bg.on('pointerover', () => hoverLabel.setVisible(true));
-            bg.on('pointerout',  () => hoverLabel.setVisible(false));
+            // Detailed hover tooltip — name, type, stats, description
+            const ttLines: string[] = [];
+            ttLines.push(itemDef.nameRu);
+            ttLines.push(`${itemDef.rarity.toUpperCase()} · ${itemDef.type.toUpperCase()}`);
+            if (itemDef.statBonuses) {
+              for (const [k, v] of Object.entries(itemDef.statBonuses)) {
+                if (v) ttLines.push(`+${v} ${k}`);
+              }
+            }
+            if (itemDef.armorBonus)   ttLines.push(`+${itemDef.armorBonus} armor`);
+            if (itemDef.hpRestore)    ttLines.push(`Restore ${itemDef.hpRestore} HP`);
+            if (itemDef.manaRestore)  ttLines.push(`Restore ${itemDef.manaRestore} MP`);
+            if (itemDef.descRu)       ttLines.push(itemDef.descRu);
+            if (itemDef.type === 'equipment')  ttLines.push('[Click] Equip');
+            if (itemDef.type === 'consumable') ttLines.push('[Click] Use');
+
+            const tooltip = add(this.add.text(cx, cy - BAG_SLOT / 2 - 6, ttLines.join('\n'), {
+              fontSize: '10px', fontFamily: 'monospace', color: TC.paper0,
+              backgroundColor: '#0d0b08f0', padding: { x: 8, y: 6 },
+              stroke: TC.brass1, strokeThickness: 0,
+              align: 'left',
+            }).setOrigin(0.5, 1).setDepth(50).setVisible(false));
+            bg.on('pointerover', () => tooltip.setVisible(true));
+            bg.on('pointerout',  () => tooltip.setVisible(false));
           } else {
             // Empty slot diamond hint
             add(this.add.text(cx, cy, '◇', {
@@ -1941,18 +2008,20 @@ export class UIScene extends Phaser.Scene {
           const bonus = bonuses[sn];
           const sx = statStartX + si * statGap;
 
-          // Label
+          // Label — white with dark stroke
           add(this.add.text(sx, statY, statAbbr[sn], {
-            fontSize: '9px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
+            fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+            color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
           }));
           // Value
-          const valStr = bonus > 0 ? `${base}+${bonus}` : `${base}`;
-          add(this.add.text(sx, statY + 12, `${base + bonus}`, {
-            fontSize: '16px', fontFamily: 'serif', color: TC.paper0,
+          add(this.add.text(sx, statY + 14, `${base + bonus}`, {
+            fontSize: '17px', fontFamily: 'serif', fontStyle: '700',
+            color: '#ffffff', stroke: '#0d0b08', strokeThickness: 3,
           }));
           if (bonus > 0) {
-            add(this.add.text(sx + 24, statY + 16, `+${bonus}`, {
-              fontSize: '9px', fontFamily: 'monospace', color: '#8cc86a',
+            add(this.add.text(sx + 28, statY + 18, `+${bonus}`, {
+              fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+              color: '#8cc86a', stroke: '#0d0b08', strokeThickness: 2,
             }));
           }
         }
@@ -1964,10 +2033,12 @@ export class UIScene extends Phaser.Scene {
         const maxHP = 50 + sphere.stats[StatName.Health] * 5;
         const curHP = data.body ? (data as any).body.hp ?? maxHP : maxHP;
         add(this.add.text(barX, statY, 'HP', {
-          fontSize: '9px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
+          fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
         }));
         add(this.add.text(barX + barW, statY, `${Math.floor(curHP)}/${maxHP}`, {
-          fontSize: '9px', fontFamily: 'monospace', color: TC.paper0,
+          fontSize: '10px', fontFamily: 'monospace',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
         }).setOrigin(1, 0));
         add(this.add.rectangle(barX + barW / 2, statY + 14, barW, 8, THEME.ink0)
           .setStrokeStyle(1, THEME.ink4));
@@ -1977,10 +2048,12 @@ export class UIScene extends Phaser.Scene {
         // Mana
         const maxMana = Math.min(50 + sphere.stats[StatName.Mana] * 0.1, 150);
         add(this.add.text(barX, statY + 26, 'MANA', {
-          fontSize: '9px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
+          fontSize: '10px', fontFamily: 'monospace', fontStyle: '700',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
         }));
         add(this.add.text(barX + barW, statY + 26, `${Math.floor(maxMana)}/${Math.floor(maxMana)}`, {
-          fontSize: '9px', fontFamily: 'monospace', color: TC.paper0,
+          fontSize: '10px', fontFamily: 'monospace',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
         }).setOrigin(1, 0));
         add(this.add.rectangle(barX + barW / 2, statY + 40, barW, 8, THEME.ink0)
           .setStrokeStyle(1, THEME.ink4));
@@ -1991,10 +2064,12 @@ export class UIScene extends Phaser.Scene {
         add(this.add.rectangle(rankX + 20, statY + 20, 48, 48, THEME.ink1)
           .setStrokeStyle(1, THEME.brass1));
         add(this.add.text(rankX + 20, statY + 6, 'RANK', {
-          fontSize: '8px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
+          fontSize: '9px', fontFamily: 'monospace', fontStyle: '700',
+          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
         }).setOrigin(0.5));
         add(this.add.text(rankX + 20, statY + 24, `${sphere.rank}`, {
-          fontSize: '22px', fontFamily: 'serif', color: TC.brass4,
+          fontSize: '24px', fontFamily: 'serif', fontStyle: '700',
+          color: '#f0d896', stroke: '#0d0b08', strokeThickness: 3,
         }).setOrigin(0.5));
 
         break;

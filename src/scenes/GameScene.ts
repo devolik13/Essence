@@ -453,6 +453,22 @@ export class GameScene extends Phaser.Scene {
       else this.activateSpellSlot(slotIndex);
     });
 
+    this.events.on('use-item', (itemId: string) => {
+      const def = ITEMS[itemId];
+      if (!def || def.type !== 'consumable') return;
+      if (!this.sphere.useItem(itemId)) return;
+      const body = this.playerBody;
+      if (body) {
+        if (def.hpRestore) {
+          body.currentHP = Math.min(body.maxHP, body.currentHP + def.hpRestore);
+        }
+        if (def.manaRestore) {
+          body.currentMana = Math.min(body.maxMana, body.currentMana + def.manaRestore);
+        }
+      }
+      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    });
+
     // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       resumeAudio(); // Unlock audio on first click
