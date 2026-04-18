@@ -17,6 +17,7 @@ import { getAllAchievementStatus } from '../systems/achievements';
 import { STATUS_DEFS } from '../types/statuses';
 import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
+import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
@@ -905,10 +906,10 @@ export class UIScene extends Phaser.Scene {
     // Group labels (small-caps mechanical)
     const labelY = y - SKILL_SLOT_SIZE / 2 - 11;
     this.add.text(startX + 2.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.weapon_tab').toUpperCase(), {
-      fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
+      fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.text3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
     this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.neutral').toUpperCase(), {
-      fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
+      fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.text3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
 
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
@@ -938,21 +939,23 @@ export class UIScene extends Phaser.Scene {
       this.skillSlotsInner.push(inner);
 
       const icon = this.add.text(x, y - 2, '', {
-        fontSize: '11px', color: TC.text1, align: 'center',
+        fontSize: '12px',
+        fontFamily: '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Cormorant Garamond",serif',
+        color: TC.text1, align: 'center',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
       this.skillSlotsIcon.push(icon);
 
       // Keybind number — top-left, brass accent
       const key = this.add.text(
         x - SKILL_SLOT_SIZE / 2 + 3, y - SKILL_SLOT_SIZE / 2 + 2, `${i + 1}`,
-        { fontSize: '9px', fontFamily: 'monospace', color: TC.brass3 },
+        { fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.brass3 },
       ).setScrollFactor(0).setDepth(1003);
       this.skillSlotsKey.push(key);
 
       // Mana cost pip — bottom-right, ether blue
       const mana = this.add.text(
         x + SKILL_SLOT_SIZE / 2 - 3, y + SKILL_SLOT_SIZE / 2 - 2, '',
-        { fontSize: '9px', fontFamily: 'monospace', color: TC.ether3 },
+        { fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.ether3 },
       ).setOrigin(1, 1).setScrollFactor(0).setDepth(1003);
       this.skillSlotsMana.push(mana);
 
@@ -961,7 +964,9 @@ export class UIScene extends Phaser.Scene {
       this.skillSlotsCd.push(cd);
 
       const cdText = this.add.text(x, y, '', {
-        fontSize: '12px', fontFamily: 'monospace', color: TC.paper0, align: 'center',
+        fontSize: '14px',
+        fontFamily: '"Cormorant Garamond", serif', fontStyle: '600',
+        color: TC.paper0, align: 'center',
         stroke: TC.ink0, strokeThickness: 3,
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
       this.skillSlotsCdText.push(cdText);
@@ -977,8 +982,20 @@ export class UIScene extends Phaser.Scene {
           if (this.spellPickerSlot === i) this.closeSpellPicker();
           else this.openSpellPicker(i);
         })
-        .on('pointerover', () => { if (!this.skillSlotsFrame[i].getData('active')) frame.setStrokeStyle(1, THEME.brass3, 1); })
-        .on('pointerout',  () => { if (!this.skillSlotsFrame[i].getData('active')) frame.setStrokeStyle(1, THEME.brass1, 0.9); });
+        .on('pointerover', (ptr: Phaser.Input.Pointer) => {
+          if (!this.skillSlotsFrame[i].getData('active')) frame.setStrokeStyle(1, THEME.brass3, 1);
+          const ability = this.cachedBody?.abilitySlots[i]?.ability;
+          const ev = ptr.event as MouseEvent;
+          if (ability) showSpellTooltip(ability, ev.clientX ?? 0, ev.clientY ?? 0);
+        })
+        .on('pointermove', (ptr: Phaser.Input.Pointer) => {
+          const ev = ptr.event as MouseEvent;
+          moveSpellTooltip(ev.clientX ?? 0, ev.clientY ?? 0);
+        })
+        .on('pointerout',  () => {
+          if (!this.skillSlotsFrame[i].getData('active')) frame.setStrokeStyle(1, THEME.brass1, 0.9);
+          hideSpellTooltip();
+        });
     }
 
     // Lock button — styled like a brass icon-btn
