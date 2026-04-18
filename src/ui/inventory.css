@@ -379,14 +379,14 @@
 .eq-helmet  { top:   0px; left: 50%; transform: translateX(-50%); }
 .eq-amulet  { top:  78px; left: 50%; transform: translateX(-50%); }
 .eq-chest   { top: 152px; left: 50%; transform: translateX(-50%); }
-.eq-gloves  { top: 196px; left:  78px; }
-.eq-ring    { top: 196px; right: 78px; }
+.eq-gloves  { top: 178px; left:  78px; }
+.eq-ring    { top: 178px; right: 78px; }
 .eq-weapon1 { top:  88px; left:   0; }
 .eq-weapon2 { top:  88px; right:  0; }
-.eq-shield  { top: 230px; left:   0; }
+.eq-shield  { top: 220px; left:   0; }
 .eq-wrune   { top:   0px; right:  0; }
 .eq-arune   { top:   0px; left:   0; }
-.eq-boots   { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.eq-boots   { bottom: 40px; left: 50%; transform: translateX(-50%); }
 
 .eq-helmet  .tag, .eq-chest .tag, .eq-amulet .tag,
 .eq-gloves  .tag, .eq-ring  .tag {
