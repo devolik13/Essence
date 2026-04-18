@@ -15,6 +15,7 @@ import { formatCurrency } from '../systems/currency';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
 import { getAllAchievementStatus } from '../systems/achievements';
 import { STATUS_DEFS } from '../types/statuses';
+import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
@@ -116,11 +117,15 @@ export class UIScene extends Phaser.Scene {
   private castLabel!:   Phaser.GameObjects.Text;
 
   // ── Skill bar ─────────────────────────────────────────
-  private skillSlotsBg:      Phaser.GameObjects.Rectangle[] = [];
-  private skillSlotsIcon:    Phaser.GameObjects.Text[]      = [];
-  private skillSlotsKey:     Phaser.GameObjects.Text[]      = [];
-  private skillSlotsCd:      Phaser.GameObjects.Rectangle[] = [];
-  private skillSlotsCdText:  Phaser.GameObjects.Text[]      = [];
+  private skillSlotsBg:        Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsFrame:     Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsInner:     Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsIcon:      Phaser.GameObjects.Text[]      = [];
+  private skillSlotsKey:       Phaser.GameObjects.Text[]      = [];
+  private skillSlotsMana:      Phaser.GameObjects.Text[]      = [];
+  private skillSlotsCd:        Phaser.GameObjects.Rectangle[] = [];
+  private skillSlotsCdText:    Phaser.GameObjects.Text[]      = [];
+  private skillSlotsEnchantGlow: Phaser.GameObjects.Arc[]     = [];
   private skillBarLocked:    boolean = false;
   private lockBtn!:          Phaser.GameObjects.Text;
   private spellPickerContainer!: Phaser.GameObjects.Container;
@@ -862,55 +867,100 @@ export class UIScene extends Phaser.Scene {
   // ── Skill bar ─────────────────────────────────────────
 
   private buildSkillBar() {
-    const totalW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP;
+    const DIVIDER_GAP = 16; // extra gap between weapon (0-4) and neutral (5-7)
+    const totalW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP + DIVIDER_GAP;
     const startX = (GAME_WIDTH - totalW) / 2;
-    const y = GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 8;
+    const y = GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 10;
 
-    const DIVIDER_GAP = 14; // extra gap between weapon (0-4) and neutral (5-7) slots
+    // Brass-framed tray behind the whole bar, like a weapon rack on the wall.
+    const trayPadX = 10, trayPadY = 8;
+    const trayW = totalW + trayPadX * 2;
+    const trayH = SKILL_SLOT_SIZE + trayPadY * 2;
+    const trayCx = startX + totalW / 2;
+    const trayCy = y;
+    this.add.rectangle(trayCx, trayCy, trayW, trayH, THEME.ink1, 0.92)
+      .setScrollFactor(0).setDepth(999);
+    this.add.rectangle(trayCx, trayCy, trayW, trayH)
+      .setStrokeStyle(1, THEME.brass1, 1).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(999);
+    this.add.rectangle(trayCx, trayCy, trayW - 4, trayH - 4)
+      .setStrokeStyle(1, THEME.brass2, 0.2).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(999);
 
-    // Divider line between slot 5 and 6
-    const divX = startX + 5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + DIVIDER_GAP / 2 - 2;
-    this.add.rectangle(divX, y, 2, SKILL_SLOT_SIZE + 8, 0x334466, 0.6)
+    // Corner ornaments ✦-style brackets on the tray.
+    const cx1 = trayCx - trayW / 2 + 4, cx2 = trayCx + trayW / 2 - 4;
+    const cy1 = trayCy - trayH / 2 + 4, cy2 = trayCy + trayH / 2 - 4;
+    drawCorner(this, cx1, cy1, 6, 'tl').setScrollFactor(0).setDepth(999);
+    drawCorner(this, cx2, cy1, 6, 'tr').setScrollFactor(0).setDepth(999);
+    drawCorner(this, cx1, cy2, 6, 'bl').setScrollFactor(0).setDepth(999);
+    drawCorner(this, cx2, cy2, 6, 'br').setScrollFactor(0).setDepth(999);
+
+    // Divider between slot 5 and 6 — brass gradient line
+    const divX = startX + 5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + DIVIDER_GAP / 2;
+    drawBrassLineV(this, divX, y - SKILL_SLOT_SIZE / 2 - 2, SKILL_SLOT_SIZE + 4)
       .setScrollFactor(0).setDepth(1000);
 
-    // Labels
-    const labelY = y - SKILL_SLOT_SIZE / 2 - 8;
-    this.add.text(startX + 2 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, t('skill.weapon_tab'), {
-      fontSize: '8px', color: '#556688',
+    // Group labels (small-caps mechanical)
+    const labelY = y - SKILL_SLOT_SIZE / 2 - 11;
+    this.add.text(startX + 2.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.weapon_tab').toUpperCase(), {
+      fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
-    this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + SKILL_SLOT_SIZE / 2, labelY, t('skill.neutral'), {
-      fontSize: '8px', color: '#556688',
+    this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.neutral').toUpperCase(), {
+      fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
 
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
       const extraGap = i >= 5 ? DIVIDER_GAP : 0;
       const x = startX + i * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP) + extraGap + SKILL_SLOT_SIZE / 2;
 
-      const bg = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE, 0x1a1a2e, 0.9)
+      // Enchant glow (hidden by default, shown pulsing when slot is active enchant)
+      const glow = this.add.circle(x, y, SKILL_SLOT_SIZE * 0.72, THEME.brass3, 0.22)
+        .setScrollFactor(0).setDepth(999).setVisible(false);
+      this.skillSlotsEnchantGlow.push(glow);
+
+      // Slot background (deep void)
+      const bg = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE, THEME.ink0, 0.95)
         .setScrollFactor(0).setDepth(1000);
-      this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE)
-        .setStrokeStyle(1, 0x4455aa, 0.7).setFillStyle(0, 0)
-        .setScrollFactor(0).setDepth(1001);
       this.skillSlotsBg.push(bg);
 
-      const icon = this.add.text(x, y - 4, '', {
-        fontSize: '11px', color: '#ffffff', align: 'center',
+      // Outer brass frame
+      const frame = this.add.rectangle(x, y, SKILL_SLOT_SIZE, SKILL_SLOT_SIZE)
+        .setStrokeStyle(1, THEME.brass1, 0.9).setFillStyle(0, 0)
+        .setScrollFactor(0).setDepth(1001);
+      this.skillSlotsFrame.push(frame);
+
+      // Inner hairline — subtle etched look
+      const inner = this.add.rectangle(x, y, SKILL_SLOT_SIZE - 4, SKILL_SLOT_SIZE - 4)
+        .setStrokeStyle(1, THEME.brass2, 0.18).setFillStyle(0, 0)
+        .setScrollFactor(0).setDepth(1001);
+      this.skillSlotsInner.push(inner);
+
+      const icon = this.add.text(x, y - 2, '', {
+        fontSize: '11px', color: TC.text1, align: 'center',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
       this.skillSlotsIcon.push(icon);
 
+      // Keybind number — top-left, brass accent
       const key = this.add.text(
         x - SKILL_SLOT_SIZE / 2 + 3, y - SKILL_SLOT_SIZE / 2 + 2, `${i + 1}`,
-        { fontSize: '9px', color: '#555577' },
+        { fontSize: '9px', fontFamily: 'monospace', color: TC.brass3 },
       ).setScrollFactor(0).setDepth(1003);
       this.skillSlotsKey.push(key);
 
-      const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, 0x000000, 0.65)
+      // Mana cost pip — bottom-right, ether blue
+      const mana = this.add.text(
+        x + SKILL_SLOT_SIZE / 2 - 3, y + SKILL_SLOT_SIZE / 2 - 2, '',
+        { fontSize: '9px', fontFamily: 'monospace', color: TC.ether3 },
+      ).setOrigin(1, 1).setScrollFactor(0).setDepth(1003);
+      this.skillSlotsMana.push(mana);
+
+      const cd = this.add.rectangle(x, y + SKILL_SLOT_SIZE / 2, SKILL_SLOT_SIZE, 0, THEME.ink0, 0.7)
         .setOrigin(0.5, 1).setScrollFactor(0).setDepth(1004);
       this.skillSlotsCd.push(cd);
 
       const cdText = this.add.text(x, y, '', {
-        fontSize: '12px', color: '#ffffff', align: 'center',
-        stroke: '#000000', strokeThickness: 3,
+        fontSize: '12px', fontFamily: 'monospace', color: TC.paper0, align: 'center',
+        stroke: TC.ink0, strokeThickness: 3,
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1005);
       this.skillSlotsCdText.push(cdText);
 
@@ -924,11 +974,16 @@ export class UIScene extends Phaser.Scene {
           if (this.cachedInCombat) { this.addLog(t('skill.no_combat')); return; }
           if (this.spellPickerSlot === i) this.closeSpellPicker();
           else this.openSpellPicker(i);
-        });
+        })
+        .on('pointerover', () => { if (!this.skillSlotsFrame[i].getData('active')) frame.setStrokeStyle(1, THEME.brass3, 1); })
+        .on('pointerout',  () => { if (!this.skillSlotsFrame[i].getData('active')) frame.setStrokeStyle(1, THEME.brass1, 0.9); });
     }
 
-    const barStartX = (GAME_WIDTH - (SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP)) / 2;
-    this.lockBtn = this.add.text(barStartX - 20, y, '🔓', { fontSize: '18px' })
+    // Lock button — styled like a brass icon-btn
+    const lockX = startX - 22;
+    this.add.rectangle(lockX, y, 22, 22, THEME.ink0, 0.9).setStrokeStyle(1, THEME.brass1, 0.9)
+      .setScrollFactor(0).setDepth(1005);
+    this.lockBtn = this.add.text(lockX, y, '🔓', { fontSize: '12px' })
       .setOrigin(0.5).setScrollFactor(0).setDepth(1006)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
@@ -1109,16 +1164,55 @@ export class UIScene extends Phaser.Scene {
     for (let i = 0; i < SKILL_SLOTS_COUNT; i++) {
       const slot    = body?.abilitySlots[i];
       const ability = slot?.ability ?? null;
-      const isActiveEnchant = ability && activeEnchantId && ability.id === activeEnchantId;
-      this.skillSlotsBg[i].setFillStyle(isActiveEnchant ? 0x664400 : ability ? 0x1e2244 : 0x1a1a2e, 0.9);
-      this.skillSlotsBg[i].setStrokeStyle(isActiveEnchant ? 2 : 1, isActiveEnchant ? 0xffaa00 : 0x334466);
+      const isActiveEnchant = !!(ability && activeEnchantId && ability.id === activeEnchantId);
+
+      // Background tint: ether-tint for filled slots, deeper ink for empty
+      const bgColor =
+        isActiveEnchant ? THEME.brass1 :
+        ability         ? THEME.ink2   :
+                          THEME.ink0;
+      this.skillSlotsBg[i].setFillStyle(bgColor, isActiveEnchant ? 0.6 : 0.95);
+
+      // Frame: bright brass for enchant, normal brass otherwise
+      const frame = this.skillSlotsFrame[i];
+      if (isActiveEnchant) {
+        frame.setStrokeStyle(2, THEME.brass4, 1);
+        frame.setData('active', true);
+      } else {
+        frame.setStrokeStyle(1, THEME.brass1, 0.9);
+        frame.setData('active', false);
+      }
+
+      // Enchant glow pulse (simple alpha tween)
+      const glow = this.skillSlotsEnchantGlow[i];
+      if (isActiveEnchant && !glow.visible) {
+        glow.setVisible(true);
+        this.tweens.add({
+          targets: glow, alpha: { from: 0.12, to: 0.32 },
+          duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+        });
+      } else if (!isActiveEnchant && glow.visible) {
+        this.tweens.killTweensOf(glow);
+        glow.setVisible(false);
+      }
+
+      // Icon
       if (i === 0 && body) {
-        this.skillSlotsIcon[i].setText('⚔').setColor('#ffdd66').setFontSize('16px');
+        this.skillSlotsIcon[i].setText('⚔').setColor(TC.brass3).setFontSize('18px');
       } else if (ability) {
-        this.skillSlotsIcon[i].setText(ability.nameRu.slice(0, 6)).setColor('#aaccff').setFontSize('10px');
+        this.skillSlotsIcon[i].setText(ability.nameRu.slice(0, 6)).setColor(TC.ether3).setFontSize('10px');
       } else {
         this.skillSlotsIcon[i].setText('');
       }
+
+      // Mana cost pip
+      if (ability && ability.manaCost) {
+        this.skillSlotsMana[i].setText(String(ability.manaCost));
+      } else {
+        this.skillSlotsMana[i].setText('');
+      }
+
+      // Cooldown
       if (slot && slot.cooldownRemaining > 0) {
         const ratio = Math.min(slot.cooldownRemaining / (slot.ability?.cooldown ?? 1), 1);
         this.skillSlotsCd[i].height = SKILL_SLOT_SIZE * ratio;
