@@ -26,8 +26,13 @@ interface RenderArgs {
   cb: InvCallbacks;
 }
 
+const BAG_CAPACITY = 64;
+const BAG_PAGE_SIZE = 16;
+const BAG_PAGES = Math.ceil(BAG_CAPACITY / BAG_PAGE_SIZE);
+
 let root: HTMLElement | null = null;
 let currentFilter: FilterKind = 'all';
+let currentPage = 0;
 let currentArgs: RenderArgs | null = null;
 let currentTooltip: HTMLElement | null = null;
 
@@ -225,7 +230,7 @@ function showTooltip(target: HTMLElement, itemDef: ItemDef) {
   else foot.textContent = 'Материал';
   tt.appendChild(foot);
 
-  document.body.appendChild(tt);
+  (root ?? document.body).appendChild(tt);
   currentTooltip = tt;
   const r = target.getBoundingClientRect();
   positionTooltip(r.left + r.width / 2, r.top);
@@ -405,6 +410,7 @@ function renderBagColumn(args: RenderArgs): HTMLElement {
     btn.appendChild(el('span', 'count', String(counts[c.id] ?? 0)));
     btn.addEventListener('click', () => {
       currentFilter = c.id;
+      currentPage = 0;
       rerender();
     });
     chips.appendChild(btn);
@@ -415,10 +421,15 @@ function renderBagColumn(args: RenderArgs): HTMLElement {
     ? inv.slice()
     : inv.filter(it => ITEMS[it.itemId]?.type === currentFilter);
 
+  const totalFilteredPages = Math.max(1, Math.ceil(visibleInv.length / BAG_PAGE_SIZE));
+  if (currentPage >= totalFilteredPages) currentPage = totalFilteredPages - 1;
+  if (currentPage < 0) currentPage = 0;
+  const pageStart = currentPage * BAG_PAGE_SIZE;
+
   const grid = el('div', 'ess-bag-grid');
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < BAG_PAGE_SIZE; i++) {
     const cell = el('div');
-    const item = visibleInv[i];
+    const item = visibleInv[pageStart + i];
     const itemDef = item ? ITEMS[item.itemId] : null;
     const onClick = item && itemDef ? () => {
       if (itemDef.type === 'equipment' && itemDef.equipSlot) {
@@ -436,9 +447,37 @@ function renderBagColumn(args: RenderArgs): HTMLElement {
   }
   section.appendChild(grid);
 
+  // Page navigation bar
+  const pageBar = el('div', 'ess-page-bar');
+  const prevBtn = el('button', 'arrow', '◂');
+  if (currentPage === 0) prevBtn.setAttribute('disabled', 'true');
+  prevBtn.addEventListener('click', () => {
+    if (currentPage > 0) { currentPage--; rerender(); }
+  });
+  pageBar.appendChild(prevBtn);
+
+  const pageNum = el('span', 'page-num', `${currentPage + 1} / ${BAG_PAGES}`);
+  pageBar.appendChild(pageNum);
+
+  const dots = el('div', 'dots');
+  for (let p = 0; p < BAG_PAGES; p++) {
+    const dot = el('button', `d${p === currentPage ? ' active' : ''}`);
+    dot.addEventListener('click', () => { currentPage = p; rerender(); });
+    dots.appendChild(dot);
+  }
+  pageBar.appendChild(dots);
+
+  const nextBtn = el('button', 'arrow', '▸');
+  if (currentPage >= BAG_PAGES - 1) nextBtn.setAttribute('disabled', 'true');
+  nextBtn.addEventListener('click', () => {
+    if (currentPage < BAG_PAGES - 1) { currentPage++; rerender(); }
+  });
+  pageBar.appendChild(nextBtn);
+  section.appendChild(pageBar);
+
   const footer = el('div', 'ess-bag-footer');
   const cap = el('span', 'cap');
-  cap.innerHTML = `Slots: <b>${inv.length}</b> / <b>64</b>`;
+  cap.innerHTML = `Slots: <b>${inv.length}</b> / <b>${BAG_CAPACITY}</b>`;
   footer.appendChild(cap);
   section.appendChild(footer);
 
@@ -564,6 +603,7 @@ function rerender() {
 export function showInventoryDom(args: RenderArgs): () => void {
   currentArgs = args;
   currentFilter = 'all';
+  currentPage = 0;
   const node = renderAll(args);
   document.body.appendChild(node);
   root = node;

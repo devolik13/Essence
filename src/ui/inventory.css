@@ -343,17 +343,17 @@
 .ess-equip-layout {
   position: relative;
   width: 560px;
-  height: 460px;
+  height: 400px;
   margin: 0 auto;
 }
 
 .ess-silhouette {
   position: absolute;
   left: 50%;
-  top: 20px;
+  top: 10px;
   transform: translateX(-50%);
-  width: 160px;
-  height: 310px;
+  width: 140px;
+  height: 280px;
   z-index: 1;
   pointer-events: none;
 }
@@ -377,16 +377,16 @@
 }
 
 .eq-helmet  { top:   0px; left: 50%; transform: translateX(-50%); }
-.eq-amulet  { top:  82px; left: 50%; transform: translateX(-50%); }
-.eq-chest   { top: 164px; left: 50%; transform: translateX(-50%); }
-.eq-gloves  { top: 214px; left:  78px; }
-.eq-ring    { top: 214px; right: 78px; }
-.eq-weapon1 { top:  96px; left:   0; }
-.eq-weapon2 { top:  96px; right:  0; }
-.eq-shield  { top: 292px; left:   0; }
+.eq-amulet  { top:  78px; left: 50%; transform: translateX(-50%); }
+.eq-chest   { top: 152px; left: 50%; transform: translateX(-50%); }
+.eq-gloves  { top: 196px; left:  78px; }
+.eq-ring    { top: 196px; right: 78px; }
+.eq-weapon1 { top:  88px; left:   0; }
+.eq-weapon2 { top:  88px; right:  0; }
+.eq-shield  { top: 230px; left:   0; }
 .eq-wrune   { top:   0px; right:  0; }
 .eq-arune   { top:   0px; left:   0; }
-.eq-boots   { bottom: 0; left: 50%; transform: translateX(-50%); }
+.eq-boots   { bottom: 10px; left: 50%; transform: translateX(-50%); }
 
 .eq-helmet  .tag, .eq-chest .tag, .eq-amulet .tag,
 .eq-gloves  .tag, .eq-ring  .tag {
@@ -410,7 +410,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 20px;
   padding: 0 20px;
 }
 .ess-weapon-card {
@@ -522,6 +522,48 @@
 .ess-bag-grid > div { min-width: 0; min-height: 0; }
 .ess-bag-grid .ess-slot { width: 100%; height: 100%; }
 
+.ess-page-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+  font-family: var(--font-mech);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+.ess-page-bar .arrow {
+  width: 28px; height: 24px;
+  display: grid; place-items: center;
+  background: transparent;
+  border: 1px solid var(--brass-0);
+  color: var(--brass-3);
+  font-family: var(--font-display);
+  font-size: 14px;
+  cursor: pointer;
+}
+.ess-page-bar .arrow:hover:not([disabled]) {
+  background: var(--brass-1);
+  color: var(--paper-0);
+}
+.ess-page-bar .arrow[disabled] { opacity: 0.3; cursor: not-allowed; }
+.ess-page-bar .dots { display: flex; gap: 5px; }
+.ess-page-bar .dots .d {
+  width: 8px; height: 8px;
+  border: 1px solid var(--brass-0);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.ess-page-bar .dots .d.active { background: var(--brass-3); border-color: var(--brass-3); }
+.ess-page-bar .page-num {
+  color: var(--paper-0);
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
 .ess-bag-footer {
   display: flex;
   align-items: center;
@@ -609,11 +651,12 @@
   min-width: 240px;
   max-width: 320px;
   background: linear-gradient(180deg, #1a1510 0%, #0d0b08 100%);
-  border: 1px solid var(--brass-1);
+  border: 1px solid #8a6a2f;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 10px 30px rgba(0,0,0,0.6);
   padding: 12px 14px;
   pointer-events: none;
-  font-family: var(--font-ui);
+  color: #d8c9a4;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 .ess-tooltip .tt-head {
   display: flex;
