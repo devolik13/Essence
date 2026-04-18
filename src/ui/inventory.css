@@ -1029,6 +1029,16 @@
   gap: 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(138,106,47,0.3);
+  cursor: pointer;
+  user-select: none;
+}
+.ess-ach-group .ag-head:hover { border-bottom-color: var(--brass-2); }
+.ag-head .ag-chevron {
+  font-size: 11px;
+  color: var(--brass-3);
+  width: 12px;
+  display: inline-block;
+  transition: transform 0.15s;
 }
 .ag-head .ag-icon { font-size: 16px; }
 .ag-head .ag-label {
@@ -1042,6 +1052,15 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow: hidden;
+  max-height: 4000px;
+  transition: max-height 0.25s ease, opacity 0.2s;
+  opacity: 1;
+}
+.ess-ach-group.collapsed .ag-grid {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Achievement card */

@@ -65,6 +65,15 @@ export class UIScene extends Phaser.Scene {
   // ── Fixed content text objects ────────────────────────
   private targetPanel!: Phaser.GameObjects.Text;
   private resourceText!:Phaser.GameObjects.Text;
+  // Brass/ether vital bars (HP + Mana) above the skill bar
+  private hpBarFill!:   Phaser.GameObjects.Rectangle;
+  private hpBarText!:   Phaser.GameObjects.Text;
+  private manaBarFill!: Phaser.GameObjects.Rectangle;
+  private manaBarText!: Phaser.GameObjects.Text;
+  private vitalsContainer!: Phaser.GameObjects.Container;
+  // Gold display (top-right)
+  private goldContainer!: Phaser.GameObjects.Container;
+  private goldText!:    Phaser.GameObjects.Text;
   private statusBarText!:Phaser.GameObjects.Text;
   private playerStatusBoxes: Phaser.GameObjects.Container[] = [];
   private playerStatusPool: { bg: Phaser.GameObjects.Rectangle; icon: Phaser.GameObjects.Text; timer: Phaser.GameObjects.Text; }[] = [];
@@ -76,6 +85,8 @@ export class UIScene extends Phaser.Scene {
   // ── Tracked quest HUD (top-left) ──────────────────────
   private trackedQuestText!: Phaser.GameObjects.Text;
   private _questHudBg!: Phaser.GameObjects.Rectangle;
+  private _questHudHeaderBg!: Phaser.GameObjects.Rectangle;
+  private _questHudHeaderText!: Phaser.GameObjects.Text;
   private _questHudX: number = 0;
   private _questHudY: number = 0;
 
@@ -178,10 +189,16 @@ export class UIScene extends Phaser.Scene {
     this.loadUILayout();
 
     // ── Fixed UI elements (not in panels) ──────────────
+    // Legacy (kept hidden): consolidated single-line HP/Mana/gold text
     this.resourceText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 72, '', {
       fontSize: '13px', color: '#ffffff', align: 'center',
       backgroundColor: '#000000aa', padding: { x: 8, y: 4 },
-    }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000);
+    }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000).setVisible(false);
+
+    // ── Vital bars (HP + Mana) above skill bar — brass/ether ───────────
+    this.buildVitalsWidget();
+    // ── Gold pouch at top-right ──────────────────────────
+    this.buildGoldWidget();
 
     this.hintText = this.add.text(10, GAME_HEIGHT - 12, '', {
       fontSize: '11px', color: '#666677',
@@ -230,14 +247,21 @@ export class UIScene extends Phaser.Scene {
       }
     }
 
-    // ── Tracked quest HUD (right side, draggable) ─────────
+    // ── Tracked quest HUD (right side, draggable, brass/ether style) ─
     this._questHudX = GAME_WIDTH - 220;
     this._questHudY = 10;
-    this._questHudBg = this.add.rectangle(this._questHudX, this._questHudY, 210, 100, 0x000000, 0.35)
+    this._questHudBg = this.add.rectangle(this._questHudX, this._questHudY, 210, 100, THEME.ink1, 0.88)
       .setOrigin(0, 0).setScrollFactor(0).setDepth(999).setVisible(false)
-      .setStrokeStyle(1, 0x334455, 0.4);
-    this.trackedQuestText = this.add.text(this._questHudX + 8, this._questHudY + 6, '', {
-      fontSize: '10px', color: '#ffeeaa', lineSpacing: 3,
+      .setStrokeStyle(1, THEME.brass1, 0.9);
+    // Brass header strip at the top of the quest panel
+    this._questHudHeaderBg = this.add.rectangle(this._questHudX, this._questHudY, 210, 18, THEME.ink2, 0.95)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(1000).setVisible(false)
+      .setStrokeStyle(1, THEME.brass1, 0.6);
+    this._questHudHeaderText = this.add.text(this._questHudX + 8, this._questHudY + 3, 'QUESTS', {
+      fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.brass3,
+    }).setScrollFactor(0).setDepth(1001).setVisible(false);
+    this.trackedQuestText = this.add.text(this._questHudX + 8, this._questHudY + 24, '', {
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, lineSpacing: 3,
     }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     // Make quest HUD draggable
@@ -251,7 +275,9 @@ export class UIScene extends Phaser.Scene {
       this._questHudX = ptr.x - qDragOffX;
       this._questHudY = ptr.y - qDragOffY;
       this._questHudBg.setPosition(this._questHudX, this._questHudY);
-      this.trackedQuestText.setPosition(this._questHudX + 8, this._questHudY + 6);
+      this._questHudHeaderBg.setPosition(this._questHudX, this._questHudY);
+      this._questHudHeaderText.setPosition(this._questHudX + 8, this._questHudY + 3);
+      this.trackedQuestText.setPosition(this._questHudX + 8, this._questHudY + 24);
     });
     this.input.setDraggable(this._questHudBg);
 
@@ -646,14 +672,19 @@ export class UIScene extends Phaser.Scene {
 
       if (lines.length > 0) {
         this.trackedQuestText.setText(lines.join('\n')).setVisible(true);
-        this.trackedQuestText.setPosition(this._questHudX + 8, this._questHudY + 6);
-        // Resize background to fit content
+        this.trackedQuestText.setPosition(this._questHudX + 8, this._questHudY + 24);
+        // Resize background + header to fit content
         const tw = Math.max(180, this.trackedQuestText.width + 16);
-        const th = this.trackedQuestText.height + 12;
+        const th = this.trackedQuestText.height + 30;
         this._questHudBg.setSize(tw, th).setVisible(true);
+        this._questHudHeaderBg.setSize(tw, 18).setVisible(true);
+        this._questHudHeaderBg.setPosition(this._questHudX, this._questHudY);
+        this._questHudHeaderText.setPosition(this._questHudX + 8, this._questHudY + 3).setVisible(true);
       } else {
         this.trackedQuestText.setVisible(false);
         this._questHudBg.setVisible(false);
+        this._questHudHeaderBg.setVisible(false);
+        this._questHudHeaderText.setVisible(false);
       }
     }
 
@@ -661,15 +692,16 @@ export class UIScene extends Phaser.Scene {
     if (this.currentWindow) this.buildWindowContent(data);
 
     // ── Resources (always visible when in body) ──────────
+    this.updateGoldWidget(data.sphere.copper ?? 0);
     if (body) {
-      const hpPct  = Math.round((body.currentHP   / body.maxHP)   * 100);
-      const manaPct= Math.round((body.currentMana / body.maxMana) * 100);
-      const coins = formatCurrency(data.sphere.copper ?? 0);
-      this.resourceText.setText(
-        `HP ${Math.round(body.currentHP)}/${body.maxHP} (${hpPct}%)   ` +
-        `Mana ${Math.round(body.currentMana)}/${body.maxMana} (${manaPct}%)   ` +
-        `💰 ${coins}`
-      ).setVisible(true);
+      const hpPct  = body.currentHP   / body.maxHP;
+      const manaPct= body.currentMana / body.maxMana;
+      const barW = 210 - 2;
+      this.hpBarFill.width = Math.max(0, Math.min(1, hpPct)) * barW;
+      this.manaBarFill.width = Math.max(0, Math.min(1, manaPct)) * barW;
+      this.hpBarText.setText(`${Math.round(body.currentHP)} / ${body.maxHP}`);
+      this.manaBarText.setText(`${Math.round(body.currentMana)} / ${body.maxMana}`);
+      this.vitalsContainer.setVisible(true);
       this.hintText.setText(t('hud.attack'));
 
       // ── Статус-иконки ────────────────────────────────────
@@ -687,7 +719,7 @@ export class UIScene extends Phaser.Scene {
         this.statusBarText.setVisible(false);
       }
     } else {
-      this.resourceText.setVisible(false);
+      this.vitalsContainer.setVisible(false);
       this.statusBarText.setVisible(false);
       this.hintText.setText(t('hud.astral'));
     }
@@ -728,7 +760,7 @@ export class UIScene extends Phaser.Scene {
       this.panelHeaders['body'].setVisible(!!body).setPosition(s.x, s.y);
       this.grips['body'].setVisible(!!body);
       if (body) {
-        this.setHeaderLabel('body', body.definition.nameRu);
+        this.setHeaderLabel('body', `Body · ${body.definition.nameRu}`);
         if (!s.collapsed) {
           this.bodyInfoText.setFixedSize(s.w, 0)
             .setPosition(s.x, s.y + HEADER_H).setText(
@@ -1245,6 +1277,127 @@ export class UIScene extends Phaser.Scene {
     }
   }
 
+  // ── Vitals (HP + Mana) bars above skill bar ──────────
+  private buildVitalsWidget() {
+    const barW = 210;
+    const barH = 10;
+    const gap = 16;
+    const totalW = barW * 2 + gap;
+    const cx = GAME_WIDTH / 2;
+    // Center vertically between menu buttons (y≈524) and skill bar top (y≈574).
+    const y = GAME_HEIGHT - SKILL_SLOT_SIZE - 32;
+
+    this.vitalsContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(1000);
+
+    // Shared tray
+    const trayPadX = 14, trayPadY = 10;
+    const trayW = totalW + trayPadX * 2;
+    const trayH = barH + trayPadY * 2;
+    const tray = this.add.rectangle(cx, y, trayW, trayH, THEME.ink1, 0.88)
+      .setScrollFactor(0).setDepth(999);
+    const outline = this.add.rectangle(cx, y, trayW, trayH)
+      .setStrokeStyle(1, THEME.brass1, 0.9).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(999);
+    const inner = this.add.rectangle(cx, y, trayW - 4, trayH - 4)
+      .setStrokeStyle(1, THEME.brass2, 0.18).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(999);
+    this.vitalsContainer.add([tray, outline, inner]);
+
+    const hpX = cx - totalW / 2;
+    const manaX = cx - totalW / 2 + barW + gap;
+
+    // ── HP bar ──
+    const hpBg = this.add.rectangle(hpX, y, barW, barH, 0x0b0905, 1)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1000)
+      .setStrokeStyle(1, THEME.ink4, 1);
+    this.hpBarFill = this.add.rectangle(hpX + 1, y, 0, barH - 2, 0xc64040, 1)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1001);
+    const hpLabel = this.add.text(hpX, y - barH / 2 - 10, 'HP', {
+      fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.text3,
+    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(1001);
+    this.hpBarText = this.add.text(hpX + barW, y - barH / 2 - 10, '0/0', {
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.paper0,
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(1001);
+
+    // ── Mana bar ──
+    const manaBg = this.add.rectangle(manaX, y, barW, barH, 0x0b0905, 1)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1000)
+      .setStrokeStyle(1, THEME.ink4, 1);
+    this.manaBarFill = this.add.rectangle(manaX + 1, y, 0, barH - 2, THEME.ether2, 1)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1001);
+    const manaLabel = this.add.text(manaX, y - barH / 2 - 10, 'MANA', {
+      fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.text3,
+    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(1001);
+    this.manaBarText = this.add.text(manaX + barW, y - barH / 2 - 10, '0/0', {
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.paper0,
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(1001);
+
+    this.vitalsContainer.add([hpBg, this.hpBarFill, hpLabel, this.hpBarText, manaBg, this.manaBarFill, manaLabel, this.manaBarText]);
+    this.vitalsContainer.setVisible(false);
+  }
+
+  // ── Gold pouch (top-right) ───────────────────────────
+  private buildGoldWidget() {
+    const y = 18;
+    const rightPad = 14;
+    this.goldContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(1000);
+
+    const padX = 10, padY = 5;
+    this.goldText = this.add.text(0, 0, '—', {
+      fontSize: '12px', fontFamily: '"JetBrains Mono", monospace', color: TC.paper0,
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(1001);
+    const textX = GAME_WIDTH - rightPad - padX;
+    this.goldText.setPosition(textX, y);
+
+    // Coin icon circle (brass gradient approximation)
+    const coinX = textX - this.goldText.width - 8;
+    const coin = this.add.circle(coinX, y, 7, THEME.brass3, 1)
+      .setStrokeStyle(1, THEME.brass1, 1)
+      .setScrollFactor(0).setDepth(1001);
+    const coinInner = this.add.circle(coinX, y, 4, THEME.brass4, 1)
+      .setScrollFactor(0).setDepth(1002);
+
+    // Tray around text+coin
+    const contentW = this.goldText.width + 22;
+    const trayW = contentW + padX * 2;
+    const trayH = 22;
+    const trayCx = GAME_WIDTH - rightPad - trayW / 2;
+    const tray = this.add.rectangle(trayCx, y, trayW, trayH, THEME.ink1, 0.85)
+      .setScrollFactor(0).setDepth(999);
+    const outline = this.add.rectangle(trayCx, y, trayW, trayH)
+      .setStrokeStyle(1, THEME.brass1, 0.85).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(999);
+
+    this.goldContainer.add([tray, outline, coin, coinInner, this.goldText]);
+    (this.goldContainer as any)._coinX = coinX;
+    (this.goldContainer as any)._coin = coin;
+    (this.goldContainer as any)._coinInner = coinInner;
+    (this.goldContainer as any)._tray = tray;
+    (this.goldContainer as any)._outline = outline;
+    (this.goldContainer as any)._rightPad = rightPad;
+    (this.goldContainer as any)._padX = padX;
+    (this.goldContainer as any)._y = y;
+  }
+
+  private updateGoldWidget(copper: number) {
+    const coins = formatCurrency(copper);
+    this.goldText.setText(coins);
+    const ctx: any = this.goldContainer;
+    const padX = ctx._padX;
+    const rightPad = ctx._rightPad;
+    const y = ctx._y;
+    const textX = GAME_WIDTH - rightPad - padX;
+    this.goldText.setPosition(textX, y);
+    const coinX = textX - this.goldText.width - 8;
+    ctx._coin.setPosition(coinX, y);
+    ctx._coinInner.setPosition(coinX, y);
+    const contentW = this.goldText.width + 22;
+    const trayW = contentW + padX * 2;
+    const trayCx = GAME_WIDTH - rightPad - trayW / 2;
+    ctx._tray.setPosition(trayCx, y).setSize(trayW, 22);
+    ctx._outline.setPosition(trayCx, y).setSize(trayW, 22);
+  }
+
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
@@ -1252,7 +1405,8 @@ export class UIScene extends Phaser.Scene {
     const btnW = 76;
     const btnH = 22;
     const gap = 4;
-    const y = GAME_HEIGHT - SKILL_SLOT_SIZE - 20 - btnH / 2;
+    // Shifted up to make room for the brass/ether vitals bar above skill bar.
+    const y = GAME_HEIGHT - SKILL_SLOT_SIZE - 58 - btnH / 2;
 
     for (let i = 0; i < labels.length; i++) {
       const x = 10 + i * (btnW + gap) + btnW / 2;

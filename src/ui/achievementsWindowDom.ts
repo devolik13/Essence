@@ -94,15 +94,21 @@ function buildAchievementCard(def: AchievementDef, unlocked: boolean, progress: 
   return card;
 }
 
+const collapsedCategories: Set<string> = new Set();
+
 function buildCategoryGroup(catId: string, achievements: AchievementDef[], sphere: Sphere): HTMLElement {
   const group = el('div', 'ess-ach-group');
   const unlocked = achievements.filter(a => sphere.unlockedAchievements.includes(a.id));
+  const collapsed = collapsedCategories.has(catId);
+  if (collapsed) group.classList.add('collapsed');
 
   const header = el('div', 'ag-head');
+  const chevron = el('span', 'ag-chevron', collapsed ? '▸' : '▾');
   const icon = el('span', 'ag-icon', CATEGORY_ICONS[catId] ?? '');
   const label = el('span', 'ag-label', CATEGORY_LABELS[catId] ?? catId.toUpperCase());
   label.style.color = CATEGORY_COLORS[catId] ?? '#d8c9a4';
   const count = el('span', 'sg-count', `${unlocked.length} / ${achievements.length}`);
+  header.appendChild(chevron);
   header.appendChild(icon);
   header.appendChild(label);
   header.appendChild(count);
@@ -120,6 +126,18 @@ function buildCategoryGroup(catId: string, achievements: AchievementDef[], spher
     grid.appendChild(buildAchievementCard(ach, unl, prog));
   }
   group.appendChild(grid);
+
+  header.addEventListener('click', () => {
+    if (collapsedCategories.has(catId)) {
+      collapsedCategories.delete(catId);
+      group.classList.remove('collapsed');
+      chevron.textContent = '▾';
+    } else {
+      collapsedCategories.add(catId);
+      group.classList.add('collapsed');
+      chevron.textContent = '▸';
+    }
+  });
 
   return group;
 }
