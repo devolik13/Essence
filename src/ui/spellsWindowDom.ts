@@ -33,13 +33,13 @@ function tier(sp: AbilityDef): string {
   return sp.manaCost >= 15 ? 'T3' : sp.manaCost >= 10 ? 'T2' : 'T1';
 }
 
-function buildSpellCard(spell: AbilityDef): HTMLElement {
-  const card = el('div', 'ess-spell-card');
+function buildSpellCard(spell: AbilityDef, learned: boolean): HTMLElement {
+  const card = el('div', `ess-spell-card${learned ? '' : ' locked'}`);
   const school = spell.school ?? 'neutral';
   card.style.setProperty('--school-color', SCHOOL_COLORS[school] ?? '#a78fc4');
 
   const name = el('div', 'sp-name', spell.nameRu);
-  name.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
+  if (learned) name.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
   card.appendChild(name);
 
   const meta = el('div', 'sp-meta');
@@ -53,29 +53,37 @@ function buildSpellCard(spell: AbilityDef): HTMLElement {
   return card;
 }
 
-function buildSchoolGroup(schoolId: string, spells: AbilityDef[]): HTMLElement {
+function buildSchoolGroup(schoolId: string, spells: AbilityDef[], learnedIds: Set<string>): HTMLElement {
   const group = el('div', 'ess-school-group');
+  const learnedCount = spells.filter(sp => learnedIds.has(sp.id)).length;
 
   const header = el('div', 'sg-head');
   const icon = el('span', 'sg-icon', SCHOOL_ICONS[schoolId] ?? '');
   const label = el('span', 'sg-label', SCHOOL_LABELS[schoolId] ?? schoolId.toUpperCase());
   label.style.color = SCHOOL_COLORS[schoolId] ?? '#d8c9a4';
-  const count = el('span', 'sg-count', `${spells.length}`);
+  const count = el('span', 'sg-count', `${learnedCount} / ${spells.length}`);
   header.appendChild(icon);
   header.appendChild(label);
   header.appendChild(count);
   group.appendChild(header);
 
   const grid = el('div', 'sg-grid');
-  for (const sp of spells) grid.appendChild(buildSpellCard(sp));
+  // Sort: learned first, then locked
+  const sorted = [...spells].sort((a, b) => {
+    const la = learnedIds.has(a.id) ? 0 : 1;
+    const lb = learnedIds.has(b.id) ? 0 : 1;
+    return la - lb;
+  });
+  for (const sp of sorted) grid.appendChild(buildSpellCard(sp, learnedIds.has(sp.id)));
   group.appendChild(grid);
 
   return group;
 }
 
-export function showSpellsWindowDom(spells: AbilityDef[], onClose: () => void): void {
+export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<string>, onClose: () => void): void {
   hideSpellsWindowDom();
   onCloseHandler = onClose;
+  const spells = allSpells;
 
   const container = el('div');
   container.id = 'ess-spells-root';
@@ -89,9 +97,9 @@ export function showSpellsWindowDom(spells: AbilityDef[], onClose: () => void): 
   // Header
   const header = el('div', 'ess-header');
   const left = el('div', 'ess-header-left');
-  const badge = el('span', 'sg-count', `${spells.length}`);
+  const badge = el('span', 'sg-count', `${learnedIds.size} / ${spells.length}`);
   badge.style.marginLeft = '6px';
-  left.appendChild(el('span', undefined, 'Spellbook'));
+  left.appendChild(el('span', undefined, 'Learned'));
   left.appendChild(badge);
 
   const title = el('div', 'ess-title');
@@ -111,7 +119,7 @@ export function showSpellsWindowDom(spells: AbilityDef[], onClose: () => void): 
   // Body
   const body = el('div', 'ess-spells-body');
   if (spells.length === 0) {
-    body.appendChild(el('div', 'ess-empty', 'No spells learned yet.'));
+    body.appendChild(el('div', 'ess-empty', 'No spells known.'));
   } else {
     // Group schools
     const nonWeapon = spells.filter(s => !s.requiredWeapons?.length);
@@ -126,7 +134,7 @@ export function showSpellsWindowDom(spells: AbilityDef[], onClose: () => void): 
 
     for (const sch of SCHOOL_ORDER) {
       const schSpells = nonWeapon.filter(s => (s.school ?? 'neutral') === sch);
-      if (schSpells.length) body.appendChild(buildSchoolGroup(sch, schSpells));
+      if (schSpells.length) body.appendChild(buildSchoolGroup(sch, schSpells, learnedIds));
     }
 
     for (const [weapon, wSpells] of Object.entries(byWeapon)) {
@@ -136,10 +144,16 @@ export function showSpellsWindowDom(spells: AbilityDef[], onClose: () => void): 
       const label = el('span', 'sg-label', weapon.toUpperCase());
       label.style.color = '#d9b46a';
       head.appendChild(label);
-      head.appendChild(el('span', 'sg-count', `${wSpells.length}`));
+      const lCount = wSpells.filter(sp => learnedIds.has(sp.id)).length;
+      head.appendChild(el('span', 'sg-count', `${lCount} / ${wSpells.length}`));
       group.appendChild(head);
       const grid = el('div', 'sg-grid');
-      for (const sp of wSpells) grid.appendChild(buildSpellCard(sp));
+      const sorted = [...wSpells].sort((a, b) => {
+        const la = learnedIds.has(a.id) ? 0 : 1;
+        const lb = learnedIds.has(b.id) ? 0 : 1;
+        return la - lb;
+      });
+      for (const sp of sorted) grid.appendChild(buildSpellCard(sp, learnedIds.has(sp.id)));
       group.appendChild(grid);
       body.appendChild(group);
     }

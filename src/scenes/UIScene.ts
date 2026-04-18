@@ -19,6 +19,7 @@ import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
+import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
 const HEADER_H = 20;
@@ -1394,7 +1395,8 @@ export class UIScene extends Phaser.Scene {
     // DOM-based spellbook
     if (type === 'spells') {
       this.windowContainer.setVisible(false);
-      showSpellsWindowDom(this.cachedLearnedSpells, () => this.closeWindow());
+      const learnedIds = new Set(this.cachedLearnedSpells.map(s => s.id));
+      showSpellsWindowDom(ALL_KNOWN_SPELLS, learnedIds, () => this.closeWindow());
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
         this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
