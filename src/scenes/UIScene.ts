@@ -1656,12 +1656,6 @@ export class UIScene extends Phaser.Scene {
         const EQ_Y = hdrY + 34;
         const EQ_W = 400;
 
-        // Section header
-        add(this.add.text(EQ_X, EQ_Y, t('inv.equipment').toUpperCase(), {
-          fontSize: '12px', fontFamily: 'serif', fontStyle: '700',
-          color: '#ffffff', stroke: '#0d0b08', strokeThickness: 3,
-        }));
-
         // Anatomical slot layout (centered in EQ_W area)
         const figCx = EQ_X + EQ_W / 2; // center of figure area
         const figY = EQ_Y + 20; // top of figure area
@@ -1715,11 +1709,11 @@ export class UIScene extends Phaser.Scene {
           const bg = drawSlot(es.cx, es.cy, S, itemDef);
           bg.setInteractive({ useHandCursor: true });
 
-          // Slot label (below or above based on position) — white w/ dark stroke for readability
+          // Slot label (below or above based on position)
           const labelBelow = es.key === 'boots' || es.key === 'shield';
           add(this.add.text(es.cx, es.cy + (labelBelow ? SH + 4 : -(SH + 4)), es.label, {
-            fontSize: '9px', fontFamily: 'monospace', fontStyle: '600',
-            color: '#ffffff', stroke: '#0d0b08', strokeThickness: 3,
+            fontSize: '11px', fontFamily: 'serif',
+            color: '#ffffff', stroke: '#0d0b08', strokeThickness: 2,
           }).setOrigin(0.5, labelBelow ? 0 : 1));
 
           // Item icon or empty hint
@@ -1727,10 +1721,6 @@ export class UIScene extends Phaser.Scene {
             add(this.add.text(es.cx, es.cy, itemDef.icon ?? '?', {
               fontSize: '22px',
             }).setOrigin(0.5));
-            bg.on('pointerdown', () => {
-              (equip as any)[es.key] = undefined;
-              this.refreshWindow();
-            });
             // Detailed tooltip on hover
             const ttLines: string[] = [itemDef.nameRu, `${itemDef.rarity.toUpperCase()} · ${itemDef.type.toUpperCase()}`];
             if (itemDef.statBonuses) {
@@ -1742,12 +1732,27 @@ export class UIScene extends Phaser.Scene {
             if (itemDef.descRu)     ttLines.push(itemDef.descRu);
             ttLines.push('[Click] Unequip');
             const tooltip = add(this.add.text(es.cx, es.cy - SH - 6, ttLines.join('\n'), {
-              fontSize: '10px', fontFamily: 'monospace', color: TC.paper0,
+              fontSize: '10px', fontFamily: 'serif', color: TC.paper0,
               backgroundColor: '#0d0b08f0', padding: { x: 8, y: 6 },
               align: 'left',
             }).setOrigin(0.5, 1).setDepth(50).setVisible(false));
-            bg.on('pointerover', () => tooltip.setVisible(true));
-            bg.on('pointerout',  () => tooltip.setVisible(false));
+            // Clickable overlay on top of slot contents
+            const eqOverlay = add(this.add.rectangle(es.cx, es.cy, S, S, 0x000000, 0.001)
+              .setInteractive({ useHandCursor: true }));
+            eqOverlay.on('pointerdown', () => {
+              (equip as any)[es.key] = undefined;
+              this.refreshWindow();
+            });
+            eqOverlay.on('pointerover', () => {
+              tooltip.setVisible(true);
+              bg.setStrokeStyle(2, THEME.brass3);
+            });
+            eqOverlay.on('pointerout', () => {
+              tooltip.setVisible(false);
+              const rarity = itemDef?.rarity;
+              const borderColor = rarity ? (rarityColors[rarity] ?? THEME.brass0) : THEME.ink4;
+              bg.setStrokeStyle(1, borderColor, rarity ? 1 : 0.6);
+            });
           } else {
             add(this.add.text(es.cx, es.cy, '✦', {
               fontSize: '14px', color: TC.text3,
@@ -1888,28 +1893,10 @@ export class UIScene extends Phaser.Scene {
             if (item.quantity > 1) {
               add(this.add.text(cx + BAG_SLOT / 2 - 4, cy + BAG_SLOT / 2 - 4,
                 `${item.quantity}`, {
-                  fontSize: '11px', fontFamily: 'monospace', color: TC.paper0,
+                  fontSize: '11px', fontFamily: 'serif', color: TC.paper0,
                   stroke: TC.ink0, strokeThickness: 3,
                 }).setOrigin(1, 1));
             }
-
-            // Click action depends on item type
-            bg.on('pointerdown', () => {
-              if (itemDef.type === 'equipment' && itemDef.equipSlot) {
-                // Weapons go to active weapon slot, or second weapon if first is taken
-                let targetSlot: string = itemDef.equipSlot;
-                if (targetSlot === 'weapon' && (equip as any).weapon && !(equip as any).weapon2) {
-                  targetSlot = 'weapon2';
-                }
-                (equip as any)[targetSlot] = item.itemId;
-                this.refreshWindow();
-              } else if (itemDef.type === 'consumable') {
-                // Use consumable via GameScene (handles hp/mana restore + inventory decrement)
-                this.scene.get('GameScene').events.emit('use-item', item.itemId);
-                this.refreshWindow();
-              }
-              // Materials: no click action
-            });
 
             // Detailed hover tooltip — name, type, stats, description
             const ttLines: string[] = [];
@@ -1926,15 +1913,40 @@ export class UIScene extends Phaser.Scene {
             if (itemDef.descRu)       ttLines.push(itemDef.descRu);
             if (itemDef.type === 'equipment')  ttLines.push('[Click] Equip');
             if (itemDef.type === 'consumable') ttLines.push('[Click] Use');
+            if (itemDef.type === 'material')   ttLines.push('Material');
 
             const tooltip = add(this.add.text(cx, cy - BAG_SLOT / 2 - 6, ttLines.join('\n'), {
-              fontSize: '10px', fontFamily: 'monospace', color: TC.paper0,
+              fontSize: '10px', fontFamily: 'serif', color: TC.paper0,
               backgroundColor: '#0d0b08f0', padding: { x: 8, y: 6 },
-              stroke: TC.brass1, strokeThickness: 0,
               align: 'left',
             }).setOrigin(0.5, 1).setDepth(50).setVisible(false));
-            bg.on('pointerover', () => tooltip.setVisible(true));
-            bg.on('pointerout',  () => tooltip.setVisible(false));
+
+            // Transparent clickable overlay on top — guarantees click capture
+            const overlay = add(this.add.rectangle(cx, cy, BAG_SLOT, BAG_SLOT, 0x000000, 0.001)
+              .setInteractive({ useHandCursor: true }));
+            overlay.on('pointerdown', () => {
+              if (itemDef.type === 'equipment' && itemDef.equipSlot) {
+                let targetSlot: string = itemDef.equipSlot;
+                if (targetSlot === 'weapon' && (equip as any).weapon && !(equip as any).weapon2) {
+                  targetSlot = 'weapon2';
+                }
+                (equip as any)[targetSlot] = item.itemId;
+                this.refreshWindow();
+              } else if (itemDef.type === 'consumable') {
+                this.scene.get('GameScene').events.emit('use-item', item.itemId);
+                this.refreshWindow();
+              }
+            });
+            overlay.on('pointerover', () => {
+              tooltip.setVisible(true);
+              bg.setStrokeStyle(2, THEME.brass3);
+            });
+            overlay.on('pointerout', () => {
+              tooltip.setVisible(false);
+              const rarity = itemDef?.rarity;
+              const borderColor = rarity ? (rarityColors[rarity] ?? THEME.brass0) : THEME.ink4;
+              bg.setStrokeStyle(1, borderColor, rarity ? 1 : 0.6);
+            });
           } else {
             // Empty slot diamond hint
             add(this.add.text(cx, cy, '◇', {
