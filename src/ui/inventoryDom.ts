@@ -421,8 +421,7 @@ function renderBagColumn(args: RenderArgs): HTMLElement {
     ? inv.slice()
     : inv.filter(it => ITEMS[it.itemId]?.type === currentFilter);
 
-  const totalFilteredPages = Math.max(1, Math.ceil(visibleInv.length / BAG_PAGE_SIZE));
-  if (currentPage >= totalFilteredPages) currentPage = totalFilteredPages - 1;
+  if (currentPage >= BAG_PAGES) currentPage = BAG_PAGES - 1;
   if (currentPage < 0) currentPage = 0;
   const pageStart = currentPage * BAG_PAGE_SIZE;
 
