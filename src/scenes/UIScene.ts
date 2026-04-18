@@ -201,28 +201,30 @@ export class UIScene extends Phaser.Scene {
     this.buildGoldWidget();
 
     this.hintText = this.add.text(10, GAME_HEIGHT - 12, '', {
-      fontSize: '11px', color: '#666677',
+      fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.text3,
     }).setOrigin(0, 1).setScrollFactor(0).setDepth(1000);
 
     this.statusBarText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 55, '', {
-      fontSize: '11px', color: '#ffffff', align: 'center',
+      fontSize: '11px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, align: 'center',
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000);
 
-    this.captureBarBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40, 140, 10, 0x333333)
-      .setScrollFactor(0).setDepth(1001).setVisible(false);
-    this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, 0x66ccff)
+    this.captureBarBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40, 140, 10, THEME.ink2)
+      .setScrollFactor(0).setDepth(1001).setVisible(false)
+      .setStrokeStyle(1, THEME.brass0, 0.6);
+    this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, THEME.ether2)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
     this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Capturing...', {
-      fontSize: '11px', color: '#66ccff',
+      fontSize: '11px', fontFamily: '"Special Elite", monospace', color: TC.ether3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
     const castY = GAME_HEIGHT - 72;
-    this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, 0x222222)
-      .setScrollFactor(0).setDepth(1001).setVisible(false);
-    this.castBar = this.add.rectangle(GAME_WIDTH / 2 - 80, castY, 0, 10, 0xff8800)
+    this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, THEME.ink2)
+      .setScrollFactor(0).setDepth(1001).setVisible(false)
+      .setStrokeStyle(1, THEME.brass0, 0.6);
+    this.castBar = this.add.rectangle(GAME_WIDTH / 2 - 80, castY, 0, 10, THEME.brass3)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
     this.castLabel = this.add.text(GAME_WIDTH / 2, castY - 14, '', {
-      fontSize: '11px', color: '#ff8800',
+      fontSize: '11px', fontFamily: '"JetBrains Mono", monospace', color: TC.brass3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
     // ── Seal of Elements indicator ──────────────────────────
@@ -236,7 +238,7 @@ export class UIScene extends Phaser.Scene {
         { key: 'earth', symbol: '🪨', color: '#886633' },
         { key: 'wind', symbol: '🌀', color: '#99ddbb' },
       ];
-      const label = this.add.text(0, 0, 'Seal:', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0, 0.5);
+      const label = this.add.text(0, 0, 'Seal:', { fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.text2 }).setOrigin(0, 0.5);
       this.sealContainer.add(label);
       let ox = 32;
       for (const el of elements) {
@@ -284,20 +286,20 @@ export class UIScene extends Phaser.Scene {
     // ── Dialog panel (bottom of screen) ────────────────────
     {
       const dY = GAME_HEIGHT - 130;
-      const dBg = this.add.rectangle(GAME_WIDTH / 2, dY + 50, GAME_WIDTH - 40, 100, 0x0a0a1a, 0.92)
-        .setStrokeStyle(1, 0x334466);
+      const dBg = this.add.rectangle(GAME_WIDTH / 2, dY + 50, GAME_WIDTH - 40, 100, THEME.ink1, 0.94)
+        .setStrokeStyle(1, THEME.brass1);
       this.dialogSpeaker = this.add.text(30, dY + 8, '', {
-        fontSize: '12px', color: '#ffcc66', fontStyle: 'bold',
+        fontSize: '13px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass4, fontStyle: 'bold',
       });
       this.dialogText = this.add.text(30, dY + 26, '', {
-        fontSize: '11px', color: '#ccccdd', lineSpacing: 3,
+        fontSize: '11px', fontFamily: '"Inter", sans-serif', color: TC.text1, lineSpacing: 3,
         wordWrap: { width: GAME_WIDTH - 80 },
       });
       const continueBtn = this.add.text(GAME_WIDTH - 50, dY + 80, '[Continue]', {
-        fontSize: '10px', color: '#88aacc',
+        fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.ether2,
       }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
-        .on('pointerover', () => continueBtn.setColor('#aaddff'))
-        .on('pointerout', () => continueBtn.setColor('#88aacc'))
+        .on('pointerover', () => continueBtn.setColor(TC.ether3))
+        .on('pointerout', () => continueBtn.setColor(TC.ether2))
         .on('pointerdown', () => this.advanceDialog());
 
       this.dialogContainer = this.add.container(0, 0, [dBg, this.dialogSpeaker, this.dialogText, continueBtn])
@@ -306,32 +308,32 @@ export class UIScene extends Phaser.Scene {
 
     // ── Panel content text objects (positioned in updateUI) ──
     this.targetPanel = this.add.text(0, 0, '', {
-      fontSize: '11px', color: '#ffddaa', lineSpacing: 4,
-      backgroundColor: '#000000bb', padding: { x: 8, y: 6 },
+      fontSize: '11px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, lineSpacing: 4,
+      backgroundColor: '#14110cdd', padding: { x: 8, y: 6 },
     }).setScrollFactor(0).setDepth(1000).setVisible(false);
 
     this.bodyInfoText = this.add.text(0, 0, '', {
-      fontSize: '11px', color: '#cccccc',
-      backgroundColor: '#000000aa', padding: { x: 6, y: 4 },
+      fontSize: '11px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1,
+      backgroundColor: '#14110cdd', padding: { x: 6, y: 4 },
     }).setScrollFactor(0).setDepth(1000);
 
     this.logText = this.add.text(0, 0, '', {
-      fontSize: '10px', color: '#aaaaaa', lineSpacing: 3,
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text2, lineSpacing: 3,
     }).setScrollFactor(0).setDepth(1000);
 
     // Achievement unlock notification (top-center, fades out)
-    this.achievementNotifBg = this.add.rectangle(GAME_WIDTH / 2, 60, 280, 36, 0x112233, 0.93)
-      .setScrollFactor(0).setDepth(1200).setStrokeStyle(2, 0xffcc44, 0.9).setVisible(false);
+    this.achievementNotifBg = this.add.rectangle(GAME_WIDTH / 2, 60, 280, 36, THEME.ink1, 0.95)
+      .setScrollFactor(0).setDepth(1200).setStrokeStyle(2, THEME.brass3, 0.9).setVisible(false);
     this.achievementNotifText = this.add.text(GAME_WIDTH / 2, 60, '', {
-      fontSize: '12px', color: '#ffcc44', align: 'center',
-      stroke: '#000000', strokeThickness: 2,
+      fontSize: '12px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass4, align: 'center',
+      stroke: '#0d0b08', strokeThickness: 2,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1201).setVisible(false);
 
     // ── Mini-map ──────────────────────────────────────────
     const mm = this.panelStates.minimap;
-    this.minimapBorder = this.add.rectangle(mm.x, mm.y + HEADER_H, mm.w, mm.h, 0x0a0f1a, 0.88)
+    this.minimapBorder = this.add.rectangle(mm.x, mm.y + HEADER_H, mm.w, mm.h, THEME.ink1, 0.9)
       .setOrigin(0, 0).setScrollFactor(0).setDepth(1008)
-      .setStrokeStyle(1, 0x334466, 0.9);
+      .setStrokeStyle(1, THEME.brass1, 0.85);
     this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(1009);
 
     // ── Panel headers (draggable) ──────────────────────────
@@ -356,7 +358,7 @@ export class UIScene extends Phaser.Scene {
     // ── Language toggle button ─────────────────────────────
     initLang();
     const langBtn = this.add.text(GAME_WIDTH - 40, GAME_HEIGHT - 16, getLang().toUpperCase(), {
-      fontSize: '10px', color: '#888888', backgroundColor: '#111122', padding: { x: 4, y: 2 },
+      fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.text2, backgroundColor: '#14110c', padding: { x: 4, y: 2 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(2000).setInteractive({ useHandCursor: true });
     langBtn.on('pointerdown', () => {
       const next = getLang() === 'en' ? 'ru' : 'en';
@@ -458,18 +460,18 @@ export class UIScene extends Phaser.Scene {
     const state = this.panelStates[panelId];
     let dragMoved = false;
 
-    const bg = this.add.rectangle(0, 0, state.w, HEADER_H, 0x0e1020, 0.93)
-      .setOrigin(0, 0).setStrokeStyle(1, 0x2d3a55, 0.8);
+    const bg = this.add.rectangle(0, 0, state.w, HEADER_H, THEME.ink2, 0.95)
+      .setOrigin(0, 0).setStrokeStyle(1, THEME.brass1, 0.85);
     const label = this.add.text(7, 3, defaultLabel, {
-      fontSize: '11px', color: '#8899bb',
+      fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.brass3,
     }).setOrigin(0, 0);
     const arrow = this.add.text(state.w - 5, 3, '▼', {
-      fontSize: '9px', color: '#445566',
+      fontSize: '9px', color: TC.text3,
     }).setOrigin(1, 0);
 
     // Drag cursor icon (small grip dots)
     const grip3 = this.add.text(state.w / 2, 3, '⋮⋮', {
-      fontSize: '9px', color: '#334455',
+      fontSize: '9px', color: TC.text3,
     }).setOrigin(0.5, 0);
 
     const container = this.add.container(state.x, state.y, [bg, label, arrow, grip3])
@@ -480,11 +482,11 @@ export class UIScene extends Phaser.Scene {
         Phaser.Geom.Rectangle.Contains,
       )
       .on('pointerover', () => {
-        (bg as Phaser.GameObjects.Rectangle).setFillStyle(0x182038, 0.98);
+        (bg as Phaser.GameObjects.Rectangle).setFillStyle(THEME.ink3, 0.98);
         this.input.setDefaultCursor('grab');
       })
       .on('pointerout', () => {
-        (bg as Phaser.GameObjects.Rectangle).setFillStyle(0x0e1020, 0.93);
+        (bg as Phaser.GameObjects.Rectangle).setFillStyle(THEME.ink2, 0.95);
         this.input.setDefaultCursor('default');
       })
       .on('dragstart', () => { dragMoved = false; })
@@ -536,16 +538,16 @@ export class UIScene extends Phaser.Scene {
   private makeResizeGrip(panelId: string, vertical: boolean): Phaser.GameObjects.Rectangle {
     const state = this.panelStates[panelId];
 
-    const grip = this.add.rectangle(0, 0, 10, 10, 0x445566, 0.75)
+    const grip = this.add.rectangle(0, 0, 10, 10, THEME.brass0, 0.75)
       .setScrollFactor(0).setDepth(1011)
-      .setStrokeStyle(1, 0x6688aa, 0.6)
+      .setStrokeStyle(1, THEME.brass2, 0.5)
       .setInteractive({ useHandCursor: true })
       .on('pointerover', () => {
-        grip.setFillStyle(0x6688aa, 0.9);
+        grip.setFillStyle(THEME.brass1, 0.9);
         this.input.setDefaultCursor(vertical ? 'se-resize' : 'e-resize');
       })
       .on('pointerout', () => {
-        grip.setFillStyle(0x445566, 0.75);
+        grip.setFillStyle(THEME.brass0, 0.75);
         this.input.setDefaultCursor('default');
       })
       .on('drag', (ptr: Phaser.Input.Pointer) => {
@@ -860,7 +862,7 @@ export class UIScene extends Phaser.Scene {
       const g = this.minimapGfx;
 
       // Background
-      g.fillStyle(0x0a0f1a, 0.85);
+      g.fillStyle(THEME.ink1, 0.88);
       g.fillRect(ml, mt, s.w, s.h);
 
       // Safe zone
@@ -889,9 +891,9 @@ export class UIScene extends Phaser.Scene {
       if (data.playerPos) {
         const px = ml + data.playerPos.x * sx;
         const py = mt + data.playerPos.y * sy;
-        g.fillStyle(0x44aaff, 1.0);
+        g.fillStyle(THEME.ether2, 1.0);
         g.fillRect(px - 1.5, py - 1.5, 3, 3);
-        g.lineStyle(1, 0xaaddff, 0.55);
+        g.lineStyle(1, THEME.ether3, 0.55);
         g.strokeRect(px - 2.5, py - 2.5, 5, 5);
       }
 
@@ -1085,10 +1087,10 @@ export class UIScene extends Phaser.Scene {
     const panelX = Math.max(8, Math.min((GAME_WIDTH - panelW) / 2, GAME_WIDTH - panelW - 8));
     const panelY = GAME_HEIGHT - SKILL_SLOT_SIZE - 14 - panelH;
 
-    const bg = this.add.rectangle(panelW / 2, panelH / 2, panelW, panelH, 0x0a0a1a, 0.95)
-      .setStrokeStyle(1, 0x4455aa, 0.8);
+    const bg = this.add.rectangle(panelW / 2, panelH / 2, panelW, panelH, THEME.ink1, 0.96)
+      .setStrokeStyle(1, THEME.brass1, 0.9);
     const label = this.add.text(panelW / 2, 4, `${t('skill.slot')} ${slotIndex + 1} ${t('skill.choose')}`, {
-      fontSize: '9px', color: '#aaaacc',
+      fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.brass3,
     }).setOrigin(0.5, 0);
     this.spellPickerContainer.add([bg, label]);
 
@@ -1098,17 +1100,17 @@ export class UIScene extends Phaser.Scene {
       const ix = gap + 4 + col * (sz + gap) + sz / 2;
       const iy = 20 + row * (sz + gap) + sz / 2;
 
-      const ibg = this.add.rectangle(ix, iy, sz, sz, 0x1e2244)
-        .setStrokeStyle(1, 0x6677cc).setInteractive({ useHandCursor: true })
-        .on('pointerover', () => ibg.setFillStyle(0x2e3466))
-        .on('pointerout',  () => ibg.setFillStyle(0x1e2244))
+      const ibg = this.add.rectangle(ix, iy, sz, sz, THEME.ink2)
+        .setStrokeStyle(1, THEME.brass0).setInteractive({ useHandCursor: true })
+        .on('pointerover', () => ibg.setFillStyle(THEME.ink3))
+        .on('pointerout',  () => ibg.setFillStyle(THEME.ink2))
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
           this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell });
           this.closeSpellPicker();
         });
       const itxt = this.add.text(ix, iy - 2, spell.nameRu.slice(0, 7), {
-        fontSize: '8px', color: '#aaccff', align: 'center',
+        fontSize: '8px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, align: 'center',
       }).setOrigin(0.5);
       this.spellPickerContainer.add([ibg, itxt]);
     });
@@ -1120,7 +1122,7 @@ export class UIScene extends Phaser.Scene {
     const cx = gap + 4 + clearCol * (sz + gap) + sz / 2;
     const cy = 20 + clearRow * (sz + gap) + sz / 2;
     const cbg = this.add.rectangle(cx, cy, sz, sz, 0x221111)
-      .setStrokeStyle(1, 0x774444).setInteractive({ useHandCursor: true })
+      .setStrokeStyle(1, THEME.brass0).setInteractive({ useHandCursor: true })
       .on('pointerover', () => cbg.setFillStyle(0x331111))
       .on('pointerout',  () => cbg.setFillStyle(0x221111))
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
@@ -1129,7 +1131,7 @@ export class UIScene extends Phaser.Scene {
         this.closeSpellPicker();
       });
     const ctxt = this.add.text(cx, cy, '✕', {
-      fontSize: '14px', color: '#ff6666',
+      fontSize: '14px', color: '#c86a6a',
     }).setOrigin(0.5);
     this.spellPickerContainer.add([cbg, ctxt]);
 
@@ -1193,9 +1195,9 @@ export class UIScene extends Phaser.Scene {
 
       let poolEntry = this.playerStatusPool[i];
       if (!poolEntry) {
-        const bg = this.add.rectangle(0, 0, boxSize, boxSize, 0x222222, 0.8).setStrokeStyle(2, 0x555555).setScrollFactor(0).setDepth(1010);
+        const bg = this.add.rectangle(0, 0, boxSize, boxSize, THEME.ink2, 0.85).setStrokeStyle(1, THEME.brass0).setScrollFactor(0).setDepth(1010);
         const icon = this.add.text(0, -6, '', { fontSize: '18px' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
-        const timer = this.add.text(0, 14, '', { fontSize: '11px', color: '#cccccc', fontStyle: 'bold' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+        const timer = this.add.text(0, 14, '', { fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1 }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
         const container = this.add.container(0, 0, [bg, icon, timer]).setScrollFactor(0).setDepth(1010);
         this.playerStatusBoxes.push(container);
         poolEntry = { bg, icon, timer };
@@ -1410,17 +1412,17 @@ export class UIScene extends Phaser.Scene {
 
     for (let i = 0; i < labels.length; i++) {
       const x = 10 + i * (btnW + gap) + btnW / 2;
-      const bg = this.add.rectangle(x, y, btnW, btnH, 0x0e1828, 0.92)
-        .setStrokeStyle(1, 0x2d4a66, 0.9).setScrollFactor(0).setDepth(1010)
+      const bg = this.add.rectangle(x, y, btnW, btnH, THEME.ink2, 0.92)
+        .setStrokeStyle(1, THEME.brass0, 0.9).setScrollFactor(0).setDepth(1010)
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(0x1a2e44, 0.97); })
-        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(0x0e1828, 0.92); })
+        .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink3, 0.97); })
+        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink2, 0.92); })
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
           this.toggleWindow(this.menuBtnTypes[i]);
         });
       const txt = this.add.text(x, y, labels[i], {
-        fontSize: '11px', color: '#7799bb', align: 'center',
+        fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.text2, align: 'center',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
       this.menuBtnBgs.push(bg);
       this.menuBtnTexts.push(txt);
@@ -1438,15 +1440,15 @@ export class UIScene extends Phaser.Scene {
 
     // Title text — brass accent
     this.windowTitleText = this.add.text(8, 4, '', {
-      fontSize: '11px', fontFamily: 'serif', color: TC.brass3,
+      fontSize: '12px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass3,
     }).setOrigin(0, 0);
 
     // Close button — brass styled
     this.winCloseBtn = this.add.text(this.windowW - 6, 4, '[×]', {
-      fontSize: '10px', color: TC.brass2,
+      fontSize: '10px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass2,
     }).setOrigin(1, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => this.winCloseBtn.setColor('#ff6666'))
+      .on('pointerover', () => this.winCloseBtn.setColor('#c86a6a'))
       .on('pointerout',  () => this.winCloseBtn.setColor(TC.brass2))
       .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
@@ -1455,7 +1457,7 @@ export class UIScene extends Phaser.Scene {
 
     // Content text
     this.windowContentText = this.add.text(8, WIN_TITLE_H + 8, '', {
-      fontSize: '11px', color: TC.text1, lineSpacing: 4,
+      fontSize: '11px', fontFamily: '"Inter", sans-serif', color: TC.text1, lineSpacing: 4,
     }).setOrigin(0, 0);
 
     // Drag via title bar
@@ -1540,8 +1542,8 @@ export class UIScene extends Phaser.Scene {
       this.openInventoryDom();
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
-        this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
       }
       return;
     }
@@ -1553,8 +1555,8 @@ export class UIScene extends Phaser.Scene {
       showSpellsWindowDom(ALL_KNOWN_SPELLS, learnedIds, () => this.closeWindow());
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
-        this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
       }
       return;
     }
@@ -1568,8 +1570,8 @@ export class UIScene extends Phaser.Scene {
       }
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
-        this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
       }
       return;
     }
@@ -1593,8 +1595,8 @@ export class UIScene extends Phaser.Scene {
 
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
       const active = this.menuBtnTypes[i] === type;
-      this.menuBtnBgs[i].setFillStyle(active ? 0x1e3a55 : 0x0e1828, active ? 1.0 : 0.92);
-      this.menuBtnTexts[i].setColor(active ? '#aaccff' : '#7799bb');
+      this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+      this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
     }
     if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
   }
@@ -1640,9 +1642,9 @@ export class UIScene extends Phaser.Scene {
     for (const tab of tabs) {
       const isActive = (this.vendorFilter === 'all' && tab === 'All') || this.vendorFilter === tab;
       const btn = this.add.text(fx, tabY, tab, {
-        fontSize: '9px',
-        color: isActive ? '#ffdd88' : '#99aabb',
-        backgroundColor: isActive ? '#443322' : '#1a1a2a',
+        fontSize: '9px', fontFamily: '"Special Elite", monospace',
+        color: isActive ? TC.brass4 : TC.text2,
+        backgroundColor: isActive ? '#2a2218' : '#14110c',
         padding: { x: 4, y: 2 },
       }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
       btn.on('pointerdown', () => {
@@ -1677,8 +1679,9 @@ export class UIScene extends Phaser.Scene {
 
     const buyBtn = this.add.text(this.windowX + 8, this.windowY + this.windowH - 30,
       `[ Buy ${affordable.length} affordable recipes ]`, {
-        fontSize: '10px', color: affordable.length > 0 ? '#88ff88' : '#666',
-        backgroundColor: '#224422', padding: { x: 6, y: 3 },
+        fontSize: '10px', fontFamily: '"Special Elite", monospace',
+        color: affordable.length > 0 ? '#6d9a5a' : TC.text3,
+        backgroundColor: '#1d1811', padding: { x: 6, y: 3 },
       }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
     if (affordable.length > 0) {
       buyBtn.on('pointerdown', () => {
@@ -1724,8 +1727,8 @@ export class UIScene extends Phaser.Scene {
     this.windowInteractables = [];
     this.destroyVendorButtons();
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
-      this.menuBtnBgs[i].setFillStyle(0x0e1828, 0.92);
-      this.menuBtnTexts[i].setColor('#7799bb');
+      this.menuBtnBgs[i].setFillStyle(THEME.ink2, 0.92);
+      this.menuBtnTexts[i].setColor(TC.text2);
     }
   }
 
@@ -1915,11 +1918,11 @@ export class UIScene extends Phaser.Scene {
             const btn = this.add.text(
               this.windowW - 28, relY,
               isTracked ? '☑' : '☐',
-              { fontSize: '14px', color: isTracked ? '#66ccff' : '#888899',
+              { fontSize: '14px', color: isTracked ? TC.ether2 : TC.text3,
                 padding: { x: 4, y: 2 } },
             ).setInteractive({ useHandCursor: true })
-              .on('pointerover', () => btn.setColor('#aaddff'))
-              .on('pointerout',  () => btn.setColor(isTracked ? '#66ccff' : '#556677'))
+              .on('pointerover', () => btn.setColor(TC.ether3))
+              .on('pointerout',  () => btn.setColor(isTracked ? TC.ether2 : TC.text3))
               .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
                 ptr.event.stopPropagation();
                 this.scene.get('GameScene').events.emit('track-quest', q.def.id);
@@ -2034,9 +2037,9 @@ export class UIScene extends Phaser.Scene {
             this.windowX + this.windowW - 60, this.windowY + 60 + btnY,
             canCraft ? t('quest.craft') : '---',
             {
-              fontSize: '10px',
-              color: canCraft ? '#88ff88' : '#666666',
-              backgroundColor: canCraft ? '#224422' : '#222222',
+              fontSize: '10px', fontFamily: '"Special Elite", monospace',
+              color: canCraft ? '#6d9a5a' : TC.text3,
+              backgroundColor: canCraft ? '#1d1811' : '#14110c',
               padding: { x: 6, y: 3 },
             }
           ).setDepth(1003).setInteractive();
