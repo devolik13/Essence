@@ -1640,7 +1640,7 @@ export class UIScene extends Phaser.Scene {
         // Body chip
         const bodyName = data.body?.definition.nameRu ?? '—';
         add(this.add.text(26, hdrY + 14, `${t('ui.body')}: ${bodyName}`, {
-          fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
+          fontSize: '8px', fontFamily: 'monospace', color: TC.text1,
         }));
         // Currency (right)
         const coins = formatCurrency(sphere.copper ?? 0);
@@ -1657,7 +1657,7 @@ export class UIScene extends Phaser.Scene {
 
         // Section header
         add(this.add.text(EQ_X, EQ_Y, t('inv.equipment').toUpperCase(), {
-          fontSize: '10px', fontFamily: 'monospace', color: TC.text3,
+          fontSize: '11px', fontFamily: 'serif', color: TC.brass3, fontStyle: '600',
         }));
 
         // Anatomical slot layout (centered in EQ_W area)
@@ -1716,7 +1716,7 @@ export class UIScene extends Phaser.Scene {
           // Slot label (below or above based on position)
           const labelBelow = es.key === 'boots' || es.key === 'shield';
           add(this.add.text(es.cx, es.cy + (labelBelow ? SH + 4 : -(SH + 4)), es.label, {
-            fontSize: '7px', fontFamily: 'monospace', color: TC.text3,
+            fontSize: '8px', fontFamily: 'monospace', color: TC.text1,
           }).setOrigin(0.5, labelBelow ? 0 : 1));
 
           // Item icon or empty hint
@@ -1758,8 +1758,8 @@ export class UIScene extends Phaser.Scene {
             isActive ? THEME.ink3 : THEME.ink0, 0.9)
             .setStrokeStyle(1, isActive ? THEME.brass2 : THEME.ink4));
           // Label
-          add(this.add.text(wx + 6, wsY + 6, `${wi === 0 ? 'I' : 'II'}`, {
-            fontSize: '8px', fontFamily: 'monospace', color: isActive ? TC.brass3 : TC.text3,
+          add(this.add.text(wx + 6, wsY + 6, `SLOT ${wi === 0 ? 'I' : 'II'}`, {
+            fontSize: '8px', fontFamily: 'monospace', color: isActive ? TC.brass3 : TC.text1,
           }));
           // Tab hint
           if (wi === 1) {
@@ -1770,12 +1770,12 @@ export class UIScene extends Phaser.Scene {
           // Weapon name
           add(this.add.text(wx + 6, wsY + 20, wDef ? wDef.nameRu : '— empty —', {
             fontSize: '11px', fontFamily: 'serif',
-            color: wDef ? TC.paper0 : TC.text3,
+            color: wDef ? TC.paper0 : TC.text2,
           }));
           // Weapon meta
           if (wDef) {
             add(this.add.text(wx + 6, wsY + 34, `${wDef.icon ?? ''} ${wDef.rarity}`, {
-              fontSize: '8px', fontFamily: 'monospace', color: TC.text2,
+              fontSize: '8px', fontFamily: 'monospace', color: TC.text1,
             }));
           }
         }
@@ -1798,11 +1798,11 @@ export class UIScene extends Phaser.Scene {
 
         // Section header
         add(this.add.text(BAG_X, BAG_Y, t('inv.inventory').toUpperCase(), {
-          fontSize: '10px', fontFamily: 'monospace', color: TC.text3,
+          fontSize: '11px', fontFamily: 'serif', color: TC.brass3, fontStyle: '600',
         }));
         // Capacity
         add(this.add.text(BAG_X + 380, BAG_Y, `${inv.length}/64`, {
-          fontSize: '9px', fontFamily: 'monospace', color: TC.text2,
+          fontSize: '10px', fontFamily: 'monospace', color: TC.text1,
         }).setOrigin(1, 0));
 
         // Filter chips
@@ -1813,11 +1813,11 @@ export class UIScene extends Phaser.Scene {
           const cx = gridX + ci * (chipW + 4) + chipW / 2;
           const isActive = ci === 0; // default: all
           add(this.add.rectangle(cx, chipY + 10, chipW, 20,
-            isActive ? THEME.brass1 : THEME.ink0, isActive ? 0.9 : 0.7)
-            .setStrokeStyle(1, isActive ? THEME.brass2 : THEME.ink4));
+            isActive ? THEME.brass2 : THEME.ink0, isActive ? 1 : 0.7)
+            .setStrokeStyle(1, isActive ? THEME.brass3 : THEME.ink4));
           add(this.add.text(cx, chipY + 10, chipTypes[ci].toUpperCase(), {
-            fontSize: '8px', fontFamily: 'monospace',
-            color: isActive ? TC.paper0 : TC.text2,
+            fontSize: '9px', fontFamily: 'monospace', fontStyle: '600',
+            color: isActive ? TC.ink0 : TC.text1,
           }).setOrigin(0.5));
         }
 
@@ -1879,7 +1879,7 @@ export class UIScene extends Phaser.Scene {
         // Page navigation (placeholder visual)
         const pageY = gridY + gridW + 24;
         add(this.add.text(gridX + gridW / 2 + 10, pageY, '1 / 4', {
-          fontSize: '10px', fontFamily: 'monospace', color: TC.text2,
+          fontSize: '11px', fontFamily: 'monospace', color: TC.paper0,
         }).setOrigin(0.5));
         // Page dots
         for (let pi = 0; pi < 4; pi++) {
@@ -1943,7 +1943,7 @@ export class UIScene extends Phaser.Scene {
 
           // Label
           add(this.add.text(sx, statY, statAbbr[sn], {
-            fontSize: '8px', fontFamily: 'monospace', color: TC.text3,
+            fontSize: '9px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
           }));
           // Value
           const valStr = bonus > 0 ? `${base}+${bonus}` : `${base}`;
@@ -1964,7 +1964,7 @@ export class UIScene extends Phaser.Scene {
         const maxHP = 50 + sphere.stats[StatName.Health] * 5;
         const curHP = data.body ? (data as any).body.hp ?? maxHP : maxHP;
         add(this.add.text(barX, statY, 'HP', {
-          fontSize: '8px', fontFamily: 'monospace', color: TC.text2,
+          fontSize: '9px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
         }));
         add(this.add.text(barX + barW, statY, `${Math.floor(curHP)}/${maxHP}`, {
           fontSize: '9px', fontFamily: 'monospace', color: TC.paper0,
@@ -1977,7 +1977,7 @@ export class UIScene extends Phaser.Scene {
         // Mana
         const maxMana = Math.min(50 + sphere.stats[StatName.Mana] * 0.1, 150);
         add(this.add.text(barX, statY + 26, 'MANA', {
-          fontSize: '8px', fontFamily: 'monospace', color: TC.text2,
+          fontSize: '9px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
         }));
         add(this.add.text(barX + barW, statY + 26, `${Math.floor(maxMana)}/${Math.floor(maxMana)}`, {
           fontSize: '9px', fontFamily: 'monospace', color: TC.paper0,
@@ -1991,7 +1991,7 @@ export class UIScene extends Phaser.Scene {
         add(this.add.rectangle(rankX + 20, statY + 20, 48, 48, THEME.ink1)
           .setStrokeStyle(1, THEME.brass1));
         add(this.add.text(rankX + 20, statY + 6, 'RANK', {
-          fontSize: '7px', fontFamily: 'monospace', color: TC.text3,
+          fontSize: '8px', fontFamily: 'monospace', color: TC.text1, fontStyle: '600',
         }).setOrigin(0.5));
         add(this.add.text(rankX + 20, statY + 24, `${sphere.rank}`, {
           fontSize: '22px', fontFamily: 'serif', color: TC.brass4,
