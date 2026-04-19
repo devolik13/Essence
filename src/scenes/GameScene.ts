@@ -4229,11 +4229,33 @@ export class GameScene extends Phaser.Scene {
     if (result.hit) {
       target.takeDamage(result.final);
       this.damageTexts.push(new DamageText(this, target.x, target.y - 10, result.final, result.crit, false));
-      if (target.isDead) this.onCreatureKilled(target);
+      if (target.isDead) this.onNpcVsNpcKill(target);
     } else {
       this.damageTexts.push(new DamageText(this, target.x, target.y - 10, 0, false, true));
     }
     attacker.attackCooldown = WEAPON_COOLDOWNS[attacker.definition.weapon];
+  }
+
+  /** Silent cleanup for NPC-vs-NPC kills — no log, no XP, no loot, no capture prompt. */
+  private onNpcVsNpcKill(creature: Creature) {
+    sfxDeath();
+    if (creature.isSummoned) {
+      creature.destroy();
+      this.creatures = this.creatures.filter(c => c !== creature);
+      return;
+    }
+    // Clear any faction targeting pointing at this victim
+    for (const c of this.creatures) {
+      if (c.factionTarget === creature) c.factionTarget = null;
+    }
+    // Body lingers briefly, then despawns and schedules respawn (no capture tween).
+    this.time.delayedCall(15000, () => {
+      if (creature.active) {
+        this.scheduleRespawn(creature);
+        creature.destroy();
+        this.creatures = this.creatures.filter(c => c !== creature);
+      }
+    });
   }
 
   private summonedWolfAttackEnemy(wolf: Creature, target: Creature) {

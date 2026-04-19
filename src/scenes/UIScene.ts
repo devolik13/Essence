@@ -1471,11 +1471,13 @@ export class UIScene extends Phaser.Scene {
     // Right group: Achievements, Spells (2 buttons)
     const leftCount = 3;
     const sideGap = 10;
+    // Left buttons sit past the lock icon (22px wide at startX - 22, left of tray start).
+    const leftAnchor = trayLeft - 22 - 14;
 
     for (let i = 0; i < labels.length; i++) {
       let x: number;
       if (i < leftCount) {
-        x = trayLeft - sideGap - (leftCount - i - 1) * (btnSz + gap) - btnSz / 2;
+        x = leftAnchor - (leftCount - i - 1) * (btnSz + gap) - btnSz / 2;
       } else {
         const ri = i - leftCount;
         x = trayRight + sideGap + ri * (btnSz + gap) + btnSz / 2;
