@@ -1454,8 +1454,8 @@ export class UIScene extends Phaser.Scene {
   private buildMenuButtons() {
     const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells')];
     const icons  = ['✦', '⬡', '❖', '★', '⚡'];
-    const btnSz = 34;
-    const gap = 4;
+    const btnSz = SKILL_SLOT_SIZE;
+    const gap = SKILL_SLOT_GAP;
 
     // Skill bar geometry (must match buildSkillBar)
     const DIVIDER_GAP = 16;
@@ -1470,35 +1470,45 @@ export class UIScene extends Phaser.Scene {
     // Left group: Stats, Inventory, Quests (3 buttons)
     // Right group: Achievements, Spells (2 buttons)
     const leftCount = 3;
-    const sideGap = 6;
+    const sideGap = 10;
 
     for (let i = 0; i < labels.length; i++) {
       let x: number;
       if (i < leftCount) {
-        x = trayLeft - sideGap - (leftCount - i) * (btnSz + gap) + btnSz / 2 + gap;
+        x = trayLeft - sideGap - (leftCount - i - 1) * (btnSz + gap) - btnSz / 2;
       } else {
         const ri = i - leftCount;
         x = trayRight + sideGap + ri * (btnSz + gap) + btnSz / 2;
       }
       const y = barY;
 
-      const bg = this.add.rectangle(x, y, btnSz, btnSz, THEME.ink2, 0.92)
-        .setStrokeStyle(1, THEME.brass0, 0.9).setScrollFactor(0).setDepth(1010)
+      // Outer brass frame (matches skill slot styling)
+      const bg = this.add.rectangle(x, y, btnSz, btnSz, THEME.ink0, 0.95)
+        .setScrollFactor(0).setDepth(1000)
         .setInteractive({ useHandCursor: true })
         .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink3, 0.97); })
-        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink2, 0.92); })
+        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink0, 0.95); })
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
           this.toggleWindow(this.menuBtnTypes[i]);
         });
 
-      const icon = this.add.text(x, y - 4, icons[i], {
-        fontSize: '14px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass3, align: 'center',
-      }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+      // Brass frame (matches skill slots)
+      this.add.rectangle(x, y, btnSz, btnSz)
+        .setStrokeStyle(1, THEME.brass1, 0.9).setFillStyle(0, 0)
+        .setScrollFactor(0).setDepth(1001);
+      // Inner hairline (matches skill slots)
+      this.add.rectangle(x, y, btnSz - 4, btnSz - 4)
+        .setStrokeStyle(1, THEME.brass2, 0.18).setFillStyle(0, 0)
+        .setScrollFactor(0).setDepth(1001);
 
-      const txt = this.add.text(x, y + 10, labels[i], {
-        fontSize: '7px', fontFamily: '"Special Elite", monospace', color: TC.text3, align: 'center',
-      }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+      const icon = this.add.text(x, y - 6, icons[i], {
+        fontSize: '22px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass3, align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
+
+      const txt = this.add.text(x, y + 14, labels[i], {
+        fontSize: '8px', fontFamily: '"Special Elite", monospace', color: TC.text3, align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
 
       this.menuBtnBgs.push(bg);
       this.menuBtnIcons.push(icon);
