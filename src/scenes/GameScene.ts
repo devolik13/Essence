@@ -600,26 +600,44 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
 
-      creature.update(time, delta, px, py);
-
-      // Моб атакует игрока или призванного волка — базовая атака оружием
-      if (creature.aiState === 'attack' && this.playerBody && creature.attackCooldown <= 0) {
-        // Если рядом призванный волк — может атаковать его
-        let wolfNearby: Creature | null = null;
-        for (const c of this.creatures) {
-          if (!c.isSummoned || c.isDead) continue;
-          const d = distance(creature.x, creature.y, c.x, c.y);
-          if (d < WEAPONS[creature.definition.weapon].range * 1.2) { wolfNearby = c; break; }
+      // ── Поиск вражеской фракции ──────────────────────────
+      // Если моб имеет faction и рядом есть живой моб противоположной
+      // фракции — он становится предпочтительной целью. Иначе — игрок.
+      creature.factionTarget = this.findFactionEnemy(creature);
+      let targetX = px, targetY = py;
+      if (creature.factionTarget) {
+        targetX = creature.factionTarget.x;
+        targetY = creature.factionTarget.y;
+        // Агро через AGGRO_RANGE внутри Creature рассчитан на игрока;
+        // фракционный обзор больше, поэтому принудительно переводим
+        // в chase, если моб ещё в idle/return.
+        if (creature.aiState === 'idle' || creature.aiState === 'return') {
+          creature.aiState = 'chase';
         }
-        if (wolfNearby) {
-          this.creatureAttackWolf(creature, wolfNearby);
-        } else {
-          this.creatureAttackPlayer(creature);
+      }
+      creature.update(time, delta, targetX, targetY);
+
+      // Моб атакует: приоритет — factionTarget, потом волк, потом игрок
+      if (creature.aiState === 'attack' && creature.attackCooldown <= 0) {
+        if (creature.factionTarget && !creature.factionTarget.isDead) {
+          this.creatureAttackCreature(creature, creature.factionTarget);
+        } else if (this.playerBody) {
+          let wolfNearby: Creature | null = null;
+          for (const c of this.creatures) {
+            if (!c.isSummoned || c.isDead) continue;
+            const d = distance(creature.x, creature.y, c.x, c.y);
+            if (d < WEAPONS[creature.definition.weapon].range * 1.2) { wolfNearby = c; break; }
+          }
+          if (wolfNearby) {
+            this.creatureAttackWolf(creature, wolfNearby);
+          } else {
+            this.creatureAttackPlayer(creature);
+          }
         }
       }
 
-      // Моб кастует заклинание (мгновенное)
-      if (creature.aiState === 'attack' && this.playerBody) {
+      // Моб кастует заклинание (только если цель — игрок, чтобы не усложнять)
+      if (creature.aiState === 'attack' && this.playerBody && !creature.factionTarget) {
         const spell = creature.getReadySpell();
         if (spell) this.creatureCastSpell(creature, spell);
       }
@@ -4180,6 +4198,42 @@ export class GameScene extends Phaser.Scene {
       this.damageTexts.push(new DamageText(this, wolf.x, wolf.y - 10, 0, false, true));
     }
     creature.attackCooldown = WEAPON_COOLDOWNS[creature.definition.weapon];
+  }
+
+  /**
+   * Ближайший живой моб из противоборствующей фракции в радиусе AGGRO_RANGE.
+   * Возвращает null если у моба нет фракции, нет подходящих противников, или
+   * моб не боевой/убегающий.
+   */
+  private static FACTION_SIGHT = 600;
+  private findFactionEnemy(creature: Creature): Creature | null {
+    const selfFaction = creature.definition.faction;
+    if (!selfFaction) return null;
+    if (creature.definition.type !== BodyType.Combat) return null;
+    let best: Creature | null = null;
+    let bestDist = GameScene.FACTION_SIGHT;
+    for (const other of this.creatures) {
+      if (other === creature || other.isDead || other.isSummoned) continue;
+      const otherFaction = other.definition.faction;
+      if (!otherFaction || otherFaction === selfFaction) continue;
+      const d = distance(creature.x, creature.y, other.x, other.y);
+      if (d < bestDist) { bestDist = d; best = other; }
+    }
+    return best;
+  }
+
+  /** Моб атакует моба — basic weapon damage. Общий путь для фракций. */
+  private creatureAttackCreature(attacker: Creature, target: Creature) {
+    const weapon = WEAPONS[attacker.definition.weapon];
+    const result = calcMeleeDamage(attacker.stats, target.stats, weapon.baseDamage);
+    if (result.hit) {
+      target.takeDamage(result.final);
+      this.damageTexts.push(new DamageText(this, target.x, target.y - 10, result.final, result.crit, false));
+      if (target.isDead) this.onCreatureKilled(target);
+    } else {
+      this.damageTexts.push(new DamageText(this, target.x, target.y - 10, 0, false, true));
+    }
+    attacker.attackCooldown = WEAPON_COOLDOWNS[attacker.definition.weapon];
   }
 
   private summonedWolfAttackEnemy(wolf: Creature, target: Creature) {

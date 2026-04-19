@@ -70,6 +70,8 @@ export interface BodyDefinition {
   isBoss?: boolean;
   /** true = в этом теле доступны все выученные заклинания. false/undefined = только базовая атака + своё умение */
   canUseAllSpells?: boolean;
+  /** Фракционная принадлежность для межсуществной вражды (e.g. 'caravan' vs 'raider'). */
+  faction?: string;
 }
 
 // ─── Стартовые тела ────────────────────────────────────

@@ -32,6 +32,12 @@ export class Creature extends Phaser.GameObjects.Container {
   public isSummoned: boolean = false;
   /** Оставшееся время призыва (сек) */
   public summonTimer: number = 0;
+  /**
+   * Выбранный враг из другой фракции. Ставится GameScene каждый кадр
+   * при наличии противников. Если не null — AI преследует/атакует это
+   * существо вместо игрока.
+   */
+  public factionTarget: Creature | null = null;
 
   public spawnX: number;
   public spawnY: number;

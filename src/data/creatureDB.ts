@@ -620,6 +620,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Spear, color: 0xc4a874, abilityName: 'Thrust',
     npcSpells: [ABILITY_SPEAR_THRUST],
     signatureSpell: ABILITY_SPEAR_THRUST, spellXPThreshold: 50,
+    faction: 'caravan',
   },
 
   ambusher: {
@@ -634,6 +635,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Greatsword, color: 0x6b4a2b, abilityName: 'Slash',
     npcSpells: [ABILITY_SLASH],
     signatureSpell: ABILITY_SLASH, spellXPThreshold: 50,
+    faction: 'raider',
   },
 
   caravan_merchant: {
@@ -647,6 +649,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Acceleration',
     signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+    faction: 'caravan',
   },
 };
 
