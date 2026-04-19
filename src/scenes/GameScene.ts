@@ -863,6 +863,12 @@ export class GameScene extends Phaser.Scene {
 
     // ── Декорации: деревья, камни, кусты ─────────────────
     this.spawnDecorations(wt, ht);
+
+    // ── Caravan wagon (only on village map, near the cargo drop) ─
+    if (zone.id === 'village') {
+      const wagon = this.add.image(6000, 2800, 'deco_wagon').setDepth(2);
+      wagon.setScale(1.4);
+    }
   }
 
   /** Процедурно расставить деревья, камни, кусты, реки, дороги */

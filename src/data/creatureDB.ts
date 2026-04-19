@@ -604,6 +604,50 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     xpReward: 5, weapon: WeaponType.Greatsword, color: 0xaa4444, abilityName: 'Sweep',
     signatureSpell: ABILITY_SLASH_SWEEP, spellXPThreshold: 1,
   },
+
+  // ─── Caravan conflict (Trade Road) ────────────────────────────────────────
+  // Used by bq_orc_caravan (kill caravan_guard) and bq_scout_escort (kill ambusher).
+
+  caravan_guard: {
+    id: 'caravan_guard', name: 'Caravan Guard', nameRu: 'Caravan Guard',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 20, [StatName.Health]: 15, [StatName.Armor]: 8 },
+    xpReward: 45,
+    npcStats: {
+      [StatName.Strength]: 9, [StatName.Accuracy]: 8, [StatName.Evasion]: 5,
+      [StatName.Health]: 14,  [StatName.Armor]: 6,    [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Spear, color: 0xc4a874, abilityName: 'Thrust',
+    npcSpells: [ABILITY_SPEAR_THRUST],
+    signatureSpell: ABILITY_SPEAR_THRUST, spellXPThreshold: 50,
+  },
+
+  ambusher: {
+    id: 'ambusher', name: 'Ambusher', nameRu: 'Ambusher',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 32, [StatName.Health]: 18, [StatName.Armor]: 10 },
+    xpReward: 55,
+    npcStats: {
+      [StatName.Strength]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 3,
+      [StatName.Health]: 16,   [StatName.Armor]: 6,    [StatName.Luck]: 4,
+    },
+    weapon: WeaponType.Greatsword, color: 0x6b4a2b, abilityName: 'Slash',
+    npcSpells: [ABILITY_SLASH],
+    signatureSpell: ABILITY_SLASH, spellXPThreshold: 50,
+  },
+
+  caravan_merchant: {
+    id: 'caravan_merchant', name: 'Merchant', nameRu: 'Merchant',
+    type: BodyType.Fleeing, damageType: 'melee',
+    caps: { [StatName.Health]: 10, [StatName.Evasion]: 6 },
+    xpReward: 15,
+    npcStats: {
+      [StatName.Strength]: 2, [StatName.Accuracy]: 3, [StatName.Evasion]: 4,
+      [StatName.Health]: 10,  [StatName.Armor]: 2,    [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Acceleration',
+    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+  },
 };
 
 export function getCreature(id: string): BodyDefinition | undefined {

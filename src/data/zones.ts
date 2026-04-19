@@ -182,6 +182,14 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: ROAD_MID_X + 900, y: ROAD_MID_Y - 500, creatureId: 'bandit_archer_veteran', count: 1 },
     { x: ROAD_MID_X + 400, y: ROAD_MID_Y - 600, creatureId: 'goblin', count: 4 },
     { x: ROAD_MID_X + 500, y: ROAD_MID_Y - 500, creatureId: 'goblin_veteran', count: 1 },
+    // ─── The Caravan (conflict_caravan) ───
+    // Merchant + 4 guards parked at the cargo location.
+    { x: ROAD_MID_X - 40,  y: ROAD_MID_Y - 10, creatureId: 'caravan_merchant', count: 1 },
+    { x: ROAD_MID_X + 60,  y: ROAD_MID_Y - 50, creatureId: 'caravan_guard', count: 2 },
+    { x: ROAD_MID_X - 80,  y: ROAD_MID_Y + 60, creatureId: 'caravan_guard', count: 2 },
+    // 4 ambushers waiting in the treeline at the marked ambush points.
+    { x: ROAD_MID_X - 400, y: ROAD_MID_Y - 100, creatureId: 'ambusher', count: 2 },
+    { x: ROAD_MID_X + 400, y: ROAD_MID_Y + 100, creatureId: 'ambusher', count: 2 },
 
     // ═══ WALDMAR AREA ═══
     { x: WX - 200, y: WY + 200, creatureId: 'rabbit', count: 5 },

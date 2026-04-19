@@ -120,6 +120,39 @@ export class BootScene extends Phaser.Scene {
     g.fillCircle(8, 6, 5);
     g.generateTexture('deco_bush', 16, 14);
     g.clear();
+
+    // ── Фургон (48×32) — для каравана на Trade Road ────
+    // Тёмно-коричневый кузов, бежевый тент, два колеса, передняя ось
+    g.fillStyle(0x3a2714, 1);
+    g.fillRect(4, 12, 40, 14);
+    g.fillStyle(0x8a6a2f, 1);
+    g.fillRect(6, 14, 36, 2);
+    g.fillRect(6, 20, 36, 2);
+    // Тент (крыша)
+    g.fillStyle(0xccaa77, 1);
+    g.fillRect(4, 4, 40, 10);
+    g.fillStyle(0xddbb88, 1);
+    g.fillRect(6, 6, 36, 4);
+    // Полосы на тенте
+    g.fillStyle(0x8a6a2f, 1);
+    g.fillRect(12, 4, 2, 10);
+    g.fillRect(22, 4, 2, 10);
+    g.fillRect(32, 4, 2, 10);
+    // Колёса
+    g.fillStyle(0x1a0f05, 1);
+    g.fillCircle(12, 26, 5);
+    g.fillCircle(36, 26, 5);
+    g.fillStyle(0x6b4e1f, 1);
+    g.fillCircle(12, 26, 3);
+    g.fillCircle(36, 26, 3);
+    g.fillStyle(0x1a0f05, 1);
+    g.fillCircle(12, 26, 1);
+    g.fillCircle(36, 26, 1);
+    // Передняя ось / дышло
+    g.fillStyle(0x3a2714, 1);
+    g.fillRect(44, 18, 4, 2);
+    g.generateTexture('deco_wagon', 48, 32);
+    g.clear();
   }
 
   private genCharTextures(g: Phaser.GameObjects.Graphics) {
