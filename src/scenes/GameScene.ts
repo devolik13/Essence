@@ -2367,6 +2367,7 @@ export class GameScene extends Phaser.Scene {
       // Ent absorbs damage for player if in range
       const afterEnt = this.tryEntAbsorb(this.playerBody.x, this.playerBody.y, finalDmg);
       this.playerBody.takeDamage(afterEnt);
+      this.logIncomingDamage(creature.definition.nameRu, afterEnt, result.crit);
     }
 
     // Снаряд моба
@@ -2455,6 +2456,7 @@ export class GameScene extends Phaser.Scene {
           projColor, 7, 5,
         );
       }
+      this.logIncomingDamage(creature.definition.nameRu, npcDmg, result.crit, spell.nameRu);
     }
 
     this.damageTexts.push(
@@ -4234,6 +4236,16 @@ export class GameScene extends Phaser.Scene {
       this.damageTexts.push(new DamageText(this, target.x, target.y - 10, 0, false, true));
     }
     attacker.attackCooldown = WEAPON_COOLDOWNS[attacker.definition.weapon];
+  }
+
+  /** Emit a combat-log line when an enemy damages the player. */
+  private logIncomingDamage(attackerName: string, dmg: number, crit: boolean, spellName?: string) {
+    if (dmg <= 0) return;
+    const via = spellName ? ` (${spellName})` : '';
+    const text = crit
+      ? `${attackerName} наносит ${dmg} урона${via} — крит!`
+      : `${attackerName} наносит ${dmg} урона${via}`;
+    this.events.emit('log', { text, color: crit ? '#ffaa44' : '#ff8888' });
   }
 
   /** Silent cleanup for NPC-vs-NPC kills — no log, no XP, no loot, no capture prompt. */
