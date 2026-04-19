@@ -1,0 +1,34 @@
+{ "compressionlevel":-1,
+ "height":20,
+ "infinite":false,
+ "layers":[
+        {
+         "compression":"zlib",
+         "data":"eJy1lAsLhDAMg6Ocyvn\/f7AeWAgxnXucgTAfW7+2bgLAdnoi\/\/QZdGiRMdQbdzbrXTzlxriJuebQJO6pfREHb7Sn2TvlKZft6tR4+izrQyu3t6cj3J7v6eZlzJp6lc\/nDHQ9CzOet9bLUq7rAzDe56zmt78v72mtWf9r+q6Gi0Gu+8fUckNP3NCa2O2BEpfXMjeLX\/KO+x57m7tfo3LRwM1if+UeF4\/tuMoGrWf2SvNLNSKZp+da2bzG5eA4NXlk3CzPWnOOTk\/Mf+TRqwOZVwji",
+         "encoding":"base64",
+         "height":20,
+         "id":1,
+         "name":"\u0421\u043b\u043e\u0439 \u0442\u0430\u0439\u043b\u043e\u0432 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":30,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.12.1",
+ "tileheight":32,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"tileset_world.tsx"
+        }],
+ "tilewidth":32,
+ "type":"map",
+ "version":"1.10",
+ "width":30
+}
