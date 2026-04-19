@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Essence · Tileset Generator</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1612;
+      color: #d8c9a4;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { color: #d9b46a; }
+    canvas {
+      image-rendering: pixelated;
+      border: 1px solid #8b6f3a;
+      background: #000;
+    }
+    button {
+      background: #2a241c;
+      color: #d9b46a;
+      border: 1px solid #8b6f3a;
+      padding: 8px 18px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 6px 0;
+    }
+    button:hover { background: #3a3028; }
+    .preview { display: flex; gap: 24px; align-items: flex-start; margin: 16px 0; }
+    .preview-block { text-align: center; }
+    .preview-block small { display: block; color: #988; margin-top: 4px; }
+    ul { line-height: 1.6; }
+    code { background: #2a241c; padding: 2px 6px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Essence · Генератор тайлсета</h1>
+
+  <div class="preview">
+    <div class="preview-block">
+      <canvas id="cv" width="160" height="64" style="width:480px;height:192px;"></canvas>
+      <small>Превью (увеличено 3×)</small>
+    </div>
+    <div class="preview-block">
+      <canvas id="cv1" width="160" height="64"></canvas>
+      <small>Реальный размер (160×64)</small>
+    </div>
+  </div>
+
+  <button id="download">⬇ Скачать tileset_world.png</button>
+
+  <h3>Список тайлов (слева направо, сверху вниз):</h3>
+  <ul>
+    <li><b>ID 1</b> — Grass (трава, деревня/лес)</li>
+    <li><b>ID 2</b> — Stone (камень, сейф-зона)</li>
+    <li><b>ID 3</b> — Dirt (земля/дорога)</li>
+    <li><b>ID 4</b> — Sand (песок)</li>
+    <li><b>ID 5</b> — Water (вода)</li>
+    <li><b>ID 6</b> — Ash (пепел, огненный биом)</li>
+    <li><b>ID 7</b> — Bog (болото)</li>
+    <li><b>ID 8</b> — Cave (пещера)</li>
+    <li><b>ID 9</b> — Snow (снег)</li>
+    <li><b>ID 10</b> — Rock (скала, земляной биом)</li>
+  </ul>
+
+  <h3>Дальше:</h3>
+  <ol>
+    <li>Скачай PNG → положи в <code>public/assets/tileset_world.png</code></li>
+    <li>В Tiled: <b>Карта → Новый тайлсет</b>, выбери PNG, ширина/высота тайла 32×32</li>
+    <li>Создай карту (например 30×20 тайлов 32×32 для пробы) и начни красить</li>
+  </ol>
+
+  <script>
+    const TILE = 32;
+    const COLS = 5;
+    const ROWS = 2;
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    const cv1 = document.getElementById('cv1');
+    const ctx1 = cv1.getContext('2d');
+
+    function px(ctx, x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    }
+
+    function rect(ctx, x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    }
+
+    // Simple seeded RNG for repeatable speckle
+    function rng(seed) {
+      let s = seed;
+      return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    }
+
+    function drawTile(ctx, ox, oy, type) {
+      switch (type) {
+        case 'grass': {
+          rect(ctx, ox, oy, TILE, TILE, '#2d5a1e');
+          const r = rng(1);
+          ctx.fillStyle = '#3a6b2a';
+          for (let i = 0; i < 14; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 1);
+          }
+          ctx.fillStyle = '#214418';
+          for (let i = 0; i < 6; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 1, 1);
+          }
+          break;
+        }
+        case 'stone': {
+          rect(ctx, ox, oy, TILE, TILE, '#555566');
+          rect(ctx, ox + 2, oy + 2, 12, 12, '#666677');
+          rect(ctx, ox + 18, oy + 16, 12, 12, '#666677');
+          rect(ctx, ox + 16, oy + 2, 6, 6, '#44445a');
+          rect(ctx, ox + 4, oy + 18, 6, 6, '#44445a');
+          break;
+        }
+        case 'dirt': {
+          rect(ctx, ox, oy, TILE, TILE, '#6b4a2b');
+          const r = rng(2);
+          ctx.fillStyle = '#7a5a3a';
+          for (let i = 0; i < 12; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 1);
+          }
+          ctx.fillStyle = '#4a2f18';
+          for (let i = 0; i < 8; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 1, 1);
+          }
+          break;
+        }
+        case 'sand': {
+          rect(ctx, ox, oy, TILE, TILE, '#c9a868');
+          const r = rng(3);
+          ctx.fillStyle = '#d4b47a';
+          for (let i = 0; i < 14; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 1);
+          }
+          ctx.fillStyle = '#a88848';
+          for (let i = 0; i < 6; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 1, 1);
+          }
+          break;
+        }
+        case 'water': {
+          rect(ctx, ox, oy, TILE, TILE, '#2a5a8c');
+          ctx.fillStyle = '#3a70a4';
+          ctx.fillRect(ox + 2, oy + 6, 10, 1);
+          ctx.fillRect(ox + 16, oy + 14, 12, 1);
+          ctx.fillRect(ox + 4, oy + 22, 8, 1);
+          ctx.fillRect(ox + 18, oy + 28, 10, 1);
+          ctx.fillStyle = '#1a4068';
+          ctx.fillRect(ox + 8, oy + 10, 1, 1);
+          ctx.fillRect(ox + 22, oy + 20, 1, 1);
+          break;
+        }
+        case 'ash': {
+          rect(ctx, ox, oy, TILE, TILE, '#3a2a28');
+          const r = rng(4);
+          ctx.fillStyle = '#5c3a2e';
+          for (let i = 0; i < 10; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 1);
+          }
+          ctx.fillStyle = '#a04028';
+          ctx.fillRect(ox + 10, oy + 6, 1, 1);
+          ctx.fillRect(ox + 22, oy + 18, 1, 1);
+          ctx.fillRect(ox + 6, oy + 24, 1, 1);
+          break;
+        }
+        case 'bog': {
+          rect(ctx, ox, oy, TILE, TILE, '#2a3a2a');
+          const r = rng(5);
+          ctx.fillStyle = '#3a4a3a';
+          for (let i = 0; i < 10; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 1);
+          }
+          ctx.fillStyle = '#1a2a20';
+          ctx.fillRect(ox + 10, oy + 8, 4, 2);
+          ctx.fillRect(ox + 18, oy + 20, 6, 2);
+          break;
+        }
+        case 'cave': {
+          rect(ctx, ox, oy, TILE, TILE, '#2a241c');
+          const r = rng(6);
+          ctx.fillStyle = '#3a342a';
+          for (let i = 0; i < 8; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 2);
+          }
+          ctx.fillStyle = '#1a1410';
+          ctx.fillRect(ox + 6, oy + 14, 2, 1);
+          ctx.fillRect(ox + 22, oy + 6, 2, 1);
+          break;
+        }
+        case 'snow': {
+          rect(ctx, ox, oy, TILE, TILE, '#d8e0ea');
+          const r = rng(7);
+          ctx.fillStyle = '#ffffff';
+          for (let i = 0; i < 10; i++) {
+            const x = Math.floor(r() * TILE);
+            const y = Math.floor(r() * TILE);
+            ctx.fillRect(ox + x, oy + y, 2, 1);
+          }
+          ctx.fillStyle = '#b8c4d4';
+          ctx.fillRect(ox + 8, oy + 22, 1, 1);
+          ctx.fillRect(ox + 24, oy + 10, 1, 1);
+          break;
+        }
+        case 'rock': {
+          rect(ctx, ox, oy, TILE, TILE, '#7a6a4a');
+          rect(ctx, ox + 4, oy + 4, 10, 10, '#8b7a58');
+          rect(ctx, ox + 18, oy + 16, 10, 10, '#8b7a58');
+          rect(ctx, ox + 16, oy + 4, 6, 6, '#5a4a34');
+          rect(ctx, ox + 4, oy + 20, 6, 6, '#5a4a34');
+          break;
+        }
+      }
+    }
+
+    const tiles = [
+      'grass', 'stone', 'dirt', 'sand', 'water',
+      'ash', 'bog', 'cave', 'snow', 'rock',
+    ];
+
+    function render(target) {
+      target.clearRect(0, 0, 160, 64);
+      target.imageSmoothingEnabled = false;
+      for (let i = 0; i < tiles.length; i++) {
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        drawTile(target, col * TILE, row * TILE, tiles[i]);
+      }
+    }
+
+    ctx.imageSmoothingEnabled = false;
+    render(ctx);
+    render(ctx1);
+
+    document.getElementById('download').addEventListener('click', () => {
+      cv1.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tileset_world.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    });
+  </script>
+</body>
+</html>
