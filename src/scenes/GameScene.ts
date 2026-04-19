@@ -929,6 +929,8 @@ export class GameScene extends Phaser.Scene {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
       if (isInSafe(x, y)) continue;
+      // Sparse trees in cave biome (underground — mostly bare rock).
+      if (this.getBiomeId(x, y) === 'cave' && rng.frac() > 0.15) continue;
       const tree = this.add.image(x, y, 'deco_tree').setDepth(1);
       tree.setScale(0.8 + rng.frac() * 0.8);
       tree.setAlpha(0.7 + rng.frac() * 0.3);
@@ -955,11 +957,30 @@ export class GameScene extends Phaser.Scene {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
       if (isInSafe(x, y)) continue;
+      if (this.getBiomeId(x, y) === 'cave' && rng.frac() > 0.1) continue;
       const bush = this.add.image(x, y, 'deco_bush').setDepth(1);
       bush.setScale(0.5 + rng.frac() * 0.8);
       bush.setAlpha(0.5 + rng.frac() * 0.3);
       const bushTint = this.getBiomeTint(x, y);
       if (bushTint) bush.setTint(bushTint);
+    }
+
+    // ── Биом: пещера — плотная россыпь камней ─────────────
+    const caveBiome = (this.currentZone.biomes ?? []).find(b => b.id === 'cave');
+    if (caveBiome) {
+      const { x1, y1, x2, y2 } = caveBiome.bounds;
+      const caveArea = Math.max(0, (x2 - x1) * (y2 - y1));
+      const extraRocks = Math.floor(caveArea / 12000);
+      const caveTint = caveBiome.tint ?? this.currentZone.tint;
+      for (let i = 0; i < extraRocks; i++) {
+        const x = rng.between(Math.max(40, x1), Math.min(zw - 40, x2));
+        const y = rng.between(Math.max(40, y1), Math.min(zh - 40, y2));
+        if (isInSafe(x, y)) continue;
+        const rock = this.add.image(x, y, 'deco_rock').setDepth(1);
+        rock.setScale(0.5 + rng.frac() * 1.4);
+        rock.setAlpha(0.55 + rng.frac() * 0.35);
+        if (caveTint) rock.setTint(Phaser.Display.Color.IntegerToColor(caveTint).brighten(15).color);
+      }
     }
   }
 
@@ -1130,6 +1151,17 @@ export class GameScene extends Phaser.Scene {
       }
     }
     return this.currentZone.tint;
+  }
+
+  private getBiomeId(x: number, y: number): string | undefined {
+    const biomes = this.currentZone.biomes;
+    if (!biomes) return undefined;
+    for (const b of biomes) {
+      if (x >= b.bounds.x1 && x <= b.bounds.x2 && y >= b.bounds.y1 && y <= b.bounds.y2) {
+        return b.id;
+      }
+    }
+    return undefined;
   }
 
   private getNearestRespawn(x: number, y: number): { x: number; y: number } {

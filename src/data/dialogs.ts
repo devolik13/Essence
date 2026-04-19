@@ -251,6 +251,79 @@ const NPC_DIALOGS: Record<string, DialogProvider[]> = {
       ],
     }),
   ],
+
+  // ═══ CAPTAIN VERN — Waldmar, terse, watches the road ═══════════════════════
+  captain: [
+    // After Chapter 1 finale — the Void has arrived
+    (qt) => {
+      if (questDone(qt, 'q12_guardians_trial')) {
+        return {
+          messages: [
+            { speaker: 'Captain Vern', text: "Two more hunters didn't come back last night. That's five this week." },
+            { speaker: 'Captain Vern', text: "Whatever's out there doesn't leave bodies. Just tracks that stop mid-stride." },
+            { speaker: 'Captain Vern', text: "If you're heading into the trees — don't go alone. And don't trust anyone who's been out there too long." },
+          ],
+        };
+      }
+      return null;
+    },
+    // Default
+    () => ({
+      messages: [
+        { speaker: 'Captain Vern', text: "Ashworth, yes? You're a ways from home." },
+        { speaker: 'Captain Vern', text: "Walls here hold. For now. The trees to the north have gone quiet, though. Birds won't nest in them anymore." },
+        { speaker: 'Captain Vern', text: "If you find work in the city — good. If you find trouble — find me first." },
+      ],
+    }),
+  ],
+
+  // ═══ HEALER LENA — spiritual, feels the corruption ════════════════════════
+  healer: [
+    // After finale
+    (qt) => {
+      if (questDone(qt, 'q12_guardians_trial')) {
+        return {
+          messages: [
+            { speaker: 'Healer Lena', text: "They come to me with cuts and fevers. I can set those." },
+            { speaker: 'Healer Lena', text: "But some of them — their eyes are wrong. They answer questions no one asked. They remember things that didn't happen." },
+            { speaker: 'Healer Lena', text: "Whatever it is, it isn't sickness. Tinctures won't fix it. Something inside them has been... rewritten." },
+          ],
+        };
+      }
+      return null;
+    },
+    // Default
+    () => ({
+      messages: [
+        { speaker: 'Healer Lena', text: "Sit if you need a bandage. Stand if you need advice. I don't always have both." },
+        { speaker: 'Healer Lena', text: "You carry something. Not an injury — deeper. Like you've been somewhere you shouldn't have been, and part of you stayed there." },
+        { speaker: 'Healer Lena', text: "...Sorry. Old habit. Comes from treating too many pilgrims." },
+      ],
+    }),
+  ],
+
+  // ═══ BLACKSMITH GORM — craftsman, pragmatic, notices the odd orders ═══════
+  blacksmith: [
+    (qt) => {
+      if (questDone(qt, 'q12_guardians_trial')) {
+        return {
+          messages: [
+            { speaker: 'Blacksmith Gorm', text: "Business should be good. Five new orders for blades this week. Should be." },
+            { speaker: 'Blacksmith Gorm', text: "But three of the buyers didn't haggle. Not one copper. Paid the asking price, took the steel, walked out without checking the edge." },
+            { speaker: 'Blacksmith Gorm', text: "A man who doesn't haggle over steel isn't planning to use it on an animal. Keep that in mind." },
+          ],
+        };
+      }
+      return null;
+    },
+    () => ({
+      messages: [
+        { speaker: 'Blacksmith Gorm', text: "Aldric's work? Good hands, that one. Tell him Gorm said his pommels still come out lopsided." },
+        { speaker: 'Blacksmith Gorm', text: "I can sharpen. I can straighten. I don't do enchantments — find a mage for that, and pay twice what they ask. They're worth it once." },
+        { speaker: 'Blacksmith Gorm', text: "City's been restless lately. More guards on the wall, fewer merchants on the road. Bad signs, usually." },
+      ],
+    }),
+  ],
 };
 
 export function getNPCDialog(npcId: string, qt: QuestTracker): DialogResult {
