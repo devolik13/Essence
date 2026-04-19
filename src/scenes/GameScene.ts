@@ -658,6 +658,7 @@ export class GameScene extends Phaser.Scene {
     this.updateFireTsunamis(delta);
     this.updateEnts(delta);
     this.updateExitArrows();
+    this.updateBossBanner();
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -1439,6 +1440,36 @@ export class GameScene extends Phaser.Scene {
       if (alpha > 0) {
         arrow.setScale(1 + Math.sin(Date.now() * 0.003) * 0.1);
       }
+    }
+  }
+
+  /**
+   * Emit banner data for the nearest alive boss within 1200px of the player.
+   * Emits `boss-state: null` when no boss qualifies. UIScene owns the render.
+   */
+  private _bossBannerId: string | null = null;
+  private updateBossBanner() {
+    const entity = this.playerBody ?? this.sphere;
+    if (!entity) return;
+    let nearest: Creature | null = null;
+    let nearestDist = 1200;
+    for (const c of this.creatures) {
+      if (!c.definition.isBoss || c.isDead) continue;
+      const d = distance(c.x, c.y, entity.x, entity.y);
+      if (d < nearestDist) { nearest = c; nearestDist = d; }
+    }
+    if (nearest) {
+      this._bossBannerId = nearest.definition.id;
+      const hpFrac = Math.max(0, Math.min(1, nearest.currentHP / nearest.maxHP));
+      this.events.emit('boss-state', {
+        name: nearest.definition.nameRu,
+        hp: Math.ceil(nearest.currentHP),
+        maxHp: Math.ceil(nearest.maxHP),
+        hpFrac,
+      });
+    } else if (this._bossBannerId !== null) {
+      this._bossBannerId = null;
+      this.events.emit('boss-state', null);
     }
   }
 

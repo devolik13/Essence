@@ -74,6 +74,11 @@ export class UIScene extends Phaser.Scene {
   // Gold display (top-right)
   private goldContainer!: Phaser.GameObjects.Container;
   private goldText!:    Phaser.GameObjects.Text;
+  // Boss banner (top-center, visible when a boss is nearby)
+  private bossBanner?:   Phaser.GameObjects.Container;
+  private bossBarFill?:  Phaser.GameObjects.Rectangle;
+  private bossNameText?: Phaser.GameObjects.Text;
+  private bossHpText?:   Phaser.GameObjects.Text;
   private statusBarText!:Phaser.GameObjects.Text;
   private playerStatusBoxes: Phaser.GameObjects.Container[] = [];
   private playerStatusPool: { bg: Phaser.GameObjects.Rectangle; icon: Phaser.GameObjects.Text; timer: Phaser.GameObjects.Text; }[] = [];
@@ -451,6 +456,9 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('achievement-unlocked', (ach: AchievementDef) => {
       this.achievementNotifQueue.push(ach);
       this.addLog(`★ Achievement: ${ach.nameRu}`);
+    });
+    gs.events.on('boss-state', (data: { name: string; hp: number; maxHp: number; hpFrac: number } | null) => {
+      this.updateBossBanner(data);
     });
   }
 
@@ -1398,6 +1406,46 @@ export class UIScene extends Phaser.Scene {
     const trayCx = GAME_WIDTH - rightPad - trayW / 2;
     ctx._tray.setPosition(trayCx, y).setSize(trayW, 22);
     ctx._outline.setPosition(trayCx, y).setSize(trayW, 22);
+  }
+
+  // ── Boss banner (top-center, only visible when a boss is nearby) ──
+  private updateBossBanner(data: { name: string; hp: number; maxHp: number; hpFrac: number } | null) {
+    if (!data) {
+      this.bossBanner?.setVisible(false);
+      return;
+    }
+    if (!this.bossBanner) this.buildBossBanner();
+    this.bossBanner!.setVisible(true);
+    this.bossNameText!.setText(data.name);
+    this.bossHpText!.setText(`${data.hp} / ${data.maxHp}`);
+    const maxBarW = 320;
+    this.bossBarFill!.width = maxBarW * data.hpFrac;
+  }
+
+  private buildBossBanner() {
+    const w = 360;
+    const cx = GAME_WIDTH / 2;
+    const y = 44;
+    const c = this.add.container(cx, y).setDepth(60).setScrollFactor(0);
+    const tray = this.add.rectangle(0, 0, w, 44, THEME.ink0, 0.9)
+      .setStrokeStyle(1, THEME.brass1, 0.9);
+    const inner = this.add.rectangle(0, 0, w - 4, 40).setStrokeStyle(1, THEME.brass0, 0.4).setFillStyle(0, 0);
+    const name = this.add.text(0, -12, '', {
+      fontSize: '13px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass4,
+      stroke: '#0d0b08', strokeThickness: 2,
+    }).setOrigin(0.5);
+    // HP bar
+    const barBg = this.add.rectangle(0, 9, 320, 10, THEME.ink2, 1).setStrokeStyle(1, THEME.brass0, 0.8);
+    const barFill = this.add.rectangle(-160, 9, 320, 8, 0xc64040, 1).setOrigin(0, 0.5);
+    const hp = this.add.text(0, 9, '', {
+      fontSize: '9px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1,
+    }).setOrigin(0.5);
+    c.add([tray, inner, name, barBg, barFill, hp]);
+    c.setVisible(false);
+    this.bossBanner = c;
+    this.bossBarFill = barFill;
+    this.bossNameText = name;
+    this.bossHpText = hp;
   }
 
   // ── Menu buttons ─────────────────────────────────────
