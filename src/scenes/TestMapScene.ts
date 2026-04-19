@@ -1,25 +1,32 @@
 import Phaser from 'phaser';
-import { THEME, TC } from '../ui/theme';
+import { TC } from '../ui/theme';
 
 /**
  * TestMapScene — загрузка и рендер карты, экспортированной из Tiled.
  *
  * Ожидает файлы:
- *   public/assets/maps/test.json   — экспорт из Tiled (File → Export As → JSON)
- *   public/assets/tileset_world.png — тайлсет 160×64 (5×2 тайлов 32×32)
+ *   public/assets/maps/test.json           — экспорт из Tiled (JSON)
+ *   public/assets/maps/tileset_world.tsx   — описание тайлсета (XML)
+ *   public/assets/maps/tileset_world.png   — картинка тайлсета
  *
- * ВАЖНО: при экспорте Tiled убедись, что тайлсет встроен в JSON
- *   (Map → Map Properties или при Export As поставь галочку "Embed tilesets").
- *   Иначе в JSON будет ссылка на .tsx и Phaser не сможет распарсить.
+ * Код сам подклеивает .tsx в JSON и подгружает PNG по пути из .tsx.
+ * Поддерживается CSV и uncompressed Base64 (zlib — Phaser не умеет,
+ * в Tiled смени формат слоя на CSV).
  */
 export class TestMapScene extends Phaser.Scene {
+  private static readonly MAP_KEY = 'test-map';
+  private static readonly TSX_KEY = 'test-map-tsx';
+  private static readonly JSON_KEY = 'test-map-json';
+  private static readonly PNG_KEY = 'tileset_world_png';
+
   constructor() {
     super({ key: 'TestMapScene' });
   }
 
   preload() {
-    this.load.image('tileset_world_png', 'assets/tileset_world.png');
-    this.load.tilemapTiledJSON('test-map', 'assets/maps/test.json');
+    this.load.json(TestMapScene.JSON_KEY, 'assets/maps/test.json');
+    this.load.text(TestMapScene.TSX_KEY, 'assets/maps/tileset_world.tsx');
+    this.load.image(TestMapScene.PNG_KEY, 'assets/maps/tileset_world.png');
 
     this.load.on('loaderror', (file: Phaser.Loader.File) => {
       console.error('[TestMapScene] не удалось загрузить:', file.key, file.src);
@@ -29,34 +36,73 @@ export class TestMapScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#0d0b08');
 
-    let map: Phaser.Tilemaps.Tilemap;
-    try {
-      map = this.make.tilemap({ key: 'test-map' });
-    } catch (e) {
-      this.showError('Карта не загрузилась. Проверь public/assets/maps/test.json');
+    const mapData = this.cache.json.get(TestMapScene.JSON_KEY);
+    const tsxText = this.cache.text.get(TestMapScene.TSX_KEY);
+    if (!mapData) {
+      this.showError('Не загрузился test.json');
+      return;
+    }
+    if (!tsxText) {
+      this.showError('Не загрузился tileset_world.tsx');
       return;
     }
 
-    // Имя тайлсета внутри JSON может быть любым — возьмём первое доступное.
-    const tsName = map.tilesets[0]?.name;
-    if (!tsName) {
-      this.showError('В JSON нет встроенного тайлсета. В Tiled: Export As → галочка "Embed tilesets".');
+    // Парсим .tsx (простой XML)
+    const xml = new DOMParser().parseFromString(tsxText, 'application/xml');
+    const tsEl = xml.querySelector('tileset');
+    const imgEl = xml.querySelector('image');
+    if (!tsEl || !imgEl) {
+      this.showError('В tileset_world.tsx нет элементов <tileset>/<image>');
       return;
     }
+    const tsName = tsEl.getAttribute('name') || 'tileset_world';
+    const tileWidth = +(tsEl.getAttribute('tilewidth') || 32);
+    const tileHeight = +(tsEl.getAttribute('tileheight') || 32);
+    const tileCount = +(tsEl.getAttribute('tilecount') || 10);
+    const columns = +(tsEl.getAttribute('columns') || 5);
+    const imgWidth = +(imgEl.getAttribute('width') || 160);
+    const imgHeight = +(imgEl.getAttribute('height') || 64);
 
-    const tileset = map.addTilesetImage(tsName, 'tileset_world_png');
+    // Встраиваем тайлсет в JSON (если он внешний)
+    const firstgid = mapData.tilesets?.[0]?.firstgid ?? 1;
+    mapData.tilesets = [{
+      firstgid,
+      name: tsName,
+      tilewidth: tileWidth,
+      tileheight: tileHeight,
+      tilecount: tileCount,
+      columns,
+      image: 'tileset_world.png',
+      imagewidth: imgWidth,
+      imageheight: imgHeight,
+      margin: 0,
+      spacing: 0,
+    }];
+
+    // Регистрируем как Tiled JSON tilemap
+    this.cache.tilemap.add(TestMapScene.MAP_KEY, {
+      format: Phaser.Tilemaps.Formats.TILED_JSON,
+      data: mapData,
+    });
+
+    const map = this.make.tilemap({ key: TestMapScene.MAP_KEY });
+    const tileset = map.addTilesetImage(tsName, TestMapScene.PNG_KEY);
     if (!tileset) {
-      this.showError(`Не удалось связать тайлсет "${tsName}" с PNG.`);
+      this.showError(`Не связался тайлсет "${tsName}" с PNG.`);
       return;
     }
 
-    // Отрендерим все видимые слои
     for (let i = 0; i < map.layers.length; i++) {
       const layer = map.createLayer(i, tileset, 0, 0);
-      if (layer) layer.setScale(1);
+      if (!layer) {
+        this.showError(
+          `Слой ${i} не отрисовался. Проверь формат данных слоя в Tiled ` +
+          `(должен быть CSV или Base64 без сжатия — zlib Phaser не умеет).`,
+        );
+        return;
+      }
     }
 
-    // Камера
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     const keys = this.input.keyboard!.createCursorKeys();
     this.events.on('update', () => {
@@ -67,9 +113,8 @@ export class TestMapScene extends Phaser.Scene {
       if (keys.down?.isDown) this.cameras.main.scrollY += speed;
     });
 
-    // HUD
     this.add.text(10, 10,
-      `Tiled map: ${map.width}×${map.height} tiles · tileset: ${tsName}\n← ↑ → ↓ — камера · ESC — назад`, {
+      `Tiled: ${map.width}×${map.height} · tileset: ${tsName}\n← ↑ → ↓ — камера · ESC — назад`, {
       fontSize: '12px',
       fontFamily: '"JetBrains Mono", monospace',
       color: TC.brass3,
@@ -89,9 +134,9 @@ export class TestMapScene extends Phaser.Scene {
       color: '#c86a6a',
       wordWrap: { width: 900 },
     });
-    this.input.keyboard!.on('keydown-ESC', () => this.scene.start('TitleScene'));
     this.add.text(20, 80, 'ESC — назад к титулу', {
       fontSize: '12px', color: TC.text3,
     });
+    this.input.keyboard!.on('keydown-ESC', () => this.scene.start('TitleScene'));
   }
 }
