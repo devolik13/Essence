@@ -436,6 +436,7 @@ export class UIScene extends Phaser.Scene {
       this.updateSealIndicator();
     });
     gs.events.on('save-loaded', () => this.addLog(t('log.progress_loaded')));
+    gs.events.on('log', (data: { text: string; color?: string }) => this.addLog(data.text));
     gs.events.on('open-vendor', () => {
       this.currentWindow = 'vendor';
       this.windowContainer.setVisible(true);

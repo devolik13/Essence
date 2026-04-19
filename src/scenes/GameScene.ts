@@ -2334,7 +2334,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private creatureAttackPlayer(creature: Creature) {
-    if (!this.playerBody) return;
+    if (!this.playerBody || this.playerBody.isDead) return;
+    // Игрок внутри безопасной зоны — мобы не могут в него попасть.
+    if (this.isInSafeZone(this.playerBody.x, this.playerBody.y)) return;
     this.interruptGathering(); // Сбор прерывается при атаке
 
     const cdt = creature.definition.damageType;
@@ -2390,7 +2392,8 @@ export class GameScene extends Phaser.Scene {
 
   /** Моб кастует заклинание своей школы по игроку */
   private creatureCastSpell(creature: Creature, spell: AbilityDef) {
-    if (!this.playerBody) return;
+    if (!this.playerBody || this.playerBody.isDead) return;
+    if (this.isInSafeZone(this.playerBody.x, this.playerBody.y)) return;
 
     // Цвет снаряда по элементу
     const elementColors: Record<string, number> = {
@@ -2575,6 +2578,15 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.currentMana = this.playerBody.maxMana;
     } else {
       this.sphere.enterAstral(rp.x, rp.y);
+    }
+    // Сбрасываем агро и каст у всех мобов — игрок перезапустился.
+    for (const c of this.creatures) {
+      if (c.isDead || c.isSummoned) continue;
+      c.aiState = 'return';
+      c.factionTarget = null;
+      c.castingSpell = null;
+      c.castTimer = 0;
+      c.attackCooldown = Math.max(c.attackCooldown, 0.5);
     }
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
