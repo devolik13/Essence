@@ -97,6 +97,7 @@ export class UIScene extends Phaser.Scene {
 
   // ── Menu buttons ──────────────────────────────────────
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
+  private menuBtnIcons: Phaser.GameObjects.Text[]      = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
   private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells'];
 
@@ -1294,7 +1295,7 @@ export class UIScene extends Phaser.Scene {
     const gap = 16;
     const totalW = barW * 2 + gap;
     const cx = GAME_WIDTH / 2;
-    // Center vertically between menu buttons (y≈524) and skill bar top (y≈574).
+    // Center above the skill bar tray.
     const y = GAME_HEIGHT - SKILL_SLOT_SIZE - 32;
 
     this.vitalsContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(1000);
@@ -1452,15 +1453,36 @@ export class UIScene extends Phaser.Scene {
 
   private buildMenuButtons() {
     const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells')];
-    const btnW = 76;
-    const btnH = 22;
+    const icons  = ['✦', '⬡', '❖', '★', '⚡'];
+    const btnSz = 34;
     const gap = 4;
-    // Shifted up to make room for the brass/ether vitals bar above skill bar.
-    const y = GAME_HEIGHT - SKILL_SLOT_SIZE - 58 - btnH / 2;
+
+    // Skill bar geometry (must match buildSkillBar)
+    const DIVIDER_GAP = 16;
+    const totalBarW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP + DIVIDER_GAP;
+    const trayPadX = 10;
+    const trayW = totalBarW + trayPadX * 2;
+    const barCx = GAME_WIDTH / 2;
+    const barY = GAME_HEIGHT - SKILL_SLOT_SIZE / 2 - 10;
+    const trayLeft = barCx - trayW / 2;
+    const trayRight = barCx + trayW / 2;
+
+    // Left group: Stats, Inventory, Quests (3 buttons)
+    // Right group: Achievements, Spells (2 buttons)
+    const leftCount = 3;
+    const sideGap = 6;
 
     for (let i = 0; i < labels.length; i++) {
-      const x = 10 + i * (btnW + gap) + btnW / 2;
-      const bg = this.add.rectangle(x, y, btnW, btnH, THEME.ink2, 0.92)
+      let x: number;
+      if (i < leftCount) {
+        x = trayLeft - sideGap - (leftCount - i) * (btnSz + gap) + btnSz / 2 + gap;
+      } else {
+        const ri = i - leftCount;
+        x = trayRight + sideGap + ri * (btnSz + gap) + btnSz / 2;
+      }
+      const y = barY;
+
+      const bg = this.add.rectangle(x, y, btnSz, btnSz, THEME.ink2, 0.92)
         .setStrokeStyle(1, THEME.brass0, 0.9).setScrollFactor(0).setDepth(1010)
         .setInteractive({ useHandCursor: true })
         .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink3, 0.97); })
@@ -1469,10 +1491,17 @@ export class UIScene extends Phaser.Scene {
           ptr.event.stopPropagation();
           this.toggleWindow(this.menuBtnTypes[i]);
         });
-      const txt = this.add.text(x, y, labels[i], {
-        fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.text2, align: 'center',
+
+      const icon = this.add.text(x, y - 4, icons[i], {
+        fontSize: '14px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass3, align: 'center',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+
+      const txt = this.add.text(x, y + 10, labels[i], {
+        fontSize: '7px', fontFamily: '"Special Elite", monospace', color: TC.text3, align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
+
       this.menuBtnBgs.push(bg);
+      this.menuBtnIcons.push(icon);
       this.menuBtnTexts.push(txt);
     }
   }
@@ -1591,7 +1620,8 @@ export class UIScene extends Phaser.Scene {
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
         this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
+        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
       }
       return;
     }
@@ -1604,7 +1634,8 @@ export class UIScene extends Phaser.Scene {
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
         this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
+        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
       }
       return;
     }
@@ -1619,7 +1650,8 @@ export class UIScene extends Phaser.Scene {
       for (let i = 0; i < this.menuBtnTypes.length; i++) {
         const active = this.menuBtnTypes[i] === type;
         this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
+        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
       }
       return;
     }
@@ -1644,7 +1676,8 @@ export class UIScene extends Phaser.Scene {
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
       const active = this.menuBtnTypes[i] === type;
       this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-      this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text2);
+      this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+      this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
     }
     if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
   }
@@ -1776,7 +1809,8 @@ export class UIScene extends Phaser.Scene {
     this.destroyVendorButtons();
     for (let i = 0; i < this.menuBtnTypes.length; i++) {
       this.menuBtnBgs[i].setFillStyle(THEME.ink2, 0.92);
-      this.menuBtnTexts[i].setColor(TC.text2);
+      this.menuBtnIcons[i].setColor(TC.brass3);
+      this.menuBtnTexts[i].setColor(TC.text3);
     }
   }
 

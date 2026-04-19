@@ -21,6 +21,21 @@ const SCHOOL_COLORS: Record<string, string> = {
   fire: '#c86a3a', water: '#5a88c4', earth: '#a07840',
   wind: '#98d2b4', nature: '#6d9a5a', neutral: '#a78fc4',
 };
+const WEAPON_LABELS: Record<string, string> = {
+  dagger: 'DAGGER', sword: 'SWORD', greatsword: 'GREATSWORD',
+  spear: 'SPEAR', mace: 'MACE', hammer: 'HAMMER',
+  shortbow: 'SHORT BOW', longbow: 'LONG BOW', crossbow: 'CROSSBOW',
+  fists: 'FISTS',
+  staff_fire: 'FIRE STAFF', staff_water: 'WATER STAFF',
+  staff_earth: 'EARTH STAFF', staff_wind: 'WIND STAFF', staff_nature: 'NATURE STAFF',
+};
+const WEAPON_ICONS: Record<string, string> = {
+  dagger: '🗡', sword: '⚔', greatsword: '🗡', spear: '🔱',
+  mace: '🔨', hammer: '⚒', shortbow: '🏹', longbow: '🏹',
+  crossbow: '🎯', fists: '🥊',
+  staff_fire: '🔥', staff_water: '💧', staff_earth: '🪨',
+  staff_wind: '🌀', staff_nature: '🌿',
+};
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -137,11 +152,16 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
       if (schSpells.length) body.appendChild(buildSchoolGroup(sch, schSpells, learnedIds));
     }
 
-    for (const [weapon, wSpells] of Object.entries(byWeapon)) {
+    const weaponOrder = ['sword', 'dagger', 'mace', 'greatsword', 'spear', 'hammer', 'shortbow', 'longbow', 'crossbow', 'fists', 'staff_fire', 'staff_water', 'staff_earth', 'staff_wind', 'staff_nature'];
+    const sortedWeapons = Object.entries(byWeapon).sort(([a], [b]) => {
+      const ia = weaponOrder.indexOf(a); const ib = weaponOrder.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    for (const [weapon, wSpells] of sortedWeapons) {
       const group = el('div', 'ess-school-group');
       const head = el('div', 'sg-head');
-      head.appendChild(el('span', 'sg-icon', '⚔'));
-      const label = el('span', 'sg-label', weapon.toUpperCase());
+      head.appendChild(el('span', 'sg-icon', WEAPON_ICONS[weapon] ?? '⚔'));
+      const label = el('span', 'sg-label', WEAPON_LABELS[weapon] ?? weapon.toUpperCase());
       label.style.color = '#d9b46a';
       head.appendChild(label);
       const lCount = wSpells.filter(sp => learnedIds.has(sp.id)).length;

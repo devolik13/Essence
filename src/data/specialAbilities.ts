@@ -12,6 +12,7 @@ export const ABILITY_STING: AbilityDef = {
   manaCost: 5,
   range: 44,
   baseDamage: 12,
+  requiredWeapons: [WeaponType.Dagger],
   description: 'Укол кинжалом (урон от Ловкости). Эффект оружия: яд.',
 };
 
@@ -26,6 +27,7 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
   manaCost: 5,
   range: 52,
   baseDamage: 12,
+  requiredWeapons: [WeaponType.Sword],
   description: 'Удар мечом (урон от Силы). Эффект оружия: замедление.',
 };
 
@@ -42,6 +44,7 @@ export const ABILITY_KNIFE_THROW: AbilityDef = {
   manaCost: 10,
   range: 160,
   baseDamage: 10,
+  requiredWeapons: [WeaponType.Dagger],
   description: 'Бросок кинжала (урон от Ловкости, дальность 160). Эффект оружия: яд.',
 };
 
@@ -56,6 +59,7 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
   manaCost: 5,
   range: 48,
   baseDamage: 12,
+  requiredWeapons: [WeaponType.Mace],
   description: 'Удар булавой (урон от Силы). Эффект оружия: укрепление (+3 Armor/стак).',
 };
 
@@ -74,6 +78,7 @@ export const ABILITY_DOUBLE_STRIKE: AbilityDef = {
   manaCost: 10,
   range: 52,
   baseDamage: 12,
+  requiredWeapons: [WeaponType.Sword],
   description: 'Два быстрых удара мечом (урон от Силы). Эффект оружия: замедление на каждый удар.',
 };
 
@@ -88,6 +93,7 @@ export const ABILITY_SLASH: AbilityDef = {
   manaCost: 5,
   range: 60,
   baseDamage: 20,
+  requiredWeapons: [WeaponType.Greatsword],
   description: 'Рубящий удар двуручником (урон от Силы). Эффект оружия: кровотечение.',
 };
 
@@ -98,6 +104,7 @@ export const ABILITY_BOW_SHOT: AbilityDef = {
   id: 'bow_shot',
   nameRu: 'Aimed Shot',
   damageType: 'ranged',
+  requiredWeapons: [WeaponType.ShortBow],
   cooldown: 1,
   manaCost: 5,
   range: 240,
@@ -118,6 +125,7 @@ export const ABILITY_LONGBOW_SHOT: AbilityDef = {
   manaCost: 5,
   range: 320,
   baseDamage: 10,
+  requiredWeapons: [WeaponType.LongBow],
   description: 'Выстрел из длинного лука (урон от Ловкости). 20% шанс сброса кулдауна.',
 };
 
@@ -134,6 +142,7 @@ export const ABILITY_CROSSBOW_BOLT: AbilityDef = {
   manaCost: 5,
   range: 290,
   baseDamage: 10,
+  requiredWeapons: [WeaponType.Crossbow],
   description: 'Болт из арбалета (урон от Ловкости). Пробивает до 3 целей. Эффект оружия: ослабление.',
 };
 
@@ -148,6 +157,7 @@ export const ABILITY_SPEAR_THRUST: AbilityDef = {
   manaCost: 5,
   range: 80,
   baseDamage: 20,
+  requiredWeapons: [WeaponType.Spear],
   description: 'Выпад копьём (урон от Силы). Эффект оружия: отбрасывание.',
 };
 
@@ -164,6 +174,7 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
   baseDamage: 20,
   isAoe: true,
   aoeRadius: 60,
+  requiredWeapons: [WeaponType.Hammer],
   description: 'Удар молотом (урон от Силы), AoE радиус 60. Эффект оружия: сокрушение брони.',
 };
 
@@ -180,6 +191,7 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
   baseDamage: 20,
   statusEffect: 'armor_break',
   statusChance: 0.2,
+  requiredWeapons: [WeaponType.Hammer],
   description: 'Мощный удар молотом (урон от Силы). 20% Пробитие брони −50% (перекрывает оружейный).',
 };
 
@@ -198,6 +210,7 @@ export const ABILITY_MACE_BASH: AbilityDef = {
   baseDamage: 12,
   grantTempHP: 25,
   tempHPDuration: 6,
+  requiredWeapons: [WeaponType.Mace],
   description: 'Удар булавой (урон от Силы) + щит 25 временных HP на 6 сек.',
 };
 
@@ -216,6 +229,7 @@ export const ABILITY_SLASH_SWEEP: AbilityDef = {
   manaCost: 10,
   range: 80,
   baseDamage: 20,
+  requiredWeapons: [WeaponType.Greatsword],
   description: 'Размах двуручником (урон от Силы), конус 90°, радиус 80. Эффект оружия: кровотечение.',
 };
 
@@ -234,6 +248,7 @@ export const ABILITY_SPEAR_BUTT: AbilityDef = {
   baseDamage: 20,
   statusEffect: 'knockback',
   statusChance: 1.0,
+  requiredWeapons: [WeaponType.Spear],
   description: 'Удар древком копья (урон от Силы), дальность 44. 100% Отбрасывание.',
 };
 
@@ -247,6 +262,7 @@ export const ABILITY_BOW_BACKSHOT: AbilityDef = {
   damageType: 'ranged',
   effectType: 'dash_backward',
   dashDistance: 180,
+  requiredWeapons: [WeaponType.ShortBow],
   cooldown: 2,
   castTime: 0.5,
   manaCost: 10,
@@ -272,6 +288,7 @@ export const ABILITY_ARROW_RAIN: AbilityDef = {
   baseDamage: 10,
   isAoe: true,
   aoeRadius: 80,
+  requiredWeapons: [WeaponType.LongBow],
   description: 'Дождь стрел (урон от Ловкости), AoE радиус 80. 20% шанс сброса кулдауна.',
 };
 
@@ -290,6 +307,7 @@ export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   baseDamage: 10,
   statusEffect: 'root',
   statusChance: 0.2,
+  requiredWeapons: [WeaponType.Crossbow],
   description: 'Одиночный болт (урон от Ловкости). 20% шанс Корни (3 сек, блок движения).',
 };
 
@@ -304,6 +322,7 @@ export const ABILITY_HOOK: AbilityDef = {
   manaCost: 5,
   range: 36,
   baseDamage: 10,
+  requiredWeapons: [WeaponType.Fists],
   description: 'Удар кастетами (урон от Ловкости). Эффект оружия: ошеломление.',
 };
 
@@ -320,6 +339,7 @@ export const ABILITY_FIST_STRIKE: AbilityDef = {
   baseDamage: 12,
   statusEffect: 'accuracy_reduce',
   statusChance: 0.25,
+  requiredWeapons: [WeaponType.Fists],
   description: 'Сбивающий удар (урон от Ловкости). 25% понижение точности (−30%, 3 сек).',
 };
 
@@ -333,6 +353,7 @@ export const ABILITY_SWORD_REND: AbilityDef = {
   nameRu: 'Rend', damageType: 'melee',
   cooldown: 12, castTime: 1, manaCost: 15, range: 52, baseDamage: 28,
   conditionalBonusDmg: 1.5, conditionalOnStatus: 'slow', grantFreeNextCast: true,
+  requiredWeapons: [WeaponType.Sword],
   description: 'Если цель замедлена → +50% урона + следующий T1/T2 бесплатен.',
 };
 
@@ -342,6 +363,7 @@ export const ABILITY_MACE_CONCUSS: AbilityDef = {
   nameRu: 'Concussion', damageType: 'melee',
   cooldown: 15, castTime: 1, manaCost: 15, range: 48, baseDamage: 24,
   statusEffect: 'concussion', statusChance: 1.0,
+  requiredWeapons: [WeaponType.Mace],
   description: 'Урон + дебафф Сотрясение (5 сек): следующая абилка врага получает +10 сек КД.',
 };
 
@@ -353,6 +375,7 @@ export const ABILITY_BLOODY_SWEEP: AbilityDef = {
   cooldown: 12, castTime: 1.5, manaCost: 15, range: 80, baseDamage: 32,
   statusEffect: 'bleed', statusChance: 1.0,
   lifestealPercent: 0.3,
+  requiredWeapons: [WeaponType.Greatsword],
   description: 'Конус 90°. Кровотечение −75% хила + лечение 30% от нанесённого урона.',
 };
 
@@ -361,6 +384,7 @@ export const ABILITY_SPEAR_THROW: AbilityDef = {
   id: 'spear_throw', prerequisiteId: 'spear_butt',
   nameRu: 'Spear Throw', damageType: 'ranged',
   cooldown: 12, castTime: 1, manaCost: 15, range: 200, baseDamage: 30,
+  requiredWeapons: [WeaponType.Spear],
   description: 'Бросок копья (дальний, урон от Ловкости). Эффект оружия: отбрасывание.',
 };
 
@@ -373,6 +397,7 @@ export const ABILITY_EARTHQUAKE: AbilityDef = {
   cooldown: 15, castTime: 1.5, manaCost: 15, range: 200, baseDamage: 28,
   statusEffect: 'slow', statusChance: 1.0,
   alsoApplyWeaponEffect: true,
+  requiredWeapons: [WeaponType.Hammer],
   description: 'Прыжок 200px, AoE r80. Замедление 2 сек + сокрушение брони от оружия.',
 };
 
@@ -383,6 +408,7 @@ export const ABILITY_LETHAL_DOSE: AbilityDef = {
   cooldown: 12, castTime: 0.5, manaCost: 15, range: 44, baseDamage: 22,
   statusEffect: 'poison', statusChance: 1.0,
   poisonBurstDamage: 50,
+  requiredWeapons: [WeaponType.Dagger],
   description: 'Яд 10/сек. Если 5 стаков → мгновенный урон 50.',
 };
 
@@ -392,6 +418,7 @@ export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
   nameRu: 'Cleansing Strike', damageType: 'melee',
   cooldown: 12, castTime: 0.5, manaCost: 15, range: 36, baseDamage: 18,
   cleanseCount: 1, debuffImmunityDuration: 2,
+  requiredWeapons: [WeaponType.Fists],
   description: 'Урон + снимает 1 случайный дебафф + 2 сек иммунитет к новым дебаффам.',
 };
 
@@ -404,6 +431,7 @@ export const ABILITY_TRAP: AbilityDef = {
   cooldown: 15, castTime: 1.5, manaCost: 15, range: 60, baseDamage: 0,
   isAoe: true, aoeRadius: 60,
   alsoApplyWeaponEffect: true, weaponEffectChanceMult: 2,
+  requiredWeapons: [WeaponType.ShortBow],
   description: 'Ставит ловушку (4 сек). При наступлении: −80% скорость (5 сек), r60. Эффект оружия: уязвимость (×2 шанс = 40%).',
 };
 
@@ -414,6 +442,7 @@ export const ABILITY_POWER_SHOT: AbilityDef = {
   effectType: 'reset_cooldown', resetCooldownChance: 0.2,
   ignoreArmor: true,
   cooldown: 15, castTime: 2, manaCost: 15, range: 320, baseDamage: 24,
+  requiredWeapons: [WeaponType.LongBow],
   description: 'Полностью игнорирует броню + 20% сброс КД.',
 };
 
@@ -423,6 +452,7 @@ export const ABILITY_SUPPORT_BOLT: AbilityDef = {
   nameRu: 'Adrenaline Bolt', damageType: 'ranged',
   cooldown: 15, castTime: 1, manaCost: 15, range: 200, baseDamage: 0,
   isAoe: true, aoeRadius: 200,
+  requiredWeapons: [WeaponType.Crossbow],
   description: 'Ускорение КД умений от Ловкости всех союзников в r200 на 20% (6 сек).',
 };
 
