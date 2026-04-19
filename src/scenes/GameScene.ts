@@ -2337,6 +2337,10 @@ export class GameScene extends Phaser.Scene {
     if (!this.playerBody || this.playerBody.isDead) return;
     // Игрок внутри безопасной зоны — мобы не могут в него попасть.
     if (this.isInSafeZone(this.playerBody.x, this.playerBody.y)) return;
+    // Жёсткая проверка дальности — не бьём из-за карты.
+    const weapon = WEAPONS[creature.definition.weapon];
+    const distToPlayer = distance(creature.x, creature.y, this.playerBody.x, this.playerBody.y);
+    if (distToPlayer > weapon.range * 1.1) return;
     this.interruptGathering(); // Сбор прерывается при атаке
 
     const cdt = creature.definition.damageType;
@@ -2394,6 +2398,10 @@ export class GameScene extends Phaser.Scene {
   private creatureCastSpell(creature: Creature, spell: AbilityDef) {
     if (!this.playerBody || this.playerBody.isDead) return;
     if (this.isInSafeZone(this.playerBody.x, this.playerBody.y)) return;
+    // Жёсткая проверка дальности заклинания.
+    const distToPlayer = distance(creature.x, creature.y, this.playerBody.x, this.playerBody.y);
+    const maxRange = (spell.range && spell.range > 0) ? spell.range * 1.1 : WEAPONS[creature.definition.weapon].range * 1.1;
+    if (distToPlayer > maxRange) return;
 
     // Цвет снаряда по элементу
     const elementColors: Record<string, number> = {
