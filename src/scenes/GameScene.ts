@@ -776,7 +776,9 @@ export class GameScene extends Phaser.Scene {
       inCombat: this.isInCombat,
       aoeCast: this.aoeCasting
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
-        : null,
+        : this.gatheringNode
+          ? { elapsed: 3 - this.gatheringTimer, duration: 3, name: `⛏ ${this.gatheringNode.def.nameRu}` }
+          : null,
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
       creatures: this.creatures.map(c => ({
