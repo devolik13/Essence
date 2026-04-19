@@ -781,37 +781,49 @@ export class GameScene extends Phaser.Scene {
     const zone = this.currentZone;
     const wt = zone.widthTiles;
     const ht = zone.heightTiles;
-
-    // Фоновые тайлы (with biome tints)
     const biomes = zone.biomes;
+
+    // Build tile data: 1 = grass, 2 = stone (safe-zone floor).
+    // Using a single Tilemap replaces 86400+ individual Image objects on the
+    // village map with one GPU-batched TilemapLayer.
+    const data: number[][] = [];
     for (let ty = 0; ty < ht; ty++) {
-      for (let tx = 0; tx < wt; tx++) {
-        const px = tx * TILE_SIZE + 16;
-        const py = ty * TILE_SIZE + 16;
-        const tile = this.add.image(px, py, zone.baseTile);
-        let tint = zone.tint;
-        if (biomes) {
-          for (const b of biomes) {
-            if (b.tint && px >= b.bounds.x1 && px <= b.bounds.x2 && py >= b.bounds.y1 && py <= b.bounds.y2) {
-              tint = b.tint; break;
-            }
-          }
-        }
-        if (tint) tile.setTint(tint);
+      const row: number[] = new Array(wt).fill(1);
+      data.push(row);
+    }
+    const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
+    for (const sb of safeAreas) {
+      const tx1 = Math.max(0, Math.floor(sb.x1 / TILE_SIZE));
+      const ty1 = Math.max(0, Math.floor(sb.y1 / TILE_SIZE));
+      const tx2 = Math.min(wt, Math.ceil(sb.x2 / TILE_SIZE));
+      const ty2 = Math.min(ht, Math.ceil(sb.y2 / TILE_SIZE));
+      for (let ty = ty1; ty < ty2; ty++) {
+        for (let tx = tx1; tx < tx2; tx++) data[ty][tx] = 2;
       }
     }
 
-    // Безопасные зоны (каменные тайлы)
-    const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
-    for (const sb of safeAreas) {
-      const tx1 = Math.floor(sb.x1 / TILE_SIZE);
-      const ty1 = Math.floor(sb.y1 / TILE_SIZE);
-      const tx2 = Math.ceil(sb.x2 / TILE_SIZE);
-      const ty2 = Math.ceil(sb.y2 / TILE_SIZE);
-      for (let ty = ty1; ty < ty2; ty++) {
-        for (let tx = tx1; tx < tx2; tx++) {
-          this.add.image(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 'tile_stone');
-        }
+    const map = this.make.tilemap({ data, tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
+    const tileset = map.addTilesetImage('tileset_world', undefined, TILE_SIZE, TILE_SIZE, 0, 0, 1);
+    const layer = tileset ? map.createLayer(0, tileset, 0, 0) : null;
+    if (layer) {
+      layer.setDepth(-10);
+      // Per-tile biome tints (zone.tint for base, biome.tint for biome regions).
+      // Stone tiles keep default (no tint).
+      if (biomes || zone.tint) {
+        layer.forEachTile(tile => {
+          if (tile.index !== 1) return;
+          const px = tile.pixelX + TILE_SIZE / 2;
+          const py = tile.pixelY + TILE_SIZE / 2;
+          let tint = zone.tint;
+          if (biomes) {
+            for (const b of biomes) {
+              if (b.tint && px >= b.bounds.x1 && px <= b.bounds.x2 && py >= b.bounds.y1 && py <= b.bounds.y2) {
+                tint = b.tint; break;
+              }
+            }
+          }
+          if (tint) tile.tint = tint;
+        });
       }
     }
 

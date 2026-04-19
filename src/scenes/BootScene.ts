@@ -33,6 +33,24 @@ export class BootScene extends Phaser.Scene {
     gfx.generateTexture('tile_stone', 32, 32);
     gfx.clear();
 
+    // ── Тайлсет для карты (grass @ idx 1, stone @ idx 2) ─
+    // Combined 64×32 tileset image for Phaser.Tilemaps
+    gfx.fillStyle(0x2d5a1e, 1);
+    gfx.fillRect(0, 0, 32, 32);
+    gfx.fillStyle(0x3a6b2a, 1);
+    gfx.fillRect(4, 4, 2, 2);
+    gfx.fillRect(14, 8, 2, 2);
+    gfx.fillRect(24, 18, 2, 2);
+    gfx.fillRect(8, 26, 2, 2);
+    gfx.fillRect(20, 28, 2, 2);
+    gfx.fillStyle(0x555566, 1);
+    gfx.fillRect(32, 0, 32, 32);
+    gfx.fillStyle(0x666677, 1);
+    gfx.fillRect(34, 2, 12, 12);
+    gfx.fillRect(50, 16, 12, 12);
+    gfx.generateTexture('tileset_world', 64, 32);
+    gfx.clear();
+
     // ── Камень возрождения ────────────────────────────────
     gfx.fillStyle(0x8888cc, 1);
     gfx.fillRect(4, 4, 24, 24);
