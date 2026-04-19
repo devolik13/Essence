@@ -76,6 +76,12 @@ export class TitleScene extends Phaser.Scene {
     this.addButton(cx, 420, t('title.load'), () => {
       this.showLoad();
     }, this.menuContainer, noChars);
+
+    // Test Map button (Tiled integration)
+    this.addButton(cx, 480, 'Test Map', () => {
+      this.scene.start('TestMapScene');
+      this.scene.stop();
+    }, this.menuContainer, false, 180, 36);
   }
 
   // ── Load View ─────────────────────────────────────────
