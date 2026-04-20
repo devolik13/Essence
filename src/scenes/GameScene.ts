@@ -264,6 +264,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Текущая зона */
   private currentZone: ZoneConfig = ALL_ZONES['village'];
+  private mapLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -848,7 +849,33 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Safe zones — stone floor on top
+    // Water rivers — tile-based, deterministic per zone. Fire zone skipped
+    // (ash biome, no water). Elemental zones & village get a meandering river.
+    if (zone.id !== 'fire') {
+      const WATER = 5;
+      const rng = new Phaser.Math.RandomDataGenerator([zone.id, 'river']);
+      const zw = wt * TILE_SIZE;
+      const zh = ht * TILE_SIZE;
+      const startX = rng.between(100, 400);
+      const endX = zw - rng.between(100, 400);
+      const y0 = rng.between(zh * 0.2, zh * 0.4);
+      const halfSeed = rng.frac() * 6;
+      for (let x = startX; x < endX; x += 4) {
+        const t = (x - startX) / (endX - startX);
+        const baseY = y0 + t * (zh * 0.4);
+        const wave = Math.sin(x * 0.008 + halfSeed) * 60 + Math.sin(x * 0.02) * 20;
+        const riverWidth = 14 + Math.sin(x * 0.005) * 6;
+        const topY = baseY + wave - riverWidth / 2;
+        const botY = topY + riverWidth;
+        const tx = Math.floor(x / TILE_SIZE);
+        const ty1 = Math.max(0, Math.floor(topY / TILE_SIZE));
+        const ty2 = Math.min(ht - 1, Math.ceil(botY / TILE_SIZE));
+        if (tx < 0 || tx >= wt) continue;
+        for (let ty = ty1; ty <= ty2; ty++) data[ty][tx] = WATER;
+      }
+    }
+
+    // Safe zones — stone floor on top (always wins)
     const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
     for (const sb of safeAreas) {
       const tx1 = Math.max(0, Math.floor(sb.x1 / TILE_SIZE));
@@ -864,6 +891,7 @@ export class GameScene extends Phaser.Scene {
     const tileset = map.addTilesetImage('tileset_world', undefined, TILE_SIZE, TILE_SIZE, 0, 0, 1);
     const layer = tileset ? map.createLayer(0, tileset, 0, 0) : null;
     if (layer) layer.setDepth(-10);
+    this.mapLayer = layer;
 
     // Камни возрождения
     const respawnPoints = zone.safeZones
@@ -948,23 +976,11 @@ export class GameScene extends Phaser.Scene {
       drawRoad(sz[0].respawnPoint.x, sz[0].respawnPoint.y, sz[1].respawnPoint.x, sz[1].respawnPoint.y, 24);
     }
 
-    // ── Река (извилистая линия, разная для каждой зоны) ───
-    const gfxRiver = this.add.graphics().setDepth(0).setAlpha(0.5);
-    const riverColor = zoneId === 'water' ? 0x3366aa : zoneId === 'fire' ? 0xaa4400 : 0x4488aa;
-    gfxRiver.fillStyle(riverColor, 1);
-    // Река идёт примерно по диагонали зоны
-    const riverStartX = rng.between(100, 400);
-    const riverEndX = zw - rng.between(100, 400);
-    const riverY0 = rng.between(zh * 0.2, zh * 0.4);
-    for (let x = riverStartX; x < riverEndX; x += 4) {
-      const t = (x - riverStartX) / (riverEndX - riverStartX);
-      const baseY = riverY0 + t * (zh * 0.4);
-      const wave = Math.sin(x * 0.008 + rng.frac() * 6) * 60 + Math.sin(x * 0.02) * 20;
-      const riverWidth = 14 + Math.sin(x * 0.005) * 6;
-      if (!isInSafe(x, baseY + wave)) {
-        gfxRiver.fillRect(x, baseY + wave - riverWidth / 2, 4, riverWidth);
-      }
-    }
+    // Реки теперь в buildMap() (тайлами water). Декорации пропускают water-тайлы.
+    const isOnWater = (x: number, y: number): boolean => {
+      const tile = this.mapLayer?.getTileAtWorldXY(x, y);
+      return tile?.index === 5;
+    };
 
     // ── Деревья (масштабируем по площади) ─────────────────
     const areaScale = (zw * zh) / (3840 * 3200);
@@ -972,7 +988,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < treeCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
-      if (isInSafe(x, y)) continue;
+      if (isInSafe(x, y) || isOnWater(x, y)) continue;
       // Sparse trees in cave biome (underground — mostly bare rock).
       if (this.getBiomeId(x, y) === 'cave' && rng.frac() > 0.15) continue;
       const tree = this.add.image(x, y, 'deco_tree').setDepth(1);
@@ -987,7 +1003,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < rockCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
-      if (isInSafe(x, y)) continue;
+      if (isInSafe(x, y) || isOnWater(x, y)) continue;
       const rock = this.add.image(x, y, 'deco_rock').setDepth(1);
       rock.setScale(0.6 + rng.frac() * 1.0);
       rock.setAlpha(0.5 + rng.frac() * 0.3);
@@ -1000,7 +1016,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < bushCount; i++) {
       const x = rng.between(40, zw - 40);
       const y = rng.between(40, zh - 40);
-      if (isInSafe(x, y)) continue;
+      if (isInSafe(x, y) || isOnWater(x, y)) continue;
       if (this.getBiomeId(x, y) === 'cave' && rng.frac() > 0.1) continue;
       const bush = this.add.image(x, y, 'deco_bush').setDepth(1);
       bush.setScale(0.5 + rng.frac() * 0.8);
