@@ -893,6 +893,24 @@ export class GameScene extends Phaser.Scene {
     if (layer) layer.setDepth(-10);
     this.mapLayer = layer;
 
+    // Emit minimap terrain colors for UIScene
+    const TILE_COLORS: Record<number, number> = {
+      1: 0x4a7a3a, 2: 0x888888, 3: 0x8b6b3a, 4: 0xc8b870,
+      5: 0x3366aa, 6: 0x5a3020, 7: 0x2a5530, 8: 0x3a2a1a,
+      9: 0xddddee, 10: 0x7a6a50,
+    };
+    const mmW = Math.min(wt, 180);
+    const mmH = Math.min(ht, 120);
+    const mmColors: number[] = new Array(mmW * mmH);
+    for (let my = 0; my < mmH; my++) {
+      const ty = Math.floor(my * ht / mmH);
+      for (let mx = 0; mx < mmW; mx++) {
+        const tx = Math.floor(mx * wt / mmW);
+        mmColors[my * mmW + mx] = TILE_COLORS[data[ty][tx]] ?? 0x4a7a3a;
+      }
+    }
+    this.events.emit('minimap-terrain', { w: mmW, h: mmH, colors: mmColors, mapW: wt * TILE_SIZE, mapH: ht * TILE_SIZE });
+
     // Камни возрождения
     const respawnPoints = zone.safeZones
       ? zone.safeZones.map(sz => sz.respawnPoint)

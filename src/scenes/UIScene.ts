@@ -187,6 +187,9 @@ export class UIScene extends Phaser.Scene {
   // ── Mini-map graphics ─────────────────────────────────
   private minimapBorder!: Phaser.GameObjects.Rectangle;
   private minimapGfx!:    Phaser.GameObjects.Graphics;
+  private minimapTerrainImg: Phaser.GameObjects.Image | null = null;
+  private minimapMapW: number = MAP_WIDTH;
+  private minimapMapH: number = MAP_HEIGHT;
 
   constructor() { super({ key: 'UIScene' }); }
 
@@ -384,6 +387,11 @@ export class UIScene extends Phaser.Scene {
     // ── Events ────────────────────────────────────────────
     const gs = this.scene.get('GameScene');
     gs.events.on('update-ui', (data: UIData) => this.updateUI(data));
+    gs.events.on('minimap-terrain', (t: { w: number; h: number; colors: number[]; mapW: number; mapH: number }) => {
+      this.minimapMapW = t.mapW;
+      this.minimapMapH = t.mapH;
+      this.buildMinimapTexture(t);
+    });
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
@@ -854,6 +862,27 @@ export class UIScene extends Phaser.Scene {
 
   // ── Mini-map renderer ─────────────────────────────────
 
+  private buildMinimapTexture(t: { w: number; h: number; colors: number[] }) {
+    if (this.minimapTerrainImg) this.minimapTerrainImg.destroy();
+    const canvas = document.createElement('canvas');
+    canvas.width = t.w;
+    canvas.height = t.h;
+    const ctx = canvas.getContext('2d')!;
+    const imgData = ctx.createImageData(t.w, t.h);
+    for (let i = 0; i < t.colors.length; i++) {
+      const c = t.colors[i];
+      imgData.data[i * 4]     = (c >> 16) & 0xff;
+      imgData.data[i * 4 + 1] = (c >> 8) & 0xff;
+      imgData.data[i * 4 + 2] = c & 0xff;
+      imgData.data[i * 4 + 3] = 230;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    const key = '__minimap_terrain__';
+    if (this.textures.exists(key)) this.textures.remove(key);
+    this.textures.addCanvas(key, canvas);
+    this.minimapTerrainImg = this.add.image(0, 0, key).setOrigin(0).setScrollFactor(0).setDepth(1009);
+  }
+
   private drawMinimap(data: UIData) {
     const s = this.panelStates.minimap;
     this.panelHeaders['minimap'].setPosition(s.x, s.y);
@@ -864,28 +893,22 @@ export class UIScene extends Phaser.Scene {
     this.minimapBorder.setPosition(s.x, mapTop).setSize(s.w, s.h).setVisible(!collapsed);
     this.minimapGfx.clear();
 
+    if (this.minimapTerrainImg) {
+      this.minimapTerrainImg.setVisible(!collapsed);
+      if (!collapsed) {
+        this.minimapTerrainImg.setPosition(s.x, mapTop).setDisplaySize(s.w, s.h);
+      }
+    }
+
     if (!collapsed) {
-      const sx = s.w / MAP_WIDTH;
-      const sy = s.h / MAP_HEIGHT;
       const ml = s.x;
       const mt = mapTop;
       const g = this.minimapGfx;
 
-      // Background
-      g.fillStyle(THEME.ink1, 0.88);
-      g.fillRect(ml, mt, s.w, s.h);
-
-      // Safe zone
-      g.fillStyle(0x2244aa, 0.22);
-      g.fillRect(ml + 224*sx, mt + 256*sy, 256*sx, 192*sy);
-
-      // Zone tints
-      g.fillStyle(0x664422, 0.18);
-      g.fillRect(ml + 1200*sx, mt + 210*sy, 320*sx, 210*sy);
-      g.fillStyle(0x446633, 0.18);
-      g.fillRect(ml + 1110*sx, mt + 500*sy, 270*sx, 260*sy);
-      g.fillStyle(0x9944aa, 0.18);
-      g.fillRect(ml + 410*sx, mt + 770*sy, 270*sx, 170*sy);
+      const mapW = this.minimapMapW;
+      const mapH = this.minimapMapH;
+      const sx = s.w / mapW;
+      const sy = s.h / mapH;
 
       // Creatures
       for (const c of data.creatures) {
