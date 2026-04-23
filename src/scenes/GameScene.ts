@@ -1066,7 +1066,46 @@ export class GameScene extends Phaser.Scene {
     this.spawnVillageDecorations(rng, isOnWater);
 
     // ── Тестовая витрина: наши vs Kenney (под safe zone Eshworth) ─
-    if (this.currentZone.id === 'village') this.spawnComparisonShowcase();
+    if (this.currentZone.id === 'village') {
+      this.spawnKenneyGrassAroundEshworth();
+      this.spawnComparisonShowcase();
+    }
+  }
+
+  /**
+   * Стелит Kenney-траву вокруг деревни Eshworth поверх существующего
+   * terrain layer'а. Пропускает safe zones (камень) и воду.
+   * ТЕСТ — удалить или оставить после выбора стиля.
+   */
+  private spawnKenneyGrassAroundEshworth() {
+    if (!this.textures.exists('kenney')) return;
+    const cx = 3200;
+    const cy = 2800;
+    const radius = 900;
+    const step = 32; // 16×2 скейл
+    const grassIdx = 0;
+
+    const safeZones = this.currentZone.safeZones ?? [];
+    for (let y = cy - radius; y <= cy + radius; y += step) {
+      for (let x = cx - radius; x <= cx + radius; x += step) {
+        // пропуск safe zone (там каменный пол)
+        const inSafe = safeZones.some(sz =>
+          x >= sz.x1 - step && x <= sz.x2 + step &&
+          y >= sz.y1 - step && y <= sz.y2 + step);
+        if (inSafe) continue;
+        // пропуск воды
+        const tile = this.mapLayer?.getTileAtWorldXY(x, y);
+        if (tile?.index === 5) continue;
+        // пропуск пещеры (и других биомов, где не лес)
+        const biome = this.getBiomeId(x, y);
+        if (biome === 'cave' || biome === 'trade_road') continue;
+
+        this.add.image(x, y, 'kenney', grassIdx)
+          .setScale(2)
+          .setOrigin(0.5, 0.5)
+          .setDepth(-5);
+      }
+    }
   }
 
   /**
