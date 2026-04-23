@@ -1065,130 +1065,93 @@ export class GameScene extends Phaser.Scene {
     // ── Деревенские декорации: домики, колодец, забор, знаки ─
     this.spawnVillageDecorations(rng, isOnWater);
 
-    // ── Тестовая витрина: наши vs Kenney (под safe zone Eshworth) ─
+    // ── CraftPix витрина возле Eshworth ──────────────────
     if (this.currentZone.id === 'village') {
-      this.spawnKenneyGrassAroundEshworth();
-      this.spawnComparisonShowcase();
+      this.spawnCraftPixShowcase();
     }
   }
 
   /**
-   * Стелит Kenney-траву вокруг деревни Eshworth поверх существующего
-   * terrain layer'а. Пропускает safe zones (камень) и воду.
-   * ТЕСТ — удалить или оставить после выбора стиля.
+   * Витрина всех CraftPix-пропов в полном размере рядом с деревней Eshworth.
+   * Каждый объект подписан именем — смотришь размер и стиль "как есть".
+   * Удалить когда выберем окончательный набор.
    */
-  private spawnKenneyGrassAroundEshworth() {
-    if (!this.textures.exists('kenney')) return;
-    const cx = 3200;
-    const cy = 2800;
-    const radius = 900;
-    const step = 32; // 16×2 скейл
-    const grassIdx = 0;
+  private spawnCraftPixShowcase() {
+    const props: Array<[string, string]> = [
+      ['cp_tree_lg', 'Tree Large'],
+      ['cp_tree_md', 'Tree Medium'],
+      ['cp_tree_sm', 'Tree Small'],
+      ['cp_stump_short', 'Stump Short'],
+      ['cp_stump_tall', 'Stump Tall'],
+      ['cp_bush_lg', 'Bush Large'],
+      ['cp_bush_md', 'Bush Medium'],
+      ['cp_bush_sm', 'Bush Small'],
+      ['cp_rock_01', 'Rock 1'],
+      ['cp_rock_02', 'Rock 2'],
+      ['cp_rock_03', 'Rock 3'],
+      ['cp_rock_04', 'Rock 4'],
+      ['cp_rock_05', 'Rock 5'],
+      ['cp_house', 'House'],
+      ['cp_castle_round', 'Castle Round'],
+      ['cp_castle_square', 'Castle Square'],
+      ['cp_mage_tower', 'Mage Tower'],
+      ['cp_watch_short', 'Watchtower S'],
+      ['cp_watch_tall', 'Watchtower T'],
+      ['cp_windmill', 'Windmill'],
+      ['cp_well', 'Well'],
+      ['cp_tent', 'Tent'],
+      ['cp_campfire', 'Campfire'],
+      ['cp_chest', 'Chest'],
+      ['cp_barrel', 'Barrel'],
+      ['cp_cart', 'Cart'],
+      ['cp_flag', 'Flag'],
+      ['cp_banner_blue', 'Banner Blue'],
+      ['cp_banner_red', 'Banner Red'],
+      ['cp_fence_h', 'Fence H'],
+      ['cp_fence_v', 'Fence V'],
+      ['cp_bridge_h', 'Bridge H'],
+      ['cp_bridge_v', 'Bridge V'],
+    ];
 
-    const safeZones = this.currentZone.safeZones ?? [];
-    for (let y = cy - radius; y <= cy + radius; y += step) {
-      for (let x = cx - radius; x <= cx + radius; x += step) {
-        // пропуск safe zone (там каменный пол)
-        const inSafe = safeZones.some(sz =>
-          x >= sz.x1 - step && x <= sz.x2 + step &&
-          y >= sz.y1 - step && y <= sz.y2 + step);
-        if (inSafe) continue;
-        // пропуск воды
-        const tile = this.mapLayer?.getTileAtWorldXY(x, y);
-        if (tile?.index === 5) continue;
-        // пропуск пещеры (и других биомов, где не лес)
-        const biome = this.getBiomeId(x, y);
-        if (biome === 'cave' || biome === 'trade_road') continue;
+    const baseX = 4400;
+    const baseY = 2400;
+    const gapX = 320;
+    const gapY = 400;
+    const perRow = 6;
 
-        this.add.image(x, y, 'kenney', grassIdx)
-          .setScale(2)
-          .setOrigin(0.5, 0.5)
-          .setDepth(-5);
-      }
-    }
-  }
+    this.add.text(baseX, baseY - 60, '── CRAFTPIX SHOWCASE (scale 1.0) ──', {
+      fontSize: '16px', color: '#ffdd55', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(9999);
 
-  /**
-   * Тестовая витрина для сравнения наших процедурных декораций vs Kenney.
-   * Размещается южнее safe zone Eshworth (~3200, 3200).
-   * УДАЛИТЬ после выбора стиля.
-   */
-  private spawnComparisonShowcase() {
-    if (!this.textures.exists('kenney')) return;
-    const baseX = 3200;
-    const baseY = 3150;
-    const gap = 50;
-    const labelStyle = { fontSize: '10px', color: '#ffffff', stroke: '#000000', strokeThickness: 2 } as Phaser.Types.GameObjects.Text.TextStyle;
+    props.forEach(([key, label], i) => {
+      if (!this.textures.exists(key)) return;
+      const col = i % perRow;
+      const row = Math.floor(i / perRow);
+      const x = baseX + (col - (perRow - 1) / 2) * gapX;
+      const y = baseY + row * gapY;
 
-    // ── Заголовки ──
-    this.add.text(baseX - 120, baseY - 60, '▼ НАШИ (процедурные)', labelStyle).setOrigin(0.5).setDepth(9999);
-    this.add.text(baseX + 120, baseY - 60, '▼ KENNEY (PNG)', labelStyle).setOrigin(0.5).setDepth(9999);
+      this.add.image(x, y, key)
+        .setOrigin(0.5, 0.9)
+        .setDepth(y);
+      this.add.text(x, y + 20, label, {
+        fontSize: '11px', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5, 0).setDepth(9999);
+    });
 
-    // ── Наши деревья ──
-    for (let i = 0; i < 4; i++) {
-      const x = baseX - 180 + i * gap;
-      this.add.image(x, baseY, 'deco_tree').setDepth(baseY).setScale(1);
-    }
-    // ── Kenney деревья (ряд 0: индексы 1-8 выглядят как деревья) ──
-    const kenneyTreeIndices = [1, 2, 3, 4, 5, 6, 7, 8];
-    for (let i = 0; i < kenneyTreeIndices.length; i++) {
-      const x = baseX + 20 + i * 30;
-      this.add.image(x, baseY, 'kenney', kenneyTreeIndices[i])
-        .setDepth(baseY).setScale(2).setOrigin(0.5, 0.9);
-    }
-
-    // ── Подписи с индексами ──
-    for (let i = 0; i < kenneyTreeIndices.length; i++) {
-      const x = baseX + 20 + i * 30;
-      this.add.text(x, baseY + 10, `#${kenneyTreeIndices[i]}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
-        .setOrigin(0.5).setDepth(9999);
-    }
-
-    // ── Наши кусты ──
-    for (let i = 0; i < 4; i++) {
-      const x = baseX - 180 + i * gap;
-      this.add.image(x, baseY + 60, 'deco_bush').setDepth(baseY + 60).setScale(1.2);
-    }
-
-    // ── Второй ряд Kenney (ряд 1: индексы 12-23) ──
-    const kenneyRow1 = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-    for (let i = 0; i < kenneyRow1.length; i++) {
-      const x = baseX + 5 + i * 22;
-      this.add.image(x, baseY + 60, 'kenney', kenneyRow1[i])
-        .setDepth(baseY + 60).setScale(2).setOrigin(0.5, 0.9);
-      this.add.text(x, baseY + 72, `#${kenneyRow1[i]}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
-        .setOrigin(0.5).setDepth(9999);
-    }
-
-    // ── Наши камни ──
-    for (let i = 0; i < 4; i++) {
-      const x = baseX - 180 + i * gap;
-      this.add.image(x, baseY + 120, 'deco_rock').setDepth(baseY + 120).setScale(1.2);
-    }
-
-    // ── Третий ряд Kenney (ряд 2: индексы 24-35) ──
-    const kenneyRow2 = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35];
-    for (let i = 0; i < kenneyRow2.length; i++) {
-      const x = baseX + 5 + i * 22;
-      this.add.image(x, baseY + 120, 'kenney', kenneyRow2[i])
-        .setDepth(baseY + 120).setScale(2).setOrigin(0.5, 0.9);
-      this.add.text(x, baseY + 132, `#${kenneyRow2[i]}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
-        .setOrigin(0.5).setDepth(9999);
-    }
-
-    // ── Ряды 3-10 Kenney (ещё 8 рядов, каждый под предыдущим) ──
-    for (let row = 3; row <= 10; row++) {
-      const y = baseY + 120 + (row - 2) * 55;
-      this.add.text(baseX - 180, y, `Ряд ${row}`, labelStyle).setOrigin(0, 0.5).setDepth(9999);
-      for (let col = 0; col < 12; col++) {
-        const idx = row * 12 + col;
-        if (idx > 131) break;
-        const x = baseX + 5 + col * 22;
-        this.add.image(x, y, 'kenney', idx)
-          .setDepth(y).setScale(2).setOrigin(0.5, 0.9);
-        this.add.text(x, y + 12, `#${idx}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
-          .setOrigin(0.5).setDepth(9999);
-      }
+    // Подложка из ground-тайлов (первые 6 вариаций)
+    const groundKeys = ['cp_ground_01', 'cp_ground_02', 'cp_ground_03',
+                        'cp_ground_04', 'cp_ground_05', 'cp_ground_06'];
+    for (let i = 0; i < groundKeys.length; i++) {
+      if (!this.textures.exists(groundKeys[i])) continue;
+      const x = baseX - 600 + i * 280;
+      const y = baseY + 2400;
+      this.add.image(x, y, groundKeys[i]).setDepth(-5);
+      this.add.text(x, y + 20, `Ground ${i + 1}`, {
+        fontSize: '11px', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5, 0).setDepth(9999);
     }
   }
 

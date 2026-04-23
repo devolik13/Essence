@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
+import { CP_ASSETS } from '../data/craftpixAssets';
 
 /**
  * BootScene — загрузка ассетов и переход к игре.
@@ -14,13 +15,10 @@ export class BootScene extends Phaser.Scene {
     // Тайлсет мира — 10 терреновых тайлов 32×32 (5×2 грид, 160×64)
     this.load.image('tileset_world', 'assets/tileset_world.png');
 
-    // Kenney тайлшит — 12×11, 16×16 px, 1px spacing
-    this.load.spritesheet('kenney', 'assets/kenney_tilesheet.png', {
-      frameWidth: 16,
-      frameHeight: 16,
-      margin: 0,
-      spacing: 1,
-    });
+    // CraftPix "Top-Down Simple Summer" — 89 PNG (56 земли + 33 пропа)
+    for (const [key, path] of CP_ASSETS) {
+      this.load.image(key, path);
+    }
 
     const gfx = this.add.graphics();
 
