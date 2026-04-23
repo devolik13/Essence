@@ -1064,6 +1064,93 @@ export class GameScene extends Phaser.Scene {
 
     // ── Деревенские декорации: домики, колодец, забор, знаки ─
     this.spawnVillageDecorations(rng, isOnWater);
+
+    // ── Тестовая витрина: наши vs Kenney (под safe zone Eshworth) ─
+    if (this.currentZone.id === 'village') this.spawnComparisonShowcase();
+  }
+
+  /**
+   * Тестовая витрина для сравнения наших процедурных декораций vs Kenney.
+   * Размещается южнее safe zone Eshworth (~3200, 3200).
+   * УДАЛИТЬ после выбора стиля.
+   */
+  private spawnComparisonShowcase() {
+    if (!this.textures.exists('kenney')) return;
+    const baseX = 3200;
+    const baseY = 3150;
+    const gap = 50;
+    const labelStyle = { fontSize: '10px', color: '#ffffff', stroke: '#000000', strokeThickness: 2 } as Phaser.Types.GameObjects.Text.TextStyle;
+
+    // ── Заголовки ──
+    this.add.text(baseX - 120, baseY - 60, '▼ НАШИ (процедурные)', labelStyle).setOrigin(0.5).setDepth(9999);
+    this.add.text(baseX + 120, baseY - 60, '▼ KENNEY (PNG)', labelStyle).setOrigin(0.5).setDepth(9999);
+
+    // ── Наши деревья ──
+    for (let i = 0; i < 4; i++) {
+      const x = baseX - 180 + i * gap;
+      this.add.image(x, baseY, 'deco_tree').setDepth(baseY).setScale(1);
+    }
+    // ── Kenney деревья (ряд 0: индексы 1-8 выглядят как деревья) ──
+    const kenneyTreeIndices = [1, 2, 3, 4, 5, 6, 7, 8];
+    for (let i = 0; i < kenneyTreeIndices.length; i++) {
+      const x = baseX + 20 + i * 30;
+      this.add.image(x, baseY, 'kenney', kenneyTreeIndices[i])
+        .setDepth(baseY).setScale(2).setOrigin(0.5, 0.9);
+    }
+
+    // ── Подписи с индексами ──
+    for (let i = 0; i < kenneyTreeIndices.length; i++) {
+      const x = baseX + 20 + i * 30;
+      this.add.text(x, baseY + 10, `#${kenneyTreeIndices[i]}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
+        .setOrigin(0.5).setDepth(9999);
+    }
+
+    // ── Наши кусты ──
+    for (let i = 0; i < 4; i++) {
+      const x = baseX - 180 + i * gap;
+      this.add.image(x, baseY + 60, 'deco_bush').setDepth(baseY + 60).setScale(1.2);
+    }
+
+    // ── Второй ряд Kenney (ряд 1: индексы 12-23) ──
+    const kenneyRow1 = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+    for (let i = 0; i < kenneyRow1.length; i++) {
+      const x = baseX + 5 + i * 22;
+      this.add.image(x, baseY + 60, 'kenney', kenneyRow1[i])
+        .setDepth(baseY + 60).setScale(2).setOrigin(0.5, 0.9);
+      this.add.text(x, baseY + 72, `#${kenneyRow1[i]}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
+        .setOrigin(0.5).setDepth(9999);
+    }
+
+    // ── Наши камни ──
+    for (let i = 0; i < 4; i++) {
+      const x = baseX - 180 + i * gap;
+      this.add.image(x, baseY + 120, 'deco_rock').setDepth(baseY + 120).setScale(1.2);
+    }
+
+    // ── Третий ряд Kenney (ряд 2: индексы 24-35) ──
+    const kenneyRow2 = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35];
+    for (let i = 0; i < kenneyRow2.length; i++) {
+      const x = baseX + 5 + i * 22;
+      this.add.image(x, baseY + 120, 'kenney', kenneyRow2[i])
+        .setDepth(baseY + 120).setScale(2).setOrigin(0.5, 0.9);
+      this.add.text(x, baseY + 132, `#${kenneyRow2[i]}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
+        .setOrigin(0.5).setDepth(9999);
+    }
+
+    // ── Ряды 3-10 Kenney (ещё 8 рядов, каждый под предыдущим) ──
+    for (let row = 3; row <= 10; row++) {
+      const y = baseY + 120 + (row - 2) * 55;
+      this.add.text(baseX - 180, y, `Ряд ${row}`, labelStyle).setOrigin(0, 0.5).setDepth(9999);
+      for (let col = 0; col < 12; col++) {
+        const idx = row * 12 + col;
+        if (idx > 131) break;
+        const x = baseX + 5 + col * 22;
+        this.add.image(x, y, 'kenney', idx)
+          .setDepth(y).setScale(2).setOrigin(0.5, 0.9);
+        this.add.text(x, y + 12, `#${idx}`, { fontSize: '7px', color: '#ffff00' } as Phaser.Types.GameObjects.Text.TextStyle)
+          .setOrigin(0.5).setDepth(9999);
+      }
+    }
   }
 
   /**

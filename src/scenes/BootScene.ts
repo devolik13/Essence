@@ -14,6 +14,14 @@ export class BootScene extends Phaser.Scene {
     // Тайлсет мира — 10 терреновых тайлов 32×32 (5×2 грид, 160×64)
     this.load.image('tileset_world', 'assets/tileset_world.png');
 
+    // Kenney тайлшит — 12×11, 16×16 px, 1px spacing
+    this.load.spritesheet('kenney', 'assets/kenney_tilesheet.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+      margin: 0,
+      spacing: 1,
+    });
+
     const gfx = this.add.graphics();
 
     // ── Тайл травы 32x32 ────────────────────────────────
