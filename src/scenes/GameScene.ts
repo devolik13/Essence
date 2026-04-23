@@ -1067,8 +1067,46 @@ export class GameScene extends Phaser.Scene {
 
     // ── CraftPix витрина возле Eshworth ──────────────────
     if (this.currentZone.id === 'village') {
+      this.spawnCraftPixGrassCarpet();
       this.spawnCraftPixShowcase();
       this.spawnCraftPixRoads();
+    }
+  }
+
+  /**
+   * Застилает всю зону тайлами Ground 43 (чистая трава CraftPix).
+   * Депс -6: выше terrain (-10), ниже дорог (-3) и декораций (1+).
+   * Пропускает safe zones (каменный пол) и воду.
+   */
+  private spawnCraftPixGrassCarpet() {
+    if (!this.textures.exists('cp_ground_43')) return;
+    const zone = this.currentZone;
+    const tileSize = 256 * 0.3; // ~77px
+    const step = tileSize * 0.95;
+    const safeZones = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
+
+    // Радиус 1500px вокруг центра Eshworth
+    const cx = 3200;
+    const cy = 2800;
+    const radius = 1500;
+    const x0 = cx - radius, x1 = cx + radius;
+    const y0 = cy - radius, y1 = cy + radius;
+
+    for (let y = y0; y <= y1; y += step) {
+      for (let x = x0; x <= x1; x += step) {
+        // пропуск safe zone (каменный пол)
+        const inSafe = safeZones.some(sz =>
+          x >= sz.x1 - step/2 && x <= sz.x2 + step/2 &&
+          y >= sz.y1 - step/2 && y <= sz.y2 + step/2);
+        if (inSafe) continue;
+        // пропуск воды
+        const tile = this.mapLayer?.getTileAtWorldXY(x, y);
+        if (tile?.index === 5) continue;
+        // пропуск пещеры
+        const biome = this.getBiomeId(x, y);
+        if (biome === 'cave') continue;
+        this.add.image(x, y, 'cp_ground_43').setScale(0.3).setDepth(-6);
+      }
     }
   }
 
