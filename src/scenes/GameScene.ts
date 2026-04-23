@@ -885,17 +885,8 @@ export class GameScene extends Phaser.Scene {
 
     // Реки убраны — пока без воды.
 
-    // Safe zones — stone floor on top (always wins)
-    const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
-    for (const sb of safeAreas) {
-      const tx1 = Math.max(0, Math.floor(sb.x1 / TILE_SIZE));
-      const ty1 = Math.max(0, Math.floor(sb.y1 / TILE_SIZE));
-      const tx2 = Math.min(wt, Math.ceil(sb.x2 / TILE_SIZE));
-      const ty2 = Math.min(ht, Math.ceil(sb.y2 / TILE_SIZE));
-      for (let ty = ty1; ty < ty2; ty++) {
-        for (let tx = tx1; tx < tx2; tx++) data[ty][tx] = STONE;
-      }
-    }
+    // Safe zones: поверхность (каменный пол) убрана — визуал только через CraftPix-редактор.
+    // Сама логика safe zone (респавн, мобы не заходят) остаётся через safeBoundsArr.
 
     const map = this.make.tilemap({ data, tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
     const tileset = map.addTilesetImage('tileset_world', undefined, TILE_SIZE, TILE_SIZE, 0, 0, 1);
@@ -1082,8 +1073,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // ── Деревенские декорации: домики, колодец, забор, знаки ─
-    this.spawnVillageDecorations(rng, isOnWater);
+    // ── Деревенские декорации убраны — расставляются вручную через редактор ( ` / F2 )
+    // this.spawnVillageDecorations(rng, isOnWater);
+    void rng; void isOnWater;
 
     // ── CraftPix витрина возле Eshworth ──────────────────
     if (this.currentZone.id === 'village') {
