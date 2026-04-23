@@ -31,6 +31,7 @@ import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
+import { DECO } from '../data/decorations';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
@@ -1058,6 +1059,117 @@ export class GameScene extends Phaser.Scene {
         rock.setScale(0.5 + rng.frac() * 1.4);
         rock.setAlpha(0.55 + rng.frac() * 0.35);
         if (caveTint) rock.setTint(Phaser.Display.Color.IntegerToColor(caveTint).brighten(15).color);
+      }
+    }
+
+    // ── Деревенские декорации: домики, колодец, забор, знаки ─
+    this.spawnVillageDecorations(rng, isOnWater);
+  }
+
+  /**
+   * Расставляет домики/заборы/колодцы вокруг safe zones и знаки у выходов.
+   * Спрайты берутся из атласа 'decorations' (см. src/data/decorations.ts).
+   * Y-spatial sorting: depth = y, чтобы игрок корректно заходил за дома.
+   */
+  private spawnVillageDecorations(
+    rng: Phaser.Math.RandomDataGenerator,
+    isOnWater: (x: number, y: number) => boolean,
+  ) {
+    if (!this.textures.exists('decorations')) return;
+    const zone = this.currentZone;
+    const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
+
+    const place = (x: number, y: number, frame: number, scale = 1, allowWater = false) => {
+      if (!allowWater && isOnWater(x, y)) return null;
+      const img = this.add.image(x, y, 'decorations', frame);
+      img.setOrigin(0.5, 0.9);
+      img.setDepth(y);
+      img.setScale(scale);
+      return img;
+    };
+
+    // Домики вокруг каждой safe zone
+    for (const sz of safeAreas) {
+      const cx = (sz.x1 + sz.x2) / 2;
+      const cy = (sz.y1 + sz.y2) / 2;
+      const w = sz.x2 - sz.x1;
+      const h = sz.y2 - sz.y1;
+      const ringR = Math.min(w, h) * 0.42;
+
+      // 6-8 домиков по кольцу чуть внутри safe zone
+      const houseCount = 6 + rng.between(0, 2);
+      const houseFrames = [DECO.HOUSE_SM, DECO.HOUSE_MD, DECO.HOUSE_LG, DECO.HUT, DECO.SHACK];
+      for (let i = 0; i < houseCount; i++) {
+        const a = (i / houseCount) * Math.PI * 2 + rng.frac() * 0.3;
+        const r = ringR * (0.7 + rng.frac() * 0.4);
+        const x = cx + Math.cos(a) * r;
+        const y = cy + Math.sin(a) * r * 0.7;
+        const frame = houseFrames[rng.between(0, houseFrames.length - 1)];
+        place(x, y, frame, 1.2 + rng.frac() * 0.3);
+      }
+
+      // Колодец в центре
+      place(cx, cy, DECO.WELL, 1.1);
+
+      // Алтарь/святыня рядом
+      place(cx + 80, cy - 30, DECO.SHRINE, 0.9);
+
+      // Амбар с краю
+      place(sz.x2 - 80, sz.y2 - 80, DECO.BARN, 1.2);
+
+      // Фонари вокруг центра
+      for (const [dx, dy] of [[-60, -60], [60, -60], [-60, 60], [60, 60]]) {
+        place(cx + dx, cy + dy, DECO.LANTERN, 0.9);
+      }
+
+      // Забор по периметру safe zone (разрывы у дорог)
+      const fenceStep = 40;
+      const fx1 = sz.x1 + 20, fx2 = sz.x2 - 20;
+      const fy1 = sz.y1 + 20, fy2 = sz.y2 - 20;
+      for (let fx = fx1; fx < fx2; fx += fenceStep) {
+        // пропуск в середине (ворота на дорогу)
+        if (Math.abs(fx - cx) < fenceStep) continue;
+        place(fx, fy1, DECO.FENCE_H, 0.9);
+        place(fx, fy2, DECO.FENCE_H, 0.9);
+      }
+      for (let fy = fy1 + fenceStep; fy < fy2 - fenceStep; fy += fenceStep) {
+        if (Math.abs(fy - cy) < fenceStep) continue;
+        place(fx1, fy, DECO.FENCE_V, 0.9);
+        place(fx2, fy, DECO.FENCE_V, 0.9);
+      }
+    }
+
+    // Знаки возле выходов зоны
+    const zw = zone.widthTiles * TILE_SIZE;
+    const zh = zone.heightTiles * TILE_SIZE;
+    for (const exit of zone.exits) {
+      let ex = zw / 2, ey = zh / 2;
+      if (exit.edge === 'north') { ex = zw / 2; ey = 80; }
+      if (exit.edge === 'south') { ex = zw / 2; ey = zh - 80; }
+      if (exit.edge === 'east')  { ex = zw - 80; ey = zh / 2; }
+      if (exit.edge === 'west')  { ex = 80; ey = zh / 2; }
+      place(ex, ey, DECO.SIGNPOST, 1);
+    }
+
+    // Мосты через реку: тайл water — индекс 5
+    if (!this.mapLayer) return;
+    const riverBridges: { x: number; y: number }[] = [];
+    const wt = zone.widthTiles;
+    const ht = zone.heightTiles;
+    // Ищем пару соседних рядов с водой и ставим мост примерно в 2 местах
+    for (let tries = 0; tries < 8 && riverBridges.length < 2; tries++) {
+      const tx = rng.between(20, wt - 20);
+      for (let ty = 10; ty < ht - 10; ty++) {
+        const tile = this.mapLayer.getTileAt(tx, ty);
+        if (tile?.index === 5) {
+          const wx = (tx + 0.5) * TILE_SIZE;
+          const wy = (ty + 0.5) * TILE_SIZE;
+          // не слишком близко к уже стоящему мосту
+          if (riverBridges.some(b => Phaser.Math.Distance.Between(b.x, b.y, wx, wy) < 400)) break;
+          place(wx, wy, DECO.BRIDGE_H, 1.2, true);
+          riverBridges.push({ x: wx, y: wy });
+          break;
+        }
       }
     }
   }

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
 
 /**
  * BootScene — загрузка ассетов и переход к игре.
@@ -49,6 +50,12 @@ export class BootScene extends Phaser.Scene {
 
     // ── VFX текстуры частиц ──────────────────────────────
     this.genParticleTextures(gfx);
+
+    // ── Атлас декораций ──────────────────────────────────
+    // Чтобы подключить реальный PNG — заменить этот вызов на:
+    //   this.load.spritesheet('decorations', 'assets/decorations.png',
+    //     { frameWidth: DECO_CELL, frameHeight: DECO_CELL });
+    this.generateDecorationAtlas();
 
     gfx.destroy();
   }
@@ -979,5 +986,341 @@ export class BootScene extends Phaser.Scene {
     mkSpell('spell_wolf_attack',  'spell_wolf_attack',  24, 14, false);
 
     this.scene.start('TitleScene');
+  }
+
+  /**
+   * Рисует процедурные плейсхолдеры для атласа декораций.
+   * Сетка DECO_COLS × DECO_ROWS ячеек по DECO_CELL px.
+   * Регистрирует результат как spritesheet с ключом 'decorations'.
+   */
+  private generateDecorationAtlas() {
+    const canvas = document.createElement('canvas');
+    canvas.width = DECO_COLS * DECO_CELL;
+    canvas.height = DECO_ROWS * DECO_CELL;
+    const ctx = canvas.getContext('2d')!;
+
+    const cellAt = (col: number, row: number) => ({
+      ox: col * DECO_CELL,
+      oy: row * DECO_CELL,
+    });
+    const rect = (x: number, y: number, w: number, h: number, color: string) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    };
+    const circ = (cx: number, cy: number, r: number, color: string) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
+    // ── Row 0: деревья ───────────────────────────────────
+    // TREE — дуб
+    let { ox, oy } = cellAt(0, 0);
+    rect(ox + 22, oy + 34, 4, 12, '#4a2e18');
+    circ(ox + 24, oy + 22, 14, '#2d5a1e');
+    circ(ox + 22, oy + 18, 10, '#3a7a2a');
+    circ(ox + 26, oy + 20, 7, '#55aa44');
+    // TREE_PINE — ель
+    ({ ox, oy } = cellAt(1, 0));
+    rect(ox + 22, oy + 38, 4, 10, '#3a2a14');
+    ctx.fillStyle = '#1a4a22';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 8); ctx.lineTo(ox + 8, oy + 22); ctx.lineTo(ox + 40, oy + 22); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 18); ctx.lineTo(ox + 6, oy + 32); ctx.lineTo(ox + 42, oy + 32); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 28); ctx.lineTo(ox + 4, oy + 42); ctx.lineTo(ox + 44, oy + 42); ctx.fill();
+    // TREE_DEAD — сухое дерево
+    ({ ox, oy } = cellAt(2, 0));
+    rect(ox + 22, oy + 14, 4, 34, '#5a4020');
+    rect(ox + 14, oy + 22, 10, 2, '#5a4020');
+    rect(ox + 24, oy + 28, 10, 2, '#5a4020');
+    rect(ox + 18, oy + 16, 2, 6, '#5a4020');
+    rect(ox + 28, oy + 18, 2, 6, '#5a4020');
+    // TREE_SNOW — ель в снегу
+    ({ ox, oy } = cellAt(3, 0));
+    rect(ox + 22, oy + 38, 4, 10, '#3a2a14');
+    ctx.fillStyle = '#2a5a3a';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 8); ctx.lineTo(ox + 8, oy + 24); ctx.lineTo(ox + 40, oy + 24); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 22); ctx.lineTo(ox + 6, oy + 38); ctx.lineTo(ox + 42, oy + 38); ctx.fill();
+    ctx.fillStyle = '#eeeeff';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 8); ctx.lineTo(ox + 14, oy + 18); ctx.lineTo(ox + 34, oy + 18); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 22); ctx.lineTo(ox + 12, oy + 32); ctx.lineTo(ox + 36, oy + 32); ctx.fill();
+    // PALM — пальма
+    ({ ox, oy } = cellAt(4, 0));
+    rect(ox + 22, oy + 20, 4, 28, '#6a4a2a');
+    ctx.fillStyle = '#3a8a3a';
+    for (const a of [-1.2, -0.6, 0, 0.6, 1.2]) {
+      ctx.save(); ctx.translate(ox + 24, oy + 20); ctx.rotate(a);
+      ctx.fillRect(-2, -14, 4, 14); ctx.restore();
+    }
+    // BUSH_BIG — большой куст
+    ({ ox, oy } = cellAt(5, 0));
+    circ(ox + 18, oy + 36, 10, '#2d5a1e');
+    circ(ox + 30, oy + 34, 10, '#2d5a1e');
+    circ(ox + 24, oy + 28, 11, '#3a7a2a');
+    circ(ox + 22, oy + 24, 6, '#55aa44');
+    // STUMP — пень
+    ({ ox, oy } = cellAt(6, 0));
+    rect(ox + 14, oy + 34, 20, 12, '#6a4020');
+    rect(ox + 16, oy + 32, 16, 4, '#8a5a30');
+    rect(ox + 22, oy + 34, 4, 2, '#3a2a10');
+    // LOG — бревно
+    ({ ox, oy } = cellAt(7, 0));
+    rect(ox + 6, oy + 36, 36, 8, '#6a4020');
+    rect(ox + 6, oy + 36, 4, 8, '#3a2a10');
+    rect(ox + 38, oy + 36, 4, 8, '#3a2a10');
+    circ(ox + 8, oy + 40, 2, '#8a5a30');
+    circ(ox + 40, oy + 40, 2, '#8a5a30');
+
+    // ── Row 1: камни ─────────────────────────────────────
+    ({ ox, oy } = cellAt(0, 1));
+    circ(ox + 24, oy + 40, 6, '#666677'); circ(ox + 24, oy + 38, 5, '#888899');
+    ({ ox, oy } = cellAt(1, 1));
+    circ(ox + 24, oy + 38, 10, '#666677'); circ(ox + 24, oy + 36, 8, '#888899');
+    ({ ox, oy } = cellAt(2, 1));
+    circ(ox + 24, oy + 34, 14, '#555566'); circ(ox + 24, oy + 32, 11, '#777788');
+    ({ ox, oy } = cellAt(3, 1));
+    circ(ox + 24, oy + 38, 10, '#555566'); circ(ox + 24, oy + 36, 8, '#3a5a3a');
+    circ(ox + 18, oy + 32, 3, '#55aa44'); circ(ox + 30, oy + 34, 2, '#55aa44');
+    ({ ox, oy } = cellAt(4, 1));
+    circ(ox + 24, oy + 32, 16, '#4a4a55'); circ(ox + 20, oy + 28, 10, '#6a6a77');
+    ({ ox, oy } = cellAt(5, 1));
+    for (const [dx, dy, r] of [[18,40,3],[28,42,4],[22,36,2],[32,38,3],[14,38,2]]) {
+      circ(ox + dx, oy + dy, r, '#888899');
+    }
+    // CRYSTAL
+    ({ ox, oy } = cellAt(6, 1));
+    ctx.fillStyle = '#66ccee';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 14); ctx.lineTo(ox + 14, oy + 30); ctx.lineTo(ox + 24, oy + 44); ctx.lineTo(ox + 34, oy + 30); ctx.fill();
+    ctx.fillStyle = '#aaddff';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 14); ctx.lineTo(ox + 24, oy + 44); ctx.lineTo(ox + 34, oy + 30); ctx.fill();
+    // ORE_VEIN — жила руды
+    ({ ox, oy } = cellAt(7, 1));
+    circ(ox + 24, oy + 36, 12, '#4a4a55');
+    circ(ox + 20, oy + 34, 3, '#dd8833');
+    circ(ox + 28, oy + 38, 3, '#dd8833');
+    circ(ox + 24, oy + 40, 2, '#dd8833');
+
+    // ── Row 2: кусты, цветы, грибы ───────────────────────
+    ({ ox, oy } = cellAt(0, 2));
+    circ(ox + 24, oy + 40, 6, '#2d5a1e'); circ(ox + 24, oy + 38, 4, '#3a7a2a');
+    ({ ox, oy } = cellAt(1, 2));
+    circ(ox + 24, oy + 38, 9, '#2d5a1e'); circ(ox + 24, oy + 36, 6, '#3a7a2a'); circ(ox + 22, oy + 34, 3, '#55aa44');
+    ({ ox, oy } = cellAt(2, 2));
+    rect(ox + 23, oy + 36, 2, 10, '#3a7a2a');
+    circ(ox + 24, oy + 34, 3, '#cc3333'); circ(ox + 24, oy + 32, 2, '#ff5544');
+    ({ ox, oy } = cellAt(3, 2));
+    rect(ox + 23, oy + 36, 2, 10, '#3a7a2a');
+    circ(ox + 24, oy + 34, 3, '#3366cc'); circ(ox + 24, oy + 32, 2, '#5588ee');
+    // MUSHROOM
+    ({ ox, oy } = cellAt(4, 2));
+    rect(ox + 22, oy + 38, 4, 8, '#eeddaa');
+    ctx.fillStyle = '#cc3333'; ctx.beginPath(); ctx.arc(ox + 24, oy + 36, 8, Math.PI, 0); ctx.fill();
+    circ(ox + 20, oy + 32, 1.5, '#ffffff'); circ(ox + 26, oy + 34, 1.5, '#ffffff');
+    // REEDS — тростник
+    ({ ox, oy } = cellAt(5, 2));
+    for (const dx of [14, 20, 26, 32]) {
+      rect(ox + dx, oy + 24, 2, 22, '#5a7a2a');
+      circ(ox + dx + 1, oy + 22, 2, '#8aa84a');
+    }
+    // FERN — папоротник
+    ({ ox, oy } = cellAt(6, 2));
+    ctx.fillStyle = '#3a7a2a';
+    for (const a of [-1.0, -0.3, 0.3, 1.0]) {
+      ctx.save(); ctx.translate(ox + 24, oy + 44); ctx.rotate(a);
+      ctx.fillRect(-1.5, -18, 3, 18); ctx.restore();
+    }
+    rect(ox + 23, oy + 28, 2, 16, '#2a5a1e');
+    // GRASS_TUFT
+    ({ ox, oy } = cellAt(7, 2));
+    ctx.fillStyle = '#5a8a2a';
+    for (const [dx, h] of [[18, 12], [22, 16], [26, 14], [30, 10], [14, 8]]) {
+      ctx.fillRect(ox + dx, oy + 48 - h, 2, h);
+    }
+
+    // ── Row 3: постройки ─────────────────────────────────
+    // HOUSE_SM
+    ({ ox, oy } = cellAt(0, 3));
+    rect(ox + 10, oy + 24, 28, 22, '#8a6a3a');
+    rect(ox + 10, oy + 24, 28, 3, '#6a4a20');
+    ctx.fillStyle = '#7a2a1a';
+    ctx.beginPath(); ctx.moveTo(ox + 6, oy + 24); ctx.lineTo(ox + 24, oy + 10); ctx.lineTo(ox + 42, oy + 24); ctx.fill();
+    rect(ox + 21, oy + 32, 6, 14, '#3a2010');
+    rect(ox + 14, oy + 30, 5, 5, '#aaddee');
+    rect(ox + 29, oy + 30, 5, 5, '#aaddee');
+    // HOUSE_MD
+    ({ ox, oy } = cellAt(1, 3));
+    rect(ox + 6, oy + 22, 36, 24, '#9a7a4a');
+    rect(ox + 6, oy + 22, 36, 3, '#6a4a20');
+    ctx.fillStyle = '#6a2018';
+    ctx.beginPath(); ctx.moveTo(ox + 2, oy + 22); ctx.lineTo(ox + 24, oy + 6); ctx.lineTo(ox + 46, oy + 22); ctx.fill();
+    rect(ox + 20, oy + 32, 8, 14, '#3a2010');
+    rect(ox + 10, oy + 28, 6, 6, '#aaddee');
+    rect(ox + 32, oy + 28, 6, 6, '#aaddee');
+    rect(ox + 22, oy + 16, 4, 4, '#aaddee');
+    // HOUSE_LG
+    ({ ox, oy } = cellAt(2, 3));
+    rect(ox + 4, oy + 20, 40, 26, '#9a7a4a');
+    rect(ox + 4, oy + 20, 40, 3, '#6a4a20');
+    ctx.fillStyle = '#5a1a10';
+    ctx.beginPath(); ctx.moveTo(ox + 0, oy + 20); ctx.lineTo(ox + 24, oy + 4); ctx.lineTo(ox + 48, oy + 20); ctx.fill();
+    rect(ox + 20, oy + 30, 8, 16, '#3a2010');
+    rect(ox + 8, oy + 26, 6, 6, '#aaddee');
+    rect(ox + 34, oy + 26, 6, 6, '#aaddee');
+    rect(ox + 10, oy + 36, 4, 4, '#aaddee');
+    rect(ox + 34, oy + 36, 4, 4, '#aaddee');
+    // HUT — хижина
+    ({ ox, oy } = cellAt(3, 3));
+    rect(ox + 12, oy + 28, 24, 18, '#8a6a4a');
+    ctx.fillStyle = '#6a5a2a';
+    ctx.beginPath(); ctx.moveTo(ox + 8, oy + 28); ctx.lineTo(ox + 24, oy + 14); ctx.lineTo(ox + 40, oy + 28); ctx.fill();
+    rect(ox + 22, oy + 34, 4, 12, '#3a2010');
+    // TOWER
+    ({ ox, oy } = cellAt(4, 3));
+    rect(ox + 16, oy + 14, 16, 32, '#888899');
+    rect(ox + 16, oy + 14, 16, 3, '#555566');
+    ctx.fillStyle = '#5a1a10';
+    ctx.beginPath(); ctx.moveTo(ox + 14, oy + 14); ctx.lineTo(ox + 24, oy + 4); ctx.lineTo(ox + 34, oy + 14); ctx.fill();
+    rect(ox + 22, oy + 36, 4, 10, '#3a2010');
+    rect(ox + 20, oy + 22, 4, 6, '#223344');
+    // SHACK — лачуга
+    ({ ox, oy } = cellAt(5, 3));
+    rect(ox + 10, oy + 26, 28, 20, '#7a5a3a');
+    ctx.fillStyle = '#5a4020';
+    ctx.beginPath(); ctx.moveTo(ox + 8, oy + 26); ctx.lineTo(ox + 20, oy + 16); ctx.lineTo(ox + 40, oy + 26); ctx.fill();
+    rect(ox + 22, oy + 34, 5, 12, '#2a1808');
+    rect(ox + 20, oy + 36, 2, 2, '#aaddee');
+    // RUIN — руины
+    ({ ox, oy } = cellAt(6, 3));
+    rect(ox + 10, oy + 30, 8, 16, '#666677');
+    rect(ox + 20, oy + 34, 10, 12, '#666677');
+    rect(ox + 32, oy + 28, 6, 18, '#666677');
+    rect(ox + 14, oy + 26, 2, 4, '#555566');
+    rect(ox + 34, oy + 24, 2, 4, '#555566');
+    // BARN — амбар
+    ({ ox, oy } = cellAt(7, 3));
+    rect(ox + 6, oy + 22, 36, 24, '#9a4a2a');
+    ctx.fillStyle = '#5a2010';
+    ctx.beginPath(); ctx.moveTo(ox + 4, oy + 22); ctx.lineTo(ox + 24, oy + 10); ctx.lineTo(ox + 44, oy + 22); ctx.fill();
+    rect(ox + 20, oy + 30, 8, 16, '#3a2010');
+    rect(ox + 22, oy + 14, 4, 6, '#eeddaa');
+
+    // ── Row 4: объекты ───────────────────────────────────
+    // FENCE_H — забор горизонтальный
+    ({ ox, oy } = cellAt(0, 4));
+    rect(ox + 2, oy + 34, 44, 2, '#6a4020');
+    rect(ox + 2, oy + 40, 44, 2, '#6a4020');
+    for (const dx of [6, 18, 30, 42]) rect(ox + dx, oy + 28, 2, 18, '#8a5a30');
+    // FENCE_V — забор вертикальный
+    ({ ox, oy } = cellAt(1, 4));
+    rect(ox + 22, oy + 4, 2, 44, '#6a4020');
+    rect(ox + 24, oy + 4, 2, 44, '#6a4020');
+    for (const dy of [8, 20, 32, 44]) rect(ox + 18, oy + dy, 12, 2, '#8a5a30');
+    // GATE
+    ({ ox, oy } = cellAt(2, 4));
+    rect(ox + 4, oy + 24, 4, 22, '#5a3a18');
+    rect(ox + 40, oy + 24, 4, 22, '#5a3a18');
+    rect(ox + 4, oy + 14, 40, 4, '#6a4020');
+    rect(ox + 22, oy + 26, 4, 20, '#8a5a30');
+    // WELL
+    ({ ox, oy } = cellAt(3, 4));
+    rect(ox + 12, oy + 32, 24, 14, '#666677');
+    rect(ox + 14, oy + 30, 20, 4, '#888899');
+    rect(ox + 18, oy + 34, 12, 8, '#223344');
+    rect(ox + 10, oy + 14, 2, 20, '#5a3a18');
+    rect(ox + 36, oy + 14, 2, 20, '#5a3a18');
+    rect(ox + 10, oy + 14, 28, 2, '#5a3a18');
+    ctx.fillStyle = '#6a2018';
+    ctx.beginPath(); ctx.moveTo(ox + 8, oy + 14); ctx.lineTo(ox + 24, oy + 6); ctx.lineTo(ox + 40, oy + 14); ctx.fill();
+    // SIGNPOST — знак
+    ({ ox, oy } = cellAt(4, 4));
+    rect(ox + 23, oy + 20, 2, 26, '#5a3a18');
+    rect(ox + 14, oy + 18, 20, 10, '#8a5a30');
+    rect(ox + 14, oy + 18, 20, 2, '#5a3a18');
+    rect(ox + 18, oy + 22, 2, 2, '#3a2010');
+    rect(ox + 22, oy + 22, 2, 2, '#3a2010');
+    rect(ox + 26, oy + 22, 2, 2, '#3a2010');
+    // CART
+    ({ ox, oy } = cellAt(5, 4));
+    rect(ox + 8, oy + 26, 32, 12, '#6a4020');
+    rect(ox + 10, oy + 28, 28, 2, '#8a5a30');
+    circ(ox + 14, oy + 40, 5, '#222222'); circ(ox + 14, oy + 40, 2, '#6a4020');
+    circ(ox + 34, oy + 40, 5, '#222222'); circ(ox + 34, oy + 40, 2, '#6a4020');
+    // BARREL
+    ({ ox, oy } = cellAt(6, 4));
+    rect(ox + 16, oy + 20, 16, 26, '#6a4020');
+    rect(ox + 16, oy + 24, 16, 2, '#3a2010');
+    rect(ox + 16, oy + 40, 16, 2, '#3a2010');
+    rect(ox + 16, oy + 20, 16, 2, '#8a5a30');
+    // CRATE
+    ({ ox, oy } = cellAt(7, 4));
+    rect(ox + 12, oy + 24, 24, 22, '#8a5a30');
+    rect(ox + 12, oy + 24, 24, 2, '#6a4020');
+    rect(ox + 12, oy + 24, 2, 22, '#6a4020');
+    rect(ox + 34, oy + 24, 2, 22, '#6a4020');
+    rect(ox + 12, oy + 34, 24, 2, '#6a4020');
+
+    // ── Row 5: особые ────────────────────────────────────
+    // BRIDGE_H
+    ({ ox, oy } = cellAt(0, 5));
+    rect(ox + 2, oy + 28, 44, 14, '#8a5a30');
+    for (const dx of [6, 14, 22, 30, 38]) rect(ox + dx, oy + 28, 2, 14, '#5a3a18');
+    rect(ox + 2, oy + 26, 44, 2, '#5a3a18');
+    rect(ox + 2, oy + 42, 44, 2, '#5a3a18');
+    // BRIDGE_V
+    ({ ox, oy } = cellAt(1, 5));
+    rect(ox + 14, oy + 2, 20, 44, '#8a5a30');
+    for (const dy of [6, 14, 22, 30, 38]) rect(ox + 14, oy + dy, 20, 2, '#5a3a18');
+    rect(ox + 12, oy + 2, 2, 44, '#5a3a18');
+    rect(ox + 34, oy + 2, 2, 44, '#5a3a18');
+    // FIREPIT
+    ({ ox, oy } = cellAt(2, 5));
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      circ(ox + 24 + Math.cos(a) * 12, oy + 36 + Math.sin(a) * 6, 3, '#555566');
+    }
+    rect(ox + 16, oy + 30, 16, 6, '#2a1808');
+    circ(ox + 24, oy + 30, 4, '#ff6622');
+    circ(ox + 24, oy + 28, 3, '#ffaa33');
+    circ(ox + 24, oy + 26, 2, '#ffee66');
+    // LANTERN — фонарь
+    ({ ox, oy } = cellAt(3, 5));
+    rect(ox + 23, oy + 22, 2, 24, '#3a2a10');
+    rect(ox + 18, oy + 14, 12, 10, '#6a4020');
+    rect(ox + 20, oy + 16, 8, 6, '#ffee88');
+    rect(ox + 22, oy + 10, 4, 4, '#3a2a10');
+    // TENT
+    ({ ox, oy } = cellAt(4, 5));
+    ctx.fillStyle = '#8a4a2a';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 12); ctx.lineTo(ox + 8, oy + 46); ctx.lineTo(ox + 40, oy + 46); ctx.fill();
+    ctx.fillStyle = '#2a1808';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 16); ctx.lineTo(ox + 18, oy + 46); ctx.lineTo(ox + 30, oy + 46); ctx.fill();
+    // GRAVE — могила
+    ({ ox, oy } = cellAt(5, 5));
+    rect(ox + 14, oy + 38, 20, 8, '#5a4020');
+    rect(ox + 18, oy + 22, 12, 18, '#888899');
+    ctx.fillStyle = '#888899';
+    ctx.beginPath(); ctx.arc(ox + 24, oy + 22, 6, Math.PI, 0); ctx.fill();
+    rect(ox + 23, oy + 28, 2, 6, '#3a3a3a');
+    rect(ox + 20, oy + 30, 8, 2, '#3a3a3a');
+    // STATUE
+    ({ ox, oy } = cellAt(6, 5));
+    rect(ox + 16, oy + 40, 16, 6, '#666677');
+    rect(ox + 20, oy + 18, 8, 22, '#888899');
+    circ(ox + 24, oy + 14, 5, '#888899');
+    rect(ox + 16, oy + 22, 4, 12, '#888899');
+    rect(ox + 28, oy + 22, 4, 12, '#888899');
+    // SHRINE — алтарь
+    ({ ox, oy } = cellAt(7, 5));
+    rect(ox + 12, oy + 38, 24, 8, '#555566');
+    rect(ox + 16, oy + 30, 16, 8, '#888899');
+    rect(ox + 20, oy + 14, 8, 16, '#aaaacc');
+    ctx.fillStyle = '#66ccee';
+    ctx.beginPath(); ctx.moveTo(ox + 24, oy + 10); ctx.lineTo(ox + 20, oy + 18); ctx.lineTo(ox + 24, oy + 26); ctx.lineTo(ox + 28, oy + 18); ctx.fill();
+
+    // Регистрируем как spritesheet (frameWidth × frameHeight).
+    this.textures.addSpriteSheet('decorations', canvas as unknown as HTMLImageElement, {
+      frameWidth: DECO_CELL,
+      frameHeight: DECO_CELL,
+    });
   }
 }
