@@ -266,6 +266,7 @@ export class GameScene extends Phaser.Scene {
   /** Текущая зона */
   private currentZone: ZoneConfig = ALL_ZONES['village'];
   private mapLayer: Phaser.Tilemaps.TilemapLayer | null = null;
+  private mapEditor?: import('../systems/mapEditor').MapEditor;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -319,6 +320,14 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Тайловая карта ──────────────────────────────
     this.buildMap();
+
+    // ─── Редактор карт: загрузка сохранённых объектов + F9 toggle ──
+    void (async () => {
+      const { MapEditor } = await import('../systems/mapEditor');
+      this.mapEditor = new MapEditor(this, this.currentZone.id);
+      this.mapEditor.spawnAll();
+      this.input.keyboard!.on('keydown-F9', () => this.mapEditor?.toggle());
+    })();
 
     // ─── Сфера ───────────────────────────────────────
     const startX = this.spawnX ?? this.currentZone.respawnPoint.x;
