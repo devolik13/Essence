@@ -831,7 +831,8 @@ export class GameScene extends Phaser.Scene {
 
     // Build tile data per biome/zone. Single GPU-batched TilemapLayer.
     const data: number[][] = [];
-    const baseTile = zoneDefaultTile();
+    // Для village заменяем дефолтную траву на empty (0) — её нарисует CraftPix TileSprite.
+    const baseTile = zone.id === 'village' ? 0 : zoneDefaultTile();
     for (let ty = 0; ty < ht; ty++) {
       data.push(new Array(wt).fill(baseTile));
     }
@@ -839,7 +840,9 @@ export class GameScene extends Phaser.Scene {
     // Biome overrides (village has them)
     if (biomes) {
       for (const b of biomes) {
-        const tile = biomeTile(b.id);
+        let tile = biomeTile(b.id);
+        // В village прозрачный грас-биом (eshworth/waldmar) — CraftPix видно сквозь.
+        if (zone.id === 'village' && (b.id === 'eshworth' || b.id === 'waldmar' || b.id === 'trade_road')) tile = 0;
         const tx1 = Math.max(0, Math.floor(b.bounds.x1 / TILE_SIZE));
         const ty1 = Math.max(0, Math.floor(b.bounds.y1 / TILE_SIZE));
         const tx2 = Math.min(wt, Math.ceil(b.bounds.x2 / TILE_SIZE));
@@ -850,31 +853,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Water rivers — tile-based, deterministic per zone. Fire zone skipped
-    // (ash biome, no water). Elemental zones & village get a meandering river.
-    if (zone.id !== 'fire') {
-      const WATER = 5;
-      const rng = new Phaser.Math.RandomDataGenerator([zone.id, 'river']);
-      const zw = wt * TILE_SIZE;
-      const zh = ht * TILE_SIZE;
-      const startX = rng.between(100, 400);
-      const endX = zw - rng.between(100, 400);
-      const y0 = rng.between(zh * 0.2, zh * 0.4);
-      const halfSeed = rng.frac() * 6;
-      for (let x = startX; x < endX; x += 4) {
-        const t = (x - startX) / (endX - startX);
-        const baseY = y0 + t * (zh * 0.4);
-        const wave = Math.sin(x * 0.008 + halfSeed) * 60 + Math.sin(x * 0.02) * 20;
-        const riverWidth = 14 + Math.sin(x * 0.005) * 6;
-        const topY = baseY + wave - riverWidth / 2;
-        const botY = topY + riverWidth;
-        const tx = Math.floor(x / TILE_SIZE);
-        const ty1 = Math.max(0, Math.floor(topY / TILE_SIZE));
-        const ty2 = Math.min(ht - 1, Math.ceil(botY / TILE_SIZE));
-        if (tx < 0 || tx >= wt) continue;
-        for (let ty = ty1; ty <= ty2; ty++) data[ty][tx] = WATER;
-      }
-    }
+    // Реки убраны — пока без воды.
 
     // Safe zones — stone floor on top (always wins)
     const safeAreas = zone.safeZones ?? (zone.safeBounds ? [zone.safeBounds] : []);
@@ -893,6 +872,17 @@ export class GameScene extends Phaser.Scene {
     const layer = tileset ? map.createLayer(0, tileset, 0, 0) : null;
     if (layer) layer.setDepth(-10);
     this.mapLayer = layer;
+
+    // CraftPix grass ковёр для village (единый TileSprite = 1 GameObject, GPU-батчинг).
+    // Глубина -11 (под tilemap): камень safe zone и биом пещеры видны сверху.
+    if (zone.id === 'village' && this.textures.exists('cp_ground_43')) {
+      const zw = wt * TILE_SIZE;
+      const zh = ht * TILE_SIZE;
+      const ts = this.add.tileSprite(0, 0, zw, zh, 'cp_ground_43')
+        .setOrigin(0, 0).setDepth(-11);
+      ts.tileScaleX = 0.3;
+      ts.tileScaleY = 0.3;
+    }
 
     // Emit minimap terrain colors for UIScene
     const TILE_COLORS: Record<number, number> = {
@@ -1151,11 +1141,21 @@ export class GameScene extends Phaser.Scene {
     const zw = zone.widthTiles * TILE_SIZE;
     const zh = zone.heightTiles * TILE_SIZE;
     const origin = zone.respawnPoint;
+    const hasRoad = { north: false, south: false, east: false, west: false };
     for (const exit of zone.exits) {
-      if (exit.edge === 'north') layVertRoad(origin.x, 0, origin.y);
-      if (exit.edge === 'south') layVertRoad(origin.x, origin.y, zh);
-      if (exit.edge === 'east')  layHorizRoad(origin.x, origin.y, zw);
-      if (exit.edge === 'west')  layHorizRoad(0, origin.y, origin.x);
+      if (exit.edge === 'north') { layVertRoad(origin.x, 0, origin.y); hasRoad.north = true; }
+      if (exit.edge === 'south') { layVertRoad(origin.x, origin.y, zh); hasRoad.south = true; }
+      if (exit.edge === 'east')  { layHorizRoad(origin.x, origin.y, zw); hasRoad.east = true; }
+      if (exit.edge === 'west')  { layHorizRoad(0, origin.y, origin.x); hasRoad.west = true; }
+    }
+
+    // Перекрёсток на respawn'е если есть хотя бы 1 горизонт + 1 вертикаль
+    const hasHoriz = hasRoad.east || hasRoad.west || (zone.safeZones?.length ?? 0) >= 2;
+    const hasVert = hasRoad.north || hasRoad.south;
+    if (hasHoriz && hasVert && this.textures.exists('cp_ground_32')) {
+      this.add.image(origin.x, origin.y, 'cp_ground_32')
+        .setScale(0.3)
+        .setDepth(-2); // чуть выше простых дорог чтобы перекрыть стык
     }
   }
 
