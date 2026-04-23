@@ -93,12 +93,26 @@ export class MapEditor {
 
   private start(): void {
     this.active = true;
+
+    // Заморозка геймплея + отключение камеры-следящей + призрачный вид мобов
+    const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
+    gs.editorMode = true;
+    this.scene.cameras.main.stopFollow();
+    if (gs.creatures) {
+      for (const c of gs.creatures) {
+        c.setAlpha?.(0.25);
+        c.sprite?.setAlpha?.(0.25);
+      }
+    }
+    gs.playerBody?.setAlpha?.(0.35);
+    gs.sphere?.setAlpha?.(0.35);
+
     this.buildUI();
     this.attachInput();
     // Визуальный индикатор
     this.indicator = this.scene.add.text(
       this.scene.cameras.main.width / 2, 10,
-      '★ EDITOR MODE ★  F9=exit  LMB=place  RMB=delete  Arrows=move  [ / ]=scale  Q/E=rotate  S=snap',
+      '★ EDITOR MODE ★  ` / F2 / F9 = exit  LMB=place  RMB=delete  Arrows=move  [ / ]=scale  Q/E=rotate  S=snap',
       { fontSize: '11px', color: '#ffdd55', backgroundColor: '#000000cc',
         stroke: '#000000', strokeThickness: 2, padding: { x: 8, y: 4 } } as Phaser.Types.GameObjects.Text.TextStyle
     ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(99999);
@@ -117,6 +131,21 @@ export class MapEditor {
     this.selectedKey = null;
     this.thumbs = [];
     this.thumbLabels = [];
+
+    // Разморозка + возврат камеры + нормальная прозрачность
+    const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: Phaser.GameObjects.GameObject & { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
+    gs.editorMode = false;
+    if (gs.creatures) {
+      for (const c of gs.creatures) {
+        c.setAlpha?.(1);
+        c.sprite?.setAlpha?.(1);
+      }
+    }
+    gs.playerBody?.setAlpha?.(1);
+    gs.sphere?.setAlpha?.(1);
+    if (gs.playerBody) {
+      this.scene.cameras.main.startFollow(gs.playerBody as Phaser.GameObjects.GameObject, true, 0.1, 0.1);
+    }
   }
 
   // ── UI ──────────────────────────────────────────────────

@@ -267,6 +267,8 @@ export class GameScene extends Phaser.Scene {
   private currentZone: ZoneConfig = ALL_ZONES['village'];
   private mapLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   private mapEditor?: import('../systems/mapEditor').MapEditor;
+  /** true пока открыт редактор карт — мобы и игрок заморожены. */
+  public editorMode = false;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -527,6 +529,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
+    // ── Editor mode: всё замирает, только редактор работает ──
+    if (this.editorMode) return;
+
     // ── Проверка перехода между зонами ──────────────────
     this.checkZoneTransition();
 
