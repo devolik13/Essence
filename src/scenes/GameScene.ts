@@ -1067,7 +1067,6 @@ export class GameScene extends Phaser.Scene {
 
     // ── CraftPix витрина возле Eshworth ──────────────────
     if (this.currentZone.id === 'village') {
-      this.spawnCraftPixGrassCarpet();
       this.spawnCraftPixShowcase();
       this.spawnCraftPixRoads();
     }
