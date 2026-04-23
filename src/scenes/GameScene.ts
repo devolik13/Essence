@@ -1117,18 +1117,18 @@ export class GameScene extends Phaser.Scene {
    * Горизонтальные дороги = тайл как есть, вертикальные = angle(90).
    */
   private spawnCraftPixRoads() {
-    if (!this.textures.exists('cp_ground_55')) return;
+    if (!this.textures.exists('cp_ground_41') || !this.textures.exists('cp_ground_38')) return;
     const zone = this.currentZone;
     const tileSize = 256 * 0.3; // ~77px при scale 0.3
 
     const layHorizRoad = (x1: number, y: number, x2: number) => {
-      const step = tileSize * 0.95; // чуть внахлёст чтобы не было щелей
+      const step = tileSize * 0.95;
       const start = Math.min(x1, x2);
       const end = Math.max(x1, x2);
       for (let x = start; x < end; x += step) {
-        this.add.image(x, y, 'cp_ground_55')
+        this.add.image(x, y, 'cp_ground_41') // горизонтальная полоса земли
           .setScale(0.3)
-          .setDepth(-3); // выше terrain (-10) но ниже декораций
+          .setDepth(-3);
       }
     };
     const layVertRoad = (x: number, y1: number, y2: number) => {
@@ -1136,9 +1136,8 @@ export class GameScene extends Phaser.Scene {
       const start = Math.min(y1, y2);
       const end = Math.max(y1, y2);
       for (let y = start; y < end; y += step) {
-        this.add.image(x, y, 'cp_ground_55')
+        this.add.image(x, y, 'cp_ground_38') // вертикальная полоса земли
           .setScale(0.3)
-          .setAngle(90)
           .setDepth(-3);
       }
     };
