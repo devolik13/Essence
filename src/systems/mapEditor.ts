@@ -58,13 +58,39 @@ export class MapEditor {
   private readonly THUMB_SIZE = 48;
   private readonly COLS = 4;
   private readonly GAP = 4;
-  private readonly PANEL_HEADER_H = 100;
+  private readonly PANEL_HEADER_H = 120;
 
   // Слушатели (для cleanup при выходе)
   private keyHandlers: Array<{ key: string; fn: (e: KeyboardEvent) => void }> = [];
   private pointerHandler?: (p: Phaser.Input.Pointer) => void;
   private pointerMoveHandler?: (p: Phaser.Input.Pointer) => void;
   private wheelHandler?: (p: Phaser.Input.Pointer, gos: unknown[], dx: number, dy: number) => void;
+  private updateHandler?: () => void;
+
+  // Undo/redo — храним JSON-снимки objects[]
+  private undoStack: string[] = [];
+  private redoStack: string[] = [];
+  private readonly MAX_UNDO = 50;
+
+  // Поиск ассетов по имени
+  private searchInput?: HTMLInputElement;
+  private filterText = '';
+
+  // Сетка
+  private gridGraphics?: Phaser.GameObjects.Graphics;
+  private gridVisible = false;
+
+  // Всплывающее сообщение (toast)
+  private toast?: Phaser.GameObjects.Text;
+
+  // Быстрые локации для телепорта (зависят от зоны)
+  private readonly VILLAGE_JUMPS: Record<string, { x: number; y: number; name: string }> = {
+    '1': { x: 3200, y: 2800, name: 'Eshworth' },
+    '2': { x: 8800, y: 2800, name: 'Waldmar' },
+    '3': { x: 2000, y: 5800, name: 'Deep Mines' },
+    '4': { x: 6000, y: 2800, name: 'Trade Road' },
+    '5': { x: 5760, y: 3840, name: 'Map center' },
+  };
 
   constructor(scene: Phaser.Scene, zoneId: string) {
     this.scene = scene;
@@ -107,6 +133,45 @@ export class MapEditor {
       if (!this.isSolid(obj)) continue;
       addMapCollider({ x: obj.x, y: obj.y, r: this.colliderRadiusOf(obj) });
     }
+  }
+
+  // ── Undo / Redo ─────────────────────────────────────────
+
+  /** Делает снимок текущего состояния в undo-стек (вызывать ПЕРЕД мутацией). */
+  private snapshot(): void {
+    const cur = JSON.stringify(this.objects);
+    const last = this.undoStack[this.undoStack.length - 1];
+    if (cur === last) return; // не плодим дубликаты
+    this.undoStack.push(cur);
+    if (this.undoStack.length > this.MAX_UNDO) this.undoStack.shift();
+    this.redoStack = [];
+  }
+
+  private undo(): void {
+    if (this.undoStack.length === 0) { this.showToast('Nothing to undo'); return; }
+    const snap = this.undoStack.pop() as string;
+    this.redoStack.push(JSON.stringify(this.objects));
+    this.restoreSnapshot(snap);
+    this.showToast('↶ Undo');
+  }
+
+  private redo(): void {
+    if (this.redoStack.length === 0) { this.showToast('Nothing to redo'); return; }
+    const snap = this.redoStack.pop() as string;
+    this.undoStack.push(JSON.stringify(this.objects));
+    this.restoreSnapshot(snap);
+    this.showToast('↷ Redo');
+  }
+
+  private restoreSnapshot(json: string): void {
+    for (const img of this.sprites.values()) img.destroy();
+    this.sprites.clear();
+    this.spriteToObj.clear();
+    this.deselectPlaced();
+    this.objects = JSON.parse(json);
+    for (const obj of this.objects) this.renderObject(obj);
+    saveMapObjects(this.zoneId, this.objects);
+    this.rebuildColliders();
   }
 
   private renderObject(obj: PlacedMapObject): void {
@@ -156,11 +221,12 @@ export class MapEditor {
     for (const img of this.sprites.values()) this.enableSpriteInteraction(img);
 
     this.buildUI();
+    this.createSearchInput();
     this.attachInput();
     // Визуальный индикатор
     this.indicator = this.scene.add.text(
       this.scene.cameras.main.width / 2, 10,
-      '★ EDITOR MODE ★  exit=` F2 F9  LMB=place RMB=del  [ ]=scale  Q/E=rot  T=tint  C=solid  S=snap',
+      '★ EDITOR MODE ★  exit=` F2 F9  LMB=place RMB=del  Ctrl+D=dupe Ctrl+Z=undo  G=grid  1-5=jump  [ ]=scale Q/E=rot T=tint C=solid S=snap',
       { fontSize: '11px', color: '#ffdd55', backgroundColor: '#000000cc',
         stroke: '#000000', strokeThickness: 2, padding: { x: 8, y: 4 } } as Phaser.Types.GameObjects.Text.TextStyle
     ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(99999);
@@ -170,15 +236,23 @@ export class MapEditor {
     this.active = false;
     this.save();
     this.detachInput();
+    this.removeSearchInput();
     this.panel?.destroy();
     this.panel = undefined;
     this.indicator?.destroy();
     this.indicator = undefined;
     this.previewImage?.destroy();
     this.previewImage = undefined;
+    this.gridGraphics?.destroy();
+    this.gridGraphics = undefined;
+    this.gridVisible = false;
+    this.toast?.destroy();
+    this.toast = undefined;
     this.selectedKey = null;
     this.thumbs = [];
     this.thumbLabels = [];
+    this.undoStack = [];
+    this.redoStack = [];
 
     // Снимаем interactive с всех placed объектов + убираем выделение
     for (const img of this.sprites.values()) this.disableSpriteInteraction(img);
@@ -231,11 +305,9 @@ export class MapEditor {
     } as Phaser.Types.GameObjects.Text.TextStyle);
     this.panel.add(this.hintText);
 
-    this.scene.add.text(8, 60, 'Scroll panel with wheel', {
-      fontSize: '9px', color: '#888888',
-    } as Phaser.Types.GameObjects.Text.TextStyle);
-    this.panel?.add(this.scene.add.text(8, 60, 'Wheel = scroll · Ctrl+S = export', {
-      fontSize: '9px', color: '#888888',
+    this.panel?.add(this.scene.add.text(8, 60,
+      'Wheel=scroll · Ctrl+S=export · Ctrl+Z/Y=undo/redo · Ctrl+D=dup · G=grid\n1-5=jump: Eshworth/Waldmar/Mines/Road/Center', {
+      fontSize: '9px', color: '#888888', lineSpacing: 2,
     } as Phaser.Types.GameObjects.Text.TextStyle));
 
     this.renderThumbs();
@@ -248,7 +320,10 @@ export class MapEditor {
     this.thumbs = [];
     this.thumbLabels = [];
 
-    const assetKeys = CP_ASSETS.map(([k]) => k);
+    let assetKeys = CP_ASSETS.map(([k]) => k);
+    if (this.filterText) {
+      assetKeys = assetKeys.filter(k => k.toLowerCase().includes(this.filterText));
+    }
     const startY = this.PANEL_HEADER_H - this.scrollOffset;
 
     for (let i = 0; i < assetKeys.length; i++) {
@@ -345,7 +420,10 @@ export class MapEditor {
     // Drag через Phaser Input
     this.dragStartHandler = (_p, obj) => {
       const placed = this.spriteToObj.get(obj);
-      if (placed) this.dragStartPos = { x: placed.x, y: placed.y };
+      if (placed) {
+        this.dragStartPos = { x: placed.x, y: placed.y };
+        this.snapshot();
+      }
     };
     this.dragHandler = (_p, obj, dx, dy) => {
       const placed = this.spriteToObj.get(obj);
@@ -381,6 +459,10 @@ export class MapEditor {
       this.renderThumbs();
     };
     this.scene.input.on('wheel', this.wheelHandler);
+
+    // Перерисовка сетки каждый кадр (камера может ехать)
+    this.updateHandler = () => { if (this.gridVisible) this.drawGrid(); };
+    this.scene.events.on('update', this.updateHandler);
   }
 
   private detachInput(): void {
@@ -393,10 +475,38 @@ export class MapEditor {
     if (this.dragStartHandler) this.scene.input.off('dragstart', this.dragStartHandler);
     if (this.dragHandler) this.scene.input.off('drag', this.dragHandler);
     if (this.dragEndHandler) this.scene.input.off('dragend', this.dragEndHandler);
+    if (this.updateHandler) this.scene.events.off('update', this.updateHandler);
   }
 
   private handleKey(e: KeyboardEvent): void {
     if (!this.active) return;
+    // Если фокус в поле поиска — пропускаем всю хоткей-логику
+    if (document.activeElement instanceof HTMLInputElement) return;
+
+    // Undo / Redo
+    if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+      if (e.shiftKey) this.redo(); else this.undo();
+      e.preventDefault();
+      return;
+    }
+    if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) {
+      this.redo();
+      e.preventDefault();
+      return;
+    }
+
+    // Ctrl+D — дубликат выделенного объекта
+    if (e.ctrlKey && (e.key === 'd' || e.key === 'D') && this.selectedObj) {
+      this.snapshot();
+      const clone: PlacedMapObject = { ...this.selectedObj, x: this.selectedObj.x + 32, y: this.selectedObj.y + 32 };
+      this.objects.push(clone);
+      this.renderObject(clone);
+      this.save();
+      this.selectPlaced(clone);
+      this.showToast('⎘ Duplicated');
+      e.preventDefault();
+      return;
+    }
 
     // Перемещение камеры
     const speed = e.shiftKey ? 32 : 12;
@@ -406,10 +516,27 @@ export class MapEditor {
     if (e.key === 'ArrowUp')    cam.scrollY -= speed;
     if (e.key === 'ArrowDown')  cam.scrollY += speed;
 
+    // Телепорт 1-5 к ключевым локациям (только в village)
+    if (this.zoneId === 'village' && this.VILLAGE_JUMPS[e.key]) {
+      const jump = this.VILLAGE_JUMPS[e.key];
+      cam.centerOn(jump.x, jump.y);
+      this.showToast(`→ ${jump.name}`);
+      e.preventDefault();
+      return;
+    }
+
+    // G — сетка
+    if (e.key === 'g' || e.key === 'G') {
+      this.toggleGrid();
+      e.preventDefault();
+      return;
+    }
+
     // Scale — действует на выделенный placed (если есть), иначе на preview
     if (e.key === '[' || e.key === ']') {
       const delta = e.key === '[' ? -0.05 : 0.05;
       if (this.selectedObj) {
+        this.snapshot();
         this.selectedObj.scale = Math.max(0.05, Math.min(2.0, this.selectedObj.scale + delta));
         const sp = this.sprites.get(this.selectedObj);
         if (sp) sp.setScale(this.selectedObj.scale);
@@ -425,6 +552,7 @@ export class MapEditor {
     if (e.key === 'q' || e.key === 'Q' || e.key === 'e' || e.key === 'E') {
       const delta = (e.key === 'q' || e.key === 'Q') ? -15 : 15;
       if (this.selectedObj) {
+        this.snapshot();
         this.selectedObj.angle = (((this.selectedObj.angle ?? 0) + delta) % 360);
         const sp = this.sprites.get(this.selectedObj);
         if (sp) sp.setAngle(this.selectedObj.angle);
@@ -439,6 +567,7 @@ export class MapEditor {
     // Tint — Shift+T = сброс, T = следующий цвет в палитре
     if (e.key === 't' || e.key === 'T') {
       if (this.selectedObj) {
+        this.snapshot();
         if (e.shiftKey) {
           this.selectedObj.tint = undefined;
         } else {
@@ -494,11 +623,13 @@ export class MapEditor {
     }
 
     // C — toggle solid/walkable для выделенного
-    if ((e.key === 'c' || e.key === 'C') && this.selectedObj) {
+    if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && this.selectedObj) {
+      this.snapshot();
       const wasSolid = this.isSolid(this.selectedObj);
       this.selectedObj.solid = !wasSolid;
       this.updateSelectionOutline();
       this.save();
+      this.showToast(wasSolid ? '✓ walkable' : '■ solid');
       e.preventDefault();
     }
   }
@@ -556,6 +687,7 @@ export class MapEditor {
   }
 
   private placeObject(key: string, x: number, y: number): void {
+    this.snapshot();
     const tint = TINT_PALETTE[this.currentTintIndex];
     const obj: PlacedMapObject = {
       key, x, y,
@@ -569,6 +701,7 @@ export class MapEditor {
   }
 
   private deleteObject(obj: PlacedMapObject): void {
+    this.snapshot();
     const sprite = this.sprites.get(obj);
     if (sprite) {
       this.spriteToObj.delete(sprite);
@@ -627,5 +760,94 @@ export class MapEditor {
   private save(): void {
     saveMapObjects(this.zoneId, this.objects);
     this.rebuildColliders();
+  }
+
+  // ── Toast ───────────────────────────────────────────────
+
+  private showToast(text: string, color = '#ffdd55'): void {
+    this.toast?.destroy();
+    const cam = this.scene.cameras.main;
+    this.toast = this.scene.add.text(cam.width / 2, cam.height / 2 - 60, text, {
+      fontSize: '22px', color, backgroundColor: '#000000cc',
+      stroke: '#000000', strokeThickness: 3, padding: { x: 12, y: 6 },
+    } as Phaser.Types.GameObjects.Text.TextStyle)
+      .setOrigin(0.5).setScrollFactor(0).setDepth(100001);
+    this.scene.tweens.add({
+      targets: this.toast, alpha: 0, duration: 900, delay: 500,
+      onComplete: () => { this.toast?.destroy(); this.toast = undefined; },
+    });
+  }
+
+  // ── Search input ────────────────────────────────────────
+
+  private createSearchInput(): void {
+    const canvas = (this.scene.sys.game.canvas as HTMLCanvasElement);
+    const rect = canvas.getBoundingClientRect();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Search...';
+    input.style.position = 'absolute';
+    input.style.left = `${rect.right - this.PANEL_W + 8}px`;
+    input.style.top = `${rect.top + 78}px`;
+    input.style.width = `${this.PANEL_W - 20}px`;
+    input.style.padding = '3px 6px';
+    input.style.background = '#1a1a1a';
+    input.style.color = '#ffffff';
+    input.style.border = '1px solid #ffdd55';
+    input.style.fontSize = '12px';
+    input.style.fontFamily = 'monospace';
+    input.style.zIndex = '10000';
+    input.style.outline = 'none';
+    input.value = this.filterText;
+    input.addEventListener('input', () => {
+      this.filterText = input.value.trim().toLowerCase();
+      this.scrollOffset = 0;
+      this.renderThumbs();
+    });
+    // События клавиш НЕ пробрасываем в игру (Phaser всё равно игнорит, но для нашего window handler важно)
+    input.addEventListener('keydown', e => e.stopPropagation());
+    document.body.appendChild(input);
+    this.searchInput = input;
+  }
+
+  private removeSearchInput(): void {
+    this.searchInput?.remove();
+    this.searchInput = undefined;
+    this.filterText = '';
+  }
+
+  // ── Grid overlay ────────────────────────────────────────
+
+  private toggleGrid(): void {
+    this.gridVisible = !this.gridVisible;
+    if (this.gridVisible) {
+      if (!this.gridGraphics) {
+        this.gridGraphics = this.scene.add.graphics()
+          .setScrollFactor(0).setDepth(99996);
+      }
+      this.drawGrid();
+    } else {
+      this.gridGraphics?.clear();
+    }
+    this.showToast(this.gridVisible ? 'Grid ON' : 'Grid OFF');
+  }
+
+  private drawGrid(): void {
+    if (!this.gridGraphics || !this.gridVisible) return;
+    const cam = this.scene.cameras.main;
+    const g = this.gridGraphics;
+    g.clear();
+    g.lineStyle(1, 0xffdd55, 0.25);
+    const size = this.SNAP_SIZE;
+    const offX = -((cam.scrollX % size) + size) % size;
+    const offY = -((cam.scrollY % size) + size) % size;
+    g.beginPath();
+    for (let x = offX; x < cam.width; x += size) {
+      g.moveTo(x, 0); g.lineTo(x, cam.height);
+    }
+    for (let y = offY; y < cam.height; y += size) {
+      g.moveTo(0, y); g.lineTo(cam.width, y);
+    }
+    g.strokePath();
   }
 }
