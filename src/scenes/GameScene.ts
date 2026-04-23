@@ -1068,6 +1068,58 @@ export class GameScene extends Phaser.Scene {
     // ── CraftPix витрина возле Eshworth ──────────────────
     if (this.currentZone.id === 'village') {
       this.spawnCraftPixShowcase();
+      this.spawnCraftPixRoads();
+    }
+  }
+
+  /**
+   * Кладёт CraftPix-дороги (Ground 55 = земля с травой сверху/снизу)
+   * поверх существующего grass terrain'а. От каждой safe zone к выходам
+   * + trade road между двумя деревнями.
+   * Горизонтальные дороги = тайл как есть, вертикальные = angle(90).
+   */
+  private spawnCraftPixRoads() {
+    if (!this.textures.exists('cp_ground_55')) return;
+    const zone = this.currentZone;
+    const tileSize = 256 * 0.3; // ~77px при scale 0.3
+
+    const layHorizRoad = (x1: number, y: number, x2: number) => {
+      const step = tileSize * 0.95; // чуть внахлёст чтобы не было щелей
+      const start = Math.min(x1, x2);
+      const end = Math.max(x1, x2);
+      for (let x = start; x < end; x += step) {
+        this.add.image(x, y, 'cp_ground_55')
+          .setScale(0.3)
+          .setDepth(-3); // выше terrain (-10) но ниже декораций
+      }
+    };
+    const layVertRoad = (x: number, y1: number, y2: number) => {
+      const step = tileSize * 0.95;
+      const start = Math.min(y1, y2);
+      const end = Math.max(y1, y2);
+      for (let y = start; y < end; y += step) {
+        this.add.image(x, y, 'cp_ground_55')
+          .setScale(0.3)
+          .setAngle(90)
+          .setDepth(-3);
+      }
+    };
+
+    // Trade road между safe zones (Eshworth ↔ Waldmar)
+    if (zone.safeZones && zone.safeZones.length >= 2) {
+      const sz = zone.safeZones;
+      layHorizRoad(sz[0].respawnPoint.x, sz[0].respawnPoint.y, sz[1].respawnPoint.x);
+    }
+
+    // Дороги от respawn point к каждому выходу
+    const zw = zone.widthTiles * TILE_SIZE;
+    const zh = zone.heightTiles * TILE_SIZE;
+    const origin = zone.respawnPoint;
+    for (const exit of zone.exits) {
+      if (exit.edge === 'north') layVertRoad(origin.x, 0, origin.y);
+      if (exit.edge === 'south') layVertRoad(origin.x, origin.y, zh);
+      if (exit.edge === 'east')  layHorizRoad(origin.x, origin.y, zw);
+      if (exit.edge === 'west')  layHorizRoad(0, origin.y, origin.x);
     }
   }
 
