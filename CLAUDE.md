@@ -723,6 +723,34 @@ T3 заклинания — только NPC-касты боссов. Игрок
 | Merchant | Торговец (vendor) |
 | Arms Dealer | Оружейник (weapon_vendor) |
 
+## Редактор карт (in-game)
+
+- Открытие: `` ` `` / F2 / F9 в игре. Замораживает геймплей.
+- Hotkeys:
+  - LMB — поставить / выделить; drag — переместить; RMB — удалить
+  - `[` `]` — scale, `Q`/`E` — rotate, `T` — tint (Shift+T — сброс), `C` — solid toggle
+  - `S` — snap to 32px, `G` — grid overlay
+  - `1-5` — телепорт (village only): Eshworth / Waldmar / Mines / Trade Road / Map center
+  - `Ctrl+D` — дубликат, `Ctrl+Z`/`Ctrl+Shift+Z` (или `Ctrl+Y`) — undo/redo (50 шагов)
+  - `Ctrl+E` (или `Ctrl+S`) — **экспорт JSON-файла** (скачивание в браузере)
+  - `Delete`/`Backspace` — удалить выделенный, `Esc` — деселект
+
+### Файловый пайплайн (user ↔ Claude через git)
+
+- Рабочая копия — `localStorage` per-zone (`essence_map_<zoneId>`).
+- Bundled-раскладка — `src/data/mapLayouts/<zoneId>.json` в git.
+- Приоритет загрузки: `localStorage` > bundled JSON > пустой массив.
+- **Как user передаёт свои правки Claude:**
+  1. Редактирует в игре (autosave в localStorage).
+  2. Нажимает `Ctrl+E` → браузер скачивает `<zoneId>.json`.
+  3. Кладёт файл в `src/data/mapLayouts/<zoneId>.json` (перезаписать).
+  4. Commit + push.
+- **Как user подтягивает правки Claude:**
+  1. Pull.
+  2. В редакторе жмёт кнопку «↺ Load from file» → localStorage чистится → грузится bundled.
+- Индикатор в панели редактора: `● N obj · UNSAVED` (оранжевый) или `N obj · synced with file` (зелёный).
+- Коллизии: placed-объекты с `solid: true` (или дефолт-solid по префиксу key) блокируют движение игрока и мобов через `src/systems/mapColliders.ts`.
+
 ## Карта мира
 
 ### Архитектура: единая карта + элементальные зоны

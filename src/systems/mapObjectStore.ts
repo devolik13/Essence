@@ -1,30 +1,33 @@
 import { PlacedMapObject, MAP_OBJECTS_STORAGE_PREFIX } from '../types/mapObjects';
+import { getBundledLayout } from '../data/mapLayouts';
 
 /**
- * Хранение расставленных на карте объектов в localStorage (per-zone).
- * Сохраняется автоматически после каждого изменения в редакторе.
+ * Загрузка раскладки зоны.
+ * Приоритет: localStorage (рабочая копия) > bundled JSON из git > пустой массив.
  */
 export function loadMapObjects(zoneId: string): PlacedMapObject[] {
   try {
     const raw = localStorage.getItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
   } catch {
-    return [];
+    /* ignore */
   }
+  return [...getBundledLayout(zoneId)];
 }
 
 export function saveMapObjects(zoneId: string, objects: PlacedMapObject[]): void {
   localStorage.setItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId, JSON.stringify(objects));
 }
 
-/** Экспорт в JSON-строку (для скачивания через консоль: copy(exportMapObjects('village'))) */
+/** Экспорт в JSON-строку (красиво отформатированную). */
 export function exportMapObjects(zoneId: string): string {
   return JSON.stringify(loadMapObjects(zoneId), null, 2);
 }
 
-/** Импорт из JSON — перезаписывает текущие объекты зоны */
+/** Импорт из JSON — перезаписывает рабочую копию зоны. */
 export function importMapObjects(zoneId: string, json: string): boolean {
   try {
     const parsed = JSON.parse(json);
@@ -34,4 +37,16 @@ export function importMapObjects(zoneId: string, json: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** Сбрасывает рабочую копию — при следующей загрузке/sceneren'е подтянется bundled. */
+export function resetToBundled(zoneId: string): PlacedMapObject[] {
+  localStorage.removeItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId);
+  return [...getBundledLayout(zoneId)];
+}
+
+/** Есть ли несохранённые изменения относительно bundled-файла. */
+export function hasUnsavedChanges(zoneId: string, current: PlacedMapObject[]): boolean {
+  const bundled = getBundledLayout(zoneId);
+  return JSON.stringify(current) !== JSON.stringify(bundled);
 }

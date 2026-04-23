@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { CP_ASSETS } from '../data/craftpixAssets';
 import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
-import { loadMapObjects, saveMapObjects, exportMapObjects } from './mapObjectStore';
+import { loadMapObjects, saveMapObjects, exportMapObjects, resetToBundled, hasUnsavedChanges } from './mapObjectStore';
 import { addMapCollider, clearMapColliders } from './mapColliders';
 
 /**
@@ -41,6 +41,7 @@ export class MapEditor {
   private searchText?: Phaser.GameObjects.Text;
   private selectedKeyText?: Phaser.GameObjects.Text;
   private hintText?: Phaser.GameObjects.Text;
+  private statusText?: Phaser.GameObjects.Text;
   private previewImage?: Phaser.GameObjects.Image;
   private indicator?: Phaser.GameObjects.Text;
   private scrollOffset = 0;
@@ -58,7 +59,7 @@ export class MapEditor {
   private readonly THUMB_SIZE = 48;
   private readonly COLS = 4;
   private readonly GAP = 4;
-  private readonly PANEL_HEADER_H = 120;
+  private readonly PANEL_HEADER_H = 170;
 
   // Слушатели (для cleanup при выходе)
   private keyHandlers: Array<{ key: string; fn: (e: KeyboardEvent) => void }> = [];
@@ -172,6 +173,7 @@ export class MapEditor {
     for (const obj of this.objects) this.renderObject(obj);
     saveMapObjects(this.zoneId, this.objects);
     this.rebuildColliders();
+    this.updateStatusText();
   }
 
   private renderObject(obj: PlacedMapObject): void {
@@ -226,7 +228,7 @@ export class MapEditor {
     // Визуальный индикатор
     this.indicator = this.scene.add.text(
       this.scene.cameras.main.width / 2, 10,
-      '★ EDITOR MODE ★  exit=` F2 F9  LMB=place RMB=del  Ctrl+D=dupe Ctrl+Z=undo  G=grid  1-5=jump  [ ]=scale Q/E=rot T=tint C=solid S=snap',
+      '★ EDITOR MODE ★  exit=` F2 F9  Ctrl+E=EXPORT  Ctrl+Z=undo  Ctrl+D=dupe  G=grid  1-5=jump  [ ]Q/E T C S=edit',
       { fontSize: '11px', color: '#ffdd55', backgroundColor: '#000000cc',
         stroke: '#000000', strokeThickness: 2, padding: { x: 8, y: 4 } } as Phaser.Types.GameObjects.Text.TextStyle
     ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(99999);
@@ -235,6 +237,14 @@ export class MapEditor {
   private stop(): void {
     this.active = false;
     this.save();
+    // Напомним про экспорт, если раскладка расходится с git-файлом
+    if (hasUnsavedChanges(this.zoneId, this.objects)) {
+      console.warn(
+        `[MapEditor] ${this.zoneId}: есть несохранённые изменения. ` +
+        `Открой редактор снова и нажми Ctrl+E чтобы скачать ${this.zoneId}.json, ` +
+        `потом положи в src/data/mapLayouts/ и сделай push.`
+      );
+    }
     this.detachInput();
     this.removeSearchInput();
     this.panel?.destroy();
@@ -306,9 +316,21 @@ export class MapEditor {
     this.panel.add(this.hintText);
 
     this.panel?.add(this.scene.add.text(8, 60,
-      'Wheel=scroll · Ctrl+S=export · Ctrl+Z/Y=undo/redo · Ctrl+D=dup · G=grid\n1-5=jump: Eshworth/Waldmar/Mines/Road/Center', {
+      'Wheel=scroll · Ctrl+Z/Y=undo/redo · Ctrl+D=dup · G=grid\n1-5=jump: Eshworth/Waldmar/Mines/Road/Center', {
       fontSize: '9px', color: '#888888', lineSpacing: 2,
     } as Phaser.Types.GameObjects.Text.TextStyle));
+
+    // Кнопки Export / Reload + статус
+    const btnY = 92;
+    const exportBtn = this.makeButton(8, btnY, 100, 20, '⬇ Export', 0xffaa44, () => this.exportToFile());
+    const resetBtn = this.makeButton(114, btnY, 110, 20, '↺ Load from file', 0x6688cc, () => this.resetFromBundle());
+    this.panel?.add([exportBtn.bg, exportBtn.txt, resetBtn.bg, resetBtn.txt]);
+
+    this.statusText = this.scene.add.text(8, 114, '', {
+      fontSize: '10px', color: '#88cc88', fontStyle: 'bold',
+    } as Phaser.Types.GameObjects.Text.TextStyle);
+    this.panel?.add(this.statusText);
+    this.updateStatusText();
 
     this.renderThumbs();
   }
@@ -593,9 +615,18 @@ export class MapEditor {
       e.preventDefault();
     }
 
+    // Ctrl+E — экспорт JSON-файла (скачивание в браузере)
+    if (e.ctrlKey && (e.key === 'e' || e.key === 'E')) {
+      this.exportToFile();
+      e.preventDefault();
+      return;
+    }
+
     // Snap
     if (e.key === 's' || e.key === 'S') {
       if (e.ctrlKey) {
+        // Ctrl+S теперь алиас для экспорта файла + лог в консоль
+        this.exportToFile();
         const json = exportMapObjects(this.zoneId);
         console.log(`─── EXPORT ${this.zoneId} (${this.objects.length} objects) ───`);
         console.log(json);
@@ -760,6 +791,46 @@ export class MapEditor {
   private save(): void {
     saveMapObjects(this.zoneId, this.objects);
     this.rebuildColliders();
+    this.updateStatusText();
+  }
+
+  // ── Экспорт в файл / сброс из файла ─────────────────────
+
+  /** Скачивает текущую раскладку как JSON-файл (пользователь кладёт в src/data/mapLayouts/). */
+  private exportToFile(): void {
+    const json = JSON.stringify(this.objects, null, 2) + '\n';
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${this.zoneId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    this.showToast(`💾 ${this.zoneId}.json downloaded — put it in src/data/mapLayouts/ and push`);
+    this.updateStatusText();
+  }
+
+  /** Сбрасывает локальные изменения, грузит из bundled-файла (чтобы подтянуть правки из git). */
+  private resetFromBundle(): void {
+    if (!confirm('Reset all unsaved changes and reload layout from the bundled file?')) return;
+    this.snapshot();
+    const bundled = resetToBundled(this.zoneId);
+    this.restoreSnapshot(JSON.stringify(bundled));
+    this.showToast(`↺ Reloaded from ${this.zoneId}.json`);
+  }
+
+  private updateStatusText(): void {
+    if (!this.statusText) return;
+    const dirty = hasUnsavedChanges(this.zoneId, this.objects);
+    const count = this.objects.length;
+    this.statusText.setText(
+      dirty
+        ? `● ${count} obj · UNSAVED (Ctrl+E to export)`
+        : `${count} obj · synced with file`
+    );
+    this.statusText.setColor(dirty ? '#ffaa44' : '#88cc88');
   }
 
   // ── Toast ───────────────────────────────────────────────
@@ -788,7 +859,7 @@ export class MapEditor {
     input.placeholder = 'Search...';
     input.style.position = 'absolute';
     input.style.left = `${rect.right - this.PANEL_W + 8}px`;
-    input.style.top = `${rect.top + 78}px`;
+    input.style.top = `${rect.top + 174}px`;
     input.style.width = `${this.PANEL_W - 20}px`;
     input.style.padding = '3px 6px';
     input.style.background = '#1a1a1a';
@@ -830,6 +901,21 @@ export class MapEditor {
       this.gridGraphics?.clear();
     }
     this.showToast(this.gridVisible ? 'Grid ON' : 'Grid OFF');
+  }
+
+  private makeButton(
+    x: number, y: number, w: number, h: number, label: string, color: number,
+    onClick: () => void,
+  ): { bg: Phaser.GameObjects.Rectangle; txt: Phaser.GameObjects.Text } {
+    const bg = this.scene.add.rectangle(x, y, w, h, color, 0.85)
+      .setOrigin(0, 0).setStrokeStyle(1, 0xffffff).setInteractive({ useHandCursor: true });
+    const txt = this.scene.add.text(x + w / 2, y + h / 2, label, {
+      fontSize: '11px', color: '#ffffff', fontStyle: 'bold',
+    } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5);
+    bg.on('pointerover', () => bg.setFillStyle(color, 1));
+    bg.on('pointerout', () => bg.setFillStyle(color, 0.85));
+    bg.on('pointerdown', onClick);
+    return { bg, txt };
   }
 
   private drawGrid(): void {
