@@ -25,6 +25,12 @@ export class MapEditor {
   private active = false;
   private objects: PlacedMapObject[] = [];
   private sprites = new Map<PlacedMapObject, Phaser.GameObjects.Image>();
+  private spriteToObj = new Map<Phaser.GameObjects.Image, PlacedMapObject>();
+
+  // Выделение
+  private selectedObj: PlacedMapObject | null = null;
+  private selectionOutline?: Phaser.GameObjects.Rectangle;
+  private dragStartPos: { x: number; y: number } | null = null;
 
   // UI
   private panel?: Phaser.GameObjects.Container;
@@ -84,6 +90,17 @@ export class MapEditor {
     img.setAngle(obj.angle ?? 0);
     img.setDepth(obj.y);
     this.sprites.set(obj, img);
+    this.spriteToObj.set(img, obj);
+    // Если редактор уже открыт — сразу делаем интерактивным
+    if (this.active) this.enableSpriteInteraction(img);
+  }
+
+  private enableSpriteInteraction(img: Phaser.GameObjects.Image): void {
+    img.setInteractive({ draggable: true, useHandCursor: true });
+  }
+
+  private disableSpriteInteraction(img: Phaser.GameObjects.Image): void {
+    img.disableInteractive();
   }
 
   /** Переключение режима редактора. */
@@ -106,6 +123,9 @@ export class MapEditor {
     }
     gs.playerBody?.setAlpha?.(0.35);
     gs.sphere?.setAlpha?.(0.35);
+
+    // Делаем все placed объекты интерактивными
+    for (const img of this.sprites.values()) this.enableSpriteInteraction(img);
 
     this.buildUI();
     this.attachInput();
@@ -131,6 +151,10 @@ export class MapEditor {
     this.selectedKey = null;
     this.thumbs = [];
     this.thumbLabels = [];
+
+    // Снимаем interactive с всех placed объектов + убираем выделение
+    for (const img of this.sprites.values()) this.disableSpriteInteraction(img);
+    this.deselectPlaced();
 
     // Разморозка + возврат камеры + нормальная прозрачность
     const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: Phaser.GameObjects.GameObject & { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
@@ -259,16 +283,59 @@ export class MapEditor {
 
   // ── Ввод ────────────────────────────────────────────────
 
+  // Drag-обработчики (нужны ссылки для off())
+  private dragStartHandler?: (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Image) => void;
+  private dragHandler?: (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Image, dx: number, dy: number) => void;
+  private dragEndHandler?: (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Image) => void;
+  private gameobjectDownHandler?: (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.GameObject) => void;
+
   private attachInput(): void {
     // Клавиатура через DOM (чтобы не конфликтовать с игрой)
     const kb = (e: KeyboardEvent) => this.handleKey(e);
     window.addEventListener('keydown', kb);
     this.keyHandlers.push({ key: 'global', fn: kb });
 
-    // Мышь
-    this.pointerHandler = (p) => this.handleClick(p);
+    // Клик по свободной карте (для постановки нового объекта или деселекта)
+    this.pointerHandler = (p) => this.handleMapClick(p);
     this.scene.input.on('pointerdown', this.pointerHandler);
 
+    // Клик на существующий placed-спрайт = выделить его
+    this.gameobjectDownHandler = (p, obj) => {
+      const img = obj as Phaser.GameObjects.Image;
+      const placed = this.spriteToObj.get(img);
+      if (!placed) return;
+      if (p.rightButtonDown()) {
+        this.deleteObject(placed);
+      } else {
+        this.selectPlaced(placed);
+      }
+    };
+    this.scene.input.on('gameobjectdown', this.gameobjectDownHandler);
+
+    // Drag через Phaser Input
+    this.dragStartHandler = (_p, obj) => {
+      const placed = this.spriteToObj.get(obj);
+      if (placed) this.dragStartPos = { x: placed.x, y: placed.y };
+    };
+    this.dragHandler = (_p, obj, dx, dy) => {
+      const placed = this.spriteToObj.get(obj);
+      if (!placed) return;
+      const pos = this.applySnap(dx, dy);
+      obj.setPosition(pos.x, pos.y);
+      obj.setDepth(pos.y);
+      placed.x = pos.x;
+      placed.y = pos.y;
+      if (this.selectedObj === placed) this.updateSelectionOutline();
+    };
+    this.dragEndHandler = () => {
+      this.dragStartPos = null;
+      this.save();
+    };
+    this.scene.input.on('dragstart', this.dragStartHandler);
+    this.scene.input.on('drag', this.dragHandler);
+    this.scene.input.on('dragend', this.dragEndHandler);
+
+    // Движение мыши — обновляем preview
     this.pointerMoveHandler = (p) => {
       if (!this.previewImage || !this.selectedKey) return;
       const wp = this.scene.cameras.main.getWorldPoint(p.x, p.y);
@@ -292,6 +359,10 @@ export class MapEditor {
     if (this.pointerHandler) this.scene.input.off('pointerdown', this.pointerHandler);
     if (this.pointerMoveHandler) this.scene.input.off('pointermove', this.pointerMoveHandler);
     if (this.wheelHandler) this.scene.input.off('wheel', this.wheelHandler);
+    if (this.gameobjectDownHandler) this.scene.input.off('gameobjectdown', this.gameobjectDownHandler);
+    if (this.dragStartHandler) this.scene.input.off('dragstart', this.dragStartHandler);
+    if (this.dragHandler) this.scene.input.off('drag', this.dragHandler);
+    if (this.dragEndHandler) this.scene.input.off('dragend', this.dragEndHandler);
   }
 
   private handleKey(e: KeyboardEvent): void {
@@ -305,13 +376,35 @@ export class MapEditor {
     if (e.key === 'ArrowUp')    cam.scrollY -= speed;
     if (e.key === 'ArrowDown')  cam.scrollY += speed;
 
-    // Scale
-    if (e.key === '[') { this.currentScale = Math.max(0.05, this.currentScale - 0.05); this.refreshPreview(); }
-    if (e.key === ']') { this.currentScale = Math.min(2.0, this.currentScale + 0.05); this.refreshPreview(); }
+    // Scale — действует на выделенный placed (если есть), иначе на preview
+    if (e.key === '[' || e.key === ']') {
+      const delta = e.key === '[' ? -0.05 : 0.05;
+      if (this.selectedObj) {
+        this.selectedObj.scale = Math.max(0.05, Math.min(2.0, this.selectedObj.scale + delta));
+        const sp = this.sprites.get(this.selectedObj);
+        if (sp) sp.setScale(this.selectedObj.scale);
+        this.updateSelectionOutline();
+        this.save();
+      } else {
+        this.currentScale = Math.max(0.05, Math.min(2.0, this.currentScale + delta));
+        this.refreshPreview();
+      }
+    }
 
-    // Rotate
-    if (e.key === 'q' || e.key === 'Q') { this.currentAngle = (this.currentAngle - 15) % 360; this.refreshPreview(); }
-    if (e.key === 'e' || e.key === 'E') { this.currentAngle = (this.currentAngle + 15) % 360; this.refreshPreview(); }
+    // Rotate — действует на выделенный placed (если есть), иначе на preview
+    if (e.key === 'q' || e.key === 'Q' || e.key === 'e' || e.key === 'E') {
+      const delta = (e.key === 'q' || e.key === 'Q') ? -15 : 15;
+      if (this.selectedObj) {
+        this.selectedObj.angle = (((this.selectedObj.angle ?? 0) + delta) % 360);
+        const sp = this.sprites.get(this.selectedObj);
+        if (sp) sp.setAngle(this.selectedObj.angle);
+        this.updateSelectionOutline();
+        this.save();
+      } else {
+        this.currentAngle = (this.currentAngle + delta) % 360;
+        this.refreshPreview();
+      }
+    }
 
     // Snap
     if (e.key === 's' || e.key === 'S') {
@@ -326,13 +419,20 @@ export class MapEditor {
       }
     }
 
-    // ESC — снять выбор
+    // ESC — снять выбор (ассета и placed)
     if (e.key === 'Escape') {
       this.selectedKey = null;
       this.selectedKeyText?.setText('Selected: (click an icon)');
       this.previewImage?.destroy();
       this.previewImage = undefined;
+      this.deselectPlaced();
       this.renderThumbs();
+    }
+
+    // Delete / Backspace — удалить выделенный placed
+    if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedObj) {
+      this.deleteObject(this.selectedObj);
+      e.preventDefault();
     }
   }
 
@@ -343,17 +443,37 @@ export class MapEditor {
     this.updateHint();
   }
 
-  private handleClick(p: Phaser.Input.Pointer): void {
-    // Клики по панели — игнорируем (там уже interactive'ы на thumb'ах)
+  /**
+   * Клик по карте — НЕ по placed-спрайту. Если клик попал на спрайт,
+   * Phaser сначала вызвал gameobjectdown, там мы обработали выделение.
+   * Здесь: постановка нового объекта ИЛИ деселект (если ПКМ или пустой клик).
+   */
+  private handleMapClick(p: Phaser.Input.Pointer): void {
+    // Клики по панели игнорируем
     if (p.x >= this.scene.cameras.main.width - this.PANEL_W) return;
+
+    // Проверяем не попали ли в placed-спрайт (gameobjectdown уже отработал)
+    const hits = this.scene.input.hitTestPointer(p);
+    const hitPlaced = hits.some(h => this.spriteToObj.has(h as Phaser.GameObjects.Image));
+    if (hitPlaced) return; // спрайт разобрался сам
 
     const wp = this.scene.cameras.main.getWorldPoint(p.x, p.y);
 
     if (p.rightButtonDown()) {
-      this.deleteNear(wp.x, wp.y);
-    } else if (p.leftButtonDown() && this.selectedKey) {
-      const pos = this.applySnap(wp.x, wp.y);
-      this.placeObject(this.selectedKey, pos.x, pos.y);
+      // ПКМ на пустом = снять выделение
+      this.deselectPlaced();
+      return;
+    }
+
+    if (p.leftButtonDown()) {
+      if (this.selectedKey) {
+        // Ставим новый
+        const pos = this.applySnap(wp.x, wp.y);
+        this.placeObject(this.selectedKey, pos.x, pos.y);
+      } else {
+        // Клик на пустом без выбранного ассета = снять выделение placed
+        this.deselectPlaced();
+      }
     }
   }
 
@@ -376,21 +496,55 @@ export class MapEditor {
     this.save();
   }
 
-  private deleteNear(x: number, y: number): void {
-    // Находим ближайший placed-объект в радиусе 80px
-    let best: PlacedMapObject | null = null;
-    let bestD = 80 * 80;
-    for (const obj of this.objects) {
-      const dx = obj.x - x, dy = obj.y - y;
-      const d = dx * dx + dy * dy;
-      if (d < bestD) { best = obj; bestD = d; }
+  private deleteObject(obj: PlacedMapObject): void {
+    const sprite = this.sprites.get(obj);
+    if (sprite) {
+      this.spriteToObj.delete(sprite);
+      sprite.destroy();
     }
-    if (!best) return;
-    const sprite = this.sprites.get(best);
-    if (sprite) sprite.destroy();
-    this.sprites.delete(best);
-    this.objects = this.objects.filter(o => o !== best);
+    this.sprites.delete(obj);
+    this.objects = this.objects.filter(o => o !== obj);
+    if (this.selectedObj === obj) this.deselectPlaced();
     this.save();
+  }
+
+  private selectPlaced(obj: PlacedMapObject): void {
+    this.selectedObj = obj;
+    // Снимаем выбранный из панели ассет — чтобы не поставить при перетаскивании
+    if (this.selectedKey) {
+      this.selectedKey = null;
+      this.previewImage?.destroy();
+      this.previewImage = undefined;
+      this.selectedKeyText?.setText('Selected: (click icon or drag object)');
+      this.renderThumbs();
+    }
+    this.updateSelectionOutline();
+    this.selectedKeyText?.setText(`Placed: ${obj.key.replace('cp_', '')}  [Del]=delete  [drag]=move`);
+  }
+
+  private deselectPlaced(): void {
+    this.selectedObj = null;
+    this.selectionOutline?.destroy();
+    this.selectionOutline = undefined;
+  }
+
+  private updateSelectionOutline(): void {
+    if (!this.selectedObj) return;
+    const sprite = this.sprites.get(this.selectedObj);
+    if (!sprite) return;
+    const w = sprite.displayWidth;
+    const h = sprite.displayHeight;
+    const cx = sprite.x;
+    const cy = sprite.y - h / 2 + h * 0.1; // origin 0.5/0.9 → центр баунда чуть выше
+    if (!this.selectionOutline) {
+      this.selectionOutline = this.scene.add.rectangle(cx, cy, w + 6, h + 6)
+        .setStrokeStyle(3, 0xffdd55)
+        .setFillStyle(0, 0)
+        .setDepth(99997);
+    } else {
+      this.selectionOutline.setPosition(cx, cy);
+      this.selectionOutline.setSize(w + 6, h + 6);
+    }
   }
 
   private save(): void {
