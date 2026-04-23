@@ -321,12 +321,28 @@ export class GameScene extends Phaser.Scene {
     // ─── Тайловая карта ──────────────────────────────
     this.buildMap();
 
-    // ─── Редактор карт: загрузка сохранённых объектов + F9 toggle ──
+    // ─── Редактор карт: загрузка сохранённых объектов + хоткеи ──
+    // Хоткей: ` (backtick/ё) или F2. Функциональные F-клавиши могут
+    // перехватываться браузером, поэтому дублируем через window.
     void (async () => {
       const { MapEditor } = await import('../systems/mapEditor');
       this.mapEditor = new MapEditor(this, this.currentZone.id);
       this.mapEditor.spawnAll();
-      this.input.keyboard!.on('keydown-F9', () => this.mapEditor?.toggle());
+
+      const toggle = () => {
+        console.log('[Editor] toggle');
+        this.mapEditor?.toggle();
+      };
+      // Один window-level handler — ловит backtick (~/ё), F2, F9.
+      // Используем DOM чтобы обойти возможный захват Phaser'ом.
+      const domHandler = (e: KeyboardEvent) => {
+        if (e.key === '`' || e.key === '~' || e.code === 'Backquote' ||
+            e.key === 'F2' || e.key === 'F9') {
+          e.preventDefault();
+          toggle();
+        }
+      };
+      window.addEventListener('keydown', domHandler);
     })();
 
     // ─── Сфера ───────────────────────────────────────

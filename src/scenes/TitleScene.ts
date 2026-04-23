@@ -82,6 +82,12 @@ export class TitleScene extends Phaser.Scene {
       this.scene.start('TestMapScene');
       this.scene.stop();
     }, this.menuContainer, false, 180, 36);
+
+    // Подсказка про редактор карт
+    this.menuContainer.add(this.add.text(cx, 540,
+      'В игре нажми ` (ё) или F2 — откроется редактор карт',
+      { fontSize: '11px', color: '#88aabb', fontStyle: 'italic' } as Phaser.Types.GameObjects.Text.TextStyle
+    ).setOrigin(0.5));
   }
 
   // ── Load View ─────────────────────────────────────────
