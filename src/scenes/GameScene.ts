@@ -1115,11 +1115,12 @@ export class GameScene extends Phaser.Scene {
 
     const baseX = 4400;
     const baseY = 2400;
-    const gapX = 320;
-    const gapY = 400;
-    const perRow = 6;
+    const gapX = 180;
+    const gapY = 220;
+    const perRow = 8;
 
-    this.add.text(baseX, baseY - 60, '── CRAFTPIX SHOWCASE (scale 1.0) ──', {
+    const SHOW_SCALE = 0.3;
+    this.add.text(baseX, baseY - 60, `── CRAFTPIX SHOWCASE (scale ${SHOW_SCALE}) ──`, {
       fontSize: '16px', color: '#ffdd55', fontStyle: 'bold',
       stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(9999);
@@ -1133,6 +1134,7 @@ export class GameScene extends Phaser.Scene {
 
       this.add.image(x, y, key)
         .setOrigin(0.5, 0.9)
+        .setScale(SHOW_SCALE)
         .setDepth(y);
       this.add.text(x, y + 20, label, {
         fontSize: '11px', color: '#ffffff',
@@ -1140,15 +1142,18 @@ export class GameScene extends Phaser.Scene {
       }).setOrigin(0.5, 0).setDepth(9999);
     });
 
-    // Подложка из ground-тайлов (первые 6 вариаций)
-    const groundKeys = ['cp_ground_01', 'cp_ground_02', 'cp_ground_03',
-                        'cp_ground_04', 'cp_ground_05', 'cp_ground_06'];
+    // Подложка из ground-тайлов (первые 8 вариаций) — тоже 0.3
+    const groundKeys = ['cp_ground_01', 'cp_ground_02', 'cp_ground_03', 'cp_ground_04',
+                        'cp_ground_05', 'cp_ground_06', 'cp_ground_07', 'cp_ground_08'];
+    const groundY = baseY + Math.ceil(props.length / perRow) * gapY + 120;
+    this.add.text(baseX, groundY - 50, '── GROUND TILES (scale 0.3) ──', {
+      fontSize: '14px', color: '#ffdd55', stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(9999);
     for (let i = 0; i < groundKeys.length; i++) {
       if (!this.textures.exists(groundKeys[i])) continue;
-      const x = baseX - 600 + i * 280;
-      const y = baseY + 2400;
-      this.add.image(x, y, groundKeys[i]).setDepth(-5);
-      this.add.text(x, y + 20, `Ground ${i + 1}`, {
+      const x = baseX + (i - (groundKeys.length - 1) / 2) * 110;
+      this.add.image(x, groundY, groundKeys[i]).setScale(0.3).setDepth(-5);
+      this.add.text(x, groundY + 50, `G${i + 1}`, {
         fontSize: '11px', color: '#ffffff',
         stroke: '#000000', strokeThickness: 3,
       }).setOrigin(0.5, 0).setDepth(9999);
