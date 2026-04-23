@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { CP_ASSETS } from '../data/craftpixAssets';
-import { PlacedMapObject } from '../types/mapObjects';
+import { PlacedMapObject, TINT_PALETTE } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects } from './mapObjectStore';
 
 /**
@@ -48,6 +48,7 @@ export class MapEditor {
   private selectedKey: string | null = null;
   private currentScale = 0.3;
   private currentAngle = 0;
+  private currentTintIndex = 0; // 0 = белый = без тинта
   private snapToGrid = false;
   private readonly SNAP_SIZE = 32;
 
@@ -89,6 +90,7 @@ export class MapEditor {
     img.setScale(obj.scale);
     img.setAngle(obj.angle ?? 0);
     img.setDepth(obj.y);
+    if (obj.tint !== undefined && obj.tint !== 0xffffff) img.setTint(obj.tint);
     this.sprites.set(obj, img);
     this.spriteToObj.set(img, obj);
     // Если редактор уже открыт — сразу делаем интерактивным
@@ -132,7 +134,7 @@ export class MapEditor {
     // Визуальный индикатор
     this.indicator = this.scene.add.text(
       this.scene.cameras.main.width / 2, 10,
-      '★ EDITOR MODE ★  ` / F2 / F9 = exit  LMB=place  RMB=delete  Arrows=move  [ / ]=scale  Q/E=rotate  S=snap',
+      '★ EDITOR MODE ★  ` / F2 / F9 = exit  LMB=place  RMB=delete  Arrows=move  [ / ]=scale  Q/E=rotate  T=tint  S=snap',
       { fontSize: '11px', color: '#ffdd55', backgroundColor: '#000000cc',
         stroke: '#000000', strokeThickness: 2, padding: { x: 8, y: 4 } } as Phaser.Types.GameObjects.Text.TextStyle
     ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(99999);
@@ -198,7 +200,7 @@ export class MapEditor {
     this.panel.add(this.selectedKeyText);
 
     this.hintText = this.scene.add.text(8, 44,
-      `scale ${this.currentScale.toFixed(2)}  angle ${this.currentAngle}°  snap:${this.snapToGrid ? 'ON' : 'off'}`, {
+      `scale ${this.currentScale.toFixed(2)}  angle ${this.currentAngle}°  tint #${TINT_PALETTE[this.currentTintIndex].toString(16).padStart(6, '0')}  snap:${this.snapToGrid ? 'ON' : 'off'}`, {
       fontSize: '10px', color: '#aaaaaa',
     } as Phaser.Types.GameObjects.Text.TextStyle);
     this.panel.add(this.hintText);
@@ -273,11 +275,13 @@ export class MapEditor {
       .setAngle(this.currentAngle)
       .setAlpha(0.5)
       .setDepth(100000);
+    const t = TINT_PALETTE[this.currentTintIndex];
+    if (t !== 0xffffff) this.previewImage.setTint(t);
   }
 
   private updateHint(): void {
     this.hintText?.setText(
-      `scale ${this.currentScale.toFixed(2)}  angle ${this.currentAngle}°  snap:${this.snapToGrid ? 'ON' : 'off'}`
+      `scale ${this.currentScale.toFixed(2)}  angle ${this.currentAngle}°  tint #${TINT_PALETTE[this.currentTintIndex].toString(16).padStart(6, '0')}  snap:${this.snapToGrid ? 'ON' : 'off'}`
     );
   }
 
@@ -406,6 +410,34 @@ export class MapEditor {
       }
     }
 
+    // Tint — Shift+T = сброс, T = следующий цвет в палитре
+    if (e.key === 't' || e.key === 'T') {
+      if (this.selectedObj) {
+        if (e.shiftKey) {
+          this.selectedObj.tint = undefined;
+        } else {
+          const currentIdx = TINT_PALETTE.findIndex(c => c === (this.selectedObj?.tint ?? 0xffffff));
+          const nextIdx = (currentIdx + 1) % TINT_PALETTE.length;
+          const nextTint = TINT_PALETTE[nextIdx];
+          this.selectedObj.tint = nextTint === 0xffffff ? undefined : nextTint;
+        }
+        const sp = this.sprites.get(this.selectedObj);
+        if (sp) {
+          if (this.selectedObj.tint === undefined) sp.clearTint();
+          else sp.setTint(this.selectedObj.tint);
+        }
+        this.save();
+      } else {
+        if (e.shiftKey) {
+          this.currentTintIndex = 0;
+        } else {
+          this.currentTintIndex = (this.currentTintIndex + 1) % TINT_PALETTE.length;
+        }
+        this.refreshPreview();
+      }
+      e.preventDefault();
+    }
+
     // Snap
     if (e.key === 's' || e.key === 'S') {
       if (e.ctrlKey) {
@@ -440,6 +472,9 @@ export class MapEditor {
     if (!this.previewImage) return;
     this.previewImage.setScale(this.currentScale);
     this.previewImage.setAngle(this.currentAngle);
+    const t = TINT_PALETTE[this.currentTintIndex];
+    if (t === 0xffffff) this.previewImage.clearTint();
+    else this.previewImage.setTint(t);
     this.updateHint();
   }
 
@@ -486,10 +521,12 @@ export class MapEditor {
   }
 
   private placeObject(key: string, x: number, y: number): void {
+    const tint = TINT_PALETTE[this.currentTintIndex];
     const obj: PlacedMapObject = {
       key, x, y,
       scale: this.currentScale,
       angle: this.currentAngle || undefined,
+      tint: tint === 0xffffff ? undefined : tint,
     };
     this.objects.push(obj);
     this.renderObject(obj);
@@ -519,7 +556,7 @@ export class MapEditor {
       this.renderThumbs();
     }
     this.updateSelectionOutline();
-    this.selectedKeyText?.setText(`Placed: ${obj.key.replace('cp_', '')}  [Del]=delete  [drag]=move`);
+    this.selectedKeyText?.setText(`Placed: ${obj.key.replace('cp_', '')}  [Del]=delete  [drag]=move  [T]=tint`);
   }
 
   private deselectPlaced(): void {
