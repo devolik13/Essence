@@ -14,6 +14,22 @@ export interface PlacedMapObject {
   angle?: number;
   /** Цветной тинт в формате 0xRRGGBB (undefined = без тинта) */
   tint?: number;
+  /** Блокирует движение (дом, забор, дерево). По умолчанию определяется по префиксу key. */
+  solid?: boolean;
+  /** Радиус коллайдера в пикселях (мировые), если не задан — вычисляется из спрайта */
+  colliderRadius?: number;
+}
+
+/** Префиксы имён ассетов, которые по дефолту считаются непроходимыми. */
+export const DEFAULT_SOLID_PREFIXES: string[] = [
+  'cp_house', 'cp_castle', 'cp_tree', 'cp_rock', 'cp_bush',
+  'cp_fence', 'cp_well', 'cp_windmill', 'cp_barrel', 'cp_crate',
+  'cp_barn', 'cp_shrine', 'cp_altar', 'cp_lantern', 'cp_signpost',
+  'cp_stump', 'cp_pillar', 'cp_statue',
+];
+
+export function isKeyDefaultSolid(key: string): boolean {
+  return DEFAULT_SOLID_PREFIXES.some(p => key.startsWith(p));
 }
 
 export const MAP_OBJECTS_STORAGE_PREFIX = 'essence_map_';

@@ -7,6 +7,7 @@ import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/comba
 import { BODY_SPEED } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
 import { clamp } from '../utils/math';
+import { pushOutOfColliders } from '../systems/mapColliders';
 
 /** Тела с поддержкой анимированных спрайтов */
 const ANIMATED_BODIES: Record<string, {
@@ -330,8 +331,9 @@ export class Body extends Phaser.GameObjects.Container {
       const newX = Math.max(16, Math.min(this.mapW - 16, this.x + vx * BODY_SPEED * speedMult * dt));
       const newY = Math.max(16, Math.min(this.mapH - 16, this.y + vy * BODY_SPEED * speedMult * dt));
       if (!(this.wallCheckFn && this.wallCheckFn(newX, newY))) {
-        this.x = newX;
-        this.y = newY;
+        const pushed = pushOutOfColliders(newX, newY, 16);
+        this.x = pushed.x;
+        this.y = pushed.y;
       }
     }
 

@@ -8,6 +8,7 @@ import { CREATURE_SPEED, AGGRO_RANGE, LEASH_RANGE } from '../utils/constants';
 import { WEAPONS } from '../data/weapons';
 import { distance } from '../utils/math';
 import { clamp } from '../utils/math';
+import { pushOutOfColliders } from '../systems/mapColliders';
 
 export type CreatureAIState = 'idle' | 'wander' | 'chase' | 'attack' | 'return' | 'dead';
 
@@ -226,6 +227,11 @@ export class Creature extends Phaser.GameObjects.Container {
           break;
       }
     }
+
+    // Push-out от установленных на карте непроходимых объектов
+    const pushed = pushOutOfColliders(this.x, this.y, 14);
+    this.x = pushed.x;
+    this.y = pushed.y;
 
     // Мобы не заходят в сейф-зоны — выталкиваем
     for (const sb of this.safeBoundsArr) {

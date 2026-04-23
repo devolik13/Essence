@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { CP_ASSETS } from '../data/craftpixAssets';
-import { PlacedMapObject, TINT_PALETTE } from '../types/mapObjects';
+import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects } from './mapObjectStore';
+import { addMapCollider, clearMapColliders } from './mapColliders';
 
 /**
  * In-game редактор карт.
@@ -81,6 +82,31 @@ export class MapEditor {
     for (const obj of this.objects) {
       this.renderObject(obj);
     }
+    this.rebuildColliders();
+  }
+
+  /** Твёрдый ли объект (явный флаг → иначе по префиксу key). */
+  private isSolid(obj: PlacedMapObject): boolean {
+    if (obj.solid !== undefined) return obj.solid;
+    return isKeyDefaultSolid(obj.key);
+  }
+
+  /** Радиус коллайдера: явный → иначе ~30% от ширины спрайта. */
+  private colliderRadiusOf(obj: PlacedMapObject): number {
+    if (obj.colliderRadius !== undefined) return obj.colliderRadius;
+    const sp = this.sprites.get(obj);
+    const w = sp ? sp.displayWidth : 32;
+    const h = sp ? sp.displayHeight : 32;
+    return Math.max(10, Math.min(w, h) * 0.3);
+  }
+
+  /** Перестраивает глобальный массив mapColliders (вызвать после любых правок). */
+  private rebuildColliders(): void {
+    clearMapColliders();
+    for (const obj of this.objects) {
+      if (!this.isSolid(obj)) continue;
+      addMapCollider({ x: obj.x, y: obj.y, r: this.colliderRadiusOf(obj) });
+    }
   }
 
   private renderObject(obj: PlacedMapObject): void {
@@ -134,7 +160,7 @@ export class MapEditor {
     // Визуальный индикатор
     this.indicator = this.scene.add.text(
       this.scene.cameras.main.width / 2, 10,
-      '★ EDITOR MODE ★  ` / F2 / F9 = exit  LMB=place  RMB=delete  Arrows=move  [ / ]=scale  Q/E=rotate  T=tint  S=snap',
+      '★ EDITOR MODE ★  exit=` F2 F9  LMB=place RMB=del  [ ]=scale  Q/E=rot  T=tint  C=solid  S=snap',
       { fontSize: '11px', color: '#ffdd55', backgroundColor: '#000000cc',
         stroke: '#000000', strokeThickness: 2, padding: { x: 8, y: 4 } } as Phaser.Types.GameObjects.Text.TextStyle
     ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(99999);
@@ -466,6 +492,15 @@ export class MapEditor {
       this.deleteObject(this.selectedObj);
       e.preventDefault();
     }
+
+    // C — toggle solid/walkable для выделенного
+    if ((e.key === 'c' || e.key === 'C') && this.selectedObj) {
+      const wasSolid = this.isSolid(this.selectedObj);
+      this.selectedObj.solid = !wasSolid;
+      this.updateSelectionOutline();
+      this.save();
+      e.preventDefault();
+    }
   }
 
   private refreshPreview(): void {
@@ -556,7 +591,6 @@ export class MapEditor {
       this.renderThumbs();
     }
     this.updateSelectionOutline();
-    this.selectedKeyText?.setText(`Placed: ${obj.key.replace('cp_', '')}  [Del]=delete  [drag]=move  [T]=tint`);
   }
 
   private deselectPlaced(): void {
@@ -573,18 +607,25 @@ export class MapEditor {
     const h = sprite.displayHeight;
     const cx = sprite.x;
     const cy = sprite.y - h / 2 + h * 0.1; // origin 0.5/0.9 → центр баунда чуть выше
+    const solid = this.isSolid(this.selectedObj);
+    const color = solid ? 0xff6644 : 0x66ff88; // красный = непроходимый, зелёный = walkable
     if (!this.selectionOutline) {
       this.selectionOutline = this.scene.add.rectangle(cx, cy, w + 6, h + 6)
-        .setStrokeStyle(3, 0xffdd55)
+        .setStrokeStyle(3, color)
         .setFillStyle(0, 0)
         .setDepth(99997);
     } else {
       this.selectionOutline.setPosition(cx, cy);
       this.selectionOutline.setSize(w + 6, h + 6);
+      this.selectionOutline.setStrokeStyle(3, color);
     }
+    this.selectedKeyText?.setText(
+      `Placed: ${this.selectedObj.key.replace('cp_', '')}  ${solid ? '[SOLID]' : '[walk]'}  [Del] [drag] [T]=tint [C]=solid`
+    );
   }
 
   private save(): void {
     saveMapObjects(this.zoneId, this.objects);
+    this.rebuildColliders();
   }
 }
