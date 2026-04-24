@@ -269,20 +269,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   npcs: [
-    // Eshworth NPCs
-    { x: EX,       y: EY - 160, id: 'vendor',        nameRu: 'Merchant',    role: 'vendor' },
-    { x: EX - 150, y: EY - 80,  id: 'aldric',        nameRu: 'Aldric',      role: 'npc' },
-    { x: EX + 150, y: EY - 80,  id: 'pol',           nameRu: 'Pol',         role: 'npc' },
-    { x: EX + 200, y: EY + 100, id: 'mira',          nameRu: 'Mira',        role: 'npc' },
-    { x: EX - 200, y: EY + 100, id: 'bert',          nameRu: 'Bert',        role: 'npc' },
-    { x: EX - 200, y: EY - 160, id: 'stranger',      nameRu: '???',         role: 'npc' },
-    { x: EX + 200, y: EY - 160, id: 'weapon_vendor', nameRu: 'Arms Dealer', role: 'weapon_vendor' },
-    // Waldmar NPCs
-    { x: WX,       y: WY - 160, id: 'waldmar_vendor', nameRu: 'Merchant',       role: 'vendor' },
-    { x: WX - 150, y: WY - 80,  id: 'captain',        nameRu: 'Captain Vern',   role: 'npc' },
-    { x: WX + 150, y: WY - 80,  id: 'healer',         nameRu: 'Healer Lena',    role: 'npc' },
-    { x: WX - 200, y: WY + 100, id: 'blacksmith',     nameRu: 'Blacksmith Gorm', role: 'npc' },
-    { x: WX + 200, y: WY - 160, id: 'waldmar_arms',   nameRu: 'Arms Dealer',    role: 'weapon_vendor' },
+    // Temporarily removed — will add back after map layout is finalized
   ],
 
   questObjects: [
