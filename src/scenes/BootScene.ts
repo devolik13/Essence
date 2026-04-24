@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
-import { CP_ASSETS, MOB_ASSETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_ASSETS, MOB_SPRITE_SETS } from '../data/craftpixAssets';
 
 /**
  * BootScene — загрузка ассетов и переход к игре.
@@ -20,9 +20,21 @@ export class BootScene extends Phaser.Scene {
       this.load.image(key, path);
     }
 
-    // Mob spritesheets (first frame used as editor thumbnail)
+    // Mob spritesheets — editor thumbnails
     for (const [key, path, fw, fh] of MOB_ASSETS) {
       this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fh });
+    }
+    // Mob directional spritesheets — all animations
+    const loadedSheets = new Set<string>();
+    for (const [, spriteSet] of Object.entries(MOB_SPRITE_SETS)) {
+      for (const [animKey, anim] of Object.entries(spriteSet.anims)) {
+        const sheetKey = `mob_sheet_${animKey}`;
+        if (loadedSheets.has(sheetKey)) continue;
+        loadedSheets.add(sheetKey);
+        this.load.spritesheet(sheetKey, spriteSet.folder + anim.file, {
+          frameWidth: spriteSet.frameW, frameHeight: spriteSet.frameH,
+        });
+      }
     }
 
     const gfx = this.add.graphics();
@@ -954,6 +966,31 @@ export class BootScene extends Phaser.Scene {
     makeAnim('mage_atk_down',   'mage_atk_down',   17, 0);
     makeAnim('mage_atk_right',  'mage_atk_right',  17, 0);
     makeAnim('mage_atk_up',     'mage_atk_up',     17, 0);
+
+    // ── Goblin animations ─────────────────────────────────────────────────────
+    const mkMobAnim = (key: string, sheet: string, numFrames: number, fps: number, repeat: number) => {
+      if (!this.anims.exists(key) && this.textures.exists(sheet)) {
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(sheet, { start: 0, end: numFrames - 1 }),
+          frameRate: fps,
+          repeat,
+        });
+      }
+    };
+    mkMobAnim('goblin_idle_down',  'mob_sheet_front_idle',   16, 8,  -1);
+    mkMobAnim('goblin_idle_up',    'mob_sheet_back_idle',    16, 8,  -1);
+    mkMobAnim('goblin_idle_left',  'mob_sheet_left_idle',    16, 8,  -1);
+    mkMobAnim('goblin_idle_right', 'mob_sheet_right_idle',   16, 8,  -1);
+    mkMobAnim('goblin_walk_down',  'mob_sheet_front_walk',   20, 12, -1);
+    mkMobAnim('goblin_walk_up',    'mob_sheet_back_walk',    20, 12, -1);
+    mkMobAnim('goblin_walk_left',  'mob_sheet_left_walk',    20, 12, -1);
+    mkMobAnim('goblin_walk_right', 'mob_sheet_right_walk',   20, 12, -1);
+    mkMobAnim('goblin_atk_down',   'mob_sheet_front_attack', 10, 14, 0);
+    mkMobAnim('goblin_atk_up',     'mob_sheet_back_attack',  10, 14, 0);
+    mkMobAnim('goblin_atk_left',   'mob_sheet_left_attack',  10, 14, 0);
+    mkMobAnim('goblin_atk_right',  'mob_sheet_right_attack', 10, 14, 0);
+    mkMobAnim('goblin_dying',      'mob_sheet_dying',        10, 10, 0);
 
     // ── Spell animations ─────────────────────────────────────────────────────
     const mkSpell = (key: string, sheet: string, end: number, fps: number, loop: boolean) => {

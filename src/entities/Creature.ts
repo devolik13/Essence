@@ -12,6 +12,10 @@ import { pushOutOfColliders } from '../systems/mapColliders';
 
 export type CreatureAIState = 'idle' | 'wander' | 'chase' | 'attack' | 'return' | 'dead';
 
+const CREATURE_SPRITE_MAP: Record<string, string> = {
+  goblin_veteran: 'goblin',
+};
+
 /**
  * Существо (NPC/моб) — враг или пассивное существо в мире.
  * Имеет свой набор статов (на основе капов тела).
@@ -43,7 +47,7 @@ export class Creature extends Phaser.GameObjects.Container {
   public spawnX: number;
   public spawnY: number;
 
-  private bodySprite: Phaser.GameObjects.Image;
+  private bodySprite: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
   private hpBar: Phaser.GameObjects.Rectangle;
   private hpBarBg: Phaser.GameObjects.Rectangle;
   private statusText: Phaser.GameObjects.Text;
@@ -51,6 +55,11 @@ export class Creature extends Phaser.GameObjects.Container {
 
   // Hit flash
   private hitFlashTimer: number = 0;
+
+  // Animated sprite support
+  private animPrefix: string | null = null;
+  private facingDir: 'down' | 'up' | 'left' | 'right' = 'down';
+  private animState: 'idle' | 'walk' | 'atk' | 'dying' = 'idle';
 
   /** Внешний callback для проверки блокировки движения стенами */
   public wallCheckFn?: (x: number, y: number) => boolean;
@@ -83,12 +92,22 @@ export class Creature extends Phaser.GameObjects.Container {
       this.spellCooldowns = new Array(definition.npcSpells.length).fill(0);
     }
 
-    // Визуал — спрайт существа
-    const textureKey = `body_${definition.id}`;
-    const hasTexture = scene.textures.exists(textureKey);
-    this.bodySprite = scene.add.image(0, 0, hasTexture ? textureKey : '__DEFAULT');
-    this.bodySprite.setDisplaySize(24, 24);
-    if (!hasTexture) this.bodySprite.setTint(definition.color);
+    // Визуал — спрайт существа (анимированный или статический)
+    const spriteId = CREATURE_SPRITE_MAP[definition.id] ?? definition.id;
+    const animTestKey = `${spriteId}_idle_down`;
+    if (scene.anims.exists(animTestKey)) {
+      this.animPrefix = spriteId;
+      const spr = scene.add.sprite(0, 0, 'mob_sheet_front_idle', 0);
+      spr.setDisplaySize(34, 34);
+      spr.play(animTestKey);
+      this.bodySprite = spr;
+    } else {
+      const textureKey = `body_${definition.id}`;
+      const hasTexture = scene.textures.exists(textureKey);
+      this.bodySprite = scene.add.image(0, 0, hasTexture ? textureKey : '__DEFAULT');
+      this.bodySprite.setDisplaySize(24, 24);
+      if (!hasTexture) this.bodySprite.setTint(definition.color);
+    }
     this.add(this.bodySprite);
 
     // Имя
@@ -222,8 +241,11 @@ export class Creature extends Phaser.GameObjects.Container {
             this.wanderDirX = (Math.random() - 0.5) * 2;
             this.wanderDirY = (Math.random() - 0.5) * 2;
           }
-          this.x += this.wanderDirX * CREATURE_SPEED * 0.3 * speedMult * dt;
-          this.y += this.wanderDirY * CREATURE_SPEED * 0.3 * speedMult * dt;
+          const wmx = this.wanderDirX * CREATURE_SPEED * 0.3 * speedMult * dt;
+          const wmy = this.wanderDirY * CREATURE_SPEED * 0.3 * speedMult * dt;
+          this.x += wmx;
+          this.y += wmy;
+          if (Math.abs(wmx) > 0.01 || Math.abs(wmy) > 0.01) this.updateFacing(wmx, wmy);
           break;
       }
     }
@@ -248,6 +270,11 @@ export class Creature extends Phaser.GameObjects.Container {
         else if (minD === dTop) this.y = sb.y1 - margin;
         else this.y = sb.y2 + margin;
       }
+    }
+
+    // Animated sprite — update facing & animation
+    if (this.animPrefix) {
+      this.updateSpriteAnim();
     }
 
     // Hit flash
@@ -307,8 +334,11 @@ export class Creature extends Phaser.GameObjects.Container {
     const dy = this.y - ty;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 1) return;
-    this.x += (dx / dist) * speed * dt;
-    this.y += (dy / dist) * speed * dt;
+    const mx = (dx / dist) * speed * dt;
+    const my = (dy / dist) * speed * dt;
+    this.x += mx;
+    this.y += my;
+    this.updateFacing(mx, my);
   }
 
   private moveToward(tx: number, ty: number, speed: number, dt: number) {
@@ -317,14 +347,46 @@ export class Creature extends Phaser.GameObjects.Container {
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 2) return;
 
-    const newX = this.x + (dx / dist) * speed * dt;
-    const newY = this.y + (dy / dist) * speed * dt;
+    const mx = (dx / dist) * speed * dt;
+    const my = (dy / dist) * speed * dt;
+    const newX = this.x + mx;
+    const newY = this.y + my;
 
-    // Блокировка стенами
     if (this.wallCheckFn && this.wallCheckFn(newX, newY)) return;
 
     this.x = newX;
     this.y = newY;
+    this.updateFacing(mx, my);
+  }
+
+  private updateFacing(mx: number, my: number): void {
+    if (Math.abs(mx) > Math.abs(my)) {
+      this.facingDir = mx > 0 ? 'right' : 'left';
+    } else {
+      this.facingDir = my > 0 ? 'down' : 'up';
+    }
+  }
+
+  private updateSpriteAnim(): void {
+    const spr = this.bodySprite as Phaser.GameObjects.Sprite;
+    let newState: 'idle' | 'walk' | 'atk' | 'dying' = 'idle';
+
+    if (this.isDead) {
+      newState = 'dying';
+    } else if (this.aiState === 'attack' && this.attackCooldown <= 0) {
+      newState = 'atk';
+    } else if (this.aiState === 'chase' || this.aiState === 'return' || this.aiState === 'wander') {
+      newState = 'walk';
+    }
+
+    const key = newState === 'dying'
+      ? `${this.animPrefix}_dying`
+      : `${this.animPrefix}_${newState}_${this.facingDir}`;
+
+    if (spr.anims?.currentAnim?.key !== key && this.scene.anims.exists(key)) {
+      spr.play(key);
+    }
+    this.animState = newState;
   }
 
   takeDamage(amount: number): number {

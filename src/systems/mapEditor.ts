@@ -77,6 +77,9 @@ export class MapEditor {
   private searchInput?: HTMLInputElement;
   private filterText = '';
 
+  // Камера до входа в редактор (для восстановления)
+  private savedCamZoom = 1;
+
   // Сетка
   private gridGraphics?: Phaser.GameObjects.Graphics;
   private gridVisible = false;
@@ -219,6 +222,7 @@ export class MapEditor {
     // Заморозка геймплея + отключение камеры-следящей + призрачный вид мобов
     const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
     gs.editorMode = true;
+    this.savedCamZoom = this.scene.cameras.main.zoom;
     this.scene.cameras.main.stopFollow();
     this.scene.events.emit('editor-mode', true);
     if (gs.creatures) {
@@ -291,6 +295,7 @@ export class MapEditor {
     }
     gs.playerBody?.setAlpha?.(1);
     gs.sphere?.setAlpha?.(1);
+    this.scene.cameras.main.zoom = this.savedCamZoom;
     if (gs.playerBody) {
       this.scene.cameras.main.startFollow(gs.playerBody as Phaser.GameObjects.GameObject, true, 0.1, 0.1);
     }
@@ -542,6 +547,13 @@ export class MapEditor {
 
     // Движение мыши — обновляем preview
     this.pointerMoveHandler = (p) => {
+      // Middle-mouse drag → pan camera
+      if (p.middleButtonDown()) {
+        const cam = this.scene.cameras.main;
+        cam.scrollX -= (p.x - p.prevPosition.x) / cam.zoom;
+        cam.scrollY -= (p.y - p.prevPosition.y) / cam.zoom;
+        return;
+      }
       if (!this.previewImage || !this.selectedKey) return;
       const wp = this.scene.cameras.main.getWorldPoint(p.x, p.y);
       const pos = this.applySnap(wp.x, wp.y);
@@ -549,8 +561,14 @@ export class MapEditor {
     };
     this.scene.input.on('pointermove', this.pointerMoveHandler);
 
-    // Колёсико для скролла панели
+    // Колёсико: Ctrl+wheel = zoom, обычное = скролл палитры
     this.wheelHandler = (p, _gos, _dx, dy) => {
+      if (p.event.ctrlKey || p.event.metaKey) {
+        const cam = this.scene.cameras.main;
+        cam.zoom = Math.max(0.3, Math.min(3, cam.zoom - dy * 0.001));
+        p.event.preventDefault();
+        return;
+      }
       if (p.x < this.scene.cameras.main.width - this.PANEL_W) return;
       this.scrollOffset = Math.max(0, this.scrollOffset + dy * 0.5);
       this.renderThumbs();
@@ -605,13 +623,17 @@ export class MapEditor {
       return;
     }
 
-    // Перемещение камеры
-    const speed = e.shiftKey ? 32 : 12;
+    // Перемещение камеры (стрелки, Shift=быстро)
+    const speed = e.shiftKey ? 120 : 32;
     const cam = this.scene.cameras.main;
     if (e.key === 'ArrowLeft')  cam.scrollX -= speed;
     if (e.key === 'ArrowRight') cam.scrollX += speed;
     if (e.key === 'ArrowUp')    cam.scrollY -= speed;
     if (e.key === 'ArrowDown')  cam.scrollY += speed;
+
+    // Zoom +/-
+    if (e.key === '+' || e.key === '=') { cam.zoom = Math.min(cam.zoom + 0.1, 3); e.preventDefault(); return; }
+    if (e.key === '-' || e.key === '_') { cam.zoom = Math.max(cam.zoom - 0.1, 0.3); e.preventDefault(); return; }
 
     // Телепорт 1-5 к ключевым локациям (только в village)
     if (this.zoneId === 'village' && this.VILLAGE_JUMPS[e.key]) {
