@@ -295,7 +295,8 @@ export class MapEditor {
     this.panel = this.scene.add.container(px, py).setScrollFactor(0).setDepth(99998);
 
     this.panelBg = this.scene.add.rectangle(0, 0, this.PANEL_W, ph, 0x000000, 0.85)
-      .setOrigin(0, 0).setStrokeStyle(2, 0xffdd55);
+      .setOrigin(0, 0).setStrokeStyle(2, 0xffdd55)
+      .setInteractive().setScrollFactor(0);
     this.panel.add(this.panelBg);
 
     const title = this.scene.add.text(8, 6, 'CraftPix Assets', {
@@ -362,7 +363,8 @@ export class MapEditor {
 
       const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key)
         .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
-        .setInteractive({ useHandCursor: true });
+        .setInteractive({ useHandCursor: true })
+        .setScrollFactor(0);
       thumb.on('pointerdown', () => this.selectAsset(key));
       if (key === this.selectedKey) thumb.setTint(0xffdd55);
       this.panel.add(thumb);
@@ -908,10 +910,11 @@ export class MapEditor {
     onClick: () => void,
   ): { bg: Phaser.GameObjects.Rectangle; txt: Phaser.GameObjects.Text } {
     const bg = this.scene.add.rectangle(x, y, w, h, color, 0.85)
-      .setOrigin(0, 0).setStrokeStyle(1, 0xffffff).setInteractive({ useHandCursor: true });
+      .setOrigin(0, 0).setStrokeStyle(1, 0xffffff)
+      .setInteractive({ useHandCursor: true }).setScrollFactor(0);
     const txt = this.scene.add.text(x + w / 2, y + h / 2, label, {
       fontSize: '11px', color: '#ffffff', fontStyle: 'bold',
-    } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5);
+    } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5).setScrollFactor(0);
     bg.on('pointerover', () => bg.setFillStyle(color, 1));
     bg.on('pointerout', () => bg.setFillStyle(color, 0.85));
     bg.on('pointerdown', onClick);
