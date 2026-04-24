@@ -4,25 +4,6 @@ import { BodyQuestDef, ConflictQuestDef } from '../types/bodyQuests';
 // T1 — Simple quests (animals, basic humanoids) → T1 spells
 // ═══════════════════════════════════════════════════════════════
 
-const QUEST_RABBIT: BodyQuestDef = {
-  id: 'bq_rabbit', bodyId: 'rabbit', tier: 1,
-  nameRu: 'Survival Instinct',
-  description: 'Learn to survive as prey.',
-  introMessages: [
-    { speaker: '', text: 'The world changed. Grass — enormous. Every sound — a threat.' },
-    { speaker: '', text: 'Somewhere above, a shadow circles. The burrow is far.' },
-    { speaker: '', text: 'The body knows what to do. Run.' },
-  ],
-  completeMessages: [
-    { speaker: '', text: 'Safe. For now. The body taught you speed — the most honest teacher.' },
-  ],
-  objectives: [
-    { type: 'survive', count: 1, description: 'Survive 60 seconds' },
-    { type: 'reach', count: 1, targetId: 'burrow', description: 'Reach the burrow' },
-  ],
-  rewardSpellId: 'acceleration',
-  xpReward: 50,
-};
 
 const QUEST_WOLF: BodyQuestDef = {
   id: 'bq_wolf', bodyId: 'wolf', tier: 1,
@@ -500,7 +481,7 @@ const QUEST_HARE: BodyQuestDef = {
   objectives: [
     { type: 'survive', count: 1, description: 'Survive 45 seconds' },
   ],
-  rewardSpellId: 'dash',
+  rewardSpellId: 'acceleration',
   xpReward: 40,
 };
 
@@ -513,12 +494,12 @@ const QUEST_DEER: BodyQuestDef = {
     { speaker: '', text: 'Something is watching from the treeline. Time to run.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Nothing could catch you. The wind itself taught you speed.' },
+    { speaker: '', text: 'Nothing could catch you. The wind itself taught you to dash.' },
   ],
   objectives: [
     { type: 'survive', count: 1, description: 'Survive 60 seconds' },
   ],
-  rewardSpellId: 'acceleration',
+  rewardSpellId: 'dash',
   xpReward: 40,
 };
 
@@ -582,7 +563,7 @@ const QUEST_GROUSE: BodyQuestDef = {
 
 export const BODY_QUESTS: BodyQuestDef[] = [
   // T1 Animals
-  QUEST_RABBIT, QUEST_WOLF, QUEST_BEAR,
+  QUEST_WOLF, QUEST_BEAR,
   QUEST_HARE, QUEST_DEER, QUEST_FOX, QUEST_BOAR, QUEST_GROUSE,
   // T1 Humanoids
   QUEST_GOBLIN, QUEST_ORC, QUEST_SCOUT, QUEST_SHAMAN,

@@ -40,19 +40,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     npcSpells: [ABILITY_STING],
   },
 
-  rabbit: {
-    id: 'rabbit', name: 'Rabbit', nameRu: 'Rabbit',
-    type: BodyType.Passive, damageType: 'melee',
-    caps: { [StatName.Evasion]: 10, [StatName.Agility]: 8 },
-    xpReward: 10,
-    npcStats: {
-      [StatName.Strength]: 1, [StatName.Accuracy]: 2, [StatName.Evasion]: 0,
-      [StatName.Health]: 4,   [StatName.Armor]: 1,    [StatName.Luck]: 2,
-    },
-    weapon: WeaponType.Dagger, color: 0xccaa77, abilityName: 'Acceleration',
-    signatureSpell: MOB_NEUTRAL_T1,         spellXPThreshold: 50,
-  },
-
   hare: {
     id: 'hare', name: 'Hare', nameRu: 'Hare',
     type: BodyType.Passive, damageType: 'melee',
@@ -69,14 +56,15 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   deer: {
     id: 'deer', name: 'Deer', nameRu: 'Deer',
     type: BodyType.Fleeing, damageType: 'melee',
-    caps: { [StatName.Evasion]: 15, [StatName.Agility]: 12 },
-    xpReward: 12,
+    caps: { [StatName.Agility]: 40, [StatName.Evasion]: 30, [StatName.Luck]: 20 },
+    xpReward: 60,
     npcStats: {
-      [StatName.Strength]: 2, [StatName.Accuracy]: 2, [StatName.Evasion]: 8,
-      [StatName.Health]: 5, [StatName.Armor]: 0, [StatName.Luck]: 2,
+      [StatName.Agility]: 20, [StatName.Accuracy]: 5, [StatName.Evasion]: 18,
+      [StatName.Health]: 6, [StatName.Armor]: 1, [StatName.Luck]: 8,
     },
-    weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Acceleration',
-    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+    weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Dash',
+    npcSpells: [MOB_NEUTRAL_T1, MOB_NEUTRAL_T2],
+    signatureSpell: MOB_NEUTRAL_T2, spellXPThreshold: 100,
   },
 
   fox: {
@@ -117,20 +105,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Acceleration',
     signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
-  },
-
-  spirit: {
-    id: 'spirit', name: 'Spirit', nameRu: 'Spirit',
-    type: BodyType.Fleeing, damageType: 'melee',
-    caps: { [StatName.Agility]: 40, [StatName.Evasion]: 30, [StatName.Luck]: 20 },
-    xpReward: 60,
-    npcStats: {
-      [StatName.Agility]: 20, [StatName.Accuracy]: 5, [StatName.Evasion]: 18,
-      [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 8,
-    },
-    weapon: WeaponType.Dagger, color: 0xeeeeff, abilityName: 'Dash',
-    npcSpells: [MOB_NEUTRAL_T1, MOB_NEUTRAL_T2],
-    signatureSpell: MOB_NEUTRAL_T2,         spellXPThreshold: 100,
   },
 
   wolf: {

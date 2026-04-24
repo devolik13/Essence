@@ -177,7 +177,7 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     id: 'lonely_grave',
     label: 'Одинокая могила',
     spawnGroups: [
-      { x: 6800, y: 4400, creatureId: 'spirit', count: 1 },
+      { x: 6800, y: 4400, creatureId: 'deer', count: 1 },
     ],
   },
 
@@ -240,9 +240,9 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
     id: 'spirit_meadow',
     label: 'Поляна духов',
     spawnGroups: [
-      { x: 3160, y: 3640, creatureId: 'spirit',  count: 2 },
-      { x: 3400, y: 3800, creatureId: 'spirit',  count: 2 },
-      { x: 3280, y: 4000, creatureId: 'spirit',  count: 1 },
+      { x: 3160, y: 3640, creatureId: 'deer',  count: 2 },
+      { x: 3400, y: 3800, creatureId: 'deer',  count: 2 },
+      { x: 3280, y: 4000, creatureId: 'deer',  count: 1 },
     ],
   },
 
@@ -278,8 +278,8 @@ export const MINI_EVENT_LOCATIONS: MiniEventLocation[] = [
 export const VILLAGE_STARTER_SPAWNS: SpawnGroup[] = [
   // Пассивные — строго внутри village bounds (x:3328-2176, y:2112-1504)
   // Кролики — юго-западный угол деревни, джиттер ±40px
-  { x: 3440, y: 2880, creatureId: 'rabbit',        count: 4 },
-  { x: 3640, y: 2920, creatureId: 'rabbit',        count: 3 },
+  { x: 3440, y: 2880, creatureId: 'hare',        count: 4 },
+  { x: 3640, y: 2920, creatureId: 'hare',        count: 3 },
   // Первые враги — чётко восточнее деревни (village x2=2176 + 300px зазор)
   { x: 5000, y: 2440, creatureId: 'goblin',         count: 3 },
   { x: 5000, y: 2680, creatureId: 'goblin',         count: 2 },

@@ -15,8 +15,8 @@ export function checkAchievements(sphere: Sphere): AchievementDef[] {
   const kc = sphere.killCounts;
 
   // ── Kill thresholds ──────────────────────────────────────────────────────
-  if ((kc['rabbit'] ?? 0) >= 1)  tryUnlock('kill_rabbit_1');
-  if ((kc['rabbit'] ?? 0) >= 10) tryUnlock('kill_rabbit_10');
+  if ((kc['hare'] ?? 0) >= 1)  tryUnlock('kill_rabbit_1');
+  if ((kc['hare'] ?? 0) >= 10) tryUnlock('kill_rabbit_10');
   if ((kc['goblin'] ?? 0) >= 1)  tryUnlock('kill_goblin_1');
   if ((kc['goblin'] ?? 0) >= 5)  tryUnlock('kill_goblin_5');
   if ((kc['goblin'] ?? 0) >= 20) tryUnlock('kill_goblin_20');
@@ -31,7 +31,7 @@ export function checkAchievements(sphere: Sphere): AchievementDef[] {
   if ((kc['shaman'] ?? 0) >= 3)  tryUnlock('kill_shaman_3');
 
   // Kill every type (7 combat creature types, excluding forest_spirit)
-  const killTypes = ['rabbit','goblin','wolf','scout','bear','orc','shaman'];
+  const killTypes = ['hare','goblin','wolf','scout','bear','orc','shaman'];
   if (killTypes.every(t => (kc[t] ?? 0) >= 1)) tryUnlock('kill_all_types');
 
   // ── Capture ────────────────────────────────────────────────────────────

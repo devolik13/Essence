@@ -26,7 +26,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 
 interface AchProgress { current: number; target: number; }
 
-const KILL_TYPES_ALL = ['rabbit', 'goblin', 'wolf', 'scout', 'bear', 'orc', 'shaman'];
+const KILL_TYPES_ALL = ['hare', 'goblin', 'wolf', 'scout', 'bear', 'orc', 'shaman'];
 
 function getProgress(def: AchievementDef, sphere: Sphere): AchProgress {
   const kc = sphere.killCounts;
