@@ -452,9 +452,10 @@ export class MapEditor {
   private selectAsset(key: string): void {
     this.selectedKey = key;
     this.currentAngle = 0;
-    if (key.startsWith('mob_')) this.currentScale = 0.07;
+    this.currentScale = key.startsWith('mob_') ? 0.07 : 0.3;
     const label = key.startsWith('mob_') ? key.replace('mob_', '🟢 ') : key.replace('cp_', '');
     this.selectedKeyText?.setText('Selected: ' + label);
+    this.updateHint();
     this.updatePreview();
     this.renderThumbs();
   }
@@ -949,8 +950,12 @@ export class MapEditor {
       this.scrollOffset = 0;
       this.renderThumbs();
     });
-    // События клавиш НЕ пробрасываем в игру (Phaser всё равно игнорит, но для нашего window handler важно)
-    input.addEventListener('keydown', e => e.stopPropagation());
+    input.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        input.blur();
+      }
+    });
     document.body.appendChild(input);
     this.searchInput = input;
   }
