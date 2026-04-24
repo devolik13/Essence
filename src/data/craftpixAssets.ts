@@ -68,6 +68,12 @@ export const CP_POOLS = {
   banners: ['cp_banner_blue', 'cp_banner_red', 'cp_flag'],
 } as const;
 
+/** Ассеты мобов для редактора карт. [key, path, frameWidth, frameHeight] */
+export const MOB_ASSETS: Array<[string, string, number, number]> = [
+  ['mob_goblin',         'assets/mobs/goblin/front_idle.png', 480, 480],
+  ['mob_goblin_veteran', 'assets/mobs/goblin/front_idle.png', 480, 480],
+];
+
 /** Масштаб — ассеты большие (~200-500px), в игре нужно мельче. */
 export const CP_SCALE = {
   ground: 0.125,   // 256px → 32px тайл

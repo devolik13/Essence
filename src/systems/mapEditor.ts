@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CP_ASSETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_ASSETS } from '../data/craftpixAssets';
 import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects, resetToBundled, hasUnsavedChanges } from './mapObjectStore';
 import { addMapCollider, clearMapColliders } from './mapColliders';
@@ -107,9 +107,17 @@ export class MapEditor {
   /** Рендерит все сохранённые объекты на карте. Вызывается один раз при создании зоны. */
   spawnAll(): void {
     for (const obj of this.objects) {
+      if (obj.key.startsWith('mob_')) continue;
       this.renderObject(obj);
     }
     this.rebuildColliders();
+  }
+
+  /** Возвращает mob spawn points из карты (mob_goblin → 'goblin'). */
+  getMobSpawns(): Array<{ x: number; y: number; creatureId: string }> {
+    return this.objects
+      .filter(o => o.key.startsWith('mob_'))
+      .map(o => ({ x: o.x, y: o.y, creatureId: o.key.replace('mob_', '') }));
   }
 
   /** Твёрдый ли объект (явный флаг → иначе по префиксу key). */
@@ -178,15 +186,17 @@ export class MapEditor {
 
   private renderObject(obj: PlacedMapObject): void {
     if (!this.scene.textures.exists(obj.key)) return;
-    const img = this.scene.add.image(obj.x, obj.y, obj.key);
-    img.setOrigin(0.5, 0.9);
+    const isMob = obj.key.startsWith('mob_');
+    const img = isMob
+      ? this.scene.add.image(obj.x, obj.y, obj.key, 0)
+      : this.scene.add.image(obj.x, obj.y, obj.key);
+    img.setOrigin(0.5, isMob ? 0.5 : 0.9);
     img.setScale(obj.scale);
     img.setAngle(obj.angle ?? 0);
     img.setDepth(obj.y);
     if (obj.tint !== undefined && obj.tint !== 0xffffff) img.setTint(obj.tint);
     this.sprites.set(obj, img);
     this.spriteToObj.set(img, obj);
-    // Если редактор уже открыт — сразу делаем интерактивным
     if (this.active) this.enableSpriteInteraction(img);
   }
 
@@ -345,49 +355,108 @@ export class MapEditor {
     this.thumbs = [];
     this.thumbLabels = [];
 
-    let assetKeys = CP_ASSETS.map(([k]) => k);
+    let decoKeys = CP_ASSETS.map(([k]) => k);
+    let mobKeys = MOB_ASSETS.map(([k]) => k);
     if (this.filterText) {
-      assetKeys = assetKeys.filter(k => k.toLowerCase().includes(this.filterText));
+      decoKeys = decoKeys.filter(k => k.toLowerCase().includes(this.filterText));
+      mobKeys = mobKeys.filter(k => k.toLowerCase().includes(this.filterText));
     }
     const startY = this.PANEL_HEADER_H - this.scrollOffset;
+    const cam = this.scene.cameras.main;
 
-    for (let i = 0; i < assetKeys.length; i++) {
-      const key = assetKeys[i];
-      if (!this.scene.textures.exists(key)) continue;
-      const col = i % this.COLS;
-      const row = Math.floor(i / this.COLS);
-      const x = 8 + col * (this.THUMB_SIZE + this.GAP);
-      const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
+    let idx = 0;
 
-      const cam = this.scene.cameras.main;
-      const absY = y + 40;
-      if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue; // clip offscreen
+    // ── Mobs section ──
+    if (mobKeys.length > 0) {
+      const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
+      if (headerY + 40 > 0 && headerY + 40 < cam.height) {
+        const hdr = this.scene.add.text(8, headerY, '▸ Mobs', {
+          fontSize: '12px', color: '#ff8855', fontStyle: 'bold',
+        } as Phaser.Types.GameObjects.Text.TextStyle);
+        this.panel.add(hdr);
+        this.thumbLabels.push(hdr);
+      }
+      idx += this.COLS; // reserve a row for header
 
-      const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key)
-        .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
-        .setInteractive({ useHandCursor: true })
-        .setScrollFactor(0);
-      thumb.on('pointerdown', () => this.selectAsset(key));
-      if (key === this.selectedKey) thumb.setTint(0xffdd55);
-      this.panel.add(thumb);
-      this.thumbs.push(thumb);
+      for (const key of mobKeys) {
+        if (!this.scene.textures.exists(key)) continue;
+        const col = idx % this.COLS;
+        const row = Math.floor(idx / this.COLS);
+        const x = 8 + col * (this.THUMB_SIZE + this.GAP);
+        const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
+        const absY = y + 40;
+        idx++;
+        if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
 
-      // Короткая подпись (последние 10 символов имени)
-      const short = key.replace('cp_', '').slice(0, 9);
-      const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
-        short, { fontSize: '8px', color: '#cccccc' } as Phaser.Types.GameObjects.Text.TextStyle)
-        .setOrigin(0.5, 0);
-      this.panel.add(lbl);
-      this.thumbLabels.push(lbl);
+        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key, 0)
+          .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
+          .setInteractive({ useHandCursor: true })
+          .setScrollFactor(0);
+        thumb.on('pointerdown', () => this.selectAsset(key));
+        if (key === this.selectedKey) thumb.setTint(0xffdd55);
+        this.panel.add(thumb);
+        this.thumbs.push(thumb);
+
+        const short = key.replace('mob_', '');
+        const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
+          short, { fontSize: '8px', color: '#ff8855' } as Phaser.Types.GameObjects.Text.TextStyle)
+          .setOrigin(0.5, 0);
+        this.panel.add(lbl);
+        this.thumbLabels.push(lbl);
+      }
+      // pad to next full row
+      if (idx % this.COLS !== 0) idx += this.COLS - (idx % this.COLS);
+    }
+
+    // ── Decorations section ──
+    if (decoKeys.length > 0) {
+      const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
+      if (headerY + 40 > 0 && headerY + 40 < cam.height) {
+        const hdr = this.scene.add.text(8, headerY, '▸ Decorations', {
+          fontSize: '12px', color: '#ffdd55', fontStyle: 'bold',
+        } as Phaser.Types.GameObjects.Text.TextStyle);
+        this.panel.add(hdr);
+        this.thumbLabels.push(hdr);
+      }
+      idx += this.COLS;
+
+      for (const key of decoKeys) {
+        if (!this.scene.textures.exists(key)) continue;
+        const col = idx % this.COLS;
+        const row = Math.floor(idx / this.COLS);
+        const x = 8 + col * (this.THUMB_SIZE + this.GAP);
+        const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
+        const absY = y + 40;
+        idx++;
+        if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
+
+        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key)
+          .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
+          .setInteractive({ useHandCursor: true })
+          .setScrollFactor(0);
+        thumb.on('pointerdown', () => this.selectAsset(key));
+        if (key === this.selectedKey) thumb.setTint(0xffdd55);
+        this.panel.add(thumb);
+        this.thumbs.push(thumb);
+
+        const short = key.replace('cp_', '').slice(0, 9);
+        const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
+          short, { fontSize: '8px', color: '#cccccc' } as Phaser.Types.GameObjects.Text.TextStyle)
+          .setOrigin(0.5, 0);
+        this.panel.add(lbl);
+        this.thumbLabels.push(lbl);
+      }
     }
   }
 
   private selectAsset(key: string): void {
     this.selectedKey = key;
     this.currentAngle = 0;
-    this.selectedKeyText?.setText('Selected: ' + key.replace('cp_', ''));
+    if (key.startsWith('mob_')) this.currentScale = 0.07;
+    const label = key.startsWith('mob_') ? key.replace('mob_', '🟢 ') : key.replace('cp_', '');
+    this.selectedKeyText?.setText('Selected: ' + label);
     this.updatePreview();
-    this.renderThumbs(); // перерисовать с подсветкой
+    this.renderThumbs();
   }
 
   private updatePreview(): void {
@@ -396,8 +465,9 @@ export class MapEditor {
     if (!this.selectedKey) return;
     const p = this.scene.input.activePointer;
     const worldPt = this.scene.cameras.main.getWorldPoint(p.x, p.y);
-    this.previewImage = this.scene.add.image(worldPt.x, worldPt.y, this.selectedKey)
-      .setOrigin(0.5, 0.9)
+    const isMob = this.selectedKey.startsWith('mob_');
+    this.previewImage = this.scene.add.image(worldPt.x, worldPt.y, this.selectedKey, isMob ? 0 : undefined)
+      .setOrigin(0.5, isMob ? 0.5 : 0.9)
       .setScale(this.currentScale)
       .setAngle(this.currentAngle)
       .setAlpha(0.5)

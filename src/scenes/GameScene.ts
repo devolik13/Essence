@@ -35,6 +35,7 @@ import { STATUS_DEFS } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
+import { MapEditor } from '../systems/mapEditor';
 
 // ── Summoned Ent (damage absorber) ───────────────────────────
 interface SummonedEnt {
@@ -266,7 +267,7 @@ export class GameScene extends Phaser.Scene {
   /** Текущая зона */
   private currentZone: ZoneConfig = ALL_ZONES['village'];
   private mapLayer: Phaser.Tilemaps.TilemapLayer | null = null;
-  private mapEditor?: import('../systems/mapEditor').MapEditor;
+  private mapEditor?: MapEditor;
   /** true пока открыт редактор карт — мобы и игрок заморожены. */
   public editorMode = false;
   private spawnX?: number;
@@ -324,19 +325,10 @@ export class GameScene extends Phaser.Scene {
     this.buildMap();
 
     // ─── Редактор карт: загрузка сохранённых объектов + хоткеи ──
-    // Хоткей: ` (backtick/ё) или F2. Функциональные F-клавиши могут
-    // перехватываться браузером, поэтому дублируем через window.
-    void (async () => {
-      const { MapEditor } = await import('../systems/mapEditor');
-      this.mapEditor = new MapEditor(this, this.currentZone.id);
-      this.mapEditor.spawnAll();
-
-      const toggle = () => {
-        console.log('[Editor] toggle');
-        this.mapEditor?.toggle();
-      };
-      // Один window-level handler — ловит backtick (~/ё), F2, F9.
-      // Используем DOM чтобы обойти возможный захват Phaser'ом.
+    this.mapEditor = new MapEditor(this, this.currentZone.id);
+    this.mapEditor.spawnAll();
+    {
+      const toggle = () => { this.mapEditor?.toggle(); };
       const domHandler = (e: KeyboardEvent) => {
         if (e.key === '`' || e.key === '~' || e.code === 'Backquote' ||
             e.key === 'F2' || e.key === 'F9') {
@@ -345,7 +337,7 @@ export class GameScene extends Phaser.Scene {
         }
       };
       window.addEventListener('keydown', domHandler);
-    })();
+    }
 
     // ─── Сфера ───────────────────────────────────────
     const startX = this.spawnX ?? this.currentZone.respawnPoint.x;
@@ -1262,8 +1254,17 @@ export class GameScene extends Phaser.Scene {
       }
     };
 
-    // Спавним мобов текущей зоны
+    // Спавним мобов текущей зоны (из конфига)
     spawnGroup(this.currentZone.spawnGroups);
+
+    // Спавним мобов из редактора карт (mob_* объекты)
+    if (this.mapEditor) {
+      for (const ms of this.mapEditor.getMobSpawns()) {
+        const def = CREATURE_DB[ms.creatureId];
+        if (!def) continue;
+        this.creatures.push(new Creature(this, ms.x, ms.y, def));
+      }
+    }
 
     // Подключаем проверку стен и сейф-зоны ко всем существам
     const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);

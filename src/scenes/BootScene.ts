@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
-import { CP_ASSETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_ASSETS } from '../data/craftpixAssets';
 
 /**
  * BootScene — загрузка ассетов и переход к игре.
@@ -18,6 +18,11 @@ export class BootScene extends Phaser.Scene {
     // CraftPix "Top-Down Simple Summer" — 89 PNG (56 земли + 33 пропа)
     for (const [key, path] of CP_ASSETS) {
       this.load.image(key, path);
+    }
+
+    // Mob spritesheets (first frame used as editor thumbnail)
+    for (const [key, path, fw, fh] of MOB_ASSETS) {
+      this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fh });
     }
 
     const gfx = this.add.graphics();

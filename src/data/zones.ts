@@ -152,10 +152,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: EX - 600, y: EY + 300, creatureId: 'dummy_sweep', count: 1 },
     { x: EX - 700, y: EY + 300, creatureId: 'dummy_fireball', count: 1 },
     { x: EX - 800, y: EY + 300, creatureId: 'dummy_bark', count: 1 },
-    // Goblins — east of Eshworth
-    { x: EX + 900,  y: EY - 100, creatureId: 'goblin', count: 3 },
-    { x: EX + 900,  y: EY + 100, creatureId: 'goblin', count: 3 },
-    { x: EX + 1100, y: EY,       creatureId: 'goblin', count: 2 },
     // Wolves — south-east
     { x: EX + 800,  y: EY + 500, creatureId: 'wolf', count: 3 },
     { x: EX + 700,  y: EY + 650, creatureId: 'wolf', count: 2 },
@@ -180,8 +176,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: ROAD_MID_X + 700, y: ROAD_MID_Y + 600, creatureId: 'bear', count: 3 },
     { x: ROAD_MID_X - 700, y: ROAD_MID_Y + 400, creatureId: 'bandit_spear_veteran', count: 1 },
     { x: ROAD_MID_X + 900, y: ROAD_MID_Y - 500, creatureId: 'bandit_archer_veteran', count: 1 },
-    { x: ROAD_MID_X + 400, y: ROAD_MID_Y - 600, creatureId: 'goblin', count: 4 },
-    { x: ROAD_MID_X + 500, y: ROAD_MID_Y - 500, creatureId: 'goblin_veteran', count: 1 },
     // ─── The Caravan (conflict_caravan) ───
     // Merchant + 4 guards parked at the cargo location.
     { x: ROAD_MID_X - 40,  y: ROAD_MID_Y - 10, creatureId: 'caravan_merchant', count: 1 },
@@ -393,9 +387,6 @@ export const ZONE_FIRE: ZoneConfig = {
     { x: PW / 2,       y: PH / 2,       creatureId: 'asher', count: 3 },
     { x: PW / 2 + 500, y: PH / 2,       creatureId: 'spark', count: 2 },
     { x: PW / 2 + 200, y: PH / 2 + 200, creatureId: 'asher', count: 2 },
-    // Дом ведьмы (восток)
-    { x: PW / 2 + 700, y: PH / 2 + 400, creatureId: 'goblin', count: 3 },
-    { x: PW / 2 + 800, y: PH / 2 + 450, creatureId: 'goblin_veteran', count: 1 },
     // Глубже (юг)
     { x: PW / 2 - 400, y: PH - 600, creatureId: 'spark', count: 3 },
     { x: PW / 2,       y: PH - 500, creatureId: 'asher', count: 3 },
@@ -409,7 +400,6 @@ export const ZONE_FIRE: ZoneConfig = {
     // Ветераны T2 — глубже
     { x: PW / 2 - 600, y: PH - 400, creatureId: 'bandit_brute_veteran', count: 1 },
     { x: PW / 2 - 500, y: PH - 350, creatureId: 'bandit_spear_veteran', count: 1 },
-    { x: PW / 2 + 500, y: PH - 400, creatureId: 'goblin_veteran', count: 1 },
     // Босс Игнис (центр-юг)
     { x: PW / 2, y: PH - 300, creatureId: 'ignis', count: 1 },
   ],
