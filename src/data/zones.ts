@@ -137,27 +137,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
   spawnGroups: [
     // ═══ ESHWORTH AREA ═══
-    // Passive
-    { x: EX - 200, y: EY + 160, creatureId: 'rabbit', count: 4 },
-    { x: EX - 100, y: EY + 180, creatureId: 'rabbit', count: 3 },
-    { x: EX + 350, y: EY - 300, creatureId: 'spirit', count: 2 },
-    { x: EX - 400, y: EY - 250, creatureId: 'spirit', count: 1 },
-    // Training dummies
-    { x: EX - 350, y: EY + 50,  creatureId: 'dummy_xp', count: 5 },
-    { x: EX - 350, y: EY + 150, creatureId: 'dummy_xp', count: 5 },
-    { x: EX - 200, y: EY + 300, creatureId: 'dummy_fire_t1', count: 1 },
-    { x: EX - 300, y: EY + 300, creatureId: 'dummy_fire_arrow', count: 1 },
-    { x: EX - 400, y: EY + 300, creatureId: 'dummy_fire_wall', count: 1 },
-    { x: EX - 500, y: EY + 300, creatureId: 'dummy_arrow_rain', count: 1 },
-    { x: EX - 600, y: EY + 300, creatureId: 'dummy_sweep', count: 1 },
-    { x: EX - 700, y: EY + 300, creatureId: 'dummy_fireball', count: 1 },
-    { x: EX - 800, y: EY + 300, creatureId: 'dummy_bark', count: 1 },
-    // Wolves — south-east
-    { x: EX + 800,  y: EY + 500, creatureId: 'wolf', count: 3 },
-    { x: EX + 700,  y: EY + 650, creatureId: 'wolf', count: 2 },
-    // Bears — west
-    { x: EX - 900,  y: EY + 300, creatureId: 'bear', count: 2 },
-    { x: EX - 1000, y: EY + 450, creatureId: 'bear', count: 2 },
     // Orcs — south
     { x: EX + 200,  y: EY + 900, creatureId: 'orc', count: 3 },
     { x: EX + 350,  y: EY + 1000, creatureId: 'orc', count: 2 },
@@ -172,8 +151,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: ROAD_MID_X + 300, y: ROAD_MID_Y + 200, creatureId: 'bandit_brute', count: 2 },
     { x: ROAD_MID_X + 600, y: ROAD_MID_Y - 100, creatureId: 'scout', count: 3 },
     { x: ROAD_MID_X + 800, y: ROAD_MID_Y + 100, creatureId: 'orc', count: 3 },
-    { x: ROAD_MID_X - 800, y: ROAD_MID_Y - 600, creatureId: 'wolf', count: 4 },
-    { x: ROAD_MID_X + 700, y: ROAD_MID_Y + 600, creatureId: 'bear', count: 3 },
     { x: ROAD_MID_X - 700, y: ROAD_MID_Y + 400, creatureId: 'bandit_spear_veteran', count: 1 },
     { x: ROAD_MID_X + 900, y: ROAD_MID_Y - 500, creatureId: 'bandit_archer_veteran', count: 1 },
     // ─── The Caravan (conflict_caravan) ───
@@ -186,16 +163,8 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: ROAD_MID_X + 400, y: ROAD_MID_Y + 100, creatureId: 'ambusher', count: 2 },
 
     // ═══ WALDMAR AREA ═══
-    { x: WX - 200, y: WY + 200, creatureId: 'rabbit', count: 5 },
-    { x: WX + 300, y: WY + 300, creatureId: 'rabbit', count: 3 },
-    { x: WX - 400, y: WY - 500, creatureId: 'spirit', count: 3 },
-    { x: WX + 200, y: WY - 600, creatureId: 'spirit', count: 2 },
     { x: WX - 500, y: WY + 500, creatureId: 'scout', count: 3 },
     { x: WX + 500, y: WY + 500, creatureId: 'scout', count: 3 },
-    { x: WX + 800, y: WY - 200, creatureId: 'wolf', count: 3 },
-    { x: WX + 900, y: WY + 100, creatureId: 'wolf_veteran', count: 1 },
-    { x: WX - 800, y: WY + 200, creatureId: 'bear', count: 2 },
-    { x: WX - 900, y: WY - 100, creatureId: 'bear_veteran', count: 1 },
     { x: WX + 600, y: WY - 800, creatureId: 'orc', count: 3 },
     { x: WX + 700, y: WY - 900, creatureId: 'orc_veteran', count: 1 },
     { x: WX + 700, y: WY + 700, creatureId: 'bandit_archer', count: 2 },
@@ -205,12 +174,8 @@ export const ZONE_VILLAGE: ZoneConfig = {
     // ═══ CAVE AREA (south-west) ═══
     { x: CX - 300, y: CY - 500, creatureId: 'pebble', count: 3 },
     { x: CX + 300, y: CY - 500, creatureId: 'mudder', count: 2 },
-    { x: CX - 600, y: CY - 300, creatureId: 'wolf', count: 3 },
-    { x: CX + 500, y: CY - 200, creatureId: 'wolf_veteran', count: 1 },
     { x: CX,       y: CY,       creatureId: 'pebble', count: 4 },
     { x: CX - 400, y: CY,       creatureId: 'mudder', count: 3 },
-    { x: CX + 400, y: CY + 200, creatureId: 'bear', count: 2 },
-    { x: CX - 200, y: CY + 400, creatureId: 'bear_veteran', count: 1 },
     { x: CX - 500, y: CY + 600, creatureId: 'mudder', count: 3 },
     { x: CX,       y: CY + 500, creatureId: 'pebble', count: 3 },
     { x: CX + 500, y: CY + 600, creatureId: 'mudder', count: 2 },
@@ -309,8 +274,6 @@ export const ZONE_WATER: ZoneConfig = {
     { x: PW / 2 + 400, y: 600, creatureId: 'splasher', count: 2 },
     { x: PW / 2 + 200, y: 400, creatureId: 'fogger',   count: 2 },
     // Ветераны T2 — глубже в зоне
-    { x: PW / 2 - 600, y: 400, creatureId: 'wolf_veteran', count: 1 },
-    { x: PW / 2 + 600, y: 450, creatureId: 'bear_veteran', count: 1 },
     // Босс Акварис (центр-север)
     { x: PW / 2, y: 300, creatureId: 'aquaris', count: 1 },
   ],
@@ -383,9 +346,6 @@ export const ZONE_WIND: ZoneConfig = {
     { x: PW / 2 + 200, y: PH / 2 + 300, creatureId: 'gusty',    count: 2 },
     { x: PW / 2,       y: PH / 2 - 500, creatureId: 'whistler', count: 2 },
     // Поляна духов (юг)
-    { x: PW / 2 - 300, y: PH - 600, creatureId: 'spirit', count: 2 },
-    { x: PW / 2,       y: PH - 500, creatureId: 'spirit', count: 2 },
-    { x: PW / 2 + 300, y: PH - 650, creatureId: 'spirit', count: 1 },
     // Глубже (восток)
     { x: PW - 600, y: PH / 2 - 300, creatureId: 'gusty',    count: 3 },
     { x: PW - 500, y: PH / 2,       creatureId: 'whistler', count: 3 },

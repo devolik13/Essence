@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
-import { CP_ASSETS, MOB_ASSETS, MOB_SPRITE_SETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
 
 /**
  * BootScene — загрузка ассетов и переход к игре.
@@ -24,7 +24,7 @@ export class BootScene extends Phaser.Scene {
     for (const [key, path, fw, fh] of MOB_ASSETS) {
       this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fh });
     }
-    // Mob directional spritesheets — all animations
+    // Mob directional spritesheets — all animations (goblin style: separate files per direction)
     const loadedSheets = new Set<string>();
     for (const [, spriteSet] of Object.entries(MOB_SPRITE_SETS)) {
       for (const [animKey, anim] of Object.entries(spriteSet.anims)) {
@@ -33,6 +33,17 @@ export class BootScene extends Phaser.Scene {
         loadedSheets.add(sheetKey);
         this.load.spritesheet(sheetKey, spriteSet.folder + anim.file, {
           frameWidth: spriteSet.frameW, frameHeight: spriteSet.frameH,
+        });
+      }
+    }
+    // Animal spritesheets — rows = directions in single file
+    for (const [creatureId, animalSet] of Object.entries(ANIMAL_SPRITE_SETS)) {
+      for (const [animName, sheet] of Object.entries(animalSet.sheets)) {
+        const sheetKey = `animal_${creatureId}_${animName}`;
+        if (loadedSheets.has(sheetKey)) continue;
+        loadedSheets.add(sheetKey);
+        this.load.spritesheet(sheetKey, animalSet.folder + sheet.file, {
+          frameWidth: animalSet.frameW, frameHeight: animalSet.frameH,
         });
       }
     }
@@ -991,6 +1002,35 @@ export class BootScene extends Phaser.Scene {
     mkMobAnim('goblin_atk_left',   'mob_sheet_left_attack',  10, 14, 0);
     mkMobAnim('goblin_atk_right',  'mob_sheet_right_attack', 10, 14, 0);
     mkMobAnim('goblin_dying',      'mob_sheet_dying',        10, 10, 0);
+
+    // ── Animal animations (rows: down=0, up=1, left=2, right=3) ────────────
+    const DIRS: Array<[string, number]> = [['down', 0], ['up', 1], ['left', 2], ['right', 3]];
+    for (const [creatureId, animalSet] of Object.entries(ANIMAL_SPRITE_SETS)) {
+      for (const [animName, sheet] of Object.entries(animalSet.sheets)) {
+        const sheetKey = `animal_${creatureId}_${animName}`;
+        if (!this.textures.exists(sheetKey)) continue;
+        const cols = sheet.cols;
+        // Map anim names: walk→walk, run→walk (fallback), attack→atk, death→dying
+        const gameAnim = animName === 'attack' ? 'atk' : animName === 'death' ? 'dying' : animName === 'run' ? 'walk' : animName;
+        for (const [dirName, rowIdx] of DIRS) {
+          if (gameAnim === 'dying' && dirName !== 'down') continue; // dying only needs one direction
+          const animKey = gameAnim === 'dying'
+            ? `${creatureId}_dying`
+            : `${creatureId}_${gameAnim}_${dirName}`;
+          if (this.anims.exists(animKey)) continue;
+          const start = rowIdx * cols;
+          const end = start + cols - 1;
+          const fps = gameAnim === 'idle' ? 6 : gameAnim === 'dying' ? 8 : 10;
+          const repeat = gameAnim === 'dying' || gameAnim === 'atk' ? 0 : -1;
+          this.anims.create({
+            key: animKey,
+            frames: this.anims.generateFrameNumbers(sheetKey, { start, end }),
+            frameRate: fps,
+            repeat,
+          });
+        }
+      }
+    }
 
     // ── Spell animations ─────────────────────────────────────────────────────
     const mkSpell = (key: string, sheet: string, end: number, fps: number, loop: boolean) => {

@@ -53,6 +53,72 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: MOB_NEUTRAL_T1,         spellXPThreshold: 50,
   },
 
+  hare: {
+    id: 'hare', name: 'Hare', nameRu: 'Hare',
+    type: BodyType.Fleeing, damageType: 'melee',
+    caps: { [StatName.Evasion]: 10, [StatName.Agility]: 8 },
+    xpReward: 8,
+    npcStats: {
+      [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 5,
+      [StatName.Health]: 3, [StatName.Armor]: 0, [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Dagger, color: 0xbb9966, abilityName: 'Acceleration',
+    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+  },
+
+  deer: {
+    id: 'deer', name: 'Deer', nameRu: 'Deer',
+    type: BodyType.Fleeing, damageType: 'melee',
+    caps: { [StatName.Evasion]: 15, [StatName.Agility]: 12 },
+    xpReward: 12,
+    npcStats: {
+      [StatName.Strength]: 2, [StatName.Accuracy]: 2, [StatName.Evasion]: 8,
+      [StatName.Health]: 5, [StatName.Armor]: 0, [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Acceleration',
+    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+  },
+
+  fox: {
+    id: 'fox', name: 'Fox', nameRu: 'Fox',
+    type: BodyType.Passive, damageType: 'melee',
+    caps: { [StatName.Agility]: 15, [StatName.Evasion]: 12 },
+    xpReward: 15,
+    npcStats: {
+      [StatName.Strength]: 3, [StatName.Accuracy]: 4, [StatName.Evasion]: 6,
+      [StatName.Health]: 4, [StatName.Armor]: 1, [StatName.Luck]: 4,
+    },
+    weapon: WeaponType.Dagger, color: 0xdd6622, abilityName: 'Acceleration',
+    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+  },
+
+  boar: {
+    id: 'boar', name: 'Boar', nameRu: 'Boar',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 15, [StatName.Health]: 10 },
+    xpReward: 30,
+    npcStats: {
+      [StatName.Strength]: 6, [StatName.Accuracy]: 4, [StatName.Evasion]: 3,
+      [StatName.Health]: 8, [StatName.Armor]: 3, [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Sword, color: 0x774422, abilityName: 'Sword Strike',
+    signatureSpell: ABILITY_SWORD_STRIKE, spellXPThreshold: 50,
+    npcSpells: [ABILITY_SWORD_STRIKE],
+  },
+
+  grouse: {
+    id: 'grouse', name: 'Grouse', nameRu: 'Grouse',
+    type: BodyType.Fleeing, damageType: 'melee',
+    caps: { [StatName.Evasion]: 12, [StatName.Agility]: 10 },
+    xpReward: 6,
+    npcStats: {
+      [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 6,
+      [StatName.Health]: 2, [StatName.Armor]: 0, [StatName.Luck]: 4,
+    },
+    weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Acceleration',
+    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+  },
+
   spirit: {
     id: 'spirit', name: 'Spirit', nameRu: 'Spirit',
     type: BodyType.Fleeing, damageType: 'melee',

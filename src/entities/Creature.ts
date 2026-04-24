@@ -97,8 +97,11 @@ export class Creature extends Phaser.GameObjects.Container {
     const animTestKey = `${spriteId}_idle_down`;
     if (scene.anims.exists(animTestKey)) {
       this.animPrefix = spriteId;
-      const spr = scene.add.sprite(0, 0, 'mob_sheet_front_idle', 0);
-      spr.setDisplaySize(34, 34);
+      const firstAnim = scene.anims.get(animTestKey);
+      const sheetKey = firstAnim.frames[0]?.textureKey ?? '__DEFAULT';
+      const isAnimal = sheetKey.startsWith('animal_');
+      const spr = scene.add.sprite(0, 0, sheetKey, firstAnim.frames[0]?.textureFrame ?? 0);
+      spr.setDisplaySize(isAnimal ? 30 : 34, isAnimal ? 30 : 34);
       spr.play(animTestKey);
       this.bodySprite = spr;
     } else {

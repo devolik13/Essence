@@ -72,6 +72,11 @@ export const CP_POOLS = {
 export const MOB_ASSETS: Array<[string, string, number, number]> = [
   ['mob_goblin',         'assets/mobs/goblin/front_idle.png', 480, 480],
   ['mob_goblin_veteran', 'assets/mobs/goblin/front_idle.png', 480, 480],
+  ['mob_hare',           'assets/mobs/animals/Hare/Hare_Idle_with_shadow.png', 32, 32],
+  ['mob_deer',           'assets/mobs/animals/Deer/Deer_Idle_with_shadow.png', 32, 32],
+  ['mob_fox',            'assets/mobs/animals/Fox/Fox_Idle_with_shadow.png', 32, 32],
+  ['mob_boar',           'assets/mobs/animals/Boar/Boar_Idle_with_shadow.png', 32, 32],
+  ['mob_grouse',         'assets/mobs/animals/Black_grouse/Black_grouse_Idle_with_shadow.png', 32, 32],
 ];
 
 export interface MobSpriteSet {
@@ -104,6 +109,67 @@ const GOBLIN_SPRITES: MobSpriteSet = {
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_SPRITES,
+};
+
+/**
+ * Animal sprites: single spritesheet per animation, rows = directions.
+ * Row order: down(0), up(1), left(2), right(3). Frame size: 32×32.
+ */
+export interface AnimalSpriteSet {
+  folder: string;
+  frameW: number;
+  frameH: number;
+  sheets: Record<string, { file: string; cols: number }>;
+}
+
+const ANIMAL_DIR = 'assets/mobs/animals/';
+
+export const ANIMAL_SPRITE_SETS: Record<string, AnimalSpriteSet> = {
+  hare: {
+    folder: ANIMAL_DIR + 'Hare/', frameW: 32, frameH: 32,
+    sheets: {
+      idle: { file: 'Hare_Idle_with_shadow.png', cols: 4 },
+      walk: { file: 'Hare_Walk_with_shadow.png', cols: 5 },
+      run:  { file: 'Hare_Run_with_shadow.png', cols: 6 },
+      death:{ file: 'Hare_Death_with_shadow.png', cols: 6 },
+    },
+  },
+  deer: {
+    folder: ANIMAL_DIR + 'Deer/', frameW: 32, frameH: 32,
+    sheets: {
+      idle: { file: 'Deer_Idle_with_shadow.png', cols: 4 },
+      walk: { file: 'Deer_Walk_with_shadow.png', cols: 6 },
+      run:  { file: 'Deer_Run_with_shadow.png', cols: 6 },
+      death:{ file: 'Deer_Death_with_shadow.png', cols: 7 },
+    },
+  },
+  fox: {
+    folder: ANIMAL_DIR + 'Fox/', frameW: 32, frameH: 32,
+    sheets: {
+      idle: { file: 'Fox_Idle_with_shadow.png', cols: 4 },
+      walk: { file: 'Fox_walk_with_shadow.png', cols: 6 },
+      run:  { file: 'Fox_Run_with_shadow.png', cols: 6 },
+      death:{ file: 'Fox_Death_with_shadow.png', cols: 6 },
+    },
+  },
+  boar: {
+    folder: ANIMAL_DIR + 'Boar/', frameW: 32, frameH: 32,
+    sheets: {
+      idle:   { file: 'Boar_Idle_with_shadow.png', cols: 4 },
+      walk:   { file: 'Boar_Walk_with_shadow.png', cols: 6 },
+      run:    { file: 'Boar_Run_with_shadow.png', cols: 5 },
+      attack: { file: 'Boar_Attack_with_shadow.png', cols: 5 },
+      death:  { file: 'Boar_Death_with_shadow.png', cols: 6 },
+    },
+  },
+  grouse: {
+    folder: ANIMAL_DIR + 'Black_grouse/', frameW: 32, frameH: 32,
+    sheets: {
+      idle: { file: 'Black_grouse_Idle_with_shadow.png', cols: 4 },
+      walk: { file: 'Black_grouse_Walk_with_shadow.png', cols: 6 },
+      death:{ file: 'Black_grouse_Death_with_shadow.png', cols: 6 },
+    },
+  },
 };
 
 /** Масштаб — ассеты большие (~200-500px), в игре нужно мельче. */
