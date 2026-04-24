@@ -95,8 +95,6 @@ const ESHWORTH_X = 3200;  // левая треть
 const ESHWORTH_Y = 2800;  // центр по вертикали
 const WALDMAR_X  = 8800;  // правая треть
 const WALDMAR_Y  = 2800;
-const CAVE_X     = 2000;  // юго-запад
-const CAVE_Y     = 5800;
 const ROAD_MID_X = 6000;  // середина дороги
 const ROAD_MID_Y = 2800;
 
@@ -106,7 +104,6 @@ const ROAD_MID_Y = 2800;
 
 const EX = ESHWORTH_X, EY = ESHWORTH_Y;
 const WX = WALDMAR_X, WY = WALDMAR_Y;
-const CX = CAVE_X, CY = CAVE_Y;
 
 export const ZONE_VILLAGE: ZoneConfig = {
   id: 'village',
@@ -131,8 +128,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
       bounds: { x1: EX + 1600, y1: EY - 800, x2: WX - 1600, y2: EY + 800 } },
     { id: 'waldmar', nameRu: 'Waldmar', tint: 0x667755,
       bounds: { x1: WX - 1600, y1: WY - 1400, x2: WX + 1600, y2: WY + 1400 } },
-    { id: 'cave', nameRu: 'Deep Mines', tint: 0x443322,
-      bounds: { x1: CX - 1200, y1: CY - 1000, x2: CX + 1200, y2: CY + 1000 } },
   ],
 
   spawnGroups: [
@@ -171,16 +166,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: WX + 800, y: WY + 800, creatureId: 'bandit_crossbow', count: 2 },
     { x: WX + 750, y: WY + 600, creatureId: 'bandit_spear', count: 2 },
 
-    // ═══ CAVE AREA (south-west) ═══
-    { x: CX - 300, y: CY - 500, creatureId: 'pebble', count: 3 },
-    { x: CX + 300, y: CY - 500, creatureId: 'mudder', count: 2 },
-    { x: CX,       y: CY,       creatureId: 'pebble', count: 4 },
-    { x: CX - 400, y: CY,       creatureId: 'mudder', count: 3 },
-    { x: CX - 500, y: CY + 600, creatureId: 'mudder', count: 3 },
-    { x: CX,       y: CY + 500, creatureId: 'pebble', count: 3 },
-    { x: CX + 500, y: CY + 600, creatureId: 'mudder', count: 2 },
-    { x: CX - 300, y: CY + 800, creatureId: 'orc_veteran', count: 1 },
-    { x: CX + 300, y: CY + 800, creatureId: 'bandit_brute_veteran', count: 1 },
   ],
 
   exits: [
@@ -212,12 +197,6 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: WX - 450, y: WY + 450, nodeId: 'willow_tree' },
     { x: WX + 300, y: WY + 400, nodeId: 'hide_pile' },
     { x: WX + 350, y: WY + 450, nodeId: 'hide_pile' },
-    // Cave — rich mining
-    { x: CX - 600, y: CY + 500, nodeId: 'copper_vein' },
-    { x: CX - 500, y: CY + 550, nodeId: 'copper_vein' },
-    { x: CX + 600, y: CY + 500, nodeId: 'copper_vein' },
-    { x: CX + 500, y: CY + 450, nodeId: 'copper_vein' },
-    { x: CX,       y: CY + 700, nodeId: 'copper_vein' },
   ],
 
   workbenches: [
