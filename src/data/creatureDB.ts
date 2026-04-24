@@ -55,7 +55,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   hare: {
     id: 'hare', name: 'Hare', nameRu: 'Hare',
-    type: BodyType.Fleeing, damageType: 'melee',
+    type: BodyType.Passive, damageType: 'melee',
     caps: { [StatName.Evasion]: 10, [StatName.Agility]: 8 },
     xpReward: 8,
     npcStats: {

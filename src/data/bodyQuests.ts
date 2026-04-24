@@ -483,12 +483,107 @@ const QUEST_SCOUT_ESCORT: BodyQuestDef = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// T1 — New animals (hare, deer, fox, boar, grouse)
+// ═══════════════════════════════════════════════════════════════
+
+const QUEST_HARE: BodyQuestDef = {
+  id: 'bq_hare', bodyId: 'hare', tier: 1,
+  nameRu: 'Quick Paws',
+  description: 'Learn to dash through danger.',
+  introMessages: [
+    { speaker: '', text: 'Small. Fast. The world is full of giants.' },
+    { speaker: '', text: 'But speed is the greatest armor.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'The body taught you to vanish in a blink.' },
+  ],
+  objectives: [
+    { type: 'survive', count: 1, description: 'Survive 45 seconds' },
+  ],
+  rewardSpellId: 'dash',
+  xpReward: 40,
+};
+
+const QUEST_DEER: BodyQuestDef = {
+  id: 'bq_deer', bodyId: 'deer', tier: 1,
+  nameRu: 'Fleet Foot',
+  description: 'Outrun every predator.',
+  introMessages: [
+    { speaker: '', text: 'Graceful legs. Wind in the fur. The meadow stretches wide.' },
+    { speaker: '', text: 'Something is watching from the treeline. Time to run.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Nothing could catch you. The wind itself taught you speed.' },
+  ],
+  objectives: [
+    { type: 'survive', count: 1, description: 'Survive 60 seconds' },
+  ],
+  rewardSpellId: 'acceleration',
+  xpReward: 40,
+};
+
+const QUEST_FOX: BodyQuestDef = {
+  id: 'bq_fox', bodyId: 'fox', tier: 1,
+  nameRu: 'Cunning Hunter',
+  description: 'Strike fast, confuse the prey.',
+  introMessages: [
+    { speaker: '', text: 'Sharp nose. Sharp mind. The grouse doesn\'t see you yet.' },
+    { speaker: '', text: 'One precise strike — that\'s all it takes.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Quick and precise. The fox body taught you to disorient.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 2, targetId: 'grouse', targetNameRu: 'Grouse', description: 'Hunt 2 grouse' },
+  ],
+  rewardSpellId: 'fist_strike',
+  xpReward: 50,
+};
+
+const QUEST_BOAR: BodyQuestDef = {
+  id: 'bq_boar', bodyId: 'boar', tier: 1,
+  nameRu: 'Unstoppable',
+  description: 'Charge through anything in your path.',
+  introMessages: [
+    { speaker: '', text: 'Thick hide. Powerful legs. The forest parts before you.' },
+    { speaker: '', text: 'Wolves circle nearby. They will learn to fear the charge.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Nothing stands before the charge. The body taught you the ram.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'wolf', targetNameRu: 'Wolf', description: 'Drive away 3 wolves' },
+  ],
+  rewardSpellId: 'ram',
+  xpReward: 60,
+};
+
+const QUEST_GROUSE: BodyQuestDef = {
+  id: 'bq_grouse', bodyId: 'grouse', tier: 1,
+  nameRu: 'Healer\'s Instinct',
+  description: 'Survive by knowing which herbs restore strength.',
+  introMessages: [
+    { speaker: '', text: 'Tiny wings. Sharp eyes. The undergrowth hides many secrets.' },
+    { speaker: '', text: 'Some berries heal. The body remembers which.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'The smallest creature taught you the greatest gift — healing.' },
+  ],
+  objectives: [
+    { type: 'survive', count: 1, description: 'Survive 30 seconds' },
+  ],
+  rewardSpellId: 'neutral_heal',
+  xpReward: 40,
+};
+
+// ═══════════════════════════════════════════════════════════════
 // Registry
 // ═══════════════════════════════════════════════════════════════
 
 export const BODY_QUESTS: BodyQuestDef[] = [
   // T1 Animals
   QUEST_RABBIT, QUEST_WOLF, QUEST_BEAR,
+  QUEST_HARE, QUEST_DEER, QUEST_FOX, QUEST_BOAR, QUEST_GROUSE,
   // T1 Humanoids
   QUEST_GOBLIN, QUEST_ORC, QUEST_SCOUT, QUEST_SHAMAN,
   // T1 Elementals
