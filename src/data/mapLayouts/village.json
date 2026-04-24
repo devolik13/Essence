@@ -489,34 +489,6 @@
     "scale": 0.3
   },
   {
-    "key": "cp_banner_red",
-    "x": 8800,
-    "y": 2570,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
-    "key": "cp_banner_red",
-    "x": 8800,
-    "y": 3030,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
-    "key": "cp_banner_red",
-    "x": 8540,
-    "y": 2800,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
-    "key": "cp_banner_red",
-    "x": 9060,
-    "y": 2800,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
     "key": "cp_barrel",
     "x": 8580,
     "y": 2920,
@@ -3511,34 +3483,6 @@
     "scale": 0.274
   },
   {
-    "key": "cp_flag",
-    "x": 5760,
-    "y": 120,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
-    "key": "cp_flag",
-    "x": 5760,
-    "y": 7560,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
-    "key": "cp_flag",
-    "x": 11400,
-    "y": 3840,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
-    "key": "cp_flag",
-    "x": 120,
-    "y": 3840,
-    "scale": 0.3,
-    "solid": false
-  },
-  {
     "key": "cp_house",
     "x": 2994.3243243243246,
     "y": 2957.702702702702,
@@ -3554,12 +3498,6 @@
     "key": "cp_house",
     "x": 3298.756756756757,
     "y": 2957.7027027027025,
-    "scale": 0.3
-  },
-  {
-    "key": "cp_flag",
-    "x": 3149.135135135135,
-    "y": 2753.5945945945946,
     "scale": 0.3
   },
   {

@@ -273,33 +273,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   questObjects: [
-    // Rabbit: burrow (near Eshworth)
-    { x: EX - 350, y: EY + 300, objectId: 'burrow', nameRu: 'Burrow', type: 'waypoint', icon: '🕳', color: 0x886644 },
-    // Scout: 3 checkpoints
-    { x: EX + 600,     y: EY - 200, objectId: 'checkpoint', nameRu: 'Checkpoint', type: 'waypoint', icon: '🚩', color: 0xddaa33 },
-    { x: ROAD_MID_X,   y: ROAD_MID_Y - 300, objectId: 'checkpoint', nameRu: 'Checkpoint', type: 'waypoint', icon: '🚩', color: 0xddaa33 },
-    { x: WX - 1200,    y: WY, objectId: 'checkpoint', nameRu: 'Checkpoint', type: 'waypoint', icon: '🚩', color: 0xddaa33 },
-    // Goblin: camp supplies
-    { x: EX + 1000, y: EY - 200, objectId: 'camp_supplies', nameRu: 'Supplies', type: 'collectible', icon: '📦', color: 0xaa8855 },
-    { x: EX + 1050, y: EY - 120, objectId: 'camp_supplies', nameRu: 'Supplies', type: 'collectible', icon: '📦', color: 0xaa8855 },
-    { x: EX + 950,  y: EY - 50,  objectId: 'camp_supplies', nameRu: 'Supplies', type: 'collectible', icon: '📦', color: 0xaa8855 },
-    // Caravan cargo (trade road)
-    { x: ROAD_MID_X, y: ROAD_MID_Y, objectId: 'caravan_cargo', nameRu: 'Cargo', type: 'collectible', icon: '🏷', color: 0xddbb44 },
-    // Ambush points (trade road)
-    { x: ROAD_MID_X - 400, y: ROAD_MID_Y - 100, objectId: 'ambush_point', nameRu: 'Ambush Point', type: 'waypoint', icon: '⚔', color: 0xcc3333 },
-    { x: ROAD_MID_X + 400, y: ROAD_MID_Y + 100, objectId: 'ambush_point', nameRu: 'Ambush Point', type: 'waypoint', icon: '⚔', color: 0xcc3333 },
-    // Cave: fort lock + watchtower
-    { x: CX, y: CY + 700, objectId: 'fort_lock', nameRu: 'Fort Lock', type: 'destructible', icon: '🔒', color: 0x888888 },
-    { x: CX + 700, y: CY, objectId: 'watchtower', nameRu: 'Watchtower', type: 'destructible', icon: '🗼', color: 0x996633 },
-    // Shaman: spirit clearing (between Eshworth and cave)
-    { x: EX - 600, y: EY + 1500, objectId: 'spirit_clearing', nameRu: 'Spirit Clearing', type: 'waypoint', icon: '🌿', color: 0x44aa44 },
-    // Pebble: cave breach
-    { x: CX - 500, y: CY - 400, objectId: 'cave_breach', nameRu: 'Breach', type: 'waypoint', icon: '🕳', color: 0x554433 },
-    // Mudder: rock walls + water source
-    { x: CX + 300, y: CY + 300, objectId: 'rock_wall', nameRu: 'Rock Wall', type: 'destructible', icon: '🧱', color: 0x665544 },
-    { x: CX - 200, y: CY + 500, objectId: 'rock_wall', nameRu: 'Rock Wall', type: 'destructible', icon: '🧱', color: 0x665544 },
-    { x: CX + 100, y: CY + 700, objectId: 'rock_wall', nameRu: 'Rock Wall', type: 'destructible', icon: '🧱', color: 0x665544 },
-    { x: CX - 400, y: CY + 800, objectId: 'water_source', nameRu: 'Water Source', type: 'waypoint', icon: '💧', color: 0x4488cc },
+    // Temporarily removed — will add back after map layout is finalized
   ],
 };
 
@@ -343,15 +317,7 @@ export const ZONE_WATER: ZoneConfig = {
   exits: [
     { edge: 'south', targetZone: 'village', spawnX: PW / 2, spawnY: 80 },
   ],
-  questObjects: [
-    // Fogger quest: 4 fog nodes
-    { x: PW / 2 - 400, y: 800, objectId: 'fog_node', nameRu: 'Fog Node', type: 'waypoint', icon: '🌫', color: 0x6699cc },
-    { x: PW / 2 + 300, y: 600, objectId: 'fog_node', nameRu: 'Fog Node', type: 'waypoint', icon: '🌫', color: 0x6699cc },
-    { x: PW / 2 - 200, y: 400, objectId: 'fog_node', nameRu: 'Fog Node', type: 'waypoint', icon: '🌫', color: 0x6699cc },
-    { x: PW / 2 + 500, y: 350, objectId: 'fog_node', nameRu: 'Fog Node', type: 'waypoint', icon: '🌫', color: 0x6699cc },
-    // Spirit wolf quest: wounded human
-    { x: PW / 2 - 500, y: PH / 2 + 200, objectId: 'wounded_human', nameRu: 'Wounded Human', type: 'waypoint', icon: '💔', color: 0xcc4444 },
-  ],
+  questObjects: [],
 };
 
 // ── 3. Огненная зона (юг) ───────────────────────────────────────────────────
@@ -393,16 +359,7 @@ export const ZONE_FIRE: ZoneConfig = {
   exits: [
     { edge: 'north', targetZone: 'village', spawnX: PW / 2, spawnY: PH - 80 },
   ],
-  questObjects: [
-    // Spark quest: 3 lost sparks to collect
-    { x: PW / 2 - 400, y: PH / 2 - 200, objectId: 'lost_spark', nameRu: 'Lost Spark', type: 'collectible', icon: '✨', color: 0xff6633 },
-    { x: PW / 2 + 300, y: PH / 2 + 100, objectId: 'lost_spark', nameRu: 'Lost Spark', type: 'collectible', icon: '✨', color: 0xff6633 },
-    { x: PW / 2 + 600, y: PH - 700,     objectId: 'lost_spark', nameRu: 'Lost Spark', type: 'collectible', icon: '✨', color: 0xff6633 },
-    // Asher quest: 3 border marks
-    { x: PW / 2 - 600, y: 800,  objectId: 'border_mark', nameRu: 'Border', type: 'waypoint', icon: '🔥', color: 0xff4422 },
-    { x: PW / 2,       y: 500,  objectId: 'border_mark', nameRu: 'Border', type: 'waypoint', icon: '🔥', color: 0xff4422 },
-    { x: PW / 2 + 600, y: 700,  objectId: 'border_mark', nameRu: 'Border', type: 'waypoint', icon: '🔥', color: 0xff4422 },
-  ],
+  questObjects: [],
 };
 
 // ── 4. Ветряная зона (восток) ───────────────────────────────────────────────
@@ -444,12 +401,7 @@ export const ZONE_WIND: ZoneConfig = {
   exits: [
     { edge: 'west', targetZone: 'village', spawnX: PW - 80, spawnY: PH / 2 },
   ],
-  questObjects: [
-    // Gusty quest: summit
-    { x: PW - 400, y: 300, objectId: 'summit', nameRu: 'Summit', type: 'waypoint', icon: '⛰', color: 0xaaddcc },
-    // Whistler quest: wind blocker
-    { x: PW / 2 + 200, y: PH - 400, objectId: 'wind_blocker', nameRu: 'Obstruction', type: 'destructible', icon: '🪨', color: 0x776655 },
-  ],
+  questObjects: [],
 };
 
 // ── 5. Земляная зона (запад) ────────────────────────────────────────────────
@@ -493,17 +445,7 @@ export const ZONE_EARTH: ZoneConfig = {
     { edge: 'east', targetZone: 'village', spawnX: 80, spawnY: PH / 2 },
     { edge: 'south', targetZone: 'cave', spawnX: PW / 2, spawnY: 80 },
   ],
-  questObjects: [
-    // Pebble quest: cave breach
-    { x: 500, y: PH - 400, objectId: 'cave_breach', nameRu: 'Breach', type: 'waypoint', icon: '🕳', color: 0x554433 },
-    // Mudder quest: 3 rock walls to break + water source
-    { x: 800, y: PH / 2 + 300, objectId: 'rock_wall', nameRu: 'Rock Wall', type: 'destructible', icon: '🧱', color: 0x665544 },
-    { x: 600, y: PH / 2,       objectId: 'rock_wall', nameRu: 'Rock Wall', type: 'destructible', icon: '🧱', color: 0x665544 },
-    { x: 400, y: PH / 2 - 200, objectId: 'rock_wall', nameRu: 'Rock Wall', type: 'destructible', icon: '🧱', color: 0x665544 },
-    { x: 300, y: PH / 2 - 400, objectId: 'water_source', nameRu: 'Water Source', type: 'waypoint', icon: '💧', color: 0x4488cc },
-    // Shaman quest: spirit clearing
-    { x: PW / 2, y: 500, objectId: 'spirit_clearing', nameRu: 'Spirit Clearing', type: 'waypoint', icon: '🌿', color: 0x44aa44 },
-  ],
+  questObjects: [],
 };
 
 // ── Реестр зон ───────────────────────────────────────────────────────────────
