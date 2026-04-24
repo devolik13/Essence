@@ -387,6 +387,10 @@ export class UIScene extends Phaser.Scene {
     // ── Events ────────────────────────────────────────────
     const gs = this.scene.get('GameScene');
     gs.events.on('update-ui', (data: UIData) => this.updateUI(data));
+    gs.events.on('editor-mode', (active: boolean) => {
+      this.scene.setVisible(!active);
+      this.input.enabled = !active;
+    });
     gs.events.on('minimap-terrain', (t: { w: number; h: number; colors: number[]; mapW: number; mapH: number }) => {
       this.minimapMapW = t.mapW;
       this.minimapMapH = t.mapH;

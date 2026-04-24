@@ -210,6 +210,7 @@ export class MapEditor {
     const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
     gs.editorMode = true;
     this.scene.cameras.main.stopFollow();
+    this.scene.events.emit('editor-mode', true);
     if (gs.creatures) {
       for (const c of gs.creatures) {
         c.setAlpha?.(0.25);
@@ -271,6 +272,7 @@ export class MapEditor {
     // Разморозка + возврат камеры + нормальная прозрачность
     const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: Phaser.GameObjects.GameObject & { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
     gs.editorMode = false;
+    this.scene.events.emit('editor-mode', false);
     if (gs.creatures) {
       for (const c of gs.creatures) {
         c.setAlpha?.(1);
