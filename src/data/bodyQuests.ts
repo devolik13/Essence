@@ -470,17 +470,22 @@ const QUEST_SCOUT_ESCORT: BodyQuestDef = {
 const QUEST_HARE: BodyQuestDef = {
   id: 'bq_hare', bodyId: 'hare', tier: 1,
   nameRu: 'Quick Paws',
-  description: 'Learn to dash through danger.',
+  description: 'Gather carrots scattered nearby.',
   introMessages: [
     { speaker: '', text: 'Small. Fast. The world is full of giants.' },
-    { speaker: '', text: 'But speed is the greatest armor.' },
+    { speaker: '', text: 'But right now — hunger. The nose twitches. Carrots. Nearby.' },
+    { speaker: '', text: 'Gather them before something bigger shows up.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The body taught you to vanish in a blink.' },
+    { speaker: '', text: 'Belly full. The body taught you to be quick — truly quick.' },
   ],
   objectives: [
-    { type: 'survive', count: 1, description: 'Survive 45 seconds' },
+    { type: 'collect', count: 5, targetId: 'carrot', targetNameRu: 'Carrot', description: 'Collect 5 carrots' },
   ],
+  spawnObjects: [{
+    objectId: 'carrot', nameRu: 'Carrot', icon: '🥕', color: 0xff8833,
+    type: 'collectible', count: 6, radius: 300,
+  }],
   rewardSpellId: 'acceleration',
   xpReward: 40,
 };

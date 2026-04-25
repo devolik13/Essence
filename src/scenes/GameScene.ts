@@ -190,6 +190,7 @@ export class GameScene extends Phaser.Scene {
   private workbenches: { x: number; y: number; type: string; nameRu: string; gfx: Phaser.GameObjects.Container }[] = [];
   private worldNPCs: { x: number; y: number; id: string; nameRu: string; role: string; gfx: Phaser.GameObjects.Container; questMarker?: Phaser.GameObjects.Text }[] = [];
   private questObjects: { x: number; y: number; objectId: string; nameRu: string; objType: string; gfx: Phaser.GameObjects.Container; used: boolean }[] = [];
+  private bodyQuestObjects: typeof this.questObjects = [];
 
   // Fire tsunamis
   private fireTsunamis: FireTsunami[] = [];
@@ -314,6 +315,7 @@ export class GameScene extends Phaser.Scene {
     this.summonedEnts = [];
     this.exitArrows = [];
     this.questObjects = [];
+    this.bodyQuestObjects = [];
     this.bodyQuestTracker.clear();
   }
 
@@ -1230,6 +1232,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.bodyQuestTracker.clear();
+    this.clearBodyQuestObjects();
     this.playerBody.release();
     this.playerBody.destroy();
     this.playerBody = null;
@@ -2574,6 +2577,7 @@ export class GameScene extends Phaser.Scene {
   private onPlayerDeath() {
     sfxDeath();
     this.bodyQuestTracker.clear();
+    this.clearBodyQuestObjects();
     // ── Штраф за смерть ──────────────────────────────────
     let totalXpLost = 0;
     if (this.playerBody) {
@@ -2629,6 +2633,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnCaptureFlash(cx, cy, () => {
       // Уничтожаем старое тело (Сфера покидает его)
       this.bodyQuestTracker.clear();
+      this.clearBodyQuestObjects();
       if (this.playerBody) {
         this.playerBody.destroy();
         this.playerBody = null;
@@ -2680,7 +2685,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private tryShowBodyQuest(bodyId: string) {
-    // Find the next available quest for this body (respecting prerequisites)
     const quests = getBodyQuests(bodyId);
     const bq = quests.find(q => {
       if (this.sphere.triggeredBodyQuests.includes(q.id)) return false;
@@ -2694,6 +2698,7 @@ export class GameScene extends Phaser.Scene {
     const onIntroEnd = () => {
       if (hasObjectives) {
         this.bodyQuestTracker.start(bq);
+        this.spawnBodyQuestObjects(bq);
         this.showMessage(`Quest started: ${bq.nameRu}`);
       } else {
         this.grantBodyQuestReward(bq);
@@ -2703,12 +2708,50 @@ export class GameScene extends Phaser.Scene {
     this.events.emit('show-dialog', { messages: bq.introMessages, onEnd: onIntroEnd });
   }
 
+  private spawnBodyQuestObjects(bq: import('../types/bodyQuests').BodyQuestDef): void {
+    if (!bq.spawnObjects || !this.playerBody) return;
+    const cx = this.playerBody.x, cy = this.playerBody.y;
+    const mapW = this.currentZone.widthTiles * TILE_SIZE;
+    const mapH = this.currentZone.heightTiles * TILE_SIZE;
+
+    for (const so of bq.spawnObjects) {
+      for (let i = 0; i < so.count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = so.radius * 0.4 + Math.random() * so.radius * 0.6;
+        const ox = Math.max(40, Math.min(mapW - 40, cx + Math.cos(angle) * dist));
+        const oy = Math.max(40, Math.min(mapH - 40, cy + Math.sin(angle) * dist));
+
+        const container = this.add.container(ox, oy).setDepth(3);
+        const glow = this.add.circle(0, 0, 14, so.color, 0.3);
+        const icon = this.add.text(0, 0, so.icon, { fontSize: '16px' }).setOrigin(0.5);
+        const label = this.add.text(0, -22, so.nameRu, { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+        const eKey = this.add.text(0, 18, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+        container.add([glow, icon, label, eKey]);
+        this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1200, yoyo: true, repeat: -1 });
+
+        const obj = { x: ox, y: oy, objectId: so.objectId, nameRu: so.nameRu, objType: so.type, gfx: container, used: false };
+        this.questObjects.push(obj);
+        this.bodyQuestObjects.push(obj);
+      }
+    }
+  }
+
+  private clearBodyQuestObjects(): void {
+    for (const obj of this.bodyQuestObjects) {
+      obj.gfx.destroy();
+      const idx = this.questObjects.indexOf(obj);
+      if (idx >= 0) this.questObjects.splice(idx, 1);
+    }
+    this.bodyQuestObjects = [];
+  }
+
   private onBodyQuestComplete(): void {
     const progress = this.bodyQuestTracker.getActive();
     if (!progress) return;
     const bq = progress.def;
     this.sphere.triggeredBodyQuests.push(bq.id);
     this.bodyQuestTracker.clear();
+    this.clearBodyQuestObjects();
     this.grantBodyQuestReward(bq);
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }

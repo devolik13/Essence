@@ -12,6 +12,16 @@ export interface BodyQuestObjective {
   description: string;
 }
 
+export interface BodyQuestSpawnObject {
+  objectId: string;
+  nameRu: string;
+  icon: string;
+  color: number;
+  type: 'collectible' | 'waypoint' | 'destructible';
+  count: number;
+  radius: number;
+}
+
 export interface BodyQuestDef {
   id: string;
   bodyId: string;
@@ -25,6 +35,7 @@ export interface BodyQuestDef {
   xpReward: number;
   prerequisiteBodyQuestId?: string;
   conflictQuestId?: string;
+  spawnObjects?: BodyQuestSpawnObject[];
 }
 
 export type ConflictSide = 'attacker' | 'defender';
