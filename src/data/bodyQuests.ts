@@ -54,7 +54,7 @@ const QUEST_GOBLIN: BodyQuestDef = {
   introMessages: [
     { speaker: '', text: 'Small body. Fast. Hungry.' },
     { speaker: '', text: 'The tribe waits at the edge. Need to bring something back.' },
-    { speaker: '', text: 'Hunting camp nearby. One sleepy guard.' },
+    { speaker: '', text: 'Hunting camp nearby. Crates left unguarded.' },
   ],
   completeMessages: [
     { speaker: '', text: 'The tribe eats tonight. Quick blade — yours to keep.' },
@@ -62,6 +62,10 @@ const QUEST_GOBLIN: BodyQuestDef = {
   objectives: [
     { type: 'steal', count: 3, targetId: 'camp_supplies', targetNameRu: 'Supplies', description: 'Steal 3 supply crates' },
   ],
+  spawnObjects: [{
+    objectId: 'camp_supplies', nameRu: 'Supplies', icon: '📦', color: 0xddaa33,
+    type: 'collectible', count: 4, radius: 350,
+  }],
   rewardSpellId: 'sting',
   xpReward: 50,
 };
@@ -92,7 +96,7 @@ const QUEST_SCOUT: BodyQuestDef = {
   introMessages: [
     { speaker: '', text: 'Light body. Quiet. Used to the forest.' },
     { speaker: '', text: 'The trade caravan leaves at dawn tomorrow.' },
-    { speaker: '', text: 'The road must be checked. They say someone\'s been lurking there.' },
+    { speaker: '', text: 'The road must be checked. Three points to scout.' },
   ],
   completeMessages: [
     { speaker: '', text: 'The road is clear — for now. A keen eye is its own weapon.' },
@@ -100,6 +104,10 @@ const QUEST_SCOUT: BodyQuestDef = {
   objectives: [
     { type: 'reach', count: 3, targetId: 'checkpoint', targetNameRu: 'Checkpoint', description: 'Check 3 waypoints' },
   ],
+  spawnObjects: [{
+    objectId: 'checkpoint', nameRu: 'Checkpoint', icon: '🔍', color: 0x55aaff,
+    type: 'waypoint', count: 3, radius: 500,
+  }],
   rewardSpellId: 'bow_shot',
   xpReward: 50,
 };
