@@ -210,19 +210,23 @@ const QUEST_GUSTY: BodyQuestDef = {
 
 const QUEST_BANDIT_ARCHER: BodyQuestDef = {
   id: 'bq_bandit_archer', bodyId: 'bandit_archer', tier: 2,
-  nameRu: 'Rearguard',
-  description: 'Cover the camp\'s retreat.',
+  nameRu: 'Caravan Raid',
+  description: 'Destroy the caravan and seize the cargo.',
   introMessages: [
-    { speaker: '', text: 'Something went wrong. The camp is packing up.' },
-    { speaker: '', text: 'Three guards from the village are on the trail.' },
-    { speaker: '', text: 'The boss shouts: "Hold them off!"' },
+    { speaker: '', text: 'Dust on the road. A caravan. Lightly guarded.' },
+    { speaker: '', text: 'The boss nods: "Burn the cart. Take what\'s inside."' },
+    { speaker: '', text: 'Arrows ready. Time to earn your share.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Camp escaped. You learned to shoot while retreating.' },
+    { speaker: '', text: 'The cart burns. The cargo is yours. You learned to shoot and retreat.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'village_guard', targetNameRu: 'Guard', description: 'Hold off 3 guards' },
-    { type: 'survive', count: 1, description: 'Survive the encounter' },
+    { type: 'destroy', count: 1, targetId: 'caravan_cart', targetNameRu: 'Cart', description: 'Destroy the cart' },
+    { type: 'collect', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Cargo', description: 'Seize the cargo' },
+  ],
+  spawnObjects: [
+    { objectId: 'caravan_cart', nameRu: 'Cart', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
+    { objectId: 'caravan_cargo', nameRu: 'Cargo', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
   ],
   rewardSpellId: 'bow_backshot',
   xpReward: 100,
@@ -250,19 +254,23 @@ const QUEST_BANDIT_CROSSBOW: BodyQuestDef = {
 
 const QUEST_BANDIT_SPEAR: BodyQuestDef = {
   id: 'bq_bandit_spear', bodyId: 'bandit_spear', tier: 2,
-  nameRu: 'Night Watch',
-  description: 'Defend the camp through the night.',
+  nameRu: 'Caravan Raid',
+  description: 'Destroy the caravan and seize the cargo.',
   introMessages: [
-    { speaker: '', text: 'Dark. Quiet. Your shift.' },
-    { speaker: '', text: 'Camp perimeter. Three hours until dawn.' },
-    { speaker: '', text: 'Something moves in the bushes.' },
+    { speaker: '', text: 'A caravan crawls along the road. Easy prey.' },
+    { speaker: '', text: 'The boss points at the cart: "Smash it. Take everything."' },
+    { speaker: '', text: 'Pike in hand. Simple work.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Dawn came. You held the line. The spear strikes true.' },
+    { speaker: '', text: 'Splinters and loot. The pike strikes where it hurts.' },
   ],
   objectives: [
-    { type: 'kill', count: 5, targetId: 'night_stalker', targetNameRu: 'Stalker', description: 'Repel 5 attackers' },
-    { type: 'survive', count: 1, description: 'Survive until dawn' },
+    { type: 'destroy', count: 1, targetId: 'caravan_cart', targetNameRu: 'Cart', description: 'Destroy the cart' },
+    { type: 'collect', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Cargo', description: 'Seize the cargo' },
+  ],
+  spawnObjects: [
+    { objectId: 'caravan_cart', nameRu: 'Cart', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
+    { objectId: 'caravan_cargo', nameRu: 'Cargo', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
   ],
   rewardSpellId: 'spear_butt',
   xpReward: 100,
