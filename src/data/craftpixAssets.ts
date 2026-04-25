@@ -35,6 +35,8 @@ export const CP_ASSETS: Array<[string, string]> = [
   ['cp_rock_03',        `${FOLDER}${PROP}Rock 03.png`],
   ['cp_rock_04',        `${FOLDER}${PROP}Rock 04.png`],
   ['cp_rock_05',        `${FOLDER}${PROP}Rock 05.png`],
+  ['cp_rock_new',       `${FOLDER}Rock1.png`],
+  ['cp_rock_grass',     `${FOLDER}Rock1_grass.png`],
   ['cp_tent',           `${FOLDER}${PROP}Tent.png`],
   ['cp_chest',          `${FOLDER}${PROP}Treasure Chest.png`],
   ['cp_tree_md',        `${FOLDER}${PROP}Tree Medium.png`],
