@@ -239,6 +239,7 @@ export class Body extends Phaser.GameObjects.Container {
 
   update(_time: number, delta: number) {
     const dt = delta / 1000;
+    this.setDepth(this.y);
 
     if (this.attackCooldown > 0) {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);

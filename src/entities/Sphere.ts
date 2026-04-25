@@ -107,6 +107,7 @@ export class Sphere extends Phaser.GameObjects.Container {
   }
 
   update(_time: number, delta: number) {
+    this.setDepth(this.y);
     if (this.inBody) {
       this.setVisible(false);
       return;

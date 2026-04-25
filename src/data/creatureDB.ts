@@ -76,7 +76,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 3, [StatName.Accuracy]: 4, [StatName.Evasion]: 6,
       [StatName.Health]: 4, [StatName.Armor]: 1, [StatName.Luck]: 4,
     },
-    weapon: WeaponType.Dagger, color: 0xdd6622, abilityName: 'Acceleration',
+    weapon: WeaponType.Fists, color: 0xdd6622, abilityName: 'Disorienting Blow',
     signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
   },
 
@@ -89,7 +89,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 6, [StatName.Accuracy]: 4, [StatName.Evasion]: 3,
       [StatName.Health]: 8, [StatName.Armor]: 3, [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Sword, color: 0x774422, abilityName: 'Sword Strike',
+    weapon: WeaponType.Spear, color: 0x774422, abilityName: 'Ram',
     signatureSpell: ABILITY_SWORD_STRIKE, spellXPThreshold: 50,
     npcSpells: [ABILITY_SWORD_STRIKE],
   },
@@ -103,7 +103,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 6,
       [StatName.Health]: 2, [StatName.Armor]: 0, [StatName.Luck]: 4,
     },
-    weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Acceleration',
+    weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Heal',
     signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
   },
 

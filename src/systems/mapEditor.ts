@@ -146,7 +146,7 @@ export class MapEditor {
       const sp = this.sprites.get(obj);
       const h = sp ? sp.displayHeight : 32;
       const r = this.colliderRadiusOf(obj);
-      addMapCollider({ x: obj.x, y: obj.y - h * 0.2, r });
+      addMapCollider({ x: obj.x, y: obj.y - h * 0.3, r });
     }
   }
 

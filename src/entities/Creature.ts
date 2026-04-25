@@ -275,6 +275,8 @@ export class Creature extends Phaser.GameObjects.Container {
       }
     }
 
+    this.setDepth(this.y);
+
     // Animated sprite — update facing & animation
     if (this.animPrefix) {
       this.updateSpriteAnim();
