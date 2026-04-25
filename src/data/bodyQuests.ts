@@ -73,17 +73,17 @@ const QUEST_GOBLIN: BodyQuestDef = {
 const QUEST_ORC: BodyQuestDef = {
   id: 'bq_orc', bodyId: 'orc', tier: 1,
   nameRu: 'Rite of Strength',
-  description: 'Prove your worth to the chieftain.',
+  description: 'Challenge the chieftain to a duel.',
   introMessages: [
     { speaker: '', text: 'Large body. Heavy. Strong.' },
-    { speaker: '', text: 'The chieftain watches. Two others stand near.' },
-    { speaker: '', text: 'A greatsword stuck blade-down in the earth. Only those who prove themselves may take it.' },
+    { speaker: '', text: 'The chieftain stands at the center. The tribe watches.' },
+    { speaker: '', text: 'Only one way to prove yourself — challenge him.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The chieftain nods. The blade is yours. Heavy, but true.' },
+    { speaker: '', text: 'The chieftain falls. The tribe kneels. The blade is yours.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'challenger', targetNameRu: 'Challenger', description: 'Defeat 3 challengers' },
+    { type: 'kill', count: 1, targetId: 'orc', targetNameRu: 'Chieftain', description: 'Defeat the chieftain' },
   ],
   rewardSpellId: 'slash',
   xpReward: 50,
