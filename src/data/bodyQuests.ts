@@ -511,16 +511,17 @@ const QUEST_DEER: BodyQuestDef = {
 const QUEST_FOX: BodyQuestDef = {
   id: 'bq_fox', bodyId: 'fox', tier: 1,
   nameRu: 'Cunning Hunter',
-  description: 'Strike fast, confuse the prey.',
+  description: 'Hunt hares in the meadow.',
   introMessages: [
-    { speaker: '', text: 'Sharp nose. Sharp mind. The grouse doesn\'t see you yet.' },
-    { speaker: '', text: 'One precise strike — that\'s all it takes.' },
+    { speaker: '', text: 'Sharp nose. Sharp mind. The meadow smells of hare.' },
+    { speaker: '', text: 'They\'re fast — but not fast enough.' },
+    { speaker: '', text: 'Three will do. The body knows what to do.' },
   ],
   completeMessages: [
     { speaker: '', text: 'Quick and precise. The fox body taught you to disorient.' },
   ],
   objectives: [
-    { type: 'kill', count: 2, targetId: 'grouse', targetNameRu: 'Grouse', description: 'Hunt 2 grouse' },
+    { type: 'kill', count: 3, targetId: 'hare', targetNameRu: 'Hare', description: 'Hunt 3 hares' },
   ],
   rewardSpellId: 'fist_strike',
   xpReward: 50,
