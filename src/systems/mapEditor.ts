@@ -143,7 +143,10 @@ export class MapEditor {
     clearMapColliders();
     for (const obj of this.objects) {
       if (!this.isSolid(obj)) continue;
-      addMapCollider({ x: obj.x, y: obj.y, r: this.colliderRadiusOf(obj) });
+      const sp = this.sprites.get(obj);
+      const h = sp ? sp.displayHeight : 32;
+      const r = this.colliderRadiusOf(obj);
+      addMapCollider({ x: obj.x, y: obj.y - h * 0.2, r });
     }
   }
 

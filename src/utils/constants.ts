@@ -6,8 +6,8 @@ export const MAP_WIDTH = MAP_WIDTH_TILES * TILE_SIZE;
 export const MAP_HEIGHT = MAP_HEIGHT_TILES * TILE_SIZE;
 
 // ─── Игровой экран ─────────────────────────────────────
-export const GAME_WIDTH = 960;
-export const GAME_HEIGHT = 640;
+export const GAME_WIDTH = 1280;
+export const GAME_HEIGHT = 720;
 
 // ─── Движение ──────────────────────────────────────────
 export const SPHERE_SPEED = 200;       // пикс/сек в астрале
