@@ -493,17 +493,22 @@ const QUEST_HARE: BodyQuestDef = {
 const QUEST_DEER: BodyQuestDef = {
   id: 'bq_deer', bodyId: 'deer', tier: 1,
   nameRu: 'Fleet Foot',
-  description: 'Outrun every predator.',
+  description: 'Reach the safe clearing before they catch you.',
   introMessages: [
     { speaker: '', text: 'Graceful legs. Wind in the fur. The meadow stretches wide.' },
-    { speaker: '', text: 'Something is watching from the treeline. Time to run.' },
+    { speaker: '', text: 'Something is watching from the treeline. A clearing far ahead — safety.' },
+    { speaker: '', text: 'Run. Don\'t look back.' },
   ],
   completeMessages: [
     { speaker: '', text: 'Nothing could catch you. The wind itself taught you to dash.' },
   ],
   objectives: [
-    { type: 'survive', count: 1, description: 'Survive 60 seconds' },
+    { type: 'reach', count: 1, targetId: 'safe_clearing', targetNameRu: 'Safe Clearing', description: 'Reach the safe clearing' },
   ],
+  spawnObjects: [{
+    objectId: 'safe_clearing', nameRu: 'Safe Clearing', icon: '🌿', color: 0x44dd44,
+    type: 'waypoint', count: 1, radius: 700,
+  }],
   rewardSpellId: 'dash',
   xpReward: 40,
 };
