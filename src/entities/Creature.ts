@@ -16,10 +16,10 @@ const CREATURE_SPRITE_MAP: Record<string, string> = {
   goblin_veteran: 'goblin',
   scout: 'ranger',
   scout_veteran: 'ranger',
-  bandit_archer: 'ranger',
-  bandit_archer_veteran: 'ranger',
-  bandit_crossbow: 'ranger',
-  bandit_crossbow_veteran: 'ranger',
+  bandit_archer: 'ranger_archer',
+  bandit_archer_veteran: 'ranger_archer',
+  bandit_spear: 'ranger_pike',
+  bandit_spear_veteran: 'ranger_pike',
 };
 
 /**

@@ -1003,21 +1003,23 @@ export class BootScene extends Phaser.Scene {
     mkMobAnim('goblin_atk_right',  'mob_sheet_goblin_right_attack', 10, 14, 0);
     mkMobAnim('goblin_dying',      'mob_sheet_goblin_dying',        10, 10, 0);
 
-    // Ranger — front-only sprite, use same sheet for all directions
-    const rSheet = 'mob_sheet_ranger_front';
-    mkMobAnim('ranger_idle_down',  rSheet + '_idle',   18, 8,  -1);
-    mkMobAnim('ranger_idle_up',    rSheet + '_idle',   18, 8,  -1);
-    mkMobAnim('ranger_idle_left',  rSheet + '_idle',   18, 8,  -1);
-    mkMobAnim('ranger_idle_right', rSheet + '_idle',   18, 8,  -1);
-    mkMobAnim('ranger_walk_down',  rSheet + '_walk',   24, 12, -1);
-    mkMobAnim('ranger_walk_up',    rSheet + '_walk',   24, 12, -1);
-    mkMobAnim('ranger_walk_left',  rSheet + '_walk',   24, 12, -1);
-    mkMobAnim('ranger_walk_right', rSheet + '_walk',   24, 12, -1);
-    mkMobAnim('ranger_atk_down',   rSheet + '_attack', 9,  14, 0);
-    mkMobAnim('ranger_atk_up',     rSheet + '_attack', 9,  14, 0);
-    mkMobAnim('ranger_atk_left',   rSheet + '_attack', 9,  14, 0);
-    mkMobAnim('ranger_atk_right',  rSheet + '_attack', 9,  14, 0);
-    mkMobAnim('ranger_dying',      'mob_sheet_ranger_dying', 15, 10, 0);
+    // Front-only mobs (rangers etc.) — same sheet for all directions
+    const FRONT_ONLY_MOBS = ['ranger', 'ranger_archer', 'ranger_pike'];
+    for (const mobId of FRONT_ONLY_MOBS) {
+      const set = MOB_SPRITE_SETS[mobId];
+      if (!set) continue;
+      const sh = `mob_sheet_${mobId}_front`;
+      const idleN = set.anims.front_idle?.frames ?? 18;
+      const walkN = set.anims.front_walk?.frames ?? 24;
+      const atkN = set.anims.front_attack?.frames ?? 9;
+      const dieN = set.anims.dying?.frames ?? 15;
+      for (const dir of ['down', 'up', 'left', 'right']) {
+        mkMobAnim(`${mobId}_idle_${dir}`, sh + '_idle', idleN, 8, -1);
+        mkMobAnim(`${mobId}_walk_${dir}`, sh + '_walk', walkN, 12, -1);
+        mkMobAnim(`${mobId}_atk_${dir}`,  sh + '_attack', atkN, 14, 0);
+      }
+      mkMobAnim(`${mobId}_dying`, `mob_sheet_${mobId}_dying`, dieN, 10, 0);
+    }
 
     // ── Animal animations (rows: down=0, up=1, left=2, right=3) ────────────
     const DIRS: Array<[string, number]> = [['down', 0], ['up', 1], ['left', 2], ['right', 3]];
