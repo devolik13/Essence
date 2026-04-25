@@ -49,6 +49,7 @@ export class Creature extends Phaser.GameObjects.Container {
    * существо вместо игрока.
    */
   public factionTarget: Creature | null = null;
+  public skipAggro: boolean = false;
 
   public spawnX: number;
   public spawnY: number;
@@ -194,7 +195,9 @@ export class Creature extends Phaser.GameObjects.Container {
       const preferredDist = weapon.isMelee ? 0 : weapon.range * 0.6; // дистанция удержания для ranged
 
       if (this.aiState === 'chase' || this.aiState === 'attack') {
-        if (distFromSpawn > LEASH_RANGE) {
+        if (this.skipAggro && !this.factionTarget) {
+          this.aiState = 'return';
+        } else if (distFromSpawn > LEASH_RANGE) {
           this.aiState = 'return';
         } else if (dist <= attackRange) {
           this.aiState = 'attack';
@@ -208,7 +211,7 @@ export class Creature extends Phaser.GameObjects.Container {
         }
       } else {
         // idle / wander — проверяем агро
-        if (dist < AGGRO_RANGE && this.definition.type === BodyType.Combat) {
+        if (dist < AGGRO_RANGE && this.definition.type === BodyType.Combat && !this.skipAggro) {
           this.aiState = 'chase';
         }
         // Убегающие (Fleeing) — всегда убегают, никогда не дерутся

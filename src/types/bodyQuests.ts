@@ -36,6 +36,7 @@ export interface BodyQuestDef {
   prerequisiteBodyQuestId?: string;
   conflictQuestId?: string;
   spawnObjects?: BodyQuestSpawnObject[];
+  friendlyCreatureIds?: string[];
 }
 
 export type ConflictSide = 'attacker' | 'defender';

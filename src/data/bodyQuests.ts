@@ -83,8 +83,9 @@ const QUEST_ORC: BodyQuestDef = {
     { speaker: '', text: 'The chieftain falls. The tribe kneels. The blade is yours.' },
   ],
   objectives: [
-    { type: 'kill', count: 1, targetId: 'orc', targetNameRu: 'Chieftain', description: 'Defeat the chieftain' },
+    { type: 'kill', count: 1, targetId: 'orc_veteran', targetNameRu: 'Chieftain', description: 'Defeat the chieftain' },
   ],
+  friendlyCreatureIds: ['orc'],
   rewardSpellId: 'slash',
   xpReward: 50,
 };

@@ -585,7 +585,9 @@ export class GameScene extends Phaser.Scene {
     // Обновляем мобов
     const px = this.playerBody?.x ?? -9999;
     const py = this.playerBody?.y ?? -9999;
+    const friendlyIds = this.bodyQuestTracker.getActive()?.def.friendlyCreatureIds;
     for (const creature of this.creatures) {
+      creature.skipAggro = !!friendlyIds && friendlyIds.includes(creature.definition.id);
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
         if (creature.isDead) continue;
