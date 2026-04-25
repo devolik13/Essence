@@ -5,30 +5,30 @@ import { AbilitySlot, createEmptySlots } from '../types/abilities';
 import { StatusEffectId, ActiveStatusEffect, STATUS_DEFS } from '../types/statuses';
 import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/combat';
 import { BODY_SPEED } from '../utils/constants';
-import { WEAPONS } from '../data/weapons';
+import { WEAPONS, STRENGTH_WEAPONS, AGILITY_WEAPONS } from '../data/weapons';
 import { clamp } from '../utils/math';
 import { pushOutOfColliders } from '../systems/mapColliders';
+import { WeaponType } from '../types/bodies';
 
-/** Тела с поддержкой анимированных спрайтов */
-const ANIMATED_BODIES: Record<string, {
-  idle: (dir: string) => string;
-  walk: (dir: string) => string;
-  atk:  (dir: string) => string;
-  displaySize: number;
-}> = {
-  human_warrior: {
-    idle: dir => `warrior_idle_${dir}`,
-    walk: dir => `warrior_walk_${dir}`,
-    atk:  dir => `warrior_atk_${dir}`,
-    displaySize: 80,
-  },
-  human_mage: {
-    idle: dir => `mage_idle_${dir}`,
-    walk: dir => `mage_walk_${dir}`,
-    atk:  dir => `mage_atk_${dir}`,
-    displaySize: 80,
-  },
+type AnimCfg = { idle: (d: string) => string; walk: (d: string) => string; atk: (d: string) => string; displaySize: number };
+
+const SWORDSMAN_ANIM: AnimCfg = { idle: () => 'swordsman_idle_down', walk: () => 'swordsman_walk_down', atk: () => 'swordsman_atk_down', displaySize: 80 };
+const ARCHER_ANIM: AnimCfg    = { idle: () => 'archer_idle_down',    walk: () => 'archer_walk_down',    atk: () => 'archer_atk_down',    displaySize: 80 };
+const WIZARD_ANIM: AnimCfg    = { idle: () => 'wizard_idle_down',    walk: () => 'wizard_walk_down',    atk: () => 'wizard_atk_down',    displaySize: 80 };
+
+const ANIMATED_BODIES: Record<string, AnimCfg> = {
+  human_warrior: SWORDSMAN_ANIM,
+  human_archer:  ARCHER_ANIM,
+  human_mage:    WIZARD_ANIM,
 };
+
+function getAnimConfig(def: { id: string; weapon?: WeaponType }): AnimCfg | undefined {
+  if (ANIMATED_BODIES[def.id]) return ANIMATED_BODIES[def.id];
+  if (!def.id.startsWith('starter_') || !def.weapon) return undefined;
+  if (STRENGTH_WEAPONS.includes(def.weapon)) return SWORDSMAN_ANIM;
+  if (AGILITY_WEAPONS.includes(def.weapon)) return ARCHER_ANIM;
+  return WIZARD_ANIM;
+}
 
 /**
  * Тело — физическая оболочка, которой управляет игрок.
@@ -83,7 +83,7 @@ export class Body extends Phaser.GameObjects.Container {
     this.currentHP = maxHP(sphereStats);
     this.currentMana = maxMana(sphereStats);
 
-    const animCfg = ANIMATED_BODIES[definition.id];
+    const animCfg = getAnimConfig(definition);
 
     if (animCfg) {
       // Анимированный спрайт
@@ -221,7 +221,7 @@ export class Body extends Phaser.GameObjects.Container {
   }
 
   private playAnim(type: 'idle' | 'walk' | 'atk') {
-    const animCfg = ANIMATED_BODIES[this.definition.id];
+    const animCfg = getAnimConfig(this.definition);
     if (!animCfg) return;
 
     // Для left — зеркалим right

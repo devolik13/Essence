@@ -35,8 +35,6 @@ export const CP_ASSETS: Array<[string, string]> = [
   ['cp_rock_03',        `${FOLDER}${PROP}Rock 03.png`],
   ['cp_rock_04',        `${FOLDER}${PROP}Rock 04.png`],
   ['cp_rock_05',        `${FOLDER}${PROP}Rock 05.png`],
-  ['cp_rock_new',       `${FOLDER}Rock1.png`],
-  ['cp_rock_grass',     `${FOLDER}Rock1_grass.png`],
   ['cp_tent',           `${FOLDER}${PROP}Tent.png`],
   ['cp_chest',          `${FOLDER}${PROP}Treasure Chest.png`],
   ['cp_tree_md',        `${FOLDER}${PROP}Tree Medium.png`],
@@ -144,12 +142,48 @@ const RANGER_PIKE_SPRITES: MobSpriteSet = {
   },
 };
 
+const SWORDSMAN_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/swordsman/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:     { file: 'idle.png',    frames: 8 },
+    front_walk:     { file: 'walk.png',    frames: 8 },
+    front_attack:   { file: 'attack.png',  frames: 6 },
+    dying:          { file: 'dead.png',    frames: 3 },
+  },
+};
+
+const ARCHER_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/archer/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:     { file: 'idle.png',    frames: 6 },
+    front_walk:     { file: 'walk.png',    frames: 8 },
+    front_attack:   { file: 'attack.png',  frames: 14 },
+    dying:          { file: 'dead.png',    frames: 3 },
+  },
+};
+
+const WIZARD_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/wizard/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:     { file: 'idle.png',    frames: 6 },
+    front_walk:     { file: 'walk.png',    frames: 7 },
+    front_attack:   { file: 'attack.png',  frames: 10 },
+    dying:          { file: 'dead.png',    frames: 4 },
+  },
+};
+
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_SPRITES,
   ranger: RANGER_SPRITES,
   ranger_archer: RANGER_ARCHER_SPRITES,
   ranger_pike: RANGER_PIKE_SPRITES,
+  swordsman: SWORDSMAN_SPRITES,
+  archer: ARCHER_SPRITES,
+  wizard: WIZARD_SPRITES,
 };
 
 /**

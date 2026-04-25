@@ -1017,8 +1017,9 @@ export class GameScene extends Phaser.Scene {
 
   private createStarterMarkers() {
     const animMap: Record<string, string> = {
-      human_warrior: 'warrior_idle_down',
-      human_mage: 'mage_idle_down',
+      human_warrior: 'swordsman_idle_down',
+      human_archer: 'archer_idle_down',
+      human_mage: 'wizard_idle_down',
     };
 
     STARTER_BODIES.forEach((def, i) => {

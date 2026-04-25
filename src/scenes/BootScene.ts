@@ -882,28 +882,7 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture('body_bandit_brute', 28, 28);
     g.clear();
 
-    // ── Warrior spritesheets (256×256 per frame, 5×5 = 25 frames) ────────────
-    const W = 256;
-    this.load.spritesheet('warrior_idle_down',   'assets/warrior/warrior_idle_down.png',   { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_idle_right',  'assets/warrior/warrior_idle_right.png',  { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_idle_up',     'assets/warrior/warrior_idle_up.png',     { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_walk_down',   'assets/warrior/warrior_walk_down.png',   { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_walk_right',  'assets/warrior/warrior_walk_right.png',  { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_walk_up',     'assets/warrior/warrior_walk_up.png',     { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_atk_down',    'assets/warrior/warrior_custom_sword_attack_down.png',  { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_atk_right',   'assets/warrior/warrior_custom_sword_attack_right.png', { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('warrior_atk_up',      'assets/warrior/warrior_custom_sword_attack_up.png',    { frameWidth: W, frameHeight: W });
-
-    // ── Mage spritesheets (256×256 per frame, 5×5 = 25 frames) ──────────────
-    this.load.spritesheet('mage_idle_down',   'assets/mage/Lich-idle_down-v1.png',        { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_idle_right',  'assets/mage/Lich-idle_right-v1.png',       { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_idle_up',     'assets/mage/Lich-idle_up-v1.png',          { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_walk_down',   'assets/mage/Lich-walk_down-v1.png',        { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_walk_right',  'assets/mage/Lich-walk_right-v1.png',       { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_walk_up',     'assets/mage/Lich-walk_up-v1.png',          { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_atk_down',    'assets/mage/Lich-custom_cast_down-v1.png', { frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_atk_right',   'assets/mage/Lich-custom_cast_right-v1.png',{ frameWidth: W, frameHeight: W });
-    this.load.spritesheet('mage_atk_up',      'assets/mage/Lich-custom_cast_up-v1.png',   { frameWidth: W, frameHeight: W });
+    // Old warrior/mage directional spritesheets removed — replaced by swordsman/archer/wizard in MOB_SPRITE_SETS
 
     // ── Spell spritesheets ──────────────────────────────────────────────────
     // FIRE
@@ -945,38 +924,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    // ── Warrior animations ────────────────────────────────────────────────────
-    const makeAnim = (key: string, sheet: string, frameRate: number, repeat: number) => {
-      if (!this.anims.exists(key)) {
-        this.anims.create({
-          key,
-          frames: this.anims.generateFrameNumbers(sheet, { start: 0, end: 24 }),
-          frameRate,
-          repeat,
-        });
-      }
-    };
-
-    makeAnim('warrior_idle_down',  'warrior_idle_down',  8, -1);
-    makeAnim('warrior_idle_right', 'warrior_idle_right', 8, -1);
-    makeAnim('warrior_idle_up',    'warrior_idle_up',    8, -1);
-    makeAnim('warrior_walk_down',  'warrior_walk_down',  18, -1);
-    makeAnim('warrior_walk_right', 'warrior_walk_right', 18, -1);
-    makeAnim('warrior_walk_up',    'warrior_walk_up',    18, -1);
-    makeAnim('warrior_atk_down',   'warrior_atk_down',   17, 0);
-    makeAnim('warrior_atk_right',  'warrior_atk_right',  17, 0);
-    makeAnim('warrior_atk_up',     'warrior_atk_up',     17, 0);
-
-    // ── Mage animations ──────────────────────────────────────────────────────
-    makeAnim('mage_idle_down',  'mage_idle_down',  8, -1);
-    makeAnim('mage_idle_right', 'mage_idle_right', 8, -1);
-    makeAnim('mage_idle_up',    'mage_idle_up',    8, -1);
-    makeAnim('mage_walk_down',  'mage_walk_down',  18, -1);
-    makeAnim('mage_walk_right', 'mage_walk_right', 18, -1);
-    makeAnim('mage_walk_up',    'mage_walk_up',    18, -1);
-    makeAnim('mage_atk_down',   'mage_atk_down',   17, 0);
-    makeAnim('mage_atk_right',  'mage_atk_right',  17, 0);
-    makeAnim('mage_atk_up',     'mage_atk_up',     17, 0);
+    // Old warrior/mage animations removed — now handled via FRONT_ONLY_MOBS loop (swordsman/archer/wizard)
 
     // ── Goblin animations ─────────────────────────────────────────────────────
     const mkMobAnim = (key: string, sheet: string, numFrames: number, fps: number, repeat: number) => {
@@ -1004,7 +952,7 @@ export class BootScene extends Phaser.Scene {
     mkMobAnim('goblin_dying',      'mob_sheet_goblin_dying',        10, 10, 0);
 
     // Front-only mobs (rangers etc.) — same sheet for all directions
-    const FRONT_ONLY_MOBS = ['ranger', 'ranger_archer', 'ranger_pike'];
+    const FRONT_ONLY_MOBS = ['ranger', 'ranger_archer', 'ranger_pike', 'swordsman', 'archer', 'wizard'];
     for (const mobId of FRONT_ONLY_MOBS) {
       const set = MOB_SPRITE_SETS[mobId];
       if (!set) continue;
