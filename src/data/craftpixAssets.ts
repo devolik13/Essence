@@ -74,6 +74,7 @@ export const CP_POOLS = {
 export const MOB_ASSETS: Array<[string, string, number, number]> = [
   ['mob_goblin',         'assets/mobs/goblin/front_idle.png', 480, 480],
   ['mob_goblin_veteran', 'assets/mobs/goblin/front_idle.png', 480, 480],
+  ['mob_ranger',         'assets/mobs/ranger/front_idle.png', 900, 900],
   ['mob_hare',           'assets/mobs/animals/Hare/Hare_Idle_with_shadow.png', 32, 32],
   ['mob_deer',           'assets/mobs/animals/Deer/Deer_Idle_with_shadow.png', 32, 32],
   ['mob_fox',            'assets/mobs/animals/Fox/Fox_Idle_with_shadow.png', 32, 32],
@@ -108,9 +109,21 @@ const GOBLIN_SPRITES: MobSpriteSet = {
   },
 };
 
+const RANGER_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/ranger/',
+  frameW: 900, frameH: 900,
+  anims: {
+    front_idle:     { file: 'front_idle.png',      frames: 18 },
+    front_walk:     { file: 'front_walking.png',   frames: 24 },
+    front_attack:   { file: 'front_attacking.png', frames: 9 },
+    dying:          { file: 'dying.png',            frames: 15 },
+  },
+};
+
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_SPRITES,
+  ranger: RANGER_SPRITES,
 };
 
 /**

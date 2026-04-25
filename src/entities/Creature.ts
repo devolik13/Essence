@@ -14,6 +14,12 @@ export type CreatureAIState = 'idle' | 'wander' | 'chase' | 'attack' | 'return' 
 
 const CREATURE_SPRITE_MAP: Record<string, string> = {
   goblin_veteran: 'goblin',
+  scout: 'ranger',
+  scout_veteran: 'ranger',
+  bandit_archer: 'ranger',
+  bandit_archer_veteran: 'ranger',
+  bandit_crossbow: 'ranger',
+  bandit_crossbow_veteran: 'ranger',
 };
 
 /**

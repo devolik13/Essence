@@ -26,9 +26,9 @@ export class BootScene extends Phaser.Scene {
     }
     // Mob directional spritesheets — all animations (goblin style: separate files per direction)
     const loadedSheets = new Set<string>();
-    for (const [, spriteSet] of Object.entries(MOB_SPRITE_SETS)) {
+    for (const [mobId, spriteSet] of Object.entries(MOB_SPRITE_SETS)) {
       for (const [animKey, anim] of Object.entries(spriteSet.anims)) {
-        const sheetKey = `mob_sheet_${animKey}`;
+        const sheetKey = `mob_sheet_${mobId}_${animKey}`;
         if (loadedSheets.has(sheetKey)) continue;
         loadedSheets.add(sheetKey);
         this.load.spritesheet(sheetKey, spriteSet.folder + anim.file, {
@@ -989,19 +989,35 @@ export class BootScene extends Phaser.Scene {
         });
       }
     };
-    mkMobAnim('goblin_idle_down',  'mob_sheet_front_idle',   16, 8,  -1);
-    mkMobAnim('goblin_idle_up',    'mob_sheet_back_idle',    16, 8,  -1);
-    mkMobAnim('goblin_idle_left',  'mob_sheet_left_idle',    16, 8,  -1);
-    mkMobAnim('goblin_idle_right', 'mob_sheet_right_idle',   16, 8,  -1);
-    mkMobAnim('goblin_walk_down',  'mob_sheet_front_walk',   20, 12, -1);
-    mkMobAnim('goblin_walk_up',    'mob_sheet_back_walk',    20, 12, -1);
-    mkMobAnim('goblin_walk_left',  'mob_sheet_left_walk',    20, 12, -1);
-    mkMobAnim('goblin_walk_right', 'mob_sheet_right_walk',   20, 12, -1);
-    mkMobAnim('goblin_atk_down',   'mob_sheet_front_attack', 10, 14, 0);
-    mkMobAnim('goblin_atk_up',     'mob_sheet_back_attack',  10, 14, 0);
-    mkMobAnim('goblin_atk_left',   'mob_sheet_left_attack',  10, 14, 0);
-    mkMobAnim('goblin_atk_right',  'mob_sheet_right_attack', 10, 14, 0);
-    mkMobAnim('goblin_dying',      'mob_sheet_dying',        10, 10, 0);
+    mkMobAnim('goblin_idle_down',  'mob_sheet_goblin_front_idle',   16, 8,  -1);
+    mkMobAnim('goblin_idle_up',    'mob_sheet_goblin_back_idle',    16, 8,  -1);
+    mkMobAnim('goblin_idle_left',  'mob_sheet_goblin_left_idle',    16, 8,  -1);
+    mkMobAnim('goblin_idle_right', 'mob_sheet_goblin_right_idle',   16, 8,  -1);
+    mkMobAnim('goblin_walk_down',  'mob_sheet_goblin_front_walk',   20, 12, -1);
+    mkMobAnim('goblin_walk_up',    'mob_sheet_goblin_back_walk',    20, 12, -1);
+    mkMobAnim('goblin_walk_left',  'mob_sheet_goblin_left_walk',    20, 12, -1);
+    mkMobAnim('goblin_walk_right', 'mob_sheet_goblin_right_walk',   20, 12, -1);
+    mkMobAnim('goblin_atk_down',   'mob_sheet_goblin_front_attack', 10, 14, 0);
+    mkMobAnim('goblin_atk_up',     'mob_sheet_goblin_back_attack',  10, 14, 0);
+    mkMobAnim('goblin_atk_left',   'mob_sheet_goblin_left_attack',  10, 14, 0);
+    mkMobAnim('goblin_atk_right',  'mob_sheet_goblin_right_attack', 10, 14, 0);
+    mkMobAnim('goblin_dying',      'mob_sheet_goblin_dying',        10, 10, 0);
+
+    // Ranger — front-only sprite, use same sheet for all directions
+    const rSheet = 'mob_sheet_ranger_front';
+    mkMobAnim('ranger_idle_down',  rSheet + '_idle',   18, 8,  -1);
+    mkMobAnim('ranger_idle_up',    rSheet + '_idle',   18, 8,  -1);
+    mkMobAnim('ranger_idle_left',  rSheet + '_idle',   18, 8,  -1);
+    mkMobAnim('ranger_idle_right', rSheet + '_idle',   18, 8,  -1);
+    mkMobAnim('ranger_walk_down',  rSheet + '_walk',   24, 12, -1);
+    mkMobAnim('ranger_walk_up',    rSheet + '_walk',   24, 12, -1);
+    mkMobAnim('ranger_walk_left',  rSheet + '_walk',   24, 12, -1);
+    mkMobAnim('ranger_walk_right', rSheet + '_walk',   24, 12, -1);
+    mkMobAnim('ranger_atk_down',   rSheet + '_attack', 9,  14, 0);
+    mkMobAnim('ranger_atk_up',     rSheet + '_attack', 9,  14, 0);
+    mkMobAnim('ranger_atk_left',   rSheet + '_attack', 9,  14, 0);
+    mkMobAnim('ranger_atk_right',  rSheet + '_attack', 9,  14, 0);
+    mkMobAnim('ranger_dying',      'mob_sheet_ranger_dying', 15, 10, 0);
 
     // ── Animal animations (rows: down=0, up=1, left=2, right=3) ────────────
     const DIRS: Array<[string, number]> = [['down', 0], ['up', 1], ['left', 2], ['right', 3]];
