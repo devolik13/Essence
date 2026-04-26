@@ -60,6 +60,8 @@ export class Body extends Phaser.GameObjects.Container {
   private facingDir: 'down' | 'right' | 'up' | 'left' = 'down';
   /** Флаг воспроизведения атаки */
   private isAttackPlaying: boolean = false;
+  /** Resolved animation config (humanoid, animal, or null for static) */
+  private resolvedAnim: AnimCfg | null = null;
 
   private keys?: {
     W: Phaser.Input.Keyboard.Key;
@@ -83,21 +85,32 @@ export class Body extends Phaser.GameObjects.Container {
     this.currentHP = maxHP(sphereStats);
     this.currentMana = maxMana(sphereStats);
 
-    const animCfg = getAnimConfig(definition);
+    let animCfg = getAnimConfig(definition);
+
+    if (!animCfg) {
+      const id = definition.id;
+      const testKey = `${id}_idle_down`;
+      if (scene.anims.exists(testKey)) {
+        animCfg = {
+          idle: (d: string) => `${id}_idle_${d}`,
+          walk: (d: string) => scene.anims.exists(`${id}_walk_${d}`) ? `${id}_walk_${d}` : `${id}_idle_${d}`,
+          atk:  (d: string) => scene.anims.exists(`${id}_atk_${d}`) ? `${id}_atk_${d}` : `${id}_idle_${d}`,
+          displaySize: 30,
+        };
+      }
+    }
+    this.resolvedAnim = animCfg ?? null;
 
     if (animCfg) {
-      // Анимированный спрайт
       const startAnim = animCfg.idle('down');
       this.bodySprite = scene.add.sprite(0, 0, startAnim);
       this.bodySprite.play(startAnim);
       this.bodySprite.setDisplaySize(animCfg.displaySize, animCfg.displaySize);
-      // По завершении атаки — вернуться в idle
       this.bodySprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         this.isAttackPlaying = false;
         this.playAnim('idle');
       });
     } else {
-      // Статичный сгенерированный спрайт
       const textureKey = `body_${definition.id}`;
       const hasTexture = scene.textures.exists(textureKey);
       this.bodySprite = scene.add.sprite(0, 0, hasTexture ? textureKey : '__DEFAULT');
@@ -221,7 +234,7 @@ export class Body extends Phaser.GameObjects.Container {
   }
 
   private playAnim(type: 'idle' | 'walk' | 'atk') {
-    const animCfg = getAnimConfig(this.definition);
+    const animCfg = this.resolvedAnim;
     if (!animCfg) return;
 
     // Для left — зеркалим right
