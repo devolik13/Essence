@@ -97,7 +97,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   grouse: {
     id: 'grouse', name: 'Grouse', nameRu: 'Grouse',
-    type: BodyType.Fleeing, damageType: 'melee',
+    type: BodyType.Passive, damageType: 'melee',
     caps: { [StatName.Evasion]: 12, [StatName.Agility]: 10 },
     xpReward: 6,
     npcStats: {
