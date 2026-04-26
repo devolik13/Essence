@@ -594,7 +594,7 @@ T3 заклинания — только NPC-касты боссов. Игрок
 
 ## Крафт (реализовано)
 
-- **72 крафтовых предмета**: 45 оружий + 3 щита + 24 брони/аксессуаров
+- **108 крафтовых предметов**: 45 оружий + 3 щита + 24 Heavy брони/аксессуаров + 12 Leather брони + 12 Robe брони + 12 стартовой брони
 - **4 верстака** в деревне: Armorer, Weaponsmith, Jeweler, Runemaster
 - **3 ресурса T1**: Copper Ore, Willow Branch, Wolf Hide
 - **Рецепты T1/T2/T3**: стоимость растёт с тиром
@@ -602,20 +602,40 @@ T3 заклинания — только NPC-касты боссов. Игрок
 - **Сбор ресурсов**: каст 3 сек, прерывается при атаке, нода восстанавливается 30 сек
 - **Лут на земле**: мобы дропают светящиеся мешки, [E] подбор, 60 сек despawn
 
-### Тиры экипировки (одинаковые бонусы внутри группы)
+### Тиры оружия (одинаковые бонусы внутри группы)
 - STR 1H (Sword, Mace): +1/+2/+3 STR, +0/+1/+2 ARM
 - STR 2H (Greatsword, Spear, Hammer): +2/+3/+4 STR, +0/+1/+2 HP
 - AGI Melee (Dagger, Fists): +1/+2/+3 AGI, +0/+1/+2 EVA
 - AGI Ranged: +1/+2/+3 AGI, +1/+1/+2 ACC
 - INT Staffs: +1/+2/+3 INT, +0/+0/+1 MNA
+- Стартовые оружия: +1 основной стат (STR/AGI/INT)
+
+### 3 типа брони (Heavy / Leather / Robe)
+Одинаковый суммарный бюджет на тир. Heavy берёт бронёй/STR/HP, Leather — AGI/EVA, Robe — INT/WILL/MANA.
+
+| Тип | Helmet T1/T2/T3 | Chest T1/T2/T3 | Gloves T1/T2/T3 | Boots T1/T2/T3 |
+|-----|-----------------|----------------|-----------------|----------------|
+| Heavy | +2/+4/+6 ARM, +1/+2/+3 HP | +5/+8/+12 ARM, +2/+3/+4 HP | +1/+2/+4 ARM, +1/+2/+3 ACC | +1/+3/+5 ARM, +1/+2/+3 EVA |
+| Leather | +1/+2/+3 ARM, +1/+2/+3 AGI, +1/+1/+2 EVA | +2/+4/+5 ARM, +2/+3/+4 AGI, +1/+2/+3 EVA | +0/+1/+2 ARM, +1/+2/+3 ACC, +1/+1/+2 AGI | +0/+1/+2 ARM, +2/+3/+4 EVA (+1 AGI T3) |
+| Robe | +1/+1/+2 ARM, +1/+2/+3 INT, +1/+1/+2 WILL (+1 MNA T2/T3) | +2/+3/+4 ARM, +2/+3/+4 INT, +1/+2/+3 WILL (+1 MNA T3) | +0/+0/+1 ARM, +1/+2/+3 ACC, +1/+2/+2 INT | +0/+1/+2 ARM, +1/+2/+3 EVA, +1/+1/+2 WILL |
+
+### Стартовая броня (Starter)
+| Тип | Helmet | Chest | Gloves | Boots |
+|-----|--------|-------|--------|-------|
+| Heavy | +1 HP | +1 ARM, +1 STR | +1 ACC | +1 EVA |
+| Leather | +1 EVA | +1 ARM, +1 AGI | +1 ACC | +1 EVA |
+| Robe | +1 WILL | +1 INT, +1 WILL | +1 INT | +1 MNA |
+
+### Аксессуары и руны
 - Shield T1-T3: +2/+4/+6 ARM, +1/+2/+3 HP (только Sword/Mace)
-- Helmet: +2/+4/+6 ARM, +1/+2/+3 HP
-- Chest: +5/+8/+12 ARM, +2/+3/+4 HP
-- Gloves: +1/+2/+4 ARM, +1/+2/+3 ACC
-- Boots: +1/+3/+5 ARM, +1/+2/+3 EVA
 - Ring: +2/+3/+4 LCK, +1/+1/+2 MNA
 - Amulet: +1/+2/+3 INT, +1/+1/+2 WIL
 - Runes: offensive STR+AGI, defensive ARM+WIL
+
+### Рецепты крафта (тематические материалы)
+- Heavy: copper_ore (основной) + wolf_hide
+- Leather: wolf_hide (основной) + copper_ore
+- Robe: willow_branch (основной) + wolf_hide
 
 ## Квестовая цепочка (Глава 1 — основная линия)
 
