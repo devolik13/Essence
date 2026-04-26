@@ -183,7 +183,16 @@ export class GameScene extends Phaser.Scene {
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
   private windBarriers: WindBarrier[] = [];
-  private starterBodies: Phaser.GameObjects.Arc[] = [];
+  private starterBodies: {
+    sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc;
+    nameLabel: Phaser.GameObjects.Text;
+    possessLabel: Phaser.GameObjects.Text;
+    x: number; y: number;
+    targetX: number; targetY: number;
+    idleTimer: number;
+    walking: boolean;
+    animBase: string;
+  }[] = [];
 
   // World objects
   private resourceNodes: { x: number; y: number; def: import('../data/itemDB').ResourceNodeDef; gfx: Phaser.GameObjects.Container; cooldown: number; depleted: boolean }[] = [];
@@ -705,6 +714,7 @@ export class GameScene extends Phaser.Scene {
     this.updateEnts(delta);
     this.updateExitArrows();
     this.updateBossBanner();
+    this.updateStarterWander(delta);
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -1020,34 +1030,47 @@ export class GameScene extends Phaser.Scene {
   // ─── Стартовые тела ───────────────────────────────────
 
   private createStarterMarkers() {
-    const animMap: Record<string, string> = {
-      human_warrior: 'swordsman_idle_down',
-      human_archer: 'archer_idle_down',
-      human_mage: 'wizard_idle_down',
+    const animMap: Record<string, { idle: string; walk: string; base: string }> = {
+      human_warrior: { idle: 'swordsman_idle_down', walk: 'swordsman_walk_down', base: 'swordsman' },
+      human_archer:  { idle: 'archer_idle_down',    walk: 'archer_walk_down',    base: 'archer' },
+      human_mage:    { idle: 'wizard_idle_down',     walk: 'wizard_walk_down',    base: 'wizard' },
     };
 
     STARTER_BODIES.forEach((def, i) => {
       const pos = this.starterPositions[i];
+      const anim = animMap[def.id];
 
-      // Use animated sprite if available, otherwise colored circle
-      const animKey = animMap[def.id];
-      if (animKey && this.anims.exists(animKey)) {
-        const sprite = this.add.sprite(pos.x, pos.y, animKey);
-        sprite.play(animKey);
-        sprite.setDisplaySize(48, 48);
-        this.starterBodies.push(sprite as any);
-      } else {
-        const marker = this.add.arc(pos.x, pos.y, 14, 0, 360, false, def.color, 0.7);
-        this.starterBodies.push(marker);
-      }
-
-      this.add.text(pos.x, pos.y + 36, def.nameRu, {
+      const nameLabel = this.add.text(pos.x, pos.y + 36, def.nameRu, {
         fontSize: '9px', color: '#cccccc', align: 'center',
         stroke: '#000000', strokeThickness: 2,
       }).setOrigin(0.5);
-      this.add.text(pos.x, pos.y + 48, t('misc.possess'), {
+      const possessLabel = this.add.text(pos.x, pos.y + 48, t('misc.possess'), {
         fontSize: '7px', color: '#888866',
       }).setOrigin(0.5);
+
+      if (anim && this.anims.exists(anim.idle)) {
+        const sprite = this.add.sprite(pos.x, pos.y, anim.idle);
+        sprite.play(anim.idle);
+        sprite.setDisplaySize(48, 48);
+        this.starterBodies.push({
+          sprite, nameLabel, possessLabel,
+          x: pos.x, y: pos.y,
+          targetX: pos.x, targetY: pos.y,
+          idleTimer: 1 + Math.random() * 3,
+          walking: false,
+          animBase: anim.base,
+        });
+      } else {
+        const marker = this.add.arc(pos.x, pos.y, 14, 0, 360, false, def.color, 0.7);
+        this.starterBodies.push({
+          sprite: marker, nameLabel, possessLabel,
+          x: pos.x, y: pos.y,
+          targetX: pos.x, targetY: pos.y,
+          idleTimer: 1 + Math.random() * 3,
+          walking: false,
+          animBase: '',
+        });
+      }
     });
 
     // NPC-квестодатель
@@ -1063,11 +1086,68 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(6);
   }
 
+  private static readonly STARTER_WANDER_SPEED = 30;
+  private static readonly STARTER_WANDER_RADIUS = 180;
+
+  private updateStarterWander(delta: number) {
+    const dt = delta / 1000;
+    const sz = this.currentZone.safeZones?.[0] ?? this.currentZone.safeBounds;
+    if (!sz) return;
+    const pad = 40;
+
+    for (const sb of this.starterBodies) {
+      if (sb.walking) {
+        const dx = sb.targetX - sb.x;
+        const dy = sb.targetY - sb.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 3) {
+          sb.walking = false;
+          sb.idleTimer = 2 + Math.random() * 4;
+          if (sb.animBase) {
+            const idleKey = `${sb.animBase}_idle_down`;
+            const spr = sb.sprite as Phaser.GameObjects.Sprite;
+            if (spr.anims?.currentAnim?.key !== idleKey) spr.play(idleKey);
+            spr.setFlipX(false);
+          }
+        } else {
+          const step = GameScene.STARTER_WANDER_SPEED * dt;
+          sb.x += (dx / dist) * step;
+          sb.y += (dy / dist) * step;
+          sb.sprite.setPosition(sb.x, sb.y);
+          sb.nameLabel.setPosition(sb.x, sb.y + 36);
+          sb.possessLabel.setPosition(sb.x, sb.y + 48);
+          if (sb.animBase) {
+            const spr = sb.sprite as Phaser.GameObjects.Sprite;
+            spr.setFlipX(dx < 0);
+          }
+        }
+      } else {
+        sb.idleTimer -= dt;
+        if (sb.idleTimer <= 0) {
+          const homePos = this.starterPositions[this.starterBodies.indexOf(sb)] ?? { x: sb.x, y: sb.y };
+          const r = GameScene.STARTER_WANDER_RADIUS;
+          let tx = homePos.x + (Math.random() - 0.5) * r * 2;
+          let ty = homePos.y + (Math.random() - 0.5) * r * 2;
+          tx = clamp(tx, sz.x1 + pad, sz.x2 - pad);
+          ty = clamp(ty, sz.y1 + pad, sz.y2 - pad);
+          sb.targetX = tx;
+          sb.targetY = ty;
+          sb.walking = true;
+          if (sb.animBase) {
+            const walkKey = `${sb.animBase}_walk_down`;
+            const spr = sb.sprite as Phaser.GameObjects.Sprite;
+            if (spr.anims?.currentAnim?.key !== walkKey) spr.play(walkKey);
+          }
+        }
+      }
+    }
+  }
+
   /** Попытка захватить стартовое тело (в астрале, нажатие E) */
   private tryPossessStarter(): boolean {
-    for (let i = 0; i < this.starterPositions.length; i++) {
-      const pos = this.starterPositions[i];
-      const dist = distance(this.sphere.x, this.sphere.y, pos.x, pos.y);
+    for (let i = 0; i < this.starterBodies.length; i++) {
+      const sb = this.starterBodies[i];
+      const dist = distance(this.sphere.x, this.sphere.y, sb.x, sb.y);
       if (dist < CAPTURE_RANGE) {
         this.possessStarterBody(i);
         return true;
@@ -1106,7 +1186,8 @@ export class GameScene extends Phaser.Scene {
 
   private possessStarterBody(index: number) {
     const def = STARTER_BODIES[index];
-    const pos = this.starterPositions[index];
+    const sb = this.starterBodies[index];
+    const pos = { x: sb.x, y: sb.y };
     this.spawnCaptureFlash(pos.x, pos.y, () => {
       this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
