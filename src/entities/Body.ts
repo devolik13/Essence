@@ -12,9 +12,9 @@ import { WeaponType } from '../types/bodies';
 
 type AnimCfg = { idle: (d: string) => string; walk: (d: string) => string; atk: (d: string) => string; displaySize: number };
 
-const SWORDSMAN_ANIM: AnimCfg = { idle: () => 'swordsman_idle_down', walk: () => 'swordsman_walk_down', atk: () => 'swordsman_atk_down', displaySize: 36 };
-const ARCHER_ANIM: AnimCfg    = { idle: () => 'archer_idle_down',    walk: () => 'archer_walk_down',    atk: () => 'archer_atk_down',    displaySize: 36 };
-const WIZARD_ANIM: AnimCfg    = { idle: () => 'wizard_idle_down',    walk: () => 'wizard_walk_down',    atk: () => 'wizard_atk_down',    displaySize: 36 };
+const SWORDSMAN_ANIM: AnimCfg = { idle: () => 'swordsman_idle_down', walk: () => 'swordsman_walk_down', atk: () => 'swordsman_atk_down', displaySize: 12 };
+const ARCHER_ANIM: AnimCfg    = { idle: () => 'archer_idle_down',    walk: () => 'archer_walk_down',    atk: () => 'archer_atk_down',    displaySize: 12 };
+const WIZARD_ANIM: AnimCfg    = { idle: () => 'wizard_idle_down',    walk: () => 'wizard_walk_down',    atk: () => 'wizard_atk_down',    displaySize: 12 };
 
 const ANIMATED_BODIES: Record<string, AnimCfg> = {
   human_warrior: SWORDSMAN_ANIM,
