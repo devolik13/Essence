@@ -1872,8 +1872,14 @@ export class GameScene extends Phaser.Scene {
   // ─── Атака ────────────────────────────────────────────
 
   private get isInCombat(): boolean {
-    return this.playerBody !== null &&
-      this.creatures.some(c => !c.isDead && (c.aiState === 'chase' || c.aiState === 'attack'));
+    if (!this.playerBody) return false;
+    const px = this.playerBody.x, py = this.playerBody.y;
+    return this.creatures.some(c =>
+      !c.isDead &&
+      (c.aiState === 'chase' || c.aiState === 'attack') &&
+      !c.factionTarget &&
+      distance(c.x, c.y, px, py) < 400
+    );
   }
 
   private selectTarget(creature: Creature) {
