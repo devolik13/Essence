@@ -436,6 +436,120 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture('body_bear', 28, 28);
     g.clear();
 
+    // ── Hare (body_hare) ────────────────────────────────────
+    g.fillStyle(0x998866, 1);
+    g.fillRect(10, 18, 4, 6);
+    g.fillRect(16, 18, 4, 6);
+    g.fillStyle(0xbb9966, 1);
+    g.fillRect(7, 10, 14, 10);
+    g.fillStyle(0xddccaa, 1);
+    g.fillRect(10, 12, 8, 6);
+    g.fillStyle(0xbb9966, 1);
+    g.fillRect(9, 3, 10, 8);
+    g.fillRect(10, -3, 3, 7);
+    g.fillRect(17, -3, 3, 7);
+    g.fillStyle(0xffaaaa, 1);
+    g.fillRect(11, -2, 1, 5);
+    g.fillRect(18, -2, 1, 5);
+    g.fillStyle(0xffaaaa, 1);
+    g.fillRect(13, 7, 2, 2);
+    g.fillStyle(0x331111, 1);
+    g.fillRect(11, 5, 2, 2);
+    g.fillRect(17, 5, 2, 2);
+    g.generateTexture('body_hare', 28, 28);
+    g.clear();
+
+    // ── Deer (body_deer) ────────────────────────────────────
+    g.fillStyle(0x775533, 1);
+    g.fillRect(8, 18, 4, 8);
+    g.fillRect(17, 18, 4, 8);
+    g.fillStyle(0xaa7744, 1);
+    g.fillRect(5, 9, 18, 12);
+    g.fillStyle(0xccaa77, 1);
+    g.fillRect(9, 11, 10, 8);
+    g.fillStyle(0xaa7744, 1);
+    g.fillRect(8, 1, 12, 10);
+    g.fillStyle(0x775533, 1);
+    g.fillRect(8, -4, 3, 5);
+    g.fillRect(11, -6, 2, 3);
+    g.fillRect(7, -6, 2, 3);
+    g.fillRect(17, -4, 3, 5);
+    g.fillRect(19, -6, 2, 3);
+    g.fillRect(16, -6, 2, 3);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(10, 4, 2, 2);
+    g.fillRect(16, 4, 2, 2);
+    g.fillStyle(0x222222, 1);
+    g.fillRect(13, 7, 2, 2);
+    g.generateTexture('body_deer', 28, 28);
+    g.clear();
+
+    // ── Fox (body_fox) ────────────────────────────────────
+    g.fillStyle(0xcc5511, 1);
+    g.fillRect(9, 18, 4, 6);
+    g.fillRect(16, 18, 4, 6);
+    g.fillStyle(0xdd6622, 1);
+    g.fillRect(5, 10, 18, 11);
+    g.fillStyle(0xeeddbb, 1);
+    g.fillRect(9, 13, 10, 6);
+    g.fillStyle(0xdd6622, 1);
+    g.fillRect(8, 2, 12, 10);
+    g.fillRect(7, 0, 4, 4);
+    g.fillRect(17, 0, 4, 4);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(10, 5, 2, 2);
+    g.fillRect(16, 5, 2, 2);
+    g.fillStyle(0x222222, 1);
+    g.fillRect(13, 8, 2, 2);
+    g.fillStyle(0xdd6622, 1);
+    g.fillRect(21, 6, 5, 6);
+    g.fillStyle(0xeeddbb, 1);
+    g.fillRect(24, 8, 3, 3);
+    g.generateTexture('body_fox', 28, 28);
+    g.clear();
+
+    // ── Boar (body_boar) ────────────────────────────────────
+    g.fillStyle(0x553322, 1);
+    g.fillRect(7, 20, 5, 6);
+    g.fillRect(16, 20, 5, 6);
+    g.fillStyle(0x774422, 1);
+    g.fillRect(4, 9, 20, 13);
+    g.fillStyle(0x553322, 1);
+    g.fillRect(7, 10, 14, 4);
+    g.fillStyle(0x774422, 1);
+    g.fillRect(7, 2, 14, 9);
+    g.fillStyle(0xccaa88, 1);
+    g.fillRect(10, 7, 8, 4);
+    g.fillStyle(0xeeeeee, 1);
+    g.fillRect(9, 8, 2, 2);
+    g.fillRect(17, 8, 2, 2);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(10, 4, 2, 2);
+    g.fillRect(16, 4, 2, 2);
+    g.generateTexture('body_boar', 28, 28);
+    g.clear();
+
+    // ── Grouse (body_grouse) ────────────────────────────────
+    g.fillStyle(0x445566, 1);
+    g.fillRect(10, 20, 3, 4);
+    g.fillRect(16, 20, 3, 4);
+    g.fillStyle(0x334455, 1);
+    g.fillRect(7, 10, 14, 12);
+    g.fillStyle(0x556677, 1);
+    g.fillRect(10, 12, 8, 6);
+    g.fillStyle(0x334455, 1);
+    g.fillRect(9, 3, 10, 9);
+    g.fillStyle(0xffaa33, 1);
+    g.fillRect(12, 8, 4, 3);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(11, 5, 2, 2);
+    g.fillRect(16, 5, 2, 2);
+    g.fillStyle(0x445566, 1);
+    g.fillRect(3, 11, 5, 8);
+    g.fillRect(20, 11, 5, 8);
+    g.generateTexture('body_grouse', 28, 28);
+    g.clear();
+
     // ── Orc (body_orc) ────────────────────────────────────
     // Мощный орк с топором
     g.fillStyle(0x223311, 1);

@@ -47,8 +47,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Evasion]: 10, [StatName.Agility]: 8 },
     xpReward: 8,
     npcStats: {
-      [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 5,
-      [StatName.Health]: 3, [StatName.Armor]: 0, [StatName.Luck]: 3,
+      [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 1,
+      [StatName.Health]: 1, [StatName.Armor]: 1, [StatName.Luck]: 1,
     },
     weapon: WeaponType.Dagger, color: 0xbb9966, abilityName: 'Acceleration',
     signatureSpell: MOB_NEUTRAL_T1,
