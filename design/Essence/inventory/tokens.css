@@ -1,0 +1,89 @@
+/* ─── Essence design tokens ─────────────────────────────────── */
+
+:root {
+  /* Base — aged paper + voided steel */
+  --ink-0: #0d0b08;          /* deepest void */
+  --ink-1: #14110c;          /* chamber wall */
+  --ink-2: #1d1811;          /* panel */
+  --ink-3: #2a2218;          /* panel raised */
+  --ink-4: #3a2f21;          /* hairline */
+
+  --paper-0: #e8dcc0;        /* parchment */
+  --paper-1: #d4c69c;
+  --paper-2: #b8a878;
+
+  /* Brass — accent + chrome */
+  --brass-0: #6b4e1f;
+  --brass-1: #8a6a2f;
+  --brass-2: #b48a42;
+  --brass-3: #d9b46a;
+  --brass-4: #f0d896;
+
+  /* Ether — Sphere glow */
+  --ether-0: #1a2840;
+  --ether-1: #2a4a74;
+  --ether-2: #5a8fc4;
+  --ether-3: #8ab8e0;
+
+  --copper-1: #8b4a2a;
+  --copper-2: #c27550;
+
+  --text-0: #f4e9cf;
+  --text-1: #d8c9a4;
+  --text-2: #9c8c6a;
+  --text-3: #6a5c42;
+  --text-ink: #2a2218;
+
+  --r-common: #8a8172;
+  --r-common-tint: rgba(138,129,114,0.12);
+  --r-uncommon: #6d9a5a;
+  --r-uncommon-tint: rgba(109,154,90,0.14);
+  --r-rare: #5a88c4;
+  --r-rare-tint: rgba(90,136,196,0.15);
+  --r-epic: #a76fc4;
+  --r-epic-tint: rgba(167,111,196,0.15);
+  --r-legendary: #d9a44a;
+  --r-legendary-tint: rgba(217,164,74,0.16);
+
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-mech: 'Special Elite', ui-monospace, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-ui: 'Inter', system-ui, sans-serif;
+
+  /* Bag slots — 4×4 grid, 100×100 cells */
+  --slot: 100px;
+  --slot-gap: 12px;
+  --slot-radius: 3px;
+}
+
+[data-density="compact"] {
+  --slot: 78px;
+  --slot-gap: 8px;
+}
+
+/* Accent variants */
+[data-accent="copper"] {
+  --brass-1: #8a4a26;
+  --brass-2: #c06a3a;
+  --brass-3: #e08a54;
+  --brass-4: #f0a878;
+}
+[data-accent="steel"] {
+  --brass-1: #4a5056;
+  --brass-2: #707880;
+  --brass-3: #a0a8b0;
+  --brass-4: #c4ccd4;
+}
+
+/* ─── Reset + base ─────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--ink-0);
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
