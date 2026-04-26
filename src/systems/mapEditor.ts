@@ -460,7 +460,13 @@ export class MapEditor {
   private selectAsset(key: string): void {
     this.selectedKey = key;
     this.currentAngle = 0;
-    this.currentScale = key.startsWith('mob_') ? 0.07 : 0.3;
+    if (key.startsWith('mob_')) {
+      const tex = this.scene.textures.get(key);
+      const frameW = tex?.get(0)?.width ?? 32;
+      this.currentScale = 35 / frameW;
+    } else {
+      this.currentScale = 0.3;
+    }
     const label = key.startsWith('mob_') ? key.replace('mob_', '🟢 ') : key.replace('cp_', '');
     this.selectedKeyText?.setText('Selected: ' + label);
     this.updateHint();
