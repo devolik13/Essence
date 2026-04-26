@@ -41,6 +41,7 @@ interface UIData {
   body: Body | null;
   capture: CaptureProcess | null;
   target: Creature | null;
+  starterTarget: import('../types/bodies').BodyDefinition | null;
   quests: QuestProgress[];
   deathDebuff: number;
   activeEnchantId: string | null;
@@ -806,31 +807,44 @@ export class UIScene extends Phaser.Scene {
     {
       const s = this.panelStates.target;
       const tgt = data.target;
-      const hasTarget = !!(tgt && !tgt.isDead);
+      const starterDef = data.starterTarget;
+      const hasCreatureTarget = !!(tgt && !tgt.isDead);
+      const hasTarget = hasCreatureTarget || !!starterDef;
       this.panelHeaders['target'].setVisible(hasTarget).setPosition(s.x, s.y);
       this.grips['target'].setVisible(hasTarget);
 
-      if (hasTarget && tgt) {
-        const hpPct = Math.round((tgt.currentHP / tgt.maxHP) * 100);
-        this.setHeaderLabel('target', `${tgt.definition.nameRu}  ${hpPct}%`);
+      if (hasTarget) {
+        const def = hasCreatureTarget ? tgt!.definition : starterDef!;
+        if (hasCreatureTarget) {
+          const hpPct = Math.round((tgt!.currentHP / tgt!.maxHP) * 100);
+          this.setHeaderLabel('target', `${def.nameRu}  ${hpPct}%`);
+        } else {
+          this.setHeaderLabel('target', def.nameRu);
+        }
 
         if (!s.collapsed) {
-          const def = tgt.definition;
           const dmgLabel = def.damageType === 'magic'  ? '✦ Magic'
                          : def.damageType === 'ranged' ? '➶ Ranged' : '⚔ Melee';
-          const tLines = [
-            `${dmgLabel}  HP: ${Math.round(tgt.currentHP)}/${tgt.maxHP}`,
-            '',
-            'Combat stats:',
-          ];
-          for (const [stat, val] of Object.entries(def.npcStats ?? {})) {
-            if ((val ?? 0) > 0) tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]}: ${val}`);
+          const tLines: string[] = [];
+          if (hasCreatureTarget) {
+            tLines.push(`${dmgLabel}  HP: ${Math.round(tgt!.currentHP)}/${tgt!.maxHP}`);
+          } else {
+            tLines.push(`${dmgLabel}`);
           }
-          tLines.push('', 'Teaches:');
+          const stats = def.npcStats ?? {};
+          if (Object.keys(stats).length > 0) {
+            tLines.push('', 'Stats:');
+            for (const [stat, val] of Object.entries(stats)) {
+              if ((val ?? 0) > 0) tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]}: ${val}`);
+            }
+          }
+          tLines.push('', 'Caps:');
           for (const [stat, cap] of Object.entries(def.caps)) {
-            tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → cap ${cap}`);
+            tLines.push(`  ${STAT_NAMES_SHORT[stat as StatName]} → ${cap}`);
           }
-          tLines.push(``, `Ability: ${def.abilityName}`);
+          if (def.abilityName) {
+            tLines.push(``, `Ability: ${def.abilityName}`);
+          }
           if (def.signatureSpell) {
             tLines.push(`✦ ${def.signatureSpell.nameRu}  (${def.spellXPThreshold} XP)`);
           }

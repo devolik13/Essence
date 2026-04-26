@@ -248,6 +248,7 @@ export class GameScene extends Phaser.Scene {
 
   // Выбранная цель
   private selectedTarget: Creature | null = null;
+  private selectedStarterDef: import('../types/bodies').BodyDefinition | null = null;
   private targetIndicator!: Phaser.GameObjects.Arc;
 
   // AoE прицеливание
@@ -311,6 +312,7 @@ export class GameScene extends Phaser.Scene {
     this.summonedWalls = [];
     this.playerBody = null;
     this.selectedTarget = null;
+    this.selectedStarterDef = null;
     this.captureProcess = null;
     this.captureTarget = null;
     this.starterBodies = [];
@@ -525,8 +527,20 @@ export class GameScene extends Phaser.Scene {
       );
       if (clicked) {
         this.selectTarget(clicked);
+        this.selectedStarterDef = null;
       } else {
-        this.handleAttack();
+        // Check starter bodies
+        const clickedStarter = this.starterBodies.find(sb =>
+          distance(sb.x, sb.y, worldX, worldY) < 30
+        );
+        if (clickedStarter) {
+          const idx = this.starterBodies.indexOf(clickedStarter);
+          this.selectedStarterDef = STARTER_BODIES[idx] ?? null;
+          this.selectedTarget = null;
+        } else {
+          this.selectedStarterDef = null;
+          this.handleAttack();
+        }
       }
     });
   }
@@ -808,6 +822,7 @@ export class GameScene extends Phaser.Scene {
       body: this.playerBody,
       capture: this.captureProcess,
       target: this.selectedTarget,
+      starterTarget: this.selectedStarterDef,
       quests: this.questTracker.getAll(),
       deathDebuff: this.sphere.deathDebuffRemaining,
       activeEnchantId: this.sphere.activeEnchant?.id ?? null,
