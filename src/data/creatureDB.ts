@@ -5,7 +5,7 @@ import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3 } from './spells/water';
 import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3 } from './spells/earth';
 import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3 } from './spells/wind';
 import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3 } from './spells/nature';
-import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL } from './neutralSpells';
+import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL, ABILITY_RAM } from './neutralSpells';
 import {
   ABILITY_STING,
   ABILITY_KNIFE_THROW,
@@ -25,6 +25,7 @@ import {
   ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE,
   ABILITY_HAMMER_SMASH,
+  ABILITY_FIST_STRIKE,
 } from './specialAbilities';
 
 
@@ -36,7 +37,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 4, [StatName.Accuracy]: 5, [StatName.Evasion]: 6,
       [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 3,
     },
-    signatureSpell: ABILITY_STING,          spellXPThreshold: 50,
+    signatureSpell: ABILITY_STING,
     npcSpells: [ABILITY_STING],
   },
 
@@ -50,7 +51,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 3, [StatName.Armor]: 0, [StatName.Luck]: 3,
     },
     weapon: WeaponType.Dagger, color: 0xbb9966, abilityName: 'Acceleration',
-    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_NEUTRAL_T1,
   },
 
   deer: {
@@ -64,7 +65,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Dash',
     npcSpells: [MOB_NEUTRAL_T1, MOB_NEUTRAL_T2],
-    signatureSpell: MOB_NEUTRAL_T2, spellXPThreshold: 100,
+    signatureSpell: MOB_NEUTRAL_T2,
   },
 
   fox: {
@@ -77,7 +78,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 4, [StatName.Armor]: 1, [StatName.Luck]: 4,
     },
     weapon: WeaponType.Fists, color: 0xdd6622, abilityName: 'Disorienting Blow',
-    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+    signatureSpell: ABILITY_FIST_STRIKE,
   },
 
   boar: {
@@ -90,8 +91,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 8, [StatName.Armor]: 3, [StatName.Luck]: 2,
     },
     weapon: WeaponType.Spear, color: 0x774422, abilityName: 'Ram',
-    signatureSpell: ABILITY_SWORD_STRIKE, spellXPThreshold: 50,
-    npcSpells: [ABILITY_SWORD_STRIKE],
+    signatureSpell: ABILITY_RAM,
+    npcSpells: [ABILITY_SPEAR_THRUST],
   },
 
   grouse: {
@@ -104,7 +105,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 2, [StatName.Armor]: 0, [StatName.Luck]: 4,
     },
     weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Heal',
-    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_NEUTRAL_HEAL,
   },
 
   wolf: {
@@ -118,7 +119,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Sword Strike',
     npcSpells: [ABILITY_SWORD_STRIKE],
-    signatureSpell: ABILITY_SWORD_STRIKE,   spellXPThreshold: 50,
+    signatureSpell: ABILITY_SWORD_STRIKE,
   },
 
   bear: {
@@ -132,7 +133,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Mace, color: 0x664422, abilityName: 'Crushing Blow',
     npcSpells: [ABILITY_MACE_STRIKE],
-    signatureSpell: ABILITY_MACE_STRIKE,    spellXPThreshold: 50,
+    signatureSpell: ABILITY_MACE_STRIKE,
   },
 
   orc: {
@@ -146,7 +147,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Slash',
     npcSpells: [ABILITY_SLASH],
-    signatureSpell: ABILITY_SLASH,          spellXPThreshold: 50,
+    signatureSpell: ABILITY_SLASH,
   },
 
   // ─── Глава 1: Школа природы ─────────────────────────────────────────────────
@@ -162,7 +163,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffNature, color: 0x9944aa, abilityName: 'Summon Wolf',
     npcSpells: [MOB_NATURE_T1],
-    signatureSpell: MOB_NATURE_T1,           spellXPThreshold: 50,
+    signatureSpell: MOB_NATURE_T1,
   },
 
   spirit_wolf: {
@@ -176,7 +177,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffNature, color: 0x88cc88, abilityName: 'Bark Armor',
     npcSpells: [MOB_NATURE_T1, MOB_NATURE_T2],
-    signatureSpell: MOB_NATURE_T2,           spellXPThreshold: 100,
+    signatureSpell: MOB_NATURE_T2,
   },
 
   scout: {
@@ -190,7 +191,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.ShortBow, color: 0x88aa55, abilityName: 'Aimed Shot',
     npcSpells: [ABILITY_BOW_SHOT],
-    signatureSpell: ABILITY_BOW_SHOT,       spellXPThreshold: 50,
+    signatureSpell: ABILITY_BOW_SHOT,
   },
 
 
@@ -207,7 +208,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffFire, color: 0xff6600, abilityName: 'Spark',
     npcSpells: [MOB_FIRE_T1],
-    signatureSpell: MOB_FIRE_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_FIRE_T1,
   },
 
   asher: {
@@ -219,9 +220,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 7, [StatName.Accuracy]: 6, [StatName.Evasion]: 3,
       [StatName.Health]: 10,   [StatName.Armor]: 3,    [StatName.Luck]: 2,
     },
-    weapon: WeaponType.StaffFire, color: 0xaa4400, abilityName: 'Огненная стрела',
+    weapon: WeaponType.StaffFire, color: 0xaa4400, abilityName: 'Fire Arrow',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2],
-    signatureSpell: MOB_FIRE_T2, spellXPThreshold: 100,
+    signatureSpell: MOB_FIRE_T2,
   },
 
   // ─── Глава 1: Элементали Воды ───────────────────────────────────────────────
@@ -235,9 +236,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 5, [StatName.Accuracy]: 6, [StatName.Evasion]: 5,
       [StatName.Health]: 6,    [StatName.Mana]: 6,     [StatName.Luck]: 2,
     },
-    weapon: WeaponType.StaffWater, color: 0x44aaff, abilityName: 'Ледышка',
+    weapon: WeaponType.StaffWater, color: 0x44aaff, abilityName: 'Ice Shard',
     npcSpells: [MOB_WATER_T1],
-    signatureSpell: MOB_WATER_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_WATER_T1,
   },
 
   fogger: {
@@ -249,9 +250,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 6, [StatName.Accuracy]: 5, [StatName.Evasion]: 4,
       [StatName.Health]: 8,    [StatName.Will]: 5,     [StatName.Mana]: 10, [StatName.Luck]: 1,
     },
-    weapon: WeaponType.StaffWater, color: 0x88ccee, abilityName: 'Лед. стрела',
+    weapon: WeaponType.StaffWater, color: 0x88ccee, abilityName: 'Ice Arrow',
     npcSpells: [MOB_WATER_T1, MOB_WATER_T2],
-    signatureSpell: MOB_WATER_T2, spellXPThreshold: 100,
+    signatureSpell: MOB_WATER_T2,
   },
 
   // ─── Глава 1: Элементали Земли ──────────────────────────────────────────────
@@ -265,9 +266,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 5, [StatName.Accuracy]: 5, [StatName.Evasion]: 1,
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 1,
     },
-    weapon: WeaponType.StaffEarth, color: 0x887755, abilityName: 'Камешек',
+    weapon: WeaponType.StaffEarth, color: 0x887755, abilityName: 'Pebble Shot',
     npcSpells: [MOB_EARTH_T1],
-    signatureSpell: MOB_EARTH_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_EARTH_T1,
   },
 
   mudder: {
@@ -279,9 +280,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 6, [StatName.Accuracy]: 4, [StatName.Evasion]: 2,
       [StatName.Health]: 14,   [StatName.Armor]: 5,    [StatName.Luck]: 1,
     },
-    weapon: WeaponType.StaffEarth, color: 0x665533, abilityName: 'Зем. удар',
+    weapon: WeaponType.StaffEarth, color: 0x665533, abilityName: 'Stone Spike',
     npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2],
-    signatureSpell: MOB_EARTH_T2, spellXPThreshold: 100,
+    signatureSpell: MOB_EARTH_T2,
   },
 
   // ─── Глава 1: Элементали Ветра ──────────────────────────────────────────────
@@ -295,9 +296,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 3, [StatName.Accuracy]: 7, [StatName.Evasion]: 10,
       [StatName.Health]: 4,    [StatName.Agility]: 12, [StatName.Luck]: 3,
     },
-    weapon: WeaponType.StaffWind, color: 0xcceeaa, abilityName: 'Порыв',
+    weapon: WeaponType.StaffWind, color: 0xcceeaa, abilityName: 'Gust',
     npcSpells: [MOB_WIND_T1],
-    signatureSpell: MOB_WIND_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_WIND_T1,
   },
 
   whistler: {
@@ -309,9 +310,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 6, [StatName.Accuracy]: 9, [StatName.Evasion]: 7,
       [StatName.Health]: 7,    [StatName.Agility]: 8,  [StatName.Luck]: 3,
     },
-    weapon: WeaponType.StaffWind, color: 0x99ddcc, abilityName: 'Ветрорез',
+    weapon: WeaponType.StaffWind, color: 0x99ddcc, abilityName: 'Wind Blade',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2],
-    signatureSpell: MOB_WIND_T2, spellXPThreshold: 100,
+    signatureSpell: MOB_WIND_T2,
   },
 
   // ─── Лагерь разбойников ────────────────────────────────────────────────────
@@ -325,8 +326,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Agility]: 10,  [StatName.Accuracy]: 12, [StatName.Evasion]: 7,
       [StatName.Health]: 9,    [StatName.Armor]: 2,     [StatName.Luck]: 4,
     },
-    weapon: WeaponType.LongBow, color: 0x556633, abilityName: 'Long Shot',
-    signatureSpell: ABILITY_LONGBOW_SHOT,   spellXPThreshold: 50,
+    weapon: WeaponType.LongBow, color: 0x556633, abilityName: 'Backshot',
+    npcSpells: [ABILITY_LONGBOW_SHOT],
+    signatureSpell: ABILITY_BOW_BACKSHOT,
   },
 
   bandit_crossbow: {
@@ -338,8 +340,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 8,  [StatName.Accuracy]: 15, [StatName.Evasion]: 3,
       [StatName.Health]: 11,   [StatName.Armor]: 4,     [StatName.Luck]: 3,
     },
-    weapon: WeaponType.Crossbow, color: 0x664433, abilityName: 'Piercing Bolt',
-    signatureSpell: ABILITY_CROSSBOW_BOLT,  spellXPThreshold: 50,
+    weapon: WeaponType.Crossbow, color: 0x664433, abilityName: 'Snare Bolt',
+    npcSpells: [ABILITY_CROSSBOW_BOLT],
+    signatureSpell: ABILITY_CROSSBOW_SNARE,
   },
 
   bandit_spear: {
@@ -351,8 +354,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 11, [StatName.Accuracy]: 9,  [StatName.Evasion]: 6,
       [StatName.Health]: 12,   [StatName.Armor]: 5,     [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Spear, color: 0x445566, abilityName: 'Thrust',
-    signatureSpell: ABILITY_SPEAR_THRUST,   spellXPThreshold: 50,
+    weapon: WeaponType.Spear, color: 0x445566, abilityName: 'Butt Strike',
+    npcSpells: [ABILITY_SPEAR_THRUST],
+    signatureSpell: ABILITY_SPEAR_BUTT,
   },
 
   bandit_brute: {
@@ -364,8 +368,9 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 15, [StatName.Accuracy]: 6,  [StatName.Evasion]: 2,
       [StatName.Health]: 18,   [StatName.Armor]: 8,     [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Hammer, color: 0x664444, abilityName: 'Crushing Strike',
-    signatureSpell: ABILITY_HAMMER_STRIKE,  spellXPThreshold: 50,
+    weapon: WeaponType.Hammer, color: 0x664444, abilityName: 'Heavy Smash',
+    npcSpells: [ABILITY_HAMMER_STRIKE],
+    signatureSpell: ABILITY_HAMMER_SMASH,
   },
 
   // ─── Ветераны (учат T2 умениям оружия) ────────────────────────────────────
@@ -408,7 +413,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Strength]: 26, [StatName.Accuracy]: 8,  [StatName.Evasion]: 2,
       [StatName.Health]: 36,   [StatName.Armor]: 16,    [StatName.Luck]: 1,
     },
-    weapon: WeaponType.Mace, color: 0x442200, abilityName: 'Удар плашмя',
+    weapon: WeaponType.Mace, color: 0x442200, abilityName: 'Sturdy Strike',
     npcSpells: [ABILITY_MACE_STRIKE, ABILITY_MACE_BASH],
     signatureSpell: ABILITY_MACE_BASH,     spellXPThreshold: 100,
   },
@@ -567,7 +572,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   t_nature_t2: { id: 't_nature_t2', name: 'Nature T2',     nameRu: 'Nature T2',         type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 10 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x338833, abilityName: 'Bark Armor',       signatureSpell: MOB_NATURE_T2, spellXPThreshold: 1 },
   t_nature_t3: { id: 't_nature_t3', name: 'Nature T3',     nameRu: 'Nature T3',         type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 15 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0x226622, abilityName: 'Leaf Canopy',        signatureSpell: MOB_NATURE_T3, spellXPThreshold: 1 },
   // Нейтральная
-  t_heal:      { id: 't_heal',      name: 'Neutral T2b',   nameRu: 'Heal',             type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 10 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0xaaffaa, abilityName: 'Лечение',              signatureSpell: MOB_NEUTRAL_HEAL, spellXPThreshold: 1 },
+  t_heal:      { id: 't_heal',      name: 'Neutral T2b',   nameRu: 'Heal',             type: BodyType.Passive, damageType: 'magic', caps: { [StatName.Intellect]: 10 }, xpReward: 5, weapon: WeaponType.StaffNature, color: 0xaaffaa, abilityName: 'Heal',              signatureSpell: MOB_NEUTRAL_HEAL, spellXPThreshold: 1 },
   // Оружейные T1
   // Оружейные T2
   t_xbow_t2:     { id: 't_xbow_t2',     name: 'Crossbow T2', nameRu: 'Crossbow T2',       type: BodyType.Passive, damageType: 'ranged', caps: { [StatName.Agility]: 10 },  xpReward: 5, weapon: WeaponType.Crossbow,   color: 0x885533, abilityName: 'Snare Bolt',    signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 1 },
@@ -659,7 +664,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Spear, color: 0xc4a874, abilityName: 'Thrust',
     npcSpells: [ABILITY_SPEAR_THRUST],
-    signatureSpell: ABILITY_SPEAR_THRUST, spellXPThreshold: 50,
+    signatureSpell: ABILITY_SPEAR_THRUST,
     faction: 'caravan',
   },
 
@@ -674,7 +679,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Greatsword, color: 0x6b4a2b, abilityName: 'Slash',
     npcSpells: [ABILITY_SLASH],
-    signatureSpell: ABILITY_SLASH, spellXPThreshold: 50,
+    signatureSpell: ABILITY_SLASH,
     faction: 'raider',
   },
 
@@ -688,7 +693,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 10,  [StatName.Armor]: 2,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Acceleration',
-    signatureSpell: MOB_NEUTRAL_T1, spellXPThreshold: 50,
+    signatureSpell: MOB_NEUTRAL_T1,
     faction: 'caravan',
   },
 };

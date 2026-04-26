@@ -846,7 +846,7 @@ export class UIScene extends Phaser.Scene {
             tLines.push(``, `Ability: ${def.abilityName}`);
           }
           if (def.signatureSpell) {
-            tLines.push(`✦ ${def.signatureSpell.nameRu}  (${def.spellXPThreshold} XP)`);
+            tLines.push(`✦ ${def.signatureSpell.nameRu}  (via Quest)`);
           }
           this.targetPanel.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
             .setPosition(s.x, s.y + HEADER_H).setText(tLines.join('\n')).setVisible(true);
@@ -2016,15 +2016,13 @@ export class UIScene extends Phaser.Scene {
           }
         }
         const sig = data.body?.definition.signatureSpell;
-        const threshold = data.body?.definition.spellXPThreshold;
-        if (sig && threshold) {
+        if (sig) {
           lines.push('');
           const learned = sphere.learnedSpells.some(sp => sp.id === sig.id);
           if (learned) {
             lines.push(`✦ ${sig.nameRu} — LEARNED`);
           } else {
-            const cur = sphere.spellProgress[sig.id] ?? 0;
-            lines.push(`✧ ${sig.nameRu}: ${buildXPBar(cur, threshold, 10)}  ${cur}/${threshold}`);
+            lines.push(`✧ ${sig.nameRu} — via Body Quest`);
           }
         }
 
