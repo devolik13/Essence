@@ -4,21 +4,21 @@ import { ItemDef, LootEntry, RecipeDef } from '../types/items';
 
 export const ITEMS: Record<string, ItemDef> = {
   // ── Starter Weapons (from weapon vendor, 0 cost) ─────────────────────────
-  starter_sword:       { id: 'starter_sword',       nameRu: 'Rusty Sword',       rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '⚔', statBonuses: {} },
-  starter_mace:        { id: 'starter_mace',        nameRu: 'Rusty Mace',        rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🔨', statBonuses: {} },
-  starter_greatsword:  { id: 'starter_greatsword',  nameRu: 'Rusty Greatsword',  rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '⚔', statBonuses: {} },
-  starter_spear:       { id: 'starter_spear',       nameRu: 'Rusty Spear',       rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🔱', statBonuses: {} },
-  starter_hammer:      { id: 'starter_hammer',       nameRu: 'Rusty Hammer',      rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🔨', statBonuses: {} },
-  starter_dagger:      { id: 'starter_dagger',       nameRu: 'Rusty Dagger',      rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🗡', statBonuses: {} },
-  starter_fists:       { id: 'starter_fists',        nameRu: 'Worn Fists',        rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '👊', statBonuses: {} },
-  starter_shortbow:    { id: 'starter_shortbow',     nameRu: 'Rusty Short Bow',   rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🏹', statBonuses: {} },
-  starter_longbow:     { id: 'starter_longbow',      nameRu: 'Rusty Long Bow',    rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🏹', statBonuses: {} },
-  starter_crossbow:    { id: 'starter_crossbow',     nameRu: 'Rusty Crossbow',    rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🏹', statBonuses: {} },
-  starter_staff_fire:  { id: 'starter_staff_fire',   nameRu: 'Worn Fire Staff',   rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🔥', statBonuses: {} },
-  starter_staff_water: { id: 'starter_staff_water',  nameRu: 'Worn Ice Staff',    rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '❄', statBonuses: {} },
-  starter_staff_earth: { id: 'starter_staff_earth',  nameRu: 'Worn Earth Staff',  rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🪨', statBonuses: {} },
-  starter_staff_wind:  { id: 'starter_staff_wind',   nameRu: 'Worn Storm Staff',  rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🌪', statBonuses: {} },
-  starter_staff_nature:{ id: 'starter_staff_nature', nameRu: 'Worn Nature Staff', rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1', icon: '🌿', statBonuses: {} },
+  starter_sword:       { id: 'starter_sword',       nameRu: 'Rusty Sword',       rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Strength', icon: '⚔', statBonuses: {"strength":1} },
+  starter_mace:        { id: 'starter_mace',        nameRu: 'Rusty Mace',        rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Strength', icon: '🔨', statBonuses: {"strength":1} },
+  starter_greatsword:  { id: 'starter_greatsword',  nameRu: 'Rusty Greatsword',  rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Strength', icon: '⚔', statBonuses: {"strength":1} },
+  starter_spear:       { id: 'starter_spear',       nameRu: 'Rusty Spear',       rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Strength', icon: '🔱', statBonuses: {"strength":1} },
+  starter_hammer:      { id: 'starter_hammer',       nameRu: 'Rusty Hammer',      rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Strength', icon: '🔨', statBonuses: {"strength":1} },
+  starter_dagger:      { id: 'starter_dagger',       nameRu: 'Rusty Dagger',      rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Agility', icon: '🗡', statBonuses: {"agility":1} },
+  starter_fists:       { id: 'starter_fists',        nameRu: 'Worn Fists',        rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Agility', icon: '👊', statBonuses: {"agility":1} },
+  starter_shortbow:    { id: 'starter_shortbow',     nameRu: 'Rusty Short Bow',   rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Agility', icon: '🏹', statBonuses: {"agility":1} },
+  starter_longbow:     { id: 'starter_longbow',      nameRu: 'Rusty Long Bow',    rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Agility', icon: '🏹', statBonuses: {"agility":1} },
+  starter_crossbow:    { id: 'starter_crossbow',     nameRu: 'Rusty Crossbow',    rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Agility', icon: '🏹', statBonuses: {"agility":1} },
+  starter_staff_fire:  { id: 'starter_staff_fire',   nameRu: 'Worn Fire Staff',   rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Intellect', icon: '🔥', statBonuses: {"intellect":1} },
+  starter_staff_water: { id: 'starter_staff_water',  nameRu: 'Worn Ice Staff',    rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Intellect', icon: '❄', statBonuses: {"intellect":1} },
+  starter_staff_earth: { id: 'starter_staff_earth',  nameRu: 'Worn Earth Staff',  rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Intellect', icon: '🪨', statBonuses: {"intellect":1} },
+  starter_staff_wind:  { id: 'starter_staff_wind',   nameRu: 'Worn Storm Staff',  rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Intellect', icon: '🌪', statBonuses: {"intellect":1} },
+  starter_staff_nature:{ id: 'starter_staff_nature', nameRu: 'Worn Nature Staff', rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 1. +1 Intellect', icon: '🌿', statBonuses: {"intellect":1} },
 
   // Materials
   rabbit_fur: {
