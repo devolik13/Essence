@@ -4,6 +4,7 @@
  */
 import { AbilityDef } from '../types/abilities';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from './spellTooltip';
+import { spriteIdForWeapon, createWeaponSvg } from './weaponIcon';
 
 let root: HTMLElement | null = null;
 let onCloseHandler: (() => void) | null = null;
@@ -29,13 +30,14 @@ const WEAPON_LABELS: Record<string, string> = {
   staff_fire: 'FIRE STAFF', staff_water: 'WATER STAFF',
   staff_earth: 'EARTH STAFF', staff_wind: 'WIND STAFF', staff_nature: 'NATURE STAFF',
 };
-const WEAPON_ICONS: Record<string, string> = {
-  dagger: '🗡', sword: '⚔', greatsword: '🗡', spear: '🔱',
-  mace: '🔨', hammer: '⚒', shortbow: '🏹', longbow: '🏹',
-  crossbow: '🎯', fists: '🥊',
-  staff_fire: '🔥', staff_water: '💧', staff_earth: '🪨',
-  staff_wind: '🌀', staff_nature: '🌿',
-};
+function buildWeaponIcon(weapon: string): HTMLElement {
+  const wrap = document.createElement('span');
+  wrap.className = 'sg-icon';
+  const spriteId = spriteIdForWeapon(weapon);
+  if (spriteId) wrap.appendChild(createWeaponSvg(spriteId));
+  else wrap.textContent = '⚔';
+  return wrap;
+}
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -160,7 +162,7 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
     for (const [weapon, wSpells] of sortedWeapons) {
       const group = el('div', 'ess-school-group');
       const head = el('div', 'sg-head');
-      head.appendChild(el('span', 'sg-icon', WEAPON_ICONS[weapon] ?? '⚔'));
+      head.appendChild(buildWeaponIcon(weapon));
       const label = el('span', 'sg-label', WEAPON_LABELS[weapon] ?? weapon.toUpperCase());
       label.style.color = '#d9b46a';
       head.appendChild(label);

@@ -9,6 +9,7 @@ import { Body } from '../entities/Body';
 import { StatName } from '../types/stats';
 import { ItemDef, InventoryItem } from '../types/items';
 import { calcRank } from '../systems/progression';
+import { spriteIdForItem, createWeaponSvg } from './weaponIcon';
 
 type FilterKind = 'all' | 'equipment' | 'material' | 'consumable';
 
@@ -159,7 +160,13 @@ function buildSlot(
   if (itemDef) {
     slot.setAttribute('data-rarity', rarityOrType(itemDef));
     const icon = el('span', 'icon');
-    icon.textContent = itemDef.icon || '?';
+    const weaponSpriteId = spriteIdForItem(itemDef.id);
+    if (weaponSpriteId) {
+      icon.classList.add('icon-svg');
+      icon.appendChild(createWeaponSvg(weaponSpriteId));
+    } else {
+      icon.textContent = itemDef.icon || '?';
+    }
     slot.appendChild(icon);
     if (qty && qty > 1) {
       const q = el('span', 'qty', String(qty));
