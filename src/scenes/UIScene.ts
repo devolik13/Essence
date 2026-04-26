@@ -18,6 +18,8 @@ import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
+import { spriteForSpell } from '../ui/weaponIcon';
+import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
@@ -144,6 +146,7 @@ export class UIScene extends Phaser.Scene {
   private skillSlotsFrame:     Phaser.GameObjects.Rectangle[] = [];
   private skillSlotsInner:     Phaser.GameObjects.Rectangle[] = [];
   private skillSlotsIcon:      Phaser.GameObjects.Text[]      = [];
+  private skillSlotsImage:     Phaser.GameObjects.Image[]     = [];
   private skillSlotsKey:       Phaser.GameObjects.Text[]      = [];
   private skillSlotsMana:      Phaser.GameObjects.Text[]      = [];
   private skillSlotsCd:        Phaser.GameObjects.Rectangle[] = [];
@@ -1033,6 +1036,15 @@ export class UIScene extends Phaser.Scene {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
       this.skillSlotsIcon.push(icon);
 
+      // SVG sprite icon (hidden until ability with sprite is assigned)
+      const img = this.add.image(x, y, '__DEFAULT')
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(1002)
+        .setDisplaySize(SKILL_SLOT_SIZE - 8, SKILL_SLOT_SIZE - 8)
+        .setVisible(false);
+      this.skillSlotsImage.push(img);
+
       // Keybind number — top-left, brass accent
       const key = this.add.text(
         x - SKILL_SLOT_SIZE / 2 + 3, y - SKILL_SLOT_SIZE / 2 + 2, `${i + 1}`,
@@ -1166,10 +1178,20 @@ export class UIScene extends Phaser.Scene {
           this.scene.get('GameScene').events.emit('assign-spell', { slotIndex, spell });
           this.closeSpellPicker();
         });
-      const itxt = this.add.text(ix, iy - 2, spell.nameRu.slice(0, 7), {
-        fontSize: '8px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, align: 'center',
-      }).setOrigin(0.5);
-      this.spellPickerContainer.add([ibg, itxt]);
+      this.spellPickerContainer.add(ibg);
+
+      const sprite = spriteForSpell(spell.id);
+      const tex = sprite ? spriteTextureKey(sprite.id) : null;
+      if (tex && this.textures.exists(tex)) {
+        const iimg = this.add.image(ix, iy, tex)
+          .setOrigin(0.5).setDisplaySize(sz - 6, sz - 6);
+        this.spellPickerContainer.add(iimg);
+      } else {
+        const itxt = this.add.text(ix, iy - 2, spell.nameRu.slice(0, 7), {
+          fontSize: '8px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, align: 'center',
+        }).setOrigin(0.5);
+        this.spellPickerContainer.add(itxt);
+      }
     });
 
     // Clear button
@@ -1308,13 +1330,25 @@ export class UIScene extends Phaser.Scene {
         glow.setVisible(false);
       }
 
-      // Icon
+      // Icon: prefer SVG sprite (Image), fall back to text label
+      const img = this.skillSlotsImage[i];
+      const txt = this.skillSlotsIcon[i];
       if (i === 0 && body) {
-        this.skillSlotsIcon[i].setText('⚔').setColor(TC.brass3).setFontSize('18px');
+        img.setVisible(false);
+        txt.setText('⚔').setColor(TC.brass3).setFontSize('18px');
       } else if (ability) {
-        this.skillSlotsIcon[i].setText(ability.nameRu.slice(0, 6)).setColor(TC.ether3).setFontSize('10px');
+        const sprite = spriteForSpell(ability.id);
+        const key = sprite ? spriteTextureKey(sprite.id) : null;
+        if (key && this.textures.exists(key)) {
+          img.setTexture(key).setVisible(true);
+          txt.setText('');
+        } else {
+          img.setVisible(false);
+          txt.setText(ability.nameRu.slice(0, 6)).setColor(TC.ether3).setFontSize('10px');
+        }
       } else {
-        this.skillSlotsIcon[i].setText('');
+        img.setVisible(false);
+        txt.setText('');
       }
 
       // Mana cost pip

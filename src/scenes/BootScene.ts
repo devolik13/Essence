@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
 import { CP_ASSETS, MOB_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
+import { loadAllSpriteSheets } from '../systems/spriteSheetLoader';
 
 /**
  * BootScene — загрузка ассетов и переход к игре.
@@ -1153,7 +1154,11 @@ export class BootScene extends Phaser.Scene {
     mkSpell('spell_wolf_idle',    'spell_wolf_idle',    24, 8,  true);
     mkSpell('spell_wolf_attack',  'spell_wolf_attack',  24, 14, false);
 
-    this.scene.start('TitleScene');
+    // Pre-extract every <symbol> from public/*.svg sheets into Phaser textures
+    // so the canvas-rendered skill bar can show real icons.
+    loadAllSpriteSheets(this).then(() => {
+      this.scene.start('TitleScene');
+    });
   }
 
   /**
