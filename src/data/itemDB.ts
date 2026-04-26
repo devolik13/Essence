@@ -155,7 +155,27 @@ export const ITEMS: Record<string, ItemDef> = {
   staff_nature_t3: { id: 'staff_nature_t3', nameRu: 'Master Nature Staff', rarity: 'rare', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 12. +3 Intellect, +1 Mana', icon: '🌿', statBonuses: {"intellect":3,"mana":1} },
   shield_t1: { id: 'shield_t1', nameRu: 'Steel Shield', rarity: 'common', type: 'equipment', equipSlot: 'shield', descRu: '+2 Armor, +1 Health', icon: '🛡', statBonuses: {"armor":2,"health":1} },
   shield_t2: { id: 'shield_t2', nameRu: 'Hardened Shield', rarity: 'uncommon', type: 'equipment', equipSlot: 'shield', descRu: '+4 Armor, +2 Health', icon: '🛡', statBonuses: {"armor":4,"health":2} },
-    helmet_t1: { id: 'helmet_t1', nameRu: 'Steel Helmet', rarity: 'common', type: 'equipment', equipSlot: 'helmet', descRu: '+2 Armor. +1 Health', icon: '⛑', armorBonus: 2, statBonuses: {"health":1} },
+
+  // ── Starter Armor — Heavy (STR) ──────────────────────────────────────────
+  starter_heavy_helmet: { id: 'starter_heavy_helmet', nameRu: 'Old Iron Helm',   rarity: 'common', type: 'equipment', equipSlot: 'helmet', descRu: '+1 Armor. +1 Health', icon: '⛑', armorBonus: 1, statBonuses: {"health":1} },
+  starter_heavy_chest:  { id: 'starter_heavy_chest',  nameRu: 'Old Chestplate',  rarity: 'common', type: 'equipment', equipSlot: 'chest',  descRu: '+2 Armor. +1 Health', icon: '🛡', armorBonus: 2, statBonuses: {"health":1} },
+  starter_heavy_gloves: { id: 'starter_heavy_gloves', nameRu: 'Old Gauntlets',   rarity: 'common', type: 'equipment', equipSlot: 'gloves', descRu: '+1 Strength',        icon: '🧤', armorBonus: 0, statBonuses: {"strength":1} },
+  starter_heavy_boots:  { id: 'starter_heavy_boots',  nameRu: 'Old Greaves',     rarity: 'common', type: 'equipment', equipSlot: 'boots',  descRu: '+1 Health',           icon: '👢', armorBonus: 0, statBonuses: {"health":1} },
+
+  // ── Starter Armor — Leather (AGI) ────────────────────────────────────────
+  starter_leather_helmet: { id: 'starter_leather_helmet', nameRu: 'Worn Hood',          rarity: 'common', type: 'equipment', equipSlot: 'helmet', descRu: '+1 Evasion',            icon: '⛑', armorBonus: 0, statBonuses: {"evasion":1} },
+  starter_leather_chest:  { id: 'starter_leather_chest',  nameRu: 'Worn Leather Vest',  rarity: 'common', type: 'equipment', equipSlot: 'chest',  descRu: '+1 Armor. +1 Agility', icon: '🛡', armorBonus: 1, statBonuses: {"agility":1} },
+  starter_leather_gloves: { id: 'starter_leather_gloves', nameRu: 'Worn Bracers',       rarity: 'common', type: 'equipment', equipSlot: 'gloves', descRu: '+1 Accuracy',           icon: '🧤', armorBonus: 0, statBonuses: {"accuracy":1} },
+  starter_leather_boots:  { id: 'starter_leather_boots',  nameRu: 'Worn Leather Boots', rarity: 'common', type: 'equipment', equipSlot: 'boots',  descRu: '+1 Evasion',            icon: '👢', armorBonus: 0, statBonuses: {"evasion":1} },
+
+  // ── Starter Armor — Robe (INT) ───────────────────────────────────────────
+  starter_robe_helmet: { id: 'starter_robe_helmet', nameRu: 'Torn Hat',     rarity: 'common', type: 'equipment', equipSlot: 'helmet', descRu: '+1 Will',      icon: '⛑', armorBonus: 0, statBonuses: {"will":1} },
+  starter_robe_chest:  { id: 'starter_robe_chest',  nameRu: 'Torn Robe',    rarity: 'common', type: 'equipment', equipSlot: 'chest',  descRu: '+1 Int. +1 Will', icon: '🛡', armorBonus: 0, statBonuses: {"intellect":1,"will":1} },
+  starter_robe_gloves: { id: 'starter_robe_gloves', nameRu: 'Torn Wraps',   rarity: 'common', type: 'equipment', equipSlot: 'gloves', descRu: '+1 Intellect', icon: '🧤', armorBonus: 0, statBonuses: {"intellect":1} },
+  starter_robe_boots:  { id: 'starter_robe_boots',  nameRu: 'Torn Sandals', rarity: 'common', type: 'equipment', equipSlot: 'boots',  descRu: '+1 Mana',      icon: '👢', armorBonus: 0, statBonuses: {"mana":1} },
+
+  // ── Heavy Armor T1-T3 (STR) ──────────────────────────────────────────────
+  helmet_t1: { id: 'helmet_t1', nameRu: 'Steel Helmet', rarity: 'common', type: 'equipment', equipSlot: 'helmet', descRu: '+2 Armor. +1 Health', icon: '⛑', armorBonus: 2, statBonuses: {"health":1} },
   helmet_t2: { id: 'helmet_t2', nameRu: 'Hardened Helmet', rarity: 'uncommon', type: 'equipment', equipSlot: 'helmet', descRu: '+4 Armor. +2 Health', icon: '⛑', armorBonus: 4, statBonuses: {"health":2} },
   helmet_t3: { id: 'helmet_t3', nameRu: 'Master Helmet', rarity: 'rare', type: 'equipment', equipSlot: 'helmet', descRu: '+6 Armor. +3 Health, +1 Will', icon: '⛑', armorBonus: 6, statBonuses: {"health":3,"will":1} },
   chest_t1: { id: 'chest_t1', nameRu: 'Steel Chestplate', rarity: 'common', type: 'equipment', equipSlot: 'chest', descRu: '+5 Armor. +2 Health', icon: '🛡', armorBonus: 5, statBonuses: {"health":2} },
@@ -167,6 +187,34 @@ export const ITEMS: Record<string, ItemDef> = {
   boots_t1: { id: 'boots_t1', nameRu: 'Steel Boots', rarity: 'common', type: 'equipment', equipSlot: 'boots', descRu: '+1 Armor. +1 Evasion', icon: '👢', armorBonus: 1, statBonuses: {"evasion":1} },
   boots_t2: { id: 'boots_t2', nameRu: 'Hardened Boots', rarity: 'uncommon', type: 'equipment', equipSlot: 'boots', descRu: '+3 Armor. +2 Evasion', icon: '👢', armorBonus: 3, statBonuses: {"evasion":2} },
   boots_t3: { id: 'boots_t3', nameRu: 'Master Boots', rarity: 'rare', type: 'equipment', equipSlot: 'boots', descRu: '+5 Armor. +3 Evasion, +1 Agility', icon: '👢', armorBonus: 5, statBonuses: {"evasion":3,"agility":1} },
+
+  // ── Leather Armor T1-T3 (AGI) ────────────────────────────────────────────
+  leather_helmet_t1: { id: 'leather_helmet_t1', nameRu: 'Leather Hood',          rarity: 'common',   type: 'equipment', equipSlot: 'helmet', descRu: '+1 Armor. +1 Agi, +1 Eva', icon: '⛑', armorBonus: 1, statBonuses: {"agility":1,"evasion":1} },
+  leather_helmet_t2: { id: 'leather_helmet_t2', nameRu: 'Hardened Leather Hood', rarity: 'uncommon', type: 'equipment', equipSlot: 'helmet', descRu: '+2 Armor. +2 Agi, +1 Eva', icon: '⛑', armorBonus: 2, statBonuses: {"agility":2,"evasion":1} },
+  leather_helmet_t3: { id: 'leather_helmet_t3', nameRu: 'Master Leather Hood',  rarity: 'rare',     type: 'equipment', equipSlot: 'helmet', descRu: '+3 Armor. +3 Agi, +2 Eva', icon: '⛑', armorBonus: 3, statBonuses: {"agility":3,"evasion":2} },
+  leather_chest_t1:  { id: 'leather_chest_t1',  nameRu: 'Leather Vest',          rarity: 'common',   type: 'equipment', equipSlot: 'chest',  descRu: '+2 Armor. +2 Agi, +1 Eva', icon: '🛡', armorBonus: 2, statBonuses: {"agility":2,"evasion":1} },
+  leather_chest_t2:  { id: 'leather_chest_t2',  nameRu: 'Hardened Leather Vest', rarity: 'uncommon', type: 'equipment', equipSlot: 'chest',  descRu: '+4 Armor. +3 Agi, +2 Eva', icon: '🛡', armorBonus: 4, statBonuses: {"agility":3,"evasion":2} },
+  leather_chest_t3:  { id: 'leather_chest_t3',  nameRu: 'Master Leather Vest',  rarity: 'rare',     type: 'equipment', equipSlot: 'chest',  descRu: '+5 Armor. +4 Agi, +3 Eva', icon: '🛡', armorBonus: 5, statBonuses: {"agility":4,"evasion":3} },
+  leather_gloves_t1: { id: 'leather_gloves_t1', nameRu: 'Leather Bracers',          rarity: 'common',   type: 'equipment', equipSlot: 'gloves', descRu: '+1 Agi, +1 Acc',           icon: '🧤', armorBonus: 0, statBonuses: {"agility":1,"accuracy":1} },
+  leather_gloves_t2: { id: 'leather_gloves_t2', nameRu: 'Hardened Leather Bracers', rarity: 'uncommon', type: 'equipment', equipSlot: 'gloves', descRu: '+1 Armor. +2 Acc, +1 Agi', icon: '🧤', armorBonus: 1, statBonuses: {"accuracy":2,"agility":1} },
+  leather_gloves_t3: { id: 'leather_gloves_t3', nameRu: 'Master Leather Bracers',  rarity: 'rare',     type: 'equipment', equipSlot: 'gloves', descRu: '+2 Armor. +3 Acc, +2 Agi', icon: '🧤', armorBonus: 2, statBonuses: {"accuracy":3,"agility":2} },
+  leather_boots_t1:  { id: 'leather_boots_t1',  nameRu: 'Leather Boots',          rarity: 'common',   type: 'equipment', equipSlot: 'boots',  descRu: '+2 Evasion',                icon: '👢', armorBonus: 0, statBonuses: {"evasion":2} },
+  leather_boots_t2:  { id: 'leather_boots_t2',  nameRu: 'Hardened Leather Boots', rarity: 'uncommon', type: 'equipment', equipSlot: 'boots',  descRu: '+1 Armor. +3 Eva',          icon: '👢', armorBonus: 1, statBonuses: {"evasion":3} },
+  leather_boots_t3:  { id: 'leather_boots_t3',  nameRu: 'Master Leather Boots',  rarity: 'rare',     type: 'equipment', equipSlot: 'boots',  descRu: '+2 Armor. +4 Eva, +1 Agi',  icon: '👢', armorBonus: 2, statBonuses: {"evasion":4,"agility":1} },
+
+  // ── Robe Armor T1-T3 (INT) ───────────────────────────────────────────────
+  robe_helmet_t1: { id: 'robe_helmet_t1', nameRu: 'Cloth Hat',      rarity: 'common',   type: 'equipment', equipSlot: 'helmet', descRu: '+1 Armor. +1 Int, +1 Will',      icon: '⛑', armorBonus: 1, statBonuses: {"intellect":1,"will":1} },
+  robe_helmet_t2: { id: 'robe_helmet_t2', nameRu: 'Enchanted Hat',  rarity: 'uncommon', type: 'equipment', equipSlot: 'helmet', descRu: '+1 Armor. +2 Int, +1 Will, +1 Mna', icon: '⛑', armorBonus: 1, statBonuses: {"intellect":2,"will":1,"mana":1} },
+  robe_helmet_t3: { id: 'robe_helmet_t3', nameRu: 'Arcane Hat',     rarity: 'rare',     type: 'equipment', equipSlot: 'helmet', descRu: '+2 Armor. +3 Int, +2 Will, +1 Mna', icon: '⛑', armorBonus: 2, statBonuses: {"intellect":3,"will":2,"mana":1} },
+  robe_chest_t1:  { id: 'robe_chest_t1',  nameRu: 'Cloth Robe',     rarity: 'common',   type: 'equipment', equipSlot: 'chest',  descRu: '+2 Armor. +2 Int, +1 Will',      icon: '🛡', armorBonus: 2, statBonuses: {"intellect":2,"will":1} },
+  robe_chest_t2:  { id: 'robe_chest_t2',  nameRu: 'Enchanted Robe', rarity: 'uncommon', type: 'equipment', equipSlot: 'chest',  descRu: '+3 Armor. +3 Int, +2 Will',      icon: '🛡', armorBonus: 3, statBonuses: {"intellect":3,"will":2} },
+  robe_chest_t3:  { id: 'robe_chest_t3',  nameRu: 'Arcane Robe',    rarity: 'rare',     type: 'equipment', equipSlot: 'chest',  descRu: '+4 Armor. +4 Int, +3 Will, +1 Mna', icon: '🛡', armorBonus: 4, statBonuses: {"intellect":4,"will":3,"mana":1} },
+  robe_gloves_t1: { id: 'robe_gloves_t1', nameRu: 'Cloth Wraps',      rarity: 'common',   type: 'equipment', equipSlot: 'gloves', descRu: '+1 Int, +1 Acc',           icon: '🧤', armorBonus: 0, statBonuses: {"intellect":1,"accuracy":1} },
+  robe_gloves_t2: { id: 'robe_gloves_t2', nameRu: 'Enchanted Wraps',  rarity: 'uncommon', type: 'equipment', equipSlot: 'gloves', descRu: '+2 Int, +2 Acc',           icon: '🧤', armorBonus: 0, statBonuses: {"intellect":2,"accuracy":2} },
+  robe_gloves_t3: { id: 'robe_gloves_t3', nameRu: 'Arcane Wraps',     rarity: 'rare',     type: 'equipment', equipSlot: 'gloves', descRu: '+1 Armor. +3 Acc, +2 Int', icon: '🧤', armorBonus: 1, statBonuses: {"accuracy":3,"intellect":2} },
+  robe_boots_t1:  { id: 'robe_boots_t1',  nameRu: 'Cloth Sandals',     rarity: 'common',   type: 'equipment', equipSlot: 'boots',  descRu: '+1 Eva, +1 Will',           icon: '👢', armorBonus: 0, statBonuses: {"evasion":1,"will":1} },
+  robe_boots_t2:  { id: 'robe_boots_t2',  nameRu: 'Enchanted Sandals', rarity: 'uncommon', type: 'equipment', equipSlot: 'boots',  descRu: '+1 Armor. +2 Eva, +1 Will', icon: '👢', armorBonus: 1, statBonuses: {"evasion":2,"will":1} },
+  robe_boots_t3:  { id: 'robe_boots_t3',  nameRu: 'Arcane Sandals',    rarity: 'rare',     type: 'equipment', equipSlot: 'boots',  descRu: '+2 Armor. +3 Eva, +2 Will', icon: '👢', armorBonus: 2, statBonuses: {"evasion":3,"will":2} },
   ring_t1: { id: 'ring_t1', nameRu: 'Steel Ring', rarity: 'common', type: 'equipment', equipSlot: 'ring', descRu: '+2 Luck, +1 Mana', icon: '💍', armorBonus: 0, statBonuses: {"luck":2,"mana":1} },
   ring_t2: { id: 'ring_t2', nameRu: 'Hardened Ring', rarity: 'uncommon', type: 'equipment', equipSlot: 'ring', descRu: '+3 Luck, +1 Mana', icon: '💍', armorBonus: 0, statBonuses: {"luck":3,"mana":1} },
   ring_t3: { id: 'ring_t3', nameRu: 'Master Ring', rarity: 'rare', type: 'equipment', equipSlot: 'ring', descRu: '+4 Luck, +2 Mana', icon: '💍', armorBonus: 0, statBonuses: {"luck":4,"mana":2} },
@@ -363,6 +411,34 @@ export const RECIPES: RecipeDef[] = [
   { id: 'recipe_shield_t1', nameRu: 'Steel Shield', workbench: 'armorer', materials: {"copper_ore":5,"willow_branch":3}, resultId: 'shield_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_shield_t2', nameRu: 'Hardened Shield', workbench: 'armorer', materials: {"copper_ore":8,"willow_branch":5,"wolf_hide":2}, resultId: 'shield_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_shield_t3', nameRu: 'Master Shield', workbench: 'armorer', materials: {"copper_ore":12,"willow_branch":8,"wolf_hide":5}, resultId: 'shield_t3', resultQty: 1, craftTime: 10 },
+
+  // Leather Armor (armorer — wolf_hide heavy)
+  { id: 'recipe_leather_helmet_t1', nameRu: 'Leather Hood', workbench: 'armorer', materials: {"wolf_hide":4,"copper_ore":2}, resultId: 'leather_helmet_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_helmet_t2', nameRu: 'Hardened Leather Hood', workbench: 'armorer', materials: {"wolf_hide":7,"copper_ore":4}, resultId: 'leather_helmet_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_helmet_t3', nameRu: 'Master Leather Hood', workbench: 'armorer', materials: {"wolf_hide":10,"copper_ore":6,"willow_branch":3}, resultId: 'leather_helmet_t3', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_chest_t1', nameRu: 'Leather Vest', workbench: 'armorer', materials: {"wolf_hide":6,"copper_ore":3}, resultId: 'leather_chest_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_chest_t2', nameRu: 'Hardened Leather Vest', workbench: 'armorer', materials: {"wolf_hide":10,"copper_ore":6}, resultId: 'leather_chest_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_chest_t3', nameRu: 'Master Leather Vest', workbench: 'armorer', materials: {"wolf_hide":14,"copper_ore":8,"willow_branch":4}, resultId: 'leather_chest_t3', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_gloves_t1', nameRu: 'Leather Bracers', workbench: 'armorer', materials: {"wolf_hide":3,"copper_ore":2}, resultId: 'leather_gloves_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_gloves_t2', nameRu: 'Hardened Leather Bracers', workbench: 'armorer', materials: {"wolf_hide":5,"copper_ore":3}, resultId: 'leather_gloves_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_gloves_t3', nameRu: 'Master Leather Bracers', workbench: 'armorer', materials: {"wolf_hide":8,"copper_ore":5,"willow_branch":2}, resultId: 'leather_gloves_t3', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_boots_t1', nameRu: 'Leather Boots', workbench: 'armorer', materials: {"wolf_hide":3,"copper_ore":2}, resultId: 'leather_boots_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_boots_t2', nameRu: 'Hardened Leather Boots', workbench: 'armorer', materials: {"wolf_hide":5,"copper_ore":4}, resultId: 'leather_boots_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_boots_t3', nameRu: 'Master Leather Boots', workbench: 'armorer', materials: {"wolf_hide":8,"copper_ore":6,"willow_branch":2}, resultId: 'leather_boots_t3', resultQty: 1, craftTime: 10 },
+
+  // Robe Armor (armorer — willow_branch heavy)
+  { id: 'recipe_robe_helmet_t1', nameRu: 'Cloth Hat', workbench: 'armorer', materials: {"willow_branch":4,"wolf_hide":2}, resultId: 'robe_helmet_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_helmet_t2', nameRu: 'Enchanted Hat', workbench: 'armorer', materials: {"willow_branch":7,"wolf_hide":4}, resultId: 'robe_helmet_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_helmet_t3', nameRu: 'Arcane Hat', workbench: 'armorer', materials: {"willow_branch":10,"wolf_hide":6,"copper_ore":3}, resultId: 'robe_helmet_t3', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_chest_t1', nameRu: 'Cloth Robe', workbench: 'armorer', materials: {"willow_branch":6,"wolf_hide":3}, resultId: 'robe_chest_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_chest_t2', nameRu: 'Enchanted Robe', workbench: 'armorer', materials: {"willow_branch":10,"wolf_hide":6}, resultId: 'robe_chest_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_chest_t3', nameRu: 'Arcane Robe', workbench: 'armorer', materials: {"willow_branch":14,"wolf_hide":8,"copper_ore":4}, resultId: 'robe_chest_t3', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_gloves_t1', nameRu: 'Cloth Wraps', workbench: 'armorer', materials: {"willow_branch":3,"wolf_hide":2}, resultId: 'robe_gloves_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_gloves_t2', nameRu: 'Enchanted Wraps', workbench: 'armorer', materials: {"willow_branch":5,"wolf_hide":3}, resultId: 'robe_gloves_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_gloves_t3', nameRu: 'Arcane Wraps', workbench: 'armorer', materials: {"willow_branch":8,"wolf_hide":5,"copper_ore":2}, resultId: 'robe_gloves_t3', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_boots_t1', nameRu: 'Cloth Sandals', workbench: 'armorer', materials: {"willow_branch":3,"wolf_hide":2}, resultId: 'robe_boots_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_boots_t2', nameRu: 'Enchanted Sandals', workbench: 'armorer', materials: {"willow_branch":5,"wolf_hide":4}, resultId: 'robe_boots_t2', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_boots_t3', nameRu: 'Arcane Sandals', workbench: 'armorer', materials: {"willow_branch":8,"wolf_hide":6,"copper_ore":2}, resultId: 'robe_boots_t3', resultQty: 1, craftTime: 10 },
 
   // Armorer
   {
