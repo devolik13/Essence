@@ -174,43 +174,9 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { edge: 'west',  targetZone: 'earth',  spawnX: PW - 80, spawnY: PH / 2 },
   ],
 
-  resourceNodes: [
-    // Eshworth area
-    { x: EX + 400, y: EY - 400, nodeId: 'copper_vein' },
-    { x: EX + 450, y: EY - 350, nodeId: 'copper_vein' },
-    { x: EX + 500, y: EY - 430, nodeId: 'copper_vein' },
-    { x: EX - 400, y: EY - 400, nodeId: 'willow_tree' },
-    { x: EX - 450, y: EY - 350, nodeId: 'willow_tree' },
-    { x: EX - 500, y: EY - 430, nodeId: 'willow_tree' },
-    { x: EX - 100, y: EY + 400, nodeId: 'hide_pile' },
-    { x: EX + 50,  y: EY + 450, nodeId: 'hide_pile' },
-    { x: EX - 50,  y: EY + 500, nodeId: 'hide_pile' },
-    // Trade road
-    { x: ROAD_MID_X - 500, y: ROAD_MID_Y - 500, nodeId: 'willow_tree' },
-    { x: ROAD_MID_X + 200, y: ROAD_MID_Y - 600, nodeId: 'willow_tree' },
-    { x: ROAD_MID_X + 600, y: ROAD_MID_Y + 500, nodeId: 'hide_pile' },
-    { x: ROAD_MID_X - 300, y: ROAD_MID_Y + 600, nodeId: 'hide_pile' },
-    // Waldmar area
-    { x: WX + 400, y: WY - 400, nodeId: 'copper_vein' },
-    { x: WX + 450, y: WY - 350, nodeId: 'copper_vein' },
-    { x: WX - 400, y: WY + 400, nodeId: 'willow_tree' },
-    { x: WX - 450, y: WY + 450, nodeId: 'willow_tree' },
-    { x: WX + 300, y: WY + 400, nodeId: 'hide_pile' },
-    { x: WX + 350, y: WY + 450, nodeId: 'hide_pile' },
-  ],
+  resourceNodes: [],
 
-  workbenches: [
-    // Eshworth
-    { x: EX - 180, y: EY - 120, type: 'armorer',     nameRu: 'Armorer' },
-    { x: EX - 100, y: EY - 120, type: 'weaponsmith', nameRu: 'Weaponsmith' },
-    { x: EX + 100, y: EY - 120, type: 'jeweler',     nameRu: 'Jeweler' },
-    { x: EX + 180, y: EY - 120, type: 'runemaster',  nameRu: 'Runemaster' },
-    // Waldmar
-    { x: WX - 180, y: WY - 120, type: 'armorer',     nameRu: 'Armorer' },
-    { x: WX - 100, y: WY - 120, type: 'weaponsmith', nameRu: 'Weaponsmith' },
-    { x: WX + 100, y: WY - 120, type: 'jeweler',     nameRu: 'Jeweler' },
-    { x: WX + 180, y: WY - 120, type: 'runemaster',  nameRu: 'Runemaster' },
-  ],
+  workbenches: [],
 
   npcs: [
     // Temporarily removed — will add back after map layout is finalized

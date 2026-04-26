@@ -194,6 +194,7 @@ export class UIScene extends Phaser.Scene {
   constructor() { super({ key: 'UIScene' }); }
 
   create() {
+    this.scene.bringToTop();
     // Load saved layout before creating anything
     this.loadUILayout();
 
@@ -1085,7 +1086,7 @@ export class UIScene extends Phaser.Scene {
         if (this.skillBarLocked) this.closeSpellPicker();
       });
 
-    this.spellPickerContainer = this.add.container(0, 0).setDepth(1100).setVisible(false);
+    this.spellPickerContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(1100).setVisible(false);
   }
 
   private openSpellPicker(slotIndex: number) {

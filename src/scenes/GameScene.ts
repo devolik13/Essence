@@ -1073,17 +1073,6 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // NPC-квестодатель
-    const qp = this.questGiverPos;
-    this.add.arc(qp.x, qp.y, 12, 0, 360, false, 0xffdd55, 0.9).setDepth(5);
-    this.add.arc(qp.x, qp.y, 16, 0, 360, false, 0xffaa00, 0.3).setDepth(4);
-    this.add.text(qp.x, qp.y - 24, '! Quest Board', {
-      fontSize: '10px', color: '#ffdd88', align: 'center',
-      stroke: '#000000', strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(6);
-    this.add.text(qp.x, qp.y + 18, t('misc.talk'), {
-      fontSize: '8px', color: '#888866',
-    }).setOrigin(0.5).setDepth(6);
   }
 
   private static readonly STARTER_WANDER_SPEED = 30;
