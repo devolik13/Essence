@@ -217,9 +217,9 @@ export class GameScene extends Phaser.Scene {
   private get starterPositions() {
     const rp = this.currentZone.respawnPoint;
     return [
-      { x: rp.x + 60, y: rp.y - 170 },  // Воин
-      { x: rp.x + 100, y: rp.y - 170 },  // Лучник
-      { x: rp.x + 140, y: rp.y - 170 },  // Маг
+      { x: rp.x - 20, y: rp.y },  // Воин
+      { x: rp.x,      y: rp.y },  // Лучник
+      { x: rp.x + 20, y: rp.y },  // Маг
     ];
   }
 
@@ -1034,7 +1034,7 @@ export class GameScene extends Phaser.Scene {
       if (animKey && this.anims.exists(animKey)) {
         const sprite = this.add.sprite(pos.x, pos.y, animKey);
         sprite.play(animKey);
-        sprite.setDisplaySize(17, 17);
+        sprite.setDisplaySize(12, 12);
         this.starterBodies.push(sprite as any);
       } else {
         const marker = this.add.arc(pos.x, pos.y, 14, 0, 360, false, def.color, 0.7);
