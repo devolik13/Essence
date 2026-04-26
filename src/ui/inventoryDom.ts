@@ -9,7 +9,7 @@ import { Body } from '../entities/Body';
 import { StatName } from '../types/stats';
 import { ItemDef, InventoryItem } from '../types/items';
 import { calcRank } from '../systems/progression';
-import { spriteIdForItem, createWeaponSvg } from './weaponIcon';
+import { spriteForItem, createSpriteSvg } from './weaponIcon';
 
 type FilterKind = 'all' | 'equipment' | 'material' | 'consumable';
 
@@ -160,10 +160,10 @@ function buildSlot(
   if (itemDef) {
     slot.setAttribute('data-rarity', rarityOrType(itemDef));
     const icon = el('span', 'icon');
-    const weaponSpriteId = spriteIdForItem(itemDef.id);
-    if (weaponSpriteId) {
+    const sprite = spriteForItem(itemDef.id);
+    if (sprite) {
       icon.classList.add('icon-svg');
-      icon.appendChild(createWeaponSvg(weaponSpriteId));
+      icon.appendChild(createSpriteSvg(sprite));
     } else {
       icon.textContent = itemDef.icon || '?';
     }

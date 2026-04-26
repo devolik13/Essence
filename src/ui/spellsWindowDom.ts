@@ -4,7 +4,7 @@
  */
 import { AbilityDef } from '../types/abilities';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from './spellTooltip';
-import { spriteIdForWeapon, createWeaponSvg } from './weaponIcon';
+import { spriteIdForWeapon, createWeaponSvg, spriteForSpell, createSpriteSvg } from './weaponIcon';
 
 let root: HTMLElement | null = null;
 let onCloseHandler: (() => void) | null = null;
@@ -54,6 +54,13 @@ function buildSpellCard(spell: AbilityDef, learned: boolean): HTMLElement {
   const card = el('div', `ess-spell-card${learned ? '' : ' locked'}`);
   const school = spell.school ?? 'neutral';
   card.style.setProperty('--school-color', SCHOOL_COLORS[school] ?? '#a78fc4');
+
+  const sprite = spriteForSpell(spell.id);
+  if (sprite) {
+    const iconWrap = el('div', 'sp-icon');
+    iconWrap.appendChild(createSpriteSvg(sprite));
+    card.appendChild(iconWrap);
+  }
 
   const name = el('div', 'sp-name', spell.nameRu);
   if (learned) name.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
