@@ -1034,7 +1034,7 @@ export class GameScene extends Phaser.Scene {
       if (animKey && this.anims.exists(animKey)) {
         const sprite = this.add.sprite(pos.x, pos.y, animKey);
         sprite.play(animKey);
-        sprite.setDisplaySize(36, 36);
+        sprite.setDisplaySize(52, 52);
         this.starterBodies.push(sprite as any);
       } else {
         const marker = this.add.arc(pos.x, pos.y, 14, 0, 360, false, def.color, 0.7);
