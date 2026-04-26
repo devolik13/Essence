@@ -108,8 +108,8 @@ export class Creature extends Phaser.GameObjects.Container {
       const sheetKey = firstAnim.frames[0]?.textureKey ?? '__DEFAULT';
       const isAnimal = sheetKey.startsWith('animal_');
       const spr = scene.add.sprite(0, 0, sheetKey, firstAnim.frames[0]?.textureFrame ?? 0);
-      spr.setDisplaySize(isAnimal ? 30 : 34, isAnimal ? 30 : 34);
       spr.play(animTestKey);
+      spr.setDisplaySize(isAnimal ? 30 : 34, isAnimal ? 30 : 34);
       this.bodySprite = spr;
     } else {
       const textureKey = `body_${definition.id}`;
@@ -398,7 +398,10 @@ export class Creature extends Phaser.GameObjects.Container {
       : `${this.animPrefix}_${newState}_${this.facingDir}`;
 
     if (spr.anims?.currentAnim?.key !== key && this.scene.anims.exists(key)) {
+      const isAnimal = (spr.texture.key ?? '').startsWith('animal_');
+      const sz = isAnimal ? 30 : 34;
       spr.play(key);
+      spr.setDisplaySize(sz, sz);
     }
     this.animState = newState;
   }
