@@ -35,11 +35,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   return e;
 }
 
-function sym(id: string, size = 32): SVGSVGElement {
+function sym(id: string, w = 32, h?: number): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 156 156');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
+  svg.setAttribute('width', String(w));
+  svg.setAttribute('height', String(h ?? w));
   svg.setAttribute('aria-hidden', 'true');
   svg.classList.add('bf-icon');
   const use = document.createElementNS(SVG_NS, 'use');
@@ -223,8 +222,10 @@ function buildRevealedCard(def: BodyDefinition): HTMLElement {
   art.appendChild(el('div', 'bf-art-letter', def.nameRu.charAt(0)));
   card.appendChild(art);
 
-  // Divider
-  card.appendChild(sym('bf_divider', 600));
+  // Divider — keep symbol's 320x24 ratio
+  const divider = sym('bf_divider', 600, 24);
+  divider.style.width = '100%';
+  card.appendChild(divider);
 
   // Body — two columns
   const body = el('div', 'bf-card-body');
@@ -381,7 +382,9 @@ function rerender(): void {
   layout.appendChild(buildSidebar());
 
   const spine = el('div', 'bf-spine');
-  spine.appendChild(sym('bf_spine', 24));
+  const spineSvg = sym('bf_spine', 24, 600);
+  spineSvg.style.height = '100%';
+  spine.appendChild(spineSvg);
   layout.appendChild(spine);
 
   const right = el('section', 'bf-page');

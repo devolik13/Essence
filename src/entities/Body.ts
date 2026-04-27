@@ -204,7 +204,7 @@ export class Body extends Phaser.GameObjects.Container {
    * Определяет направление (down/up/left/right) по углу к цели.
    */
   faceToward(tx: number, ty: number) {
-    if (!ANIMATED_BODIES[this.definition.id]) return;
+    if (!this.resolvedAnim) return;
     const dx = tx - this.x;
     const dy = ty - this.y;
     // Вертикальная ось важнее если угол крутой (> 45°)
@@ -227,8 +227,7 @@ export class Body extends Phaser.GameObjects.Container {
 
   /** Запустить анимацию атаки (вызывается из GameScene при ударе) */
   playAttackAnim() {
-    const animCfg = ANIMATED_BODIES[this.definition.id];
-    if (!animCfg || this.isAttackPlaying) return;
+    if (!this.resolvedAnim || this.isAttackPlaying) return;
     this.isAttackPlaying = true;
     this.playAnim('atk');
   }
@@ -237,16 +236,22 @@ export class Body extends Phaser.GameObjects.Container {
     const animCfg = this.resolvedAnim;
     if (!animCfg) return;
 
-    // Для left — зеркалим right
-    const dir = this.facingDir === 'left' ? 'right' : this.facingDir;
-    this.bodySprite.setFlipX(this.facingDir === 'left');
-
-    const key = type === 'atk' ? animCfg.atk(dir)
-              : type === 'walk' ? animCfg.walk(dir)
-              : animCfg.idle(dir);
+    // Try native direction first; fall back to mirrored 'right' for humanoid sheets
+    // that only ship a down-facing animation (their cfg ignores `d`).
+    const nativeFn = type === 'atk' ? animCfg.atk
+                   : type === 'walk' ? animCfg.walk
+                   : animCfg.idle;
+    const nativeKey = nativeFn(this.facingDir);
+    let key = nativeKey;
+    let flip = false;
+    if (this.facingDir === 'left' && !this.bodySprite.scene.anims.exists(nativeKey)) {
+      key = nativeFn('right');
+      flip = true;
+    }
+    this.bodySprite.setFlipX(flip);
 
     if (this.bodySprite.anims.currentAnim?.key !== key || type === 'atk') {
-      this.bodySprite.play(key, type !== 'atk'); // ignoreIfPlaying для idle/walk
+      this.bodySprite.play(key, type !== 'atk');
     }
   }
 
@@ -360,8 +365,8 @@ export class Body extends Phaser.GameObjects.Container {
       else if (vx > 0)  this.facingDir = 'right';
     }
 
-    // Обновление анимации воина
-    if (ANIMATED_BODIES[this.definition.id] && !this.isAttackPlaying) {
+    // Обновление анимации тела (humanoid + animals со спрайтшитом)
+    if (this.resolvedAnim && !this.isAttackPlaying) {
       this.playAnim(moving ? 'walk' : 'idle');
     }
 
