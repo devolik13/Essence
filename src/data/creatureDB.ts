@@ -650,8 +650,8 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_SLASH_SWEEP, spellXPThreshold: 1,
   },
 
-  // ─── Caravan conflict (Trade Road) ────────────────────────────────────────
-  // Used by bq_orc_caravan (kill caravan_guard) and bq_scout_escort (kill ambusher).
+  // ─── Caravan defenders (Trade Road) ───────────────────────────────────────
+  // Used by bq_caravan_guard, bq_bandit_*_veteran (kill caravan_guard).
 
   caravan_guard: {
     id: 'caravan_guard', name: 'Caravan Guard', nameRu: 'Caravan Guard',

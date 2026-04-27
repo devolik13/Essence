@@ -699,52 +699,9 @@ export const CONFLICT_CARAVAN: ConflictQuestDef = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// T3 — Conflict quests → T3 weapon spells (hardest)
+// T3 Conflict quests (orc_caravan, scout_escort) — removed for now.
+// Kept CONFLICT_CARAVAN as a placeholder for Chapter 2 PvP events.
 // ═══════════════════════════════════════════════════════════════
-
-const QUEST_ORC_CARAVAN: BodyQuestDef = {
-  id: 'bq_orc_caravan', bodyId: 'orc', tier: 3,
-  nameRu: 'Налёт на обоз',
-  description: 'Возглавь засаду на торговый обоз.',
-  introMessages: [
-    { speaker: 'Вождь', text: 'Обоз пересекает наши земли. Дань не платят.' },
-    { speaker: 'Вождь', text: 'Возьми воинов. Верни груз. Убивай если надо.' },
-    { speaker: '', text: 'Шестеро воинов ждут у опушки. На дороге поднимается пыль колёс.' },
-  ],
-  completeMessages: [
-    { speaker: 'Вождь', text: 'Хорошо. Клан сегодня пирует. Ты заслужил кровавый размах.' },
-  ],
-  objectives: [
-    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Охранник обоза', description: 'Победи 4 охранников' },
-    { type: 'steal', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Груз', description: 'Захвати груз' },
-  ],
-  rewardSpellId: 'bloody_sweep',
-  xpReward: 200,
-  prerequisiteBodyQuestId: 'bq_orc',
-  conflictQuestId: 'conflict_caravan',
-};
-
-const QUEST_SCOUT_ESCORT: BodyQuestDef = {
-  id: 'bq_scout_escort', bodyId: 'scout', tier: 3,
-  nameRu: 'Сопровождение обоза',
-  description: 'Проведи торговый обоз через земли разбойников.',
-  introMessages: [
-    { speaker: 'Торговец', text: 'Нам нужно пересечь лес. Видели разбойников.' },
-    { speaker: 'Торговец', text: 'Ты знаешь эти тропы. Веди нас.' },
-    { speaker: '', text: 'Четыре охранника занимают позиции. Обоз трогается.' },
-  ],
-  completeMessages: [
-    { speaker: 'Торговец', text: 'Мы добрались. У тебя глаза ястреба. Это тебе.' },
-  ],
-  objectives: [
-    { type: 'escort', count: 1, targetId: 'caravan', targetNameRu: 'Обоз', description: 'Сопроводи обоз' },
-    { type: 'kill', count: 3, targetId: 'ambusher', targetNameRu: 'Засадник', description: 'Отбей 3 засадников' },
-  ],
-  rewardSpellId: 'trap',
-  xpReward: 200,
-  prerequisiteBodyQuestId: 'bq_scout',
-  conflictQuestId: 'conflict_caravan',
-};
 
 // ═══════════════════════════════════════════════════════════════
 // T1 — New animals (hare, deer, fox, boar, grouse)
@@ -875,8 +832,6 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_MONKEY,
   QUEST_BANDIT_ARCHER_VET, QUEST_BANDIT_CROSSBOW_VET,
   QUEST_BANDIT_SPEAR_VET, QUEST_BANDIT_BRUTE_VET,
-  // T3 Conflict
-  QUEST_ORC_CARAVAN, QUEST_SCOUT_ESCORT,
 ];
 
 export const CONFLICT_QUESTS: ConflictQuestDef[] = [
