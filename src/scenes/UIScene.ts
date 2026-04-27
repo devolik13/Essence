@@ -53,6 +53,8 @@ interface UIData {
   aoeCast: { elapsed: number; duration: number; name: string } | null;
   creatures: CreatureMapDot[];
   playerPos: { x: number; y: number } | null;
+  mapDotNpcs: { x: number; y: number }[];
+  mapDotNodes: { x: number; y: number; depleted: boolean }[];
   inventory: InventoryItem[];
   unlockedAchievements: string[];
   trackedQuestIds: string[];
@@ -64,6 +66,7 @@ interface PanelState {
   x: number; y: number;
   w: number; h: number;   // h only used for minimap
   collapsed: boolean;
+  hidden?: boolean;
 }
 
 export class UIScene extends Phaser.Scene {
@@ -195,6 +198,13 @@ export class UIScene extends Phaser.Scene {
   private minimapTerrainImg: Phaser.GameObjects.Image | null = null;
   private minimapMapW: number = MAP_WIDTH;
   private minimapMapH: number = MAP_HEIGHT;
+
+  // ── Maxi-map overlay ──────────────────────────────────
+  private maximapOpen: boolean = false;
+  private maximapContainer!: Phaser.GameObjects.Container;
+  private maximapGfx!: Phaser.GameObjects.Graphics;
+  private maximapTerrainImg: Phaser.GameObjects.Image | null = null;
+  private lastUIData: UIData | null = null;
 
   constructor() { super({ key: 'UIScene' }); }
 
@@ -355,11 +365,14 @@ export class UIScene extends Phaser.Scene {
       .setStrokeStyle(1, THEME.brass1, 0.85);
     this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(1009);
 
+    // ── Maxi-map overlay (hidden until M pressed) ─────────
+    this.buildMaximap();
+
     // ── Panel headers (draggable) ──────────────────────────
     this.panelHeaders['body']    = this.makeHeader('body',    'Body');
     this.panelHeaders['target']  = this.makeHeader('target',  'Target');
     this.panelHeaders['log']     = this.makeHeader('log',     'Log');
-    this.panelHeaders['minimap'] = this.makeHeader('minimap', 'Map');
+    this.panelHeaders['minimap'] = this.makeMinimapHeader();
 
     // ── Resize grips ───────────────────────────────────────
     for (const id of Object.keys(this.panelStates)) {
@@ -405,7 +418,12 @@ export class UIScene extends Phaser.Scene {
       this.minimapMapW = t.mapW;
       this.minimapMapH = t.mapH;
       this.buildMinimapTexture(t);
+      this.buildMaximapTerrain(t);
     });
+
+    // M — toggle maxi-map; ESC also closes it
+    this.input.keyboard?.on('keydown-M',   () => this.toggleMaximap());
+    this.input.keyboard?.on('keydown-ESC', () => { if (this.maximapOpen) this.toggleMaximap(); });
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
@@ -557,10 +575,16 @@ export class UIScene extends Phaser.Scene {
     if (!hdr) return;
     const w = state.w;
     (hdr.getAt(0) as Phaser.GameObjects.Rectangle).width = w;
-    (hdr.getAt(2) as Phaser.GameObjects.Text).setX(w - 5);   // arrow
-    (hdr.getAt(3) as Phaser.GameObjects.Text).setX(w / 2);   // grip dots
+    if (panelId === 'minimap') {
+      // [0]=bg [1]=label [2]=arrow [3]=expand [4]=close
+      (hdr.getAt(2) as Phaser.GameObjects.Text).setX(w - 36);
+      (hdr.getAt(3) as Phaser.GameObjects.Text).setX(w - 22);
+      (hdr.getAt(4) as Phaser.GameObjects.Text).setX(w - 8);
+    } else {
+      (hdr.getAt(2) as Phaser.GameObjects.Text).setX(w - 5);   // arrow
+      (hdr.getAt(3) as Phaser.GameObjects.Text).setX(w / 2);   // grip dots
+    }
     hdr.setSize(w, HEADER_H);
-    // Update hitArea too
     hdr.input!.hitArea = new Phaser.Geom.Rectangle(0, 0, w, HEADER_H);
   }
 
@@ -647,6 +671,7 @@ export class UIScene extends Phaser.Scene {
   private updateUI(data: UIData) {
     const { sphere, body, capture } = data;
 
+    this.lastUIData = data;
     this.cachedUIData = data;
     this.cachedLearnedSpells = sphere.learnedSpells;
     this.cachedInCombat = data.inCombat ?? false;
@@ -887,8 +912,9 @@ export class UIScene extends Phaser.Scene {
       }
     }
 
-    // ── Mini-map ──────────────────────────────────────────
+    // ── Mini-map / Maxi-map ────────────────────────────────
     this.drawMinimap(data);
+    if (this.maximapOpen) this.drawMaximap(data);
   }
 
   // ── Mini-map renderer ─────────────────────────────────
@@ -914,15 +940,172 @@ export class UIScene extends Phaser.Scene {
     this.minimapTerrainImg = this.add.image(0, 0, key).setOrigin(0).setScrollFactor(0).setDepth(1009);
   }
 
+  // ── Maxi-map ─────────────────────────────────────────────
+
+  private buildMaximap() {
+    const PAD = 60;
+    const mmW = GAME_WIDTH  - PAD * 2;
+    const mmH = GAME_HEIGHT - PAD * 2;
+
+    const backdrop = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.72)
+      .setOrigin(0).setScrollFactor(0).setDepth(1400);
+    const border = this.add.rectangle(PAD, PAD, mmW, mmH, THEME.ink1, 0.95)
+      .setOrigin(0).setScrollFactor(0).setDepth(1401)
+      .setStrokeStyle(2, THEME.brass1, 0.9);
+
+    const title = this.add.text(PAD + 12, PAD + 8, 'MAP  [M] — close', {
+      fontSize: '11px', fontFamily: '"Special Elite", monospace', color: TC.brass3,
+    }).setScrollFactor(0).setDepth(1403).setOrigin(0);
+
+    const closeBtn = this.add.text(PAD + mmW - 8, PAD + 8, '×', {
+      fontSize: '14px', fontFamily: 'monospace', color: TC.text3,
+    }).setScrollFactor(0).setDepth(1403).setOrigin(1, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => closeBtn.setColor(TC.brass4))
+      .on('pointerout',  () => closeBtn.setColor(TC.text3))
+      .on('pointerdown', () => this.toggleMaximap());
+
+    this.maximapGfx = this.add.graphics().setScrollFactor(0).setDepth(1402);
+
+    this.maximapContainer = this.add.container(0, 0, [backdrop, border, title, closeBtn])
+      .setScrollFactor(0).setDepth(1400).setVisible(false);
+
+    // Close on backdrop click (outside the map area)
+    backdrop.setInteractive()
+      .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        const inside = ptr.x >= PAD && ptr.x <= PAD + mmW && ptr.y >= PAD && ptr.y <= PAD + mmH;
+        if (!inside) this.toggleMaximap();
+      });
+  }
+
+  private buildMaximapTerrain(t: { w: number; h: number; colors: number[] }) {
+    if (this.maximapTerrainImg) this.maximapTerrainImg.destroy();
+    const key = '__maximap_terrain__';
+    // Reuse the same canvas data as minimap — already built in buildMinimapTexture
+    if (this.textures.exists('__minimap_terrain__')) {
+      // Clone key by sharing the same canvas texture
+      if (this.textures.exists(key)) this.textures.remove(key);
+      const canvas = document.createElement('canvas');
+      canvas.width = t.w; canvas.height = t.h;
+      const ctx = canvas.getContext('2d')!;
+      const imgData = ctx.createImageData(t.w, t.h);
+      for (let i = 0; i < t.colors.length; i++) {
+        const c = t.colors[i];
+        imgData.data[i * 4]     = (c >> 16) & 0xff;
+        imgData.data[i * 4 + 1] = (c >> 8)  & 0xff;
+        imgData.data[i * 4 + 2] = c & 0xff;
+        imgData.data[i * 4 + 3] = 220;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      this.textures.addCanvas(key, canvas);
+    }
+    this.maximapTerrainImg = this.add.image(0, 0, key).setOrigin(0).setScrollFactor(0).setDepth(1402).setVisible(false);
+  }
+
+  private toggleMaximap() {
+    this.maximapOpen = !this.maximapOpen;
+    this.maximapContainer.setVisible(this.maximapOpen);
+    this.maximapGfx.setVisible(this.maximapOpen);
+    if (this.maximapTerrainImg) this.maximapTerrainImg.setVisible(this.maximapOpen);
+    if (this.maximapOpen && this.lastUIData) this.drawMaximap(this.lastUIData);
+  }
+
+  private drawMaximap(data: UIData) {
+    if (!this.maximapOpen) return;
+    const PAD = 60;
+    const HEADER = 30;
+    const ox = PAD;
+    const oy = PAD + HEADER;
+    const w  = GAME_WIDTH  - PAD * 2;
+    const h  = GAME_HEIGHT - PAD * 2 - HEADER;
+
+    if (this.maximapTerrainImg) {
+      this.maximapTerrainImg.setPosition(ox, oy).setDisplaySize(w, h).setVisible(true);
+    }
+
+    this.maximapGfx.clear();
+    this.drawMapDots(this.maximapGfx, data, ox, oy, w, h, 4, 3);
+  }
+
+  // ── Minimap header with close + expand buttons ────────
+
+  private makeMinimapHeader(): Phaser.GameObjects.Container {
+    const state = this.panelStates.minimap;
+    let dragMoved = false;
+
+    const bg = this.add.rectangle(0, 0, state.w, HEADER_H, THEME.ink2, 0.95)
+      .setOrigin(0, 0).setStrokeStyle(1, THEME.brass1, 0.85);
+    const label = this.add.text(7, 3, 'Map', {
+      fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.brass3,
+    }).setOrigin(0, 0);
+    const arrow = this.add.text(state.w - 36, 3, '▼', {
+      fontSize: '9px', color: TC.text3,
+    }).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+    const expandBtn = this.add.text(state.w - 22, 3, '⛶', {
+      fontSize: '9px', color: TC.text3,
+    }).setOrigin(0, 0).setInteractive({ useHandCursor: true })
+      .on('pointerover', () => expandBtn.setColor(TC.brass4))
+      .on('pointerout',  () => expandBtn.setColor(TC.text3))
+      .on('pointerdown', (ptr: Phaser.Input.Pointer) => { ptr.event.stopPropagation(); this.toggleMaximap(); });
+    const closeBtn = this.add.text(state.w - 8, 3, '×', {
+      fontSize: '11px', color: TC.text3,
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+      .on('pointerover', () => closeBtn.setColor('#ff6666'))
+      .on('pointerout',  () => closeBtn.setColor(TC.text3))
+      .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        ptr.event.stopPropagation();
+        state.hidden = true;
+        this.saveUILayout();
+      });
+
+    const container = this.add.container(state.x, state.y, [bg, label, arrow, expandBtn, closeBtn])
+      .setScrollFactor(0).setDepth(1010)
+      .setSize(state.w, HEADER_H)
+      .setInteractive(new Phaser.Geom.Rectangle(0, 0, state.w, HEADER_H), Phaser.Geom.Rectangle.Contains)
+      .on('pointerover', () => { (bg as Phaser.GameObjects.Rectangle).setFillStyle(THEME.ink3, 0.98); this.input.setDefaultCursor('grab'); })
+      .on('pointerout',  () => { (bg as Phaser.GameObjects.Rectangle).setFillStyle(THEME.ink2, 0.95); this.input.setDefaultCursor('default'); })
+      .on('dragstart', () => { dragMoved = false; })
+      .on('drag', (_ptr: Phaser.Input.Pointer, dx: number, dy: number) => {
+        dragMoved = true;
+        state.x = Math.max(0, Math.min(GAME_WIDTH  - state.w, dx));
+        state.y = Math.max(0, Math.min(GAME_HEIGHT - HEADER_H, dy));
+        container.setPosition(state.x, state.y);
+        this.input.setDefaultCursor('grabbing');
+      })
+      .on('dragend', () => { if (dragMoved) this.saveUILayout(); this.input.setDefaultCursor('default'); })
+      .on('pointerup', (ptr: Phaser.Input.Pointer) => {
+        ptr.event.stopPropagation();
+        if (!dragMoved) {
+          state.collapsed = !state.collapsed;
+          (arrow as Phaser.GameObjects.Text).setText(state.collapsed ? '▶' : '▼');
+          this.saveUILayout();
+        }
+        dragMoved = false;
+      });
+
+    this.input.setDraggable(container);
+    return container;
+  }
+
   private drawMinimap(data: UIData) {
     const s = this.panelStates.minimap;
-    this.panelHeaders['minimap'].setPosition(s.x, s.y);
-    this.setHeaderLabel('minimap', `Map  ${s.w}×${s.h}`);
+    const hidden = s.hidden || this.maximapOpen;
+
+    this.panelHeaders['minimap'].setVisible(!hidden).setPosition(s.x, s.y);
+    this.minimapGfx.clear();
+
+    if (hidden) {
+      this.minimapBorder.setVisible(false);
+      if (this.minimapTerrainImg) this.minimapTerrainImg.setVisible(false);
+      this.grips['minimap']?.setVisible(false);
+      return;
+    }
+
+    this.setHeaderLabel('minimap', 'Map');
 
     const collapsed = s.collapsed;
     const mapTop = s.y + HEADER_H;
     this.minimapBorder.setPosition(s.x, mapTop).setSize(s.w, s.h).setVisible(!collapsed);
-    this.minimapGfx.clear();
 
     if (this.minimapTerrainImg) {
       this.minimapTerrainImg.setVisible(!collapsed);
@@ -932,38 +1115,57 @@ export class UIScene extends Phaser.Scene {
     }
 
     if (!collapsed) {
-      const ml = s.x;
-      const mt = mapTop;
-      const g = this.minimapGfx;
-
-      const mapW = this.minimapMapW;
-      const mapH = this.minimapMapH;
-      const sx = s.w / mapW;
-      const sy = s.h / mapH;
-
-      // Creatures
-      for (const c of data.creatures) {
-        if (c.isDead) continue;
-        const cx = ml + c.x * sx;
-        const cy = mt + c.y * sy;
-        g.fillStyle(c.isPassive ? 0x888888 : c.isAggro ? 0xff3333 : 0xcc4444,
-                    c.isPassive ? 0.7 : c.isAggro ? 1.0 : 0.65);
-        g.fillRect(cx - 1, cy - 1, 2, 2);
-      }
-
-      // Player
-      if (data.playerPos) {
-        const px = ml + data.playerPos.x * sx;
-        const py = mt + data.playerPos.y * sy;
-        g.fillStyle(THEME.ether2, 1.0);
-        g.fillRect(px - 1.5, py - 1.5, 3, 3);
-        g.lineStyle(1, THEME.ether3, 0.55);
-        g.strokeRect(px - 2.5, py - 2.5, 5, 5);
-      }
-
-      this.positionGrip('minimap', mt + s.h);
+      this.drawMapDots(this.minimapGfx, data, s.x, mapTop, s.w, s.h, 2, 1.5);
+      this.positionGrip('minimap', mapTop + s.h);
     } else {
       this.positionGrip('minimap', s.y + HEADER_H);
+    }
+    this.grips['minimap']?.setVisible(!collapsed);
+  }
+
+  /** Draws creature/NPC/node/player dots onto a graphics object scaled to given rect. */
+  private drawMapDots(
+    g: Phaser.GameObjects.Graphics,
+    data: UIData,
+    ox: number, oy: number, w: number, h: number,
+    dotSize: number, playerSize: number,
+  ) {
+    const mapW = this.minimapMapW;
+    const mapH = this.minimapMapH;
+    const sx = w / mapW;
+    const sy = h / mapH;
+
+    // Resource nodes (green — depleted = dark)
+    for (const n of data.mapDotNodes ?? []) {
+      g.fillStyle(n.depleted ? 0x336633 : 0x44bb44, n.depleted ? 0.4 : 0.8);
+      g.fillRect(ox + n.x * sx - dotSize * 0.5, oy + n.y * sy - dotSize * 0.5, dotSize, dotSize);
+    }
+
+    // NPCs (yellow)
+    for (const n of data.mapDotNpcs ?? []) {
+      g.fillStyle(0xffdd55, 0.9);
+      g.fillRect(ox + n.x * sx - dotSize * 0.5, oy + n.y * sy - dotSize * 0.5, dotSize, dotSize);
+    }
+
+    // Creatures (red scale by aggro)
+    for (const c of data.creatures) {
+      if (c.isDead) continue;
+      g.fillStyle(
+        c.isPassive ? 0x888888 : c.isAggro ? 0xff3333 : 0xcc4444,
+        c.isPassive ? 0.7 : c.isAggro ? 1.0 : 0.65,
+      );
+      g.fillRect(ox + c.x * sx - dotSize * 0.5, oy + c.y * sy - dotSize * 0.5, dotSize, dotSize);
+    }
+
+    // Player (bright ether dot with outline)
+    if (data.playerPos) {
+      const px = ox + data.playerPos.x * sx;
+      const py = oy + data.playerPos.y * sy;
+      const ps = playerSize + 0.5;
+      g.fillStyle(THEME.ether2, 1.0);
+      g.fillRect(px - ps, py - ps, ps * 2, ps * 2);
+      g.lineStyle(1, THEME.ether3, 0.6);
+      g.strokeRect(px - ps - 1, py - ps - 1, ps * 2 + 2, ps * 2 + 2);
     }
   }
 

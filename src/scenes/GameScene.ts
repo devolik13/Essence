@@ -710,6 +710,8 @@ export class GameScene extends Phaser.Scene {
           : null,
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
+      mapDotNpcs: this.worldNPCs.map(n => ({ x: n.x, y: n.y })),
+      mapDotNodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
       creatures: this.creatures.map(c => ({
         x: c.x, y: c.y,
         isDead: c.isDead,
