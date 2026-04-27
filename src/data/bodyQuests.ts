@@ -165,18 +165,19 @@ const QUEST_SPARK: BodyQuestDef = {
 
 const QUEST_SPLASHER: BodyQuestDef = {
   id: 'bq_splasher', bodyId: 'splasher', tier: 1,
-  nameRu: 'Deep Chase',
-  description: 'Catch the elusive fish.',
+  nameRu: 'Quench',
+  description: 'Put out 5 burning trees.',
   introMessages: [
-    { speaker: '', text: 'Water. Cold. Good.' },
-    { speaker: '', text: 'Down in the deep — a big fish. It\'s been escaping for three days.' },
-    { speaker: '', text: 'Fast. Clever. But not cleverer than the water.' },
+    { speaker: '', text: 'Fire. Wrong. It doesn\'t belong here.' },
+    { speaker: '', text: 'Five trees burning at the edge of the lake.' },
+    { speaker: '', text: 'Water fixes what fire breaks.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Caught. The water obeys. Its chill — yours to command.' },
+    { speaker: '', text: 'Cold. Quiet. The shore breathes again. Ice answers your call.' },
   ],
   objectives: [
-    { type: 'kill', count: 1, targetId: 'big_fish', targetNameRu: 'Big Fish', description: 'Catch the elusive fish' },
+    // TODO: spawn burning_tree destructibles near water zone edge
+    { type: 'destroy', count: 5, targetId: 'burning_tree', targetNameRu: 'Burning Tree', description: 'Put out 5 burning trees' },
   ],
   rewardSpellId: 'mob_water_t1',
   xpReward: 50,
@@ -203,18 +204,19 @@ const QUEST_PEBBLE: BodyQuestDef = {
 
 const QUEST_GUSTY: BodyQuestDef = {
   id: 'bq_gusty', bodyId: 'gusty', tier: 1,
-  nameRu: 'Race to the Peak',
-  description: 'Be the first to reach the summit.',
+  nameRu: 'Apex Predator',
+  description: 'Hunt down another elemental.',
   introMessages: [
-    { speaker: '', text: 'Fast. Faster still.' },
-    { speaker: '', text: 'Three others wait at the lower crevice.' },
-    { speaker: '', text: 'First to the summit — that\'s who matters.' },
+    { speaker: '', text: 'The wind doesn\'t wait. The wind doesn\'t ask.' },
+    { speaker: '', text: 'Another elemental stirs nearby. Doesn\'t matter which.' },
+    { speaker: '', text: 'Wind is fastest. Prove it.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'First. The wind itself bows. Its gust — yours to wield.' },
+    { speaker: '', text: 'Gone. The peaks are yours. The gust — yours to throw.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'summit', description: 'Reach the summit first' },
+    // targetId undefined = matches any kill (any elemental in the zone will do)
+    { type: 'kill', count: 1, description: 'Hunt down any elemental' },
   ],
   rewardSpellId: 'mob_wind_t1',
   xpReward: 50,
