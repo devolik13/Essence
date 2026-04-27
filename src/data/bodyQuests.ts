@@ -237,7 +237,7 @@ const QUEST_BANDIT_ARCHER: BodyQuestDef = {
     { objectId: 'caravan_cart', nameRu: 'Cart', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
     { objectId: 'caravan_cargo', nameRu: 'Cargo', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
   ],
-  rewardSpellId: 'bow_backshot',
+  rewardSpellId: 'longbow_shot',
   xpReward: 100,
 };
 
@@ -257,7 +257,7 @@ const QUEST_BANDIT_CROSSBOW: BodyQuestDef = {
     { type: 'destroy', count: 1, targetId: 'fort_lock', targetNameRu: 'Lock', description: 'Destroy the fort lock' },
     { type: 'kill', count: 2, targetId: 'fort_guard', targetNameRu: 'Fort guard', description: 'Deal with 2 fort guards' },
   ],
-  rewardSpellId: 'crossbow_snare',
+  rewardSpellId: 'crossbow_bolt',
   xpReward: 100,
 };
 
@@ -281,7 +281,7 @@ const QUEST_BANDIT_SPEAR: BodyQuestDef = {
     { objectId: 'caravan_cart', nameRu: 'Cart', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
     { objectId: 'caravan_cargo', nameRu: 'Cargo', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
   ],
-  rewardSpellId: 'spear_butt',
+  rewardSpellId: 'spear_thrust',
   xpReward: 100,
 };
 
@@ -300,7 +300,7 @@ const QUEST_BANDIT_BRUTE: BodyQuestDef = {
   objectives: [
     { type: 'destroy', count: 1, targetId: 'watchtower', targetNameRu: 'Watchtower', description: 'Destroy the watchtower' },
   ],
-  rewardSpellId: 'hammer_smash',
+  rewardSpellId: 'hammer_strike',
   xpReward: 100,
 };
 
@@ -545,7 +545,7 @@ const QUEST_FOX: BodyQuestDef = {
   objectives: [
     { type: 'kill', count: 3, targetId: 'hare', targetNameRu: 'Hare', description: 'Hunt 3 hares' },
   ],
-  rewardSpellId: 'fist_strike',
+  rewardSpellId: 'hook',
   xpReward: 50,
 };
 
