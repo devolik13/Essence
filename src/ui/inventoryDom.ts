@@ -163,7 +163,7 @@ function buildSlot(
     const sprite = spriteForItem(itemDef.id);
     if (sprite) {
       icon.classList.add('icon-svg');
-      icon.appendChild(createSpriteSvg(sprite));
+      icon.appendChild(createSpriteSvg(sprite, 'weapon-svg-icon'));
     } else {
       icon.textContent = itemDef.icon || '?';
     }
