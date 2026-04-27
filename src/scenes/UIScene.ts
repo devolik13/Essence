@@ -21,6 +21,7 @@ import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from 
 import { spriteForSpell } from '../ui/weaponIcon';
 import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
+import { showBestiaryWindowDom, hideBestiaryWindowDom, isBestiaryWindowDomOpen, refreshBestiaryWindowDom } from '../ui/bestiaryWindowDom';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
@@ -28,7 +29,7 @@ const HEADER_H = 20;
 const WIN_W = 310;
 const WIN_TITLE_H = 22;
 
-type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells';
+type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -102,7 +103,7 @@ export class UIScene extends Phaser.Scene {
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
   private menuBtnIcons: Phaser.GameObjects.Text[]      = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
-  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells'];
+  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells', 'bestiary'];
 
   // ── Floating window ───────────────────────────────────
   private currentWindow: WindowType | null = null;
@@ -414,6 +415,10 @@ export class UIScene extends Phaser.Scene {
       this.addLog(`  ✦ Weakness: -15% dmg for ${data?.debuffDuration ?? 30}с`);
     });
     gs.events.on('body-captured', (name: string) => this.addLog(`${t('log.captured')} ${name}`));
+    gs.events.on('bestiary-revealed', (data: { id: string; reason: string; nameRu: string }) => {
+      this.addLog(`✦ ${data.nameRu} → ${t('menu.bestiary')}`);
+      if (isBestiaryWindowDomOpen()) refreshBestiaryWindowDom();
+    });
     gs.events.on('show-dialog', (data: { speaker: string; text: string }[] | { messages: { speaker: string; text: string }[]; onEnd?: () => void }) => {
       if (Array.isArray(data)) {
         this.showDialog(data);
@@ -1534,8 +1539,8 @@ export class UIScene extends Phaser.Scene {
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
-    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells')];
-    const icons  = ['✦', '⬡', '❖', '★', '⚡'];
+    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary')];
+    const icons  = ['✦', '⬡', '❖', '★', '⚡', '⌬'];
     const btnSz = SKILL_SLOT_SIZE;
     const gap = SKILL_SLOT_GAP;
 
@@ -1550,7 +1555,7 @@ export class UIScene extends Phaser.Scene {
     const trayRight = barCx + trayW / 2;
 
     // Left group: Stats, Inventory, Quests (3 buttons)
-    // Right group: Achievements, Spells (2 buttons)
+    // Right group: Achievements, Spells, Bestiary (3 buttons)
     const leftCount = 3;
     const sideGap = 10;
     // Left buttons sit past the lock icon (22px wide at startX - 22, left of tray start).
@@ -1750,6 +1755,19 @@ export class UIScene extends Phaser.Scene {
       return;
     }
 
+    // DOM-based bestiary
+    if (type === 'bestiary') {
+      this.windowContainer.setVisible(false);
+      showBestiaryWindowDom(() => this.closeWindow());
+      for (let i = 0; i < this.menuBtnTypes.length; i++) {
+        const active = this.menuBtnTypes[i] === type;
+        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
+      }
+      return;
+    }
+
     if (type === 'vendor' || type === 'crafting') {
       this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
       this.windowY = 30;
@@ -1895,6 +1913,9 @@ export class UIScene extends Phaser.Scene {
     }
     if (this.currentWindow === 'achievements' && isAchievementsWindowDomOpen()) {
       hideAchievementsWindowDom();
+    }
+    if (this.currentWindow === 'bestiary' && isBestiaryWindowDomOpen()) {
+      hideBestiaryWindowDom();
     }
     this.currentWindow = null;
     this.windowContainer.setVisible(false);

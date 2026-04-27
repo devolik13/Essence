@@ -29,6 +29,7 @@ import { t } from '../i18n';
 import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG } from '../data/dialogs';
 import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
+import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
 import { STATUS_DEFS } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
@@ -2615,6 +2616,14 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
     }
 
+    // Бестиарий — отметить запись (для боссов и обычных мобов)
+    {
+      const { newlyRevealed } = bestiaryReveal(creature.definition.id, 'killed');
+      if (newlyRevealed) {
+        this.events.emit('bestiary-revealed', { id: creature.definition.id, reason: 'killed', nameRu: creature.definition.nameRu });
+      }
+    }
+
     // Квест — засчитать убийство (и босса если это Guardian)
     this.handleQuestKill(creature.definition.id, xpTotal);
     if (creature.definition.isBoss) {
@@ -2742,6 +2751,14 @@ export class GameScene extends Phaser.Scene {
       this.sphere.lastBodyId = def.id;
 
       this.events.emit('body-captured', def.nameRu);
+
+      // Бестиарий — записать вселение
+      {
+        const { newlyRevealed } = bestiaryReveal(def.id, 'sphered');
+        if (newlyRevealed) {
+          this.events.emit('bestiary-revealed', { id: def.id, reason: 'sphered', nameRu: def.nameRu });
+        }
+      }
 
       // Захваты: счётчик ачивок
       this.sphere.killCounts['__captures'] = (this.sphere.killCounts['__captures'] ?? 0) + 1;

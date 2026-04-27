@@ -15,6 +15,8 @@ const WEAPON_TYPES = [
 
 const ARMOR_TYPES = ['heavy', 'leather', 'robe'] as const;
 const ARMOR_SLOTS = ['helmet', 'chest', 'gloves', 'boots'] as const;
+const ACCESSORY_TYPES = ['shield', 'ring', 'amulet', 'weapon_rune', 'armor_rune'] as const;
+const MATERIAL_IDS = ['copper_ore', 'willow_branch', 'wolf_hide'] as const;
 
 /** Map a weapon-type string (sword, staff_fire, …) to its sprite symbol id, or null. */
 export function spriteIdForWeapon(weapon: string): string | null {
@@ -26,9 +28,13 @@ export function spriteIdForWeapon(weapon: string): string | null {
  * Returns null if the item is not a weapon/armor we can render.
  */
 export function spriteForItem(itemId: string): SpriteRef | null {
+  if ((MATERIAL_IDS as readonly string[]).includes(itemId)) {
+    return { file: 'materials.svg', id: `icon_${itemId}` };
+  }
   let core = itemId;
   if (core.startsWith('starter_')) core = core.slice('starter_'.length);
-  const tierMatch = core.match(/^(.*)_t\d+$/);
+  const tierMatch = core.match(/^(.*)_t(\d+)$/);
+  const tier = tierMatch ? tierMatch[2] : null;
   if (tierMatch) core = tierMatch[1];
   if ((WEAPON_TYPES as readonly string[]).includes(core)) {
     return { file: 'weapons.svg', id: `icon_${core}` };
@@ -37,6 +43,10 @@ export function spriteForItem(itemId: string): SpriteRef | null {
   if (armor && (ARMOR_TYPES as readonly string[]).includes(armor[1]) &&
       (ARMOR_SLOTS as readonly string[]).includes(armor[2])) {
     return { file: 'armor.svg', id: `icon_${armor[1]}_${armor[2]}` };
+  }
+  if ((ACCESSORY_TYPES as readonly string[]).includes(core)) {
+    const t = tier ?? '1';
+    return { file: 'accessories.svg', id: `icon_${core}_t${t}` };
   }
   return null;
 }
