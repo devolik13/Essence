@@ -59,6 +59,7 @@ export class Creature extends Phaser.GameObjects.Container {
   private hpBarBg: Phaser.GameObjects.Rectangle;
   private statusText: Phaser.GameObjects.Text;
   private nameText: Phaser.GameObjects.Text;
+  private _lastStatusStr: string = '';
 
   // Hit flash
   private hitFlashTimer: number = 0;
@@ -328,19 +329,22 @@ export class Creature extends Phaser.GameObjects.Container {
   };
 
   private updateStatusIcons() {
-    if (this.statusEffects.size === 0) {
-      this.statusText.setText('');
-      return;
-    }
-    const parts: string[] = [];
-    for (const [id, status] of this.statusEffects) {
-      const info = Creature.STATUS_ICONS[id];
-      if (info) {
-        const stacks = status.stacks > 1 ? `${status.stacks}` : '';
-        parts.push(`${info.icon}${stacks}`);
+    let next = '';
+    if (this.statusEffects.size > 0) {
+      const parts: string[] = [];
+      for (const [id, status] of this.statusEffects) {
+        const info = Creature.STATUS_ICONS[id];
+        if (info) {
+          const stacks = status.stacks > 1 ? `${status.stacks}` : '';
+          parts.push(`${info.icon}${stacks}`);
+        }
       }
+      next = parts.join(' ');
     }
-    this.statusText.setText(parts.join(' '));
+    if (next !== this._lastStatusStr) {
+      this._lastStatusStr = next;
+      this.statusText.setText(next);
+    }
   }
 
   private moveAwayFrom(tx: number, ty: number, speed: number, dt: number) {

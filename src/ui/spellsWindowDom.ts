@@ -5,9 +5,10 @@
 import { AbilityDef } from '../types/abilities';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from './spellTooltip';
 import { spriteIdForWeapon, createWeaponSvg, spriteForSpell, createSpriteSvg } from './weaponIcon';
+import { openWindowShell, DOMWindowHandle } from './domWindowBase';
 
+let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 let root: HTMLElement | null = null;
-let onCloseHandler: (() => void) | null = null;
 
 const SCHOOL_ORDER = ['fire', 'water', 'earth', 'wind', 'nature', 'neutral'];
 const SCHOOL_LABELS: Record<string, string> = {
@@ -106,13 +107,11 @@ function buildSchoolGroup(schoolId: string, spells: AbilityDef[], learnedIds: Se
 
 export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<string>, onClose: () => void): void {
   hideSpellsWindowDom();
-  onCloseHandler = onClose;
   const spells = allSpells;
 
-  const container = el('div');
-  container.id = 'ess-spells-root';
-
-  container.appendChild(el('div', 'ess-backdrop'));
+  handle = openWindowShell('', 'ess-backdrop', onClose);
+  handle.root.id = 'ess-spells-root';
+  root = handle.root;
 
   const stage = el('div', 'ess-stage');
   const win = el('div', 'ess-window ess-spells-window');
@@ -190,29 +189,16 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
   win.appendChild(body);
 
   stage.appendChild(win);
-  container.appendChild(stage);
-
-  container.querySelector('.ess-backdrop')?.addEventListener('click', () => onClose());
-
-  const keyHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
-  window.addEventListener('keydown', keyHandler);
-  (container as any)._keyHandler = keyHandler;
-
-  document.body.appendChild(container);
-  root = container;
+  handle.stage.appendChild(stage);
 }
 
 export function hideSpellsWindowDom(): void {
   hideSpellTooltip();
-  if (root) {
-    const kh = (root as any)._keyHandler;
-    if (kh) window.removeEventListener('keydown', kh);
-    root.remove();
+  if (handle) {
+    handle.destroy();
+    handle = null;
     root = null;
   }
-  onCloseHandler = null;
 }
 
 export function isSpellsWindowDomOpen(): boolean {

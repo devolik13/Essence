@@ -3,7 +3,10 @@
  */
 import { Sphere } from '../entities/Sphere';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
+import { openWindowShell, DOMWindowHandle } from './domWindowBase';
 
+let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
+// Legacy alias used by isAchievementsWindowDomOpen
 let root: HTMLElement | null = null;
 
 const CATEGORY_ORDER: AchievementDef['category'][] = ['kill', 'capture', 'spell', 'explore'];
@@ -145,10 +148,9 @@ function buildCategoryGroup(catId: string, achievements: AchievementDef[], spher
 export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): void {
   hideAchievementsWindowDom();
 
-  const container = el('div');
-  container.id = 'ess-achievements-root';
-
-  container.appendChild(el('div', 'ess-backdrop'));
+  handle = openWindowShell('', 'ess-backdrop', onClose);
+  handle.root.id = 'ess-achievements-root';
+  root = handle.root;
 
   const stage = el('div', 'ess-stage');
   const win = el('div', 'ess-window ess-achievements-window');
@@ -190,25 +192,13 @@ export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): 
   win.appendChild(body);
 
   stage.appendChild(win);
-  container.appendChild(stage);
-
-  container.querySelector('.ess-backdrop')?.addEventListener('click', () => onClose());
-
-  const keyHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
-  window.addEventListener('keydown', keyHandler);
-  (container as any)._keyHandler = keyHandler;
-
-  document.body.appendChild(container);
-  root = container;
+  handle.stage.appendChild(stage);
 }
 
 export function hideAchievementsWindowDom(): void {
-  if (root) {
-    const kh = (root as any)._keyHandler;
-    if (kh) window.removeEventListener('keydown', kh);
-    root.remove();
+  if (handle) {
+    handle.destroy();
+    handle = null;
     root = null;
   }
 }

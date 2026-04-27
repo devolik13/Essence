@@ -179,7 +179,18 @@ export const ZONE_VILLAGE: ZoneConfig = {
   workbenches: [],
 
   npcs: [
-    // Temporarily removed — will add back after map layout is finalized
+    // ═══ ESHWORTH NPCs ═══
+    { x: EX - 80,  y: EY - 60,  id: 'bert',     nameRu: 'Bert',    role: 'npc' },
+    { x: EX + 60,  y: EY - 40,  id: 'aldric',   nameRu: 'Aldric',  role: 'npc' },
+    { x: EX - 40,  y: EY + 60,  id: 'mira',     nameRu: 'Mira',    role: 'npc' },
+    { x: EX + 90,  y: EY + 80,  id: 'pol',      nameRu: 'Pol',     role: 'npc' },
+    { x: EX - 120, y: EY + 100, id: 'stranger', nameRu: '???',     role: 'npc' },
+    { x: EX + 20,  y: EY + 40,  id: 'merchant', nameRu: 'Shop',    role: 'vendor' },
+    // ═══ WALDMAR NPCs ═══
+    { x: WX - 60,  y: WY - 60,  id: 'captain',    nameRu: 'Vern',   role: 'npc' },
+    { x: WX + 60,  y: WY - 40,  id: 'healer',     nameRu: 'Lena',   role: 'npc' },
+    { x: WX - 40,  y: WY + 60,  id: 'blacksmith', nameRu: 'Gorm',   role: 'npc' },
+    { x: WX + 80,  y: WY + 40,  id: 'arms_dealer',nameRu: 'Arms',   role: 'weapon_vendor' },
   ],
 
   questObjects: [

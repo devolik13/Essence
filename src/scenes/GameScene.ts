@@ -31,150 +31,18 @@ import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
-import { STATUS_DEFS } from '../types/statuses';
+import { STATUS_DEFS, StatusEffectId } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 import { MapEditor } from '../systems/mapEditor';
-
-// ── Summoned Ent (damage absorber) ───────────────────────────
-interface SummonedEnt {
-  x: number; y: number;
-  hp: number; maxHP: number;
-  radius: number;
-  remaining: number;
-  sprite: Phaser.GameObjects.Sprite | null;
-  hpBar: Phaser.GameObjects.Rectangle;
-  hpBarBg: Phaser.GameObjects.Rectangle;
-}
-
-// ── Fire Tsunami ─────────────────────────────────────────────
-interface FireTsunami {
-  x: number; y: number;           // center of the zone
-  angle: number;                   // direction from target to caster
-  width: number; depth: number;    // zone dimensions
-  waveProgress: number;            // 0→1, wave position
-  waveDuration: number;            // seconds for wave to cross
-  waveHit: Set<Creature>;         // creatures already hit by wave
-  baseDamage: number;              // instant wave damage
-  burnRemaining: number;           // burning ground timer after wave
-  burnDps: number;                 // burning ground DPS
-  burnTickTimer: number;
-  school: string;
-  casterStats: Stats;
-  ownerIsPlayer: boolean;
-  waveSprite: Phaser.GameObjects.Sprite | null;
-  burnSprites: Phaser.GameObjects.Sprite[];
-  gfx: Phaser.GameObjects.Graphics;
-}
-
-// ── Зона на карте (ground_zone) ─────────────────────────────
-interface GroundZone {
-  x: number;
-  y: number;
-  radius: number;
-  dps: number;
-  remaining: number;
-  tickTimer: number;
-  school?: MagicSchool;
-  statusEffect?: string;
-  statusChance?: number;
-  spellId: string;
-  casterStats: Stats;
-  ownerIsPlayer: boolean;
-  followPlayer?: boolean;  // зона следует за игроком (Whirlwind)
-  // Форма стены (прямоугольник)
-  isWall: boolean;
-  wallWidth: number;        // длина стены
-  wallThickness: number;    // толщина
-  angle: number;            // угол ориентации (рад)
-  gfx: Phaser.GameObjects.Graphics;
-  sprite?: Phaser.GameObjects.Sprite; // animated sprite overlay
-}
-
-// ── Призванная стена (summon_wall) ───────────────────────
-interface SummonedWall {
-  x: number;
-  y: number;
-  halfW: number;
-  halfT: number;
-  angle: number;
-  hp: number;
-  maxHP: number;
-  remaining: number;        // секунд осталось (-1 = бессрочно)
-  spellId: string;          // для отмены повторным нажатием
-  ownerIsPlayer: boolean;
-  gfx: Phaser.GameObjects.Graphics;
-  hpBar: Phaser.GameObjects.Rectangle;
-  hpBarBg: Phaser.GameObjects.Rectangle;
-}
-
-// ── Ветряной барьер (wind_barrier) ───────────────────────
-interface WindBarrier {
-  x: number;
-  y: number;
-  radius: number;
-  damageReduction: number;
-  remaining: number;
-  spellId: string;
-  ownerIsPlayer: boolean;
-  isWall: boolean;
-  halfW: number;
-  halfT: number;
-  angle: number;
-  gfx: Phaser.GameObjects.Graphics;
-}
-
-/** Проверяет попадание точки в повёрнутый прямоугольник */
-function pointInRotatedRect(px: number, py: number, cx: number, cy: number, halfW: number, halfT: number, angle: number): boolean {
-  const cos = Math.cos(-angle);
-  const sin = Math.sin(-angle);
-  const dx = px - cx;
-  const dy = py - cy;
-  const lx = Math.abs(dx * cos - dy * sin);
-  const ly = Math.abs(dx * sin + dy * cos);
-  return lx <= halfW && ly <= halfT;
-}
-
-// ── Штраф за смерть ──────────────────────────────────────
-// TODO: подобрать значения после тестирования баланса
-const DEATH_XP_LOSS_PCT    = 0.10;  // 10% накопленного XP в текущих статах
-const DEATH_DEBUFF_DURATION = 30;   // сек — длительность дебаффа
-export const DEATH_DEBUFF_MULT = 0.85;  // ×0.85 к урону пока дебафф активен
-
-/** Базовые атаки для каждого вида тела (слот 1).
- *  baseDamage = 0 — урон берётся из weapon.baseDamage в handleAttack */
-const BASIC_ATTACKS: Record<string, AbilityDef> = {
-  default: {
-    id: 'basic_melee', nameRu: 'Strike', damageType: 'melee',
-    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Basic attack',
-  },
-  human_warrior: {
-    id: 'basic_sword', nameRu: 'Sword Strike', damageType: 'melee',
-    cooldown: 1.2, manaCost: 0, range: 48, baseDamage: 0, description: 'Sword attack',
-  },
-  human_archer: {
-    id: 'basic_bow', nameRu: 'Shot', damageType: 'ranged',
-    cooldown: 1.0, manaCost: 0, range: 200, baseDamage: 0, description: 'Bow shot',
-  },
-  human_mage: {
-    id: 'basic_staff', nameRu: 'Staff Strike', damageType: 'magic',
-    cooldown: 1.5, manaCost: 2, range: 180, baseDamage: 0, description: 'Magic shot',
-  },
-  rabbit: {
-    id: 'basic_paw', nameRu: 'Paw Strike', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 36, baseDamage: 0, description: 'Quick paw strike',
-  },
-  goblin: {
-    id: 'basic_dagger', nameRu: 'Dagger Stab', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 40, baseDamage: 0, description: 'Dagger stab',
-  },
-  wolf: {
-    id: 'basic_bite', nameRu: 'Bite', damageType: 'melee',
-    cooldown: 0.8, manaCost: 0, range: 38, baseDamage: 0, description: 'Wolf bite',
-  },
-};
+import {
+  SummonedEnt, FireTsunami, GroundZone, SummonedWall, WindBarrier,
+  pointInRotatedRect, BASIC_ATTACKS,
+  DEATH_XP_LOSS_PCT, DEATH_DEBUFF_DURATION, DEATH_DEBUFF_MULT,
+} from './gameSceneTypes';
+export { DEATH_DEBUFF_MULT } from './gameSceneTypes';
 
 export class GameScene extends Phaser.Scene {
   private sphere!: Sphere;
@@ -208,7 +76,7 @@ export class GameScene extends Phaser.Scene {
   private summonedEnts: SummonedEnt[] = [];
 
   // Zone exit arrows (shown when near edge)
-  private exitArrows: Phaser.GameObjects.Text[] = [];
+  private exitArrows: { text: Phaser.GameObjects.Text; edge: string }[] = [];
 
   // Loot drops on ground
   private lootDrops: { x: number; y: number; items: { itemId: string; qty: number }[]; gfx: Phaser.GameObjects.Container; timer: number }[] = [];
@@ -399,7 +267,7 @@ export class GameScene extends Phaser.Scene {
         this.sphere.enterBody();
         this.sphere.lastBodyId = bodyDef.id;
         if (this.isNewGame) {
-          saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+          this.persistState();
         }
       }
     }
@@ -471,7 +339,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         ids.push(questId);
       }
-      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.persistState();
     });
 
     // Назначение заклинания в слот из spell picker (из UIScene)
@@ -483,7 +351,7 @@ export class GameScene extends Phaser.Scene {
       slot.cooldownRemaining = 0;
       // Сохраняем назначение в Сферу
       this.sphere.savedSlotIds[data.slotIndex] = data.spell?.id ?? null;
-      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.persistState();
     });
 
     this.events.on('activate-spell-slot', (slotIndex: number) => {
@@ -504,7 +372,7 @@ export class GameScene extends Phaser.Scene {
           body.currentMana = Math.min(body.maxMana, body.currentMana + def.manaRestore);
         }
       }
-      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.persistState();
     });
 
     // ─── Клик ────────────────────────────────────────
@@ -547,6 +415,10 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
+  }
+
+  private persistState() {
+    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
   update(time: number, delta: number) {
@@ -1545,8 +1417,7 @@ export class GameScene extends Phaser.Scene {
         stroke: '#000000', strokeThickness: 4,
         shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true },
       }).setOrigin(0.5).setDepth(100).setAlpha(0);
-      (text as any)._exitEdge = exit.edge;
-      this.exitArrows.push(text);
+      this.exitArrows.push({ text, edge: exit.edge });
     }
   }
 
@@ -1559,18 +1430,16 @@ export class GameScene extends Phaser.Scene {
     const showDist = 400; // show when within 400px of edge
 
     for (const arrow of this.exitArrows) {
-      const edge = (arrow as any)._exitEdge;
       let dist = 9999;
-      if (edge === 'north') dist = entity.y;
-      if (edge === 'south') dist = zh - entity.y;
-      if (edge === 'east')  dist = zw - entity.x;
-      if (edge === 'west')  dist = entity.x;
+      if (arrow.edge === 'north') dist = entity.y;
+      if (arrow.edge === 'south') dist = zh - entity.y;
+      if (arrow.edge === 'east')  dist = zw - entity.x;
+      if (arrow.edge === 'west')  dist = entity.x;
 
       const alpha = dist < showDist ? Math.min(1, (showDist - dist) / 200) : 0;
-      arrow.setAlpha(alpha);
-      // Pulse
+      arrow.text.setAlpha(alpha);
       if (alpha > 0) {
-        arrow.setScale(1 + Math.sin(Date.now() * 0.003) * 0.1);
+        arrow.text.setScale(1 + Math.sin(Date.now() * 0.003) * 0.1);
       }
     }
   }
@@ -1643,7 +1512,7 @@ export class GameScene extends Phaser.Scene {
         this.showMessage(lootStr);
         drop.gfx.destroy();
         this.lootDrops.splice(i, 1);
-        saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+        this.persistState();
         return true;
       }
     }
@@ -1672,7 +1541,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.showMessage('Arms Dealer: You have all weapons.');
     }
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
   }
 
   /** NPC dialog system */
@@ -1683,7 +1552,7 @@ export class GameScene extends Phaser.Scene {
     const onEnd = () => {
       const talkCompleted = this.questTracker.onTalk(npcId);
       for (const q of talkCompleted) this.onQuestComplete(q);
-      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.persistState();
       this.updateQuestMarkers();
     };
 
@@ -1784,7 +1653,7 @@ export class GameScene extends Phaser.Scene {
     node.gfx.setAlpha(0.3);
     this.gatheringNode = null;
     this.gatheringTimer = 0;
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
   }
 
   private interruptGathering() {
@@ -1826,7 +1695,7 @@ export class GameScene extends Phaser.Scene {
         this.sphere.inventory.push({ itemId: toolId, quantity: 1 });
       }
     }
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
     // Open vendor UI window
     this.events.emit('open-vendor');
   }
@@ -1850,10 +1719,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Unequip if equipped
-    const equip = this.sphere.equipment;
+    const equip = this.sphere.equipment as Record<string, string | undefined>;
     for (const key of Object.keys(equip)) {
-      if ((equip as any)[key] === itemId) {
-        (equip as any)[key] = undefined;
+      if (equip[key] === itemId) {
+        equip[key] = undefined;
       }
     }
 
@@ -1868,7 +1737,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.showMessage(`Disassembled! Got: ${returned.join(', ')}`);
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
   }
 
   /** Buy recipe from vendor */
@@ -1885,7 +1754,7 @@ export class GameScene extends Phaser.Scene {
     this.sphere.learnedRecipes.push(recipeId);
     this.showMessage(`Learned recipe! -${formatCurrency(price)}`);
     sfxLevelUp();
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
   }
 
   // ─── Атака ────────────────────────────────────────────
@@ -1949,7 +1818,7 @@ export class GameScene extends Phaser.Scene {
         this.showMessage(`Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
         sfxLevelUp();
         this.craftingRecipe = null;
-        saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+        this.persistState();
       }
     }
   }
@@ -1987,8 +1856,7 @@ export class GameScene extends Phaser.Scene {
       sprite, hpBar, hpBarBg,
     });
 
-    // Store gfx reference for cleanup
-    (this.summonedEnts[this.summonedEnts.length - 1] as any)._gfx = gfx;
+    this.summonedEnts[this.summonedEnts.length - 1].gfx = gfx;
   }
 
   private updateEnts(delta: number) {
@@ -2005,7 +1873,7 @@ export class GameScene extends Phaser.Scene {
         ent.sprite?.destroy();
         ent.hpBar.destroy();
         ent.hpBarBg.destroy();
-        (ent as any)._gfx?.destroy();
+        ent.gfx?.destroy();
         this.summonedEnts.splice(i, 1);
       }
     }
@@ -2251,7 +2119,7 @@ export class GameScene extends Phaser.Scene {
         if (this.playerBody) {
           this.sphere.lastBodyId = this.playerBody.definition.id;
         }
-        saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+        this.persistState();
         // Перезапускаем сцену с новой зоной
         sfxZoneTransition();
         this.scene.restart({ zoneId: exit.targetZone, spawnX: exit.spawnX, spawnY: exit.spawnY });
@@ -2261,7 +2129,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Применить статус к цели с обработкой спец. эффектов (interrupt, knockback) */
-  private applyStatusToTarget(target: Creature, effectId: string) {
+  private applyStatusToTarget(target: Creature, effectId: StatusEffectId | string) {
     if (effectId === 'interrupt') {
       if (target.castTimer > 0 && target.castingSpell) {
         target.castTimer = target.castingSpell.castTime ?? 0;
@@ -2280,7 +2148,7 @@ export class GameScene extends Phaser.Scene {
       // Fortify применяется на КАСТЕРА (бафф), не на цель
       this.playerBody.applyStatus('fortify');
     } else {
-      target.applyStatus(effectId as any);
+      target.applyStatus(effectId as StatusEffectId);
     }
   }
 
@@ -2294,7 +2162,7 @@ export class GameScene extends Phaser.Scene {
     const s = { ...this.sphere.stats };
 
     // Бонусы от экипировки
-    const equip = this.sphere.equipment;
+    const equip = this.sphere.equipment as Record<string, string | undefined>;
     const statMap: Record<string, StatName> = {
       strength: StatName.Strength, agility: StatName.Agility,
       accuracy: StatName.Accuracy, evasion: StatName.Evasion,
@@ -2303,7 +2171,7 @@ export class GameScene extends Phaser.Scene {
       mana: StatName.Mana, luck: StatName.Luck,
     };
     for (const slotKey of Object.keys(equip)) {
-      const itemId = (equip as any)[slotKey];
+      const itemId = equip[slotKey];
       if (!itemId) continue;
       const def = ITEMS[itemId];
       if (!def) continue;
@@ -2326,6 +2194,10 @@ export class GameScene extends Phaser.Scene {
 
     return s;
   }
+
+  // ═══ REGION: Combat ═══════════════════════════════════════════════════════
+  // handleAttack, creatureAttackPlayer, creatureCastSpell, applyStatusToTarget,
+  // getPlayerDefenseStats, getEffectiveStats
 
   private handleAttack() {
     if (!this.playerBody || this.playerBody.attackCooldown > 0) return;
@@ -2593,6 +2465,9 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // ═══ REGION: Creature Lifecycle ══════════════════════════════════════════
+  // onCreatureKilled, onPlayerDeath, completeCaptureCreature
+
   private onCreatureKilled(creature: Creature) {
     sfxDeath();
     // Призванный союзник: убрать из мира, без XP, без захвата, без респауна
@@ -2657,7 +2532,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Автосохранение
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
 
     // Пульсация — тело доступно для захвата
     this.tweens.add({
@@ -2719,7 +2594,7 @@ export class GameScene extends Phaser.Scene {
       c.castTimer = 0;
       c.attackCooldown = Math.max(c.attackCooldown, 0.5);
     }
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
     this.events.emit('player-died', { xpLost: totalXpLost, debuffDuration: DEATH_DEBUFF_DURATION });
   }
 
@@ -2770,7 +2645,7 @@ export class GameScene extends Phaser.Scene {
         this.events.emit('achievement-unlocked', ach);
       }
 
-      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.persistState();
 
       // Квест — засчитать захват
       const captureCompleted = this.questTracker.onCapture(def.id);
@@ -2866,7 +2741,7 @@ export class GameScene extends Phaser.Scene {
     this.bodyQuestTracker.clear();
     this.clearBodyQuestObjects();
     this.grantBodyQuestReward(bq);
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
   }
 
   private grantBodyQuestReward(bq: import('../types/bodyQuests').BodyQuestDef): void {
@@ -2933,7 +2808,7 @@ export class GameScene extends Phaser.Scene {
         });
       }
 
-      saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+      this.persistState();
     }
   }
 
@@ -2965,7 +2840,7 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
+    this.persistState();
     this.updateQuestMarkers();
   }
 
@@ -3022,7 +2897,9 @@ export class GameScene extends Phaser.Scene {
     return best;
   }
 
-  // ─── Заклинания ───────────────────────────────────────
+  // ═══ REGION: Spell System ════════════════════════════════════════════════
+  // handleSpell, activateSpellSlot, fireAoeSpell, executeAoeSpell, doAoeDamage,
+  // canUseSpellWithWeapon, calcSpellDamage
 
   private handleSpell(slotIndex: number) {
     if (!this.playerBody) return;
@@ -3040,8 +2917,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Бесплатный каст (от Рассечения)
-    if ((this.sphere as any)._freeNextCast) {
-      (this.sphere as any)._freeNextCast = false;
+    if (this.sphere.freeNextCast) {
+      this.sphere.freeNextCast = false;
     } else {
       this.playerBody.currentMana -= spell.manaCost;
     }
@@ -3095,7 +2972,7 @@ export class GameScene extends Phaser.Scene {
             const nd = Math.sqrt(dx * dx + dy * dy) || 1;
             c.x += (dx / nd) * pushDist;
             c.y += (dy / nd) * pushDist;
-            c.applyStatus('knockback' as any);
+            c.applyStatus('knockback');
           }
         }
       }
@@ -3130,7 +3007,7 @@ export class GameScene extends Phaser.Scene {
       }
       // Адаптация: следующий каст бесплатный
       if (spell.grantFreeNextCast) {
-        (this.sphere as any)._freeNextCast = true;
+        this.sphere.freeNextCast = true;
       }
       // VFX кастования баффа
       spawnCastVFX(this, this.playerBody.x, this.playerBody.y, spell.school ?? 'neutral');
@@ -3264,7 +3141,7 @@ export class GameScene extends Phaser.Scene {
 
     // ── Условный бонус (Рассечение: если замедлен +50%) ─────────────────
     if (spell.conditionalBonusDmg && spell.conditionalOnStatus) {
-      if (target.hasStatus(spell.conditionalOnStatus as any)) {
+      if (target.hasStatus(spell.conditionalOnStatus as StatusEffectId)) {
         dmg = Math.round(dmg * spell.conditionalBonusDmg);
       }
     }
@@ -3301,7 +3178,7 @@ export class GameScene extends Phaser.Scene {
 
     // ── Чистый удар: +30% если нет зачарования ──────────────────────────
     if (spell.bonusDamageIfNoEnchant && this.sphere) {
-      if (!(this.sphere as any).activeEnchant) {
+      if (!this.sphere.activeEnchant) {
         dmg = Math.round(dmg * (1 + spell.bonusDamageIfNoEnchant));
       }
     }
@@ -3373,7 +3250,7 @@ export class GameScene extends Phaser.Scene {
         for (const id of debuffIds) this.playerBody.statusEffects.delete(id);
       }
       if (spell.debuffImmunityDuration) {
-        (this.playerBody as any)._debuffImmunity = spell.debuffImmunityDuration;
+        this.playerBody.debuffImmunity = spell.debuffImmunityDuration;
       }
     }
 
@@ -3385,7 +3262,7 @@ export class GameScene extends Phaser.Scene {
 
     // ── Бесплатный следующий каст (Рассечение) ──────────────────────────
     if (spell.grantFreeNextCast) {
-      (this.sphere as any)._freeNextCast = true;
+      this.sphere.freeNextCast = true;
     }
 
     this.damageTexts.push(
@@ -3488,7 +3365,7 @@ export class GameScene extends Phaser.Scene {
 
           // Status effect
           if (spell.statusEffect && Math.random() < (spell.statusChance ?? 0)) {
-            nextTarget.applyStatus(spell.statusEffect as any);
+            nextTarget.applyStatus(spell.statusEffect!);
           }
 
           if (nextTarget.isDead) this.onCreatureKilled(nextTarget);
@@ -3920,6 +3797,12 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // ═══ REGION: Placed Effects ═══════════════════════════════════════════════
+  // spawnGroundZone, updateGroundZones, spawnWindBarrier, updateWindBarriers,
+  // spawnWall, updateSummonedWalls, cancelPlacedEffect, destroyWall,
+  // getWallAt, damageWall, isBlockedByWall, getWindBarrierReduction
+  // TODO: extract to PlacedEffectsManager(scene, context) for ~380 lines reduction
+
   /** Создаёт зону на карте (ground_zone) — универсальная механика */
   private spawnGroundZone(wx: number, wy: number, radius: number, spell: AbilityDef, isPlayer = true, casterStats?: Stats) {
     const gfx = this.add.graphics().setDepth(5).setAlpha(0.6);
@@ -4019,7 +3902,7 @@ export class GameScene extends Phaser.Scene {
         zone.tickTimer = 1;
 
         // Определяем статус-эффект: спелл-специфичный > школьный
-        let zoneStatus: string | undefined;
+        let zoneStatus: StatusEffectId | undefined;
         let zoneStatusChance = 0;
         if (zone.statusEffect) {
           zoneStatus = zone.statusEffect;
@@ -4044,7 +3927,7 @@ export class GameScene extends Phaser.Scene {
             c.takeDamage(r.final);
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, false, false));
             if (zoneStatus && Math.random() < zoneStatusChance) {
-              c.applyStatus(zoneStatus as any);
+              c.applyStatus(zoneStatus);
             }
             if (c.isDead) this.onCreatureKilled(c);
           }
@@ -4054,7 +3937,7 @@ export class GameScene extends Phaser.Scene {
             this.playerBody.takeDamage(r.final);
             this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, r.final, false, false));
             if (zoneStatus && Math.random() < zoneStatusChance) {
-              this.playerBody.applyStatus(zoneStatus as any);
+              this.playerBody.applyStatus(zoneStatus);
             }
             if (this.playerBody.isDead) this.onPlayerDeath();
           }

@@ -38,6 +38,9 @@ export class Sphere extends Phaser.GameObjects.Container {
   // Штраф смерти
   public deathDebuffRemaining: number = 0;  // сек осталось
 
+  /** Следующий каст бесплатный (от Рассечения / Адаптации) */
+  public freeNextCast: boolean = false;
+
   // Зачарование оружия (toggle-аура)
   public activeEnchant: AbilityDef | null = null;
 

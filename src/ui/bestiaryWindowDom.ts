@@ -9,10 +9,12 @@ import { BESTIARY_GROUPS, bestiaryTotalCount } from '../data/bestiaryGroups';
 import { loadProgress, isRevealed, BestiaryProgress } from '../data/bestiaryProgress';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { t, getLang } from '../i18n';
+import { openWindowShell, DOMWindowHandle } from './domWindowBase';
 
 const FRAMES_FILE = 'ui/frames.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 let root: HTMLElement | null = null;
 let frameSpriteInjected = false;
 
@@ -426,30 +428,20 @@ export function showBestiaryWindowDom(onClose: () => void): void {
     }
   }
 
-  const container = el('div');
-  container.id = 'bf-root';
-  container.appendChild(el('div', 'bf-backdrop'));
+  handle = openWindowShell('', 'bf-backdrop', onClose);
+  handle.root.id = 'bf-root';
+  root = handle.root;
+
   const stage = el('div', 'bf-stage');
-  container.appendChild(stage);
+  handle.stage.appendChild(stage);
 
-  container.querySelector('.bf-backdrop')?.addEventListener('click', onClose);
-
-  const keyHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
-  window.addEventListener('keydown', keyHandler);
-  (container as any)._keyHandler = keyHandler;
-
-  document.body.appendChild(container);
-  root = container;
   rerender();
 }
 
 export function hideBestiaryWindowDom(): void {
-  if (root) {
-    const kh = (root as any)._keyHandler;
-    if (kh) window.removeEventListener('keydown', kh);
-    root.remove();
+  if (handle) {
+    handle.destroy();
+    handle = null;
     root = null;
   }
   cachedOnClose = null;

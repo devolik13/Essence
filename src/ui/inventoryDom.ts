@@ -10,6 +10,7 @@ import { StatName } from '../types/stats';
 import { ItemDef, InventoryItem } from '../types/items';
 import { calcRank } from '../systems/progression';
 import { spriteForItem, createSpriteSvg } from './weaponIcon';
+import { openWindowShell, DOMWindowHandle } from './domWindowBase';
 
 type FilterKind = 'all' | 'equipment' | 'material' | 'consumable';
 
@@ -31,6 +32,7 @@ const BAG_CAPACITY = 64;
 const BAG_PAGE_SIZE = 16;
 const BAG_PAGES = Math.ceil(BAG_CAPACITY / BAG_PAGE_SIZE);
 
+let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 let root: HTMLElement | null = null;
 let currentFilter: FilterKind = 'all';
 let currentPage = 0;
@@ -566,22 +568,19 @@ function renderStatbar(args: RenderArgs): HTMLElement {
   return bar;
 }
 
-/** Build static shell (backdrop, stage, window, corners). Window is empty. */
-function renderShell(args: RenderArgs): { root: HTMLElement; win: HTMLElement } {
-  const rootEl = el('div');
-  rootEl.id = 'ess-inv-root';
-
-  const backdrop = el('div', 'ess-backdrop');
-  backdrop.addEventListener('click', args.cb.onClose);
-  rootEl.appendChild(backdrop);
+/** Build static shell via DOMWindowBase: backdrop, stage, window with corners. */
+function renderShell(onClose: () => void): { win: HTMLElement } {
+  handle = openWindowShell('', 'ess-backdrop', onClose, ['i', 'I', 'ш', 'Ш']);
+  handle.root.id = 'ess-inv-root';
+  root = handle.root;
 
   const stage = el('div', 'ess-stage');
   const win = el('div', 'ess-window');
   for (const c of ['tl', 'tr', 'bl', 'br']) win.appendChild(el('div', `corner ${c}`));
   stage.appendChild(win);
-  rootEl.appendChild(stage);
+  handle.stage.appendChild(stage);
 
-  return { root: rootEl, win };
+  return { win };
 }
 
 /** Populate (or repopulate) the window with header / main / statbar. Keeps corners. */
@@ -612,23 +611,11 @@ export function showInventoryDom(args: RenderArgs): () => void {
   currentArgs = args;
   currentFilter = 'all';
   currentPage = 0;
-  const { root: node, win } = renderShell(args);
+  const { win } = renderShell(args.cb.onClose);
   cachedWin = win;
   renderContent(args, win);
-  document.body.appendChild(node);
-  root = node;
 
-  const keyHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' || e.key === 'i' || e.key === 'I' || e.key === 'ш' || e.key === 'Ш') {
-      args.cb.onClose();
-    }
-  };
-  window.addEventListener('keydown', keyHandler);
-
-  return () => {
-    window.removeEventListener('keydown', keyHandler);
-    hideInventoryDom();
-  };
+  return () => hideInventoryDom();
 }
 
 /** Re-render with updated data (call after equip/use to refresh UI). */
@@ -639,7 +626,7 @@ export function refreshInventoryDom(args: RenderArgs): void {
 
 export function hideInventoryDom(): void {
   hideTooltip();
-  if (root && root.parentElement) root.parentElement.removeChild(root);
+  if (handle) { handle.destroy(); handle = null; }
   root = null;
   cachedWin = null;
   currentArgs = null;

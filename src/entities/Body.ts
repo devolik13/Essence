@@ -10,7 +10,24 @@ import { clamp } from '../utils/math';
 import { pushOutOfColliders } from '../systems/mapColliders';
 import { WeaponType } from '../types/bodies';
 
+type AnimType = 'idle' | 'walk' | 'atk';
+type AnimDir  = 'up' | 'down' | 'left' | 'right';
 type AnimCfg = { idle: (d: string) => string; walk: (d: string) => string; atk: (d: string) => string; displaySize: number };
+
+/** Canonical animation key: `{prefix}_{type}_{dir}` */
+function makeAnimKey(prefix: string, type: AnimType, dir: AnimDir | string): string {
+  return `${prefix}_${type}_${dir}`;
+}
+
+/** Build AnimCfg for a sprite sheet body, with graceful fallback to idle when walk/atk missing */
+function makeAnimCfg(scene: Phaser.Scene, id: string, displaySize: number): AnimCfg {
+  return {
+    idle: (d)  => makeAnimKey(id, 'idle', d),
+    walk: (d)  => scene.anims.exists(makeAnimKey(id, 'walk', d)) ? makeAnimKey(id, 'walk', d) : makeAnimKey(id, 'idle', d),
+    atk:  (d)  => scene.anims.exists(makeAnimKey(id, 'atk',  d)) ? makeAnimKey(id, 'atk',  d) : makeAnimKey(id, 'idle', d),
+    displaySize,
+  };
+}
 
 const SWORDSMAN_ANIM: AnimCfg = { idle: () => 'swordsman_idle_down', walk: () => 'swordsman_walk_down', atk: () => 'swordsman_atk_down', displaySize: 48 };
 const ARCHER_ANIM: AnimCfg    = { idle: () => 'archer_idle_down',    walk: () => 'archer_walk_down',    atk: () => 'archer_atk_down',    displaySize: 48 };
@@ -89,14 +106,8 @@ export class Body extends Phaser.GameObjects.Container {
 
     if (!animCfg) {
       const id = definition.id;
-      const testKey = `${id}_idle_down`;
-      if (scene.anims.exists(testKey)) {
-        animCfg = {
-          idle: (d: string) => `${id}_idle_${d}`,
-          walk: (d: string) => scene.anims.exists(`${id}_walk_${d}`) ? `${id}_walk_${d}` : `${id}_idle_${d}`,
-          atk:  (d: string) => scene.anims.exists(`${id}_atk_${d}`) ? `${id}_atk_${d}` : `${id}_idle_${d}`,
-          displaySize: 30,
-        };
+      if (scene.anims.exists(makeAnimKey(id, 'idle', 'down'))) {
+        animCfg = makeAnimCfg(scene, id, 30);
       }
     }
     this.resolvedAnim = animCfg ?? null;
@@ -176,6 +187,9 @@ export class Body extends Phaser.GameObjects.Container {
   /** Временные HP (щит от Стойкого удара) */
   public tempHP: number = 0;
   public tempHPTimer: number = 0;
+
+  /** Иммунитет к дебаффам (сек оставшихся, от Очищающего удара) */
+  public debuffImmunity: number = 0;
 
   get maxHP(): number { return maxHP(this.sphereStats); }
   get maxMana(): number { return maxMana(this.sphereStats); }
@@ -292,8 +306,8 @@ export class Body extends Phaser.GameObjects.Container {
     }
 
     // Таймер иммунитета к дебаффам
-    if ((this as any)._debuffImmunity > 0) {
-      (this as any)._debuffImmunity -= dt;
+    if (this.debuffImmunity > 0) {
+      this.debuffImmunity -= dt;
     }
 
     if (!this.isDead) {
@@ -416,7 +430,7 @@ export class Body extends Phaser.GameObjects.Container {
 
   public applyStatus(id: StatusEffectId, stacks: number = 1): void {
     // Иммунитет к дебаффам (от Очищающего удара)
-    if ((this as any)._debuffImmunity > 0) return;
+    if (this.debuffImmunity > 0) return;
     // Иммунитет к оглушению
     if (id === 'stun' && this.hasStatus('stun_immune')) return;
     // Иммунитет к отбрасыванию
