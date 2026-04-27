@@ -373,16 +373,15 @@
   color: var(--text-1);
 }
 .ess-coin .mark {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  display: grid; place-items: center;
-  font-size: 9px;
-  font-family: var(--font-display);
-  font-weight: 600;
+  width: 18px; height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.ess-coin.gold .mark   { background: linear-gradient(180deg, #f0d896, #b48a42); color: #4a3510; box-shadow: 0 0 0 1px #8a6a2f; }
-.ess-coin.silver .mark { background: linear-gradient(180deg, #e8e8e8, #a0a0a8); color: #2a2a2e; box-shadow: 0 0 0 1px #707880; }
-.ess-coin.copper .mark { background: linear-gradient(180deg, #e08a54, #8b4a2a); color: #2a1508; box-shadow: 0 0 0 1px #5a2e18; }
+.ess-coin .mark svg {
+  width: 18px; height: 18px;
+  display: block;
+}
 
 .ess-close-btn {
   width: 30px; height: 30px;
@@ -1168,6 +1167,63 @@
 }
 .ach-progress-text.done {
   color: var(--brass-3);
+}
+
+/* ─── Player status bar (top center) ───────────────────────────── */
+#ess-player-status-bar {
+  position: fixed;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 1500;
+  pointer-events: none;
+  font-family: 'JetBrains Mono', monospace;
+}
+.ess-status-pill {
+  width: 48px;
+  height: 48px;
+  background: rgba(20, 17, 12, 0.85);
+  border: 1px solid #6b4e1f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 0 0 1px #2a2218 inset;
+}
+.ess-status-pill-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #d8c9a4;
+  font-size: 18px;
+  line-height: 1;
+}
+.ess-status-pill-icon svg {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.8));
+}
+.ess-status-stacks {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #f0d896;
+  text-shadow: 0 1px 0 #0d0b08, 0 0 4px #0d0b08;
+}
+.ess-status-pill-timer {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: #d8c9a4;
+  margin-top: 2px;
+  line-height: 1;
 }
 
 /* ─── Bestiary ─────────────────────────────────────────────────── */

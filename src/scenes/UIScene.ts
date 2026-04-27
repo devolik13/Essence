@@ -22,6 +22,7 @@ import { spriteForSpell } from '../ui/weaponIcon';
 import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
 import { showBestiaryWindowDom, hideBestiaryWindowDom, isBestiaryWindowDomOpen, refreshBestiaryWindowDom } from '../ui/bestiaryWindowDom';
+import { syncPlayerStatusDom, clearPlayerStatusDom, StatusEntry } from '../ui/playerStatusDom';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
@@ -84,8 +85,7 @@ export class UIScene extends Phaser.Scene {
   private bossNameText?: Phaser.GameObjects.Text;
   private bossHpText?:   Phaser.GameObjects.Text;
   private statusBarText!:Phaser.GameObjects.Text;
-  private playerStatusBoxes: Phaser.GameObjects.Container[] = [];
-  private playerStatusPool: { bg: Phaser.GameObjects.Rectangle; icon: Phaser.GameObjects.Text; timer: Phaser.GameObjects.Text; }[] = [];
+  // Player status pills are now rendered via DOM overlay (playerStatusDom.ts).
   private bodyInfoText!:Phaser.GameObjects.Text;
   private hintText!:    Phaser.GameObjects.Text;
   private logText!:     Phaser.GameObjects.Text;
@@ -202,6 +202,10 @@ export class UIScene extends Phaser.Scene {
     this.scene.bringToTop();
     // Load saved layout before creating anything
     this.loadUILayout();
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      clearPlayerStatusDom();
+    });
 
     // ── Fixed UI elements (not in panels) ──────────────
     // Legacy (kept hidden): consolidated single-line HP/Mana/gold text
@@ -1227,76 +1231,22 @@ export class UIScene extends Phaser.Scene {
     this.spellPickerContainer.setVisible(false);
   }
 
-  // ── Панель статусов игрока (квадратики над скилл-баром) ──
-
-  private static PLAYER_STATUS_ICONS: Record<string, { icon: string; color: number }> = {
-    poison:       { icon: '☠',  color: 0x336600 },
-    bleed:        { icon: '🩸', color: 0x660022 },
-    burn:         { icon: '🔥', color: 0x662200 },
-    burn_mana:    { icon: '💧', color: 0x220066 },
-    slow:         { icon: '❄',  color: 0x224466 },
-    root:         { icon: '⌇',  color: 0x443311 },
-    stun:         { icon: '★',  color: 0x666600 },
-    chill:        { icon: '❅',  color: 0x334466 },
-    freeze:       { icon: '❆',  color: 0x224488 },
-    armor_reduce: { icon: '↓',  color: 0x443322 },
-    armor_break:  { icon: '⇊',  color: 0x664400 },
-    vulnerability:{ icon: '◇',  color: 0x662222 },
-    acceleration: { icon: '»',  color: 0x446622 },
-    bark_armor:   { icon: '🛡', color: 0x443311 },
-    leaf_regen:   { icon: '❤',  color: 0x226622 },
-    hp_regen_boost:{ icon: '❤', color: 0x226622 },
-    mana_regen_boost:{ icon: '💎', color: 0x222266 },
-  };
+  // ── Панель статусов игрока (DOM-оверлей сверху экрана) ──
 
   private updatePlayerStatusBar(body: Body | null) {
-    for (const box of this.playerStatusBoxes) box.setVisible(false);
+    if (!body) {
+      clearPlayerStatusDom();
+      return;
+    }
 
-    if (!body) return;
-
-    // Собираем все активные эффекты
-    const items: { icon: string; label: string; timer: number; color: number }[] = [];
-
+    const entries: StatusEntry[] = [];
     for (const [, s] of body.statusEffects) {
-      const info = UIScene.PLAYER_STATUS_ICONS[s.id];
-      if (!info) continue;
-      const stackStr = s.stacks > 1 ? `×${s.stacks}` : '';
-      items.push({ icon: `${info.icon}${stackStr}`, label: '', timer: s.timer, color: info.color });
+      entries.push({ id: s.id, stacks: s.stacks, timer: s.timer });
     }
-
-    // Enchantment как постоянный статус
     if (body.enchantRegenPenalty > 0) {
-      items.push({ icon: '⚔🔥', label: 'Enchant', timer: -1, color: 0x664400 });
+      entries.push({ id: 'enchant', stacks: 1, timer: -1 });
     }
-
-    const boxSize = 48;
-    const gap = 6;
-    const startY = 40;
-    const startX = (GAME_WIDTH - items.length * (boxSize + gap)) / 2;
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-
-      let poolEntry = this.playerStatusPool[i];
-      if (!poolEntry) {
-        const bg = this.add.rectangle(0, 0, boxSize, boxSize, THEME.ink2, 0.85).setStrokeStyle(1, THEME.brass0).setScrollFactor(0).setDepth(1010);
-        const icon = this.add.text(0, -6, '', { fontSize: '18px' }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
-        const timer = this.add.text(0, 14, '', { fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1 }).setOrigin(0.5).setScrollFactor(0).setDepth(1011);
-        const container = this.add.container(0, 0, [bg, icon, timer]).setScrollFactor(0).setDepth(1010);
-        this.playerStatusBoxes.push(container);
-        poolEntry = { bg, icon, timer };
-        this.playerStatusPool.push(poolEntry);
-      }
-
-      const container = this.playerStatusBoxes[i];
-      const x = startX + i * (boxSize + gap) + boxSize / 2;
-      container.setPosition(x, startY);
-      container.setVisible(true);
-
-      poolEntry.bg.setFillStyle(item.color, 0.8);
-      poolEntry.icon.setText(item.icon);
-      poolEntry.timer.setText(item.timer > 0 ? `${item.timer.toFixed(1)}` : item.timer < 0 ? 'ON' : '');
-    }
+    syncPlayerStatusDom(entries);
   }
 
   private updateSkillBar(body: Body | null, activeEnchantId?: string | null) {

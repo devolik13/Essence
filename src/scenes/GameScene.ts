@@ -351,6 +351,9 @@ export class GameScene extends Phaser.Scene {
         }
       };
       window.addEventListener('keydown', domHandler);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        window.removeEventListener('keydown', domHandler);
+      });
     }
 
     // ─── Сфера ───────────────────────────────────────

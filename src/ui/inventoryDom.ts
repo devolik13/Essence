@@ -302,16 +302,17 @@ function buildCurrency(copper: number): HTMLElement {
   const silver = Math.floor((copper % 10000) / 100);
   const cop = copper % 100;
   const wrap = el('div', 'ess-currency');
-  const addCoin = (kind: string, letter: string, val: number) => {
+  const addCoin = (kind: 'gold' | 'silver' | 'copper', val: number) => {
     const c = el('div', `ess-coin ${kind}`);
-    const mark = el('span', 'mark', letter);
+    const mark = el('span', 'mark');
+    mark.appendChild(createSpriteSvg({ file: 'currency.svg', id: `icon_coin_${kind}` }));
     c.appendChild(mark);
     c.appendChild(el('span', 'v', String(val)));
     wrap.appendChild(c);
   };
-  if (gold > 0) addCoin('gold', 'G', gold);
-  if (silver > 0 || gold > 0) addCoin('silver', 'S', silver);
-  addCoin('copper', 'C', cop);
+  if (gold > 0) addCoin('gold', gold);
+  if (silver > 0 || gold > 0) addCoin('silver', silver);
+  addCoin('copper', cop);
   return wrap;
 }
 
@@ -565,44 +566,45 @@ function renderStatbar(args: RenderArgs): HTMLElement {
   return bar;
 }
 
-function renderAll(args: RenderArgs): HTMLElement {
+/** Build static shell (backdrop, stage, window, corners). Window is empty. */
+function renderShell(args: RenderArgs): { root: HTMLElement; win: HTMLElement } {
   const rootEl = el('div');
   rootEl.id = 'ess-inv-root';
 
-  rootEl.appendChild(el('div', 'ess-backdrop'));
+  const backdrop = el('div', 'ess-backdrop');
+  backdrop.addEventListener('click', args.cb.onClose);
+  rootEl.appendChild(backdrop);
+
   const stage = el('div', 'ess-stage');
   const win = el('div', 'ess-window');
-
-  // Ornamental corners
   for (const c of ['tl', 'tr', 'bl', 'br']) win.appendChild(el('div', `corner ${c}`));
+  stage.appendChild(win);
+  rootEl.appendChild(stage);
 
+  return { root: rootEl, win };
+}
+
+/** Populate (or repopulate) the window with header / main / statbar. Keeps corners. */
+function renderContent(args: RenderArgs, win: HTMLElement): void {
+  // Keep ornamental corner divs; remove everything after them.
+  const cornerCount = 4;
+  while (win.children.length > cornerCount) {
+    win.removeChild(win.lastChild!);
+  }
   win.appendChild(renderHeader(args));
-
   const main = el('div', 'ess-main');
   main.appendChild(renderEquipColumn(args));
   main.appendChild(renderBagColumn(args));
   win.appendChild(main);
-
   win.appendChild(renderStatbar(args));
-  stage.appendChild(win);
-  rootEl.appendChild(stage);
-
-  // Close on backdrop click
-  rootEl.querySelector('.ess-backdrop')?.addEventListener('click', args.cb.onClose);
-
-  return rootEl;
 }
 
+let cachedWin: HTMLElement | null = null;
+
 function rerender() {
-  if (!currentArgs) return;
+  if (!currentArgs || !cachedWin) return;
   hideTooltip();
-  const fresh = renderAll(currentArgs);
-  if (root && root.parentElement) {
-    root.parentElement.replaceChild(fresh, root);
-  } else {
-    document.body.appendChild(fresh);
-  }
-  root = fresh;
+  renderContent(currentArgs, cachedWin);
 }
 
 /** Public API: show inventory overlay. Returns cleanup fn. */
@@ -610,7 +612,9 @@ export function showInventoryDom(args: RenderArgs): () => void {
   currentArgs = args;
   currentFilter = 'all';
   currentPage = 0;
-  const node = renderAll(args);
+  const { root: node, win } = renderShell(args);
+  cachedWin = win;
+  renderContent(args, win);
   document.body.appendChild(node);
   root = node;
 
@@ -637,6 +641,7 @@ export function hideInventoryDom(): void {
   hideTooltip();
   if (root && root.parentElement) root.parentElement.removeChild(root);
   root = null;
+  cachedWin = null;
   currentArgs = null;
 }
 
