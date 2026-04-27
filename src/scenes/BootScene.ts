@@ -1067,7 +1067,7 @@ export class BootScene extends Phaser.Scene {
     mkMobAnim('goblin_dying',      'mob_sheet_goblin_dying',        10, 10, 0);
 
     // Front-only mobs (rangers etc.) — same sheet for all directions
-    const FRONT_ONLY_MOBS = ['ranger', 'ranger_archer', 'ranger_pike', 'swordsman', 'archer', 'wizard'];
+    const FRONT_ONLY_MOBS = ['ranger', 'ranger_archer', 'ranger_pike', 'swordsman', 'archer', 'wizard', 'orc', 'orc_veteran'];
     for (const mobId of FRONT_ONLY_MOBS) {
       const set = MOB_SPRITE_SETS[mobId];
       if (!set) continue;

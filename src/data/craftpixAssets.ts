@@ -175,6 +175,17 @@ const WIZARD_SPRITES: MobSpriteSet = {
   },
 };
 
+const ORC_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/orc/',
+  frameW: 120, frameH: 120,
+  anims: {
+    front_idle:   { file: 'orc-idle-v1.webp',   frames: 25 },
+    front_walk:   { file: 'orc-walk-v1.webp',   frames: 25 }, // white bg — replace when fixed
+    front_attack: { file: 'orc-attack-v1.webp', frames: 25 },
+    dying:        { file: 'orc-death-v1.webp',  frames: 25 },
+  },
+};
+
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_SPRITES,
@@ -184,6 +195,8 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   swordsman: SWORDSMAN_SPRITES,
   archer: ARCHER_SPRITES,
   wizard: WIZARD_SPRITES,
+  orc: ORC_SPRITES,
+  orc_veteran: ORC_SPRITES,
 };
 
 /**
