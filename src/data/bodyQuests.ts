@@ -26,18 +26,19 @@ const QUEST_WOLF: BodyQuestDef = {
 
 const QUEST_BEAR: BodyQuestDef = {
   id: 'bq_bear', bodyId: 'bear', tier: 1,
-  nameRu: 'Territory',
-  description: 'Drive intruders from your den.',
+  nameRu: 'Forest Fire',
+  description: 'Kill the fire elementals before they burn the grove.',
   introMessages: [
-    { speaker: '', text: 'This forest — mine. Always has been.' },
-    { speaker: '', text: 'But today there\'s a foreign smell. Fire. Metal. People.' },
-    { speaker: '', text: 'Too close to the den.' },
+    { speaker: '', text: 'Smoke. Wrong. The grove should not smell like this.' },
+    { speaker: '', text: 'Two small fires crept in from the south. They\'re spreading.' },
+    { speaker: '', text: 'Ten trees left before the den burns. Move.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'They fled. The den is safe. The body taught you to crush.' },
+    { speaker: '', text: 'The fires are out. The grove holds. The body taught you to crush.' },
   ],
   objectives: [
-    { type: 'kill', count: 2, targetId: 'intruder', targetNameRu: 'Intruder', description: 'Drive away 2 intruders' },
+    // TODO: spawn forest_spark elementals near grey_forest when creature is created
+    { type: 'kill', count: 2, targetId: 'forest_spark', targetNameRu: 'Forest Fire', description: 'Kill 2 fire elementals (0/10 trees burned)' },
   ],
   rewardSpellId: 'mace_strike',
   xpReward: 50,
