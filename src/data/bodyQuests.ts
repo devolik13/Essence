@@ -37,8 +37,8 @@ const QUEST_BEAR: BodyQuestDef = {
     { speaker: '', text: 'The fires are out. The grove holds. The body taught you to crush.' },
   ],
   objectives: [
-    // TODO: spawn forest_spark elementals near grey_forest when creature is created
-    { type: 'kill', count: 2, targetId: 'forest_spark', targetNameRu: 'Forest Fire', description: 'Kill 2 fire elementals (0/10 trees burned)' },
+    // TODO: spawn forest_spark near grey_forest + add tree-burn counter to elemental AI
+    { type: 'kill', count: 2, targetId: 'forest_spark', targetNameRu: 'Forest Fire', description: 'Kill 2 fire elementals' },
   ],
   rewardSpellId: 'mace_strike',
   xpReward: 50,
@@ -140,18 +140,19 @@ const QUEST_SHAMAN: BodyQuestDef = {
 
 const QUEST_SPARK: BodyQuestDef = {
   id: 'bq_spark', bodyId: 'spark', tier: 1,
-  nameRu: 'Gathering Flame',
-  description: 'Find and reunite with scattered sparks.',
+  nameRu: 'First Flame',
+  description: 'Burn 10 trees to prove the fire lives.',
   introMessages: [
-    { speaker: '', text: 'Hot. Bright. Fast.' },
-    { speaker: '', text: 'Where are the others? There should be more here.' },
-    { speaker: '', text: 'The wind scattered everyone. Cold alone.' },
+    { speaker: '', text: 'Hot. Alive. This is what we are.' },
+    { speaker: '', text: 'The trees stand cold and still. They don\'t know fire yet.' },
+    { speaker: '', text: 'Show them.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Together again. The flame is whole. Its spark is yours.' },
+    { speaker: '', text: 'Ten trees. The grove knows your name now. The spark is yours.' },
   ],
   objectives: [
-    { type: 'collect', count: 3, targetId: 'lost_spark', targetNameRu: 'Lost Spark', description: 'Find 3 scattered sparks' },
+    // TODO: spawn dry_tree destructibles in fire zone when implemented
+    { type: 'destroy', count: 10, targetId: 'dry_tree', targetNameRu: 'Tree', description: 'Burn 10 trees' },
   ],
   rewardSpellId: 'mob_fire_t1',
   xpReward: 50,
