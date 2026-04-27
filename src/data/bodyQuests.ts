@@ -7,18 +7,18 @@ import { BodyQuestDef, ConflictQuestDef } from '../types/bodyQuests';
 
 const QUEST_WOLF: BodyQuestDef = {
   id: 'bq_wolf', bodyId: 'wolf', tier: 1,
-  nameRu: 'Pack Hunter',
-  description: 'Hunt with the pack to prove yourself.',
+  nameRu: 'Голодная стая',
+  description: 'Иди с волками на охоту и докажи что достоин стаи.',
   introMessages: [
-    { speaker: '', text: 'Scents speak louder than words. The pack is hungry — two days without a kill.' },
-    { speaker: '', text: 'The alpha watches. The young one must prove itself.' },
-    { speaker: '', text: 'A deer was here an hour ago. The trail leads east.' },
+    { speaker: '', text: 'Запахи говорят больше слов. Стая голодна — двое суток без добычи.' },
+    { speaker: '', text: 'Вожак смотрит. Ждёт. Молодому надо доказать.' },
+    { speaker: '', text: 'Олень был здесь час назад. След ведёт на восток.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The pack accepts you. The blade of instinct — yours now.' },
+    { speaker: '', text: 'Добыча взята. Стая сыта. Вожак кивает. Клинок инстинкта — теперь твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'deer', targetNameRu: 'Deer', description: 'Hunt 3 deer' },
+    { type: 'kill', count: 3, targetId: 'deer', targetNameRu: 'Олень', description: 'Выследи 3 оленей' },
   ],
   rewardSpellId: 'sword_strike',
   xpReward: 50,
@@ -26,18 +26,18 @@ const QUEST_WOLF: BodyQuestDef = {
 
 const QUEST_BEAR: BodyQuestDef = {
   id: 'bq_bear', bodyId: 'bear', tier: 1,
-  nameRu: 'Forest Fire',
-  description: 'Kill the fire elementals before they burn the grove.',
+  nameRu: 'Лесной пожар',
+  description: 'Убей огненных элементалей пока они не сожгли рощу.',
   introMessages: [
-    { speaker: '', text: 'Smoke. Wrong. The grove should not smell like this.' },
-    { speaker: '', text: 'Two small fires crept in from the south. They\'re spreading.' },
-    { speaker: '', text: 'Ten trees left before the den burns. Move.' },
+    { speaker: '', text: 'Дым. Не то. Роща не должна так пахнуть.' },
+    { speaker: '', text: 'Два маленьких огня пробрались с юга. Они расползаются.' },
+    { speaker: '', text: 'Десять деревьев до берлоги. Двигайся.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The fires are out. The grove holds. The body taught you to crush.' },
+    { speaker: '', text: 'Огни погашены. Роща держится. Тело учит бить тяжело.' },
   ],
   objectives: [
-    { type: 'kill', count: 2, targetId: 'spark', targetNameRu: 'Forest Fire', description: 'Kill 2 fire elementals' },
+    { type: 'kill', count: 2, targetId: 'spark', targetNameRu: 'Огонёк', description: 'Убей 2 огненных элементаля' },
   ],
   rewardSpellId: 'mace_strike',
   xpReward: 50,
@@ -49,21 +49,21 @@ const QUEST_BEAR: BodyQuestDef = {
 
 const QUEST_GOBLIN: BodyQuestDef = {
   id: 'bq_goblin', bodyId: 'goblin', tier: 1,
-  nameRu: 'Quick Fingers',
-  description: 'Raid the hunting camp.',
+  nameRu: 'Быстрые пальцы',
+  description: 'Обчисти охотничий лагерь и принеси добычу племени.',
   introMessages: [
-    { speaker: '', text: 'Small body. Fast. Hungry.' },
-    { speaker: '', text: 'The tribe waits at the edge. Need to bring something back.' },
-    { speaker: '', text: 'Hunting camp nearby. Crates left unguarded.' },
+    { speaker: '', text: 'Маленькое тело. Быстрое. Голодное.' },
+    { speaker: '', text: 'Племя ждёт на краю. Нужно принести что-нибудь.' },
+    { speaker: '', text: 'Охотничий лагерь рядом. Ящики без охраны.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The tribe eats tonight. Quick blade — yours to keep.' },
+    { speaker: '', text: 'Племя сегодня поест. Быстрый клинок — твой.' },
   ],
   objectives: [
-    { type: 'steal', count: 3, targetId: 'camp_supplies', targetNameRu: 'Supplies', description: 'Steal 3 supply crates' },
+    { type: 'steal', count: 3, targetId: 'camp_supplies', targetNameRu: 'Снаряжение', description: 'Укради 3 ящика снаряжения' },
   ],
   spawnObjects: [{
-    objectId: 'camp_supplies', nameRu: 'Supplies', icon: '📦', color: 0xddaa33,
+    objectId: 'camp_supplies', nameRu: 'Снаряжение', icon: '📦', color: 0xddaa33,
     type: 'collectible', count: 4, radius: 350,
   }],
   rewardSpellId: 'sting',
@@ -72,18 +72,18 @@ const QUEST_GOBLIN: BodyQuestDef = {
 
 const QUEST_ORC: BodyQuestDef = {
   id: 'bq_orc', bodyId: 'orc', tier: 1,
-  nameRu: 'Rite of Strength',
-  description: 'Challenge the chieftain to a duel.',
+  nameRu: 'Обряд силы',
+  description: 'Вызови вождя на поединок и докажи право быть в племени.',
   introMessages: [
-    { speaker: '', text: 'Large body. Heavy. Strong.' },
-    { speaker: '', text: 'The chieftain stands at the center. The tribe watches.' },
-    { speaker: '', text: 'Only one way to prove yourself — challenge him.' },
+    { speaker: '', text: 'Большое тело. Тяжёлое. Сильное.' },
+    { speaker: '', text: 'Вождь стоит в центре. Племя смотрит.' },
+    { speaker: '', text: 'Один путь доказать себя — вызвать на поединок.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The chieftain falls. The tribe kneels. The blade is yours.' },
+    { speaker: '', text: 'Вождь пал. Племя склонилось. Клинок — твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 1, targetId: 'orc_veteran', targetNameRu: 'Chieftain', description: 'Defeat the chieftain' },
+    { type: 'kill', count: 1, targetId: 'orc_veteran', targetNameRu: 'Вождь', description: 'Победи вождя в поединке' },
   ],
   friendlyCreatureIds: ['orc'],
   rewardSpellId: 'slash',
@@ -92,21 +92,21 @@ const QUEST_ORC: BodyQuestDef = {
 
 const QUEST_SCOUT: BodyQuestDef = {
   id: 'bq_scout', bodyId: 'scout', tier: 1,
-  nameRu: 'Eyes on the Road',
-  description: 'Scout the trade road for threats.',
+  nameRu: 'Глаза на дороге',
+  description: 'Проверь торговую дорогу перед выходом обоза.',
   introMessages: [
-    { speaker: '', text: 'Light body. Quiet. Used to the forest.' },
-    { speaker: '', text: 'The trade caravan leaves at dawn tomorrow.' },
-    { speaker: '', text: 'The road must be checked. Three points to scout.' },
+    { speaker: '', text: 'Лёгкое тело. Тихое. Привыкшее к лесу.' },
+    { speaker: '', text: 'Торговый обоз выходит на рассвете.' },
+    { speaker: '', text: 'Дорогу нужно проверить. Три точки.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The road is clear — for now. A keen eye is its own weapon.' },
+    { speaker: '', text: 'Дорога чиста — пока. Острый глаз — своё оружие.' },
   ],
   objectives: [
-    { type: 'reach', count: 3, targetId: 'checkpoint', targetNameRu: 'Checkpoint', description: 'Check 3 waypoints' },
+    { type: 'reach', count: 3, targetId: 'checkpoint', targetNameRu: 'Контрольная точка', description: 'Проверь 3 контрольные точки' },
   ],
   spawnObjects: [{
-    objectId: 'checkpoint', nameRu: 'Checkpoint', icon: '🔍', color: 0x55aaff,
+    objectId: 'checkpoint', nameRu: 'Контрольная точка', icon: '🔍', color: 0x55aaff,
     type: 'waypoint', count: 3, radius: 500,
   }],
   rewardSpellId: 'bow_shot',
@@ -115,23 +115,23 @@ const QUEST_SCOUT: BodyQuestDef = {
 
 const QUEST_SHAMAN: BodyQuestDef = {
   id: 'bq_shaman', bodyId: 'shaman', tier: 1,
-  nameRu: 'Spirit Caller',
-  description: 'Commune with the forest spirits.',
+  nameRu: 'Зов духов',
+  description: 'Дойди до духовной поляны и слушай голоса леса.',
   introMessages: [
-    { speaker: '', text: 'The world is full of voices. Trees speak. The wind carries names.' },
-    { speaker: '', text: 'Night. Must go to the clearing and call.' },
-    { speaker: '', text: 'Spirits only come to those who listen.' },
+    { speaker: '', text: 'Мир полон голосов. Деревья говорят. Ветер несёт имена.' },
+    { speaker: '', text: 'Ночь. Нужно идти на поляну и позвать.' },
+    { speaker: '', text: 'Духи приходят только к тем кто умеет слушать.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The spirits answered. Their gift — a companion from the woods.' },
+    { speaker: '', text: 'Духи откликнулись. Их дар — спутник из леса.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'spirit_clearing', description: 'Reach the spirit clearing' },
-    { type: 'survive', count: 30, description: 'Meditate for 30 seconds' },
+    { type: 'reach', count: 1, targetId: 'spirit_clearing', targetNameRu: 'Духовная поляна', description: 'Дойди до духовной поляны' },
+    { type: 'survive', count: 30, description: 'Медитируй 30 секунд' },
   ],
   // TODO: replace with fixed map coordinates once clearing location is decided
   spawnObjects: [{
-    objectId: 'spirit_clearing', nameRu: 'Spirit Clearing', icon: '🌀', color: 0x8866ff,
+    objectId: 'spirit_clearing', nameRu: 'Духовная поляна', icon: '🌀', color: 0x8866ff,
     type: 'waypoint', count: 1, radius: 450,
   }],
   rewardSpellId: 'mob_nature_t1',
@@ -144,19 +144,19 @@ const QUEST_SHAMAN: BodyQuestDef = {
 
 const QUEST_SPARK: BodyQuestDef = {
   id: 'bq_spark', bodyId: 'spark', tier: 1,
-  nameRu: 'First Flame',
-  description: 'Burn 10 trees to prove the fire lives.',
+  nameRu: 'Первый огонь',
+  description: 'Подожги 10 деревьев — пусть роща узнает твоё имя.',
   introMessages: [
-    { speaker: '', text: 'Hot. Alive. This is what we are.' },
-    { speaker: '', text: 'The trees stand cold and still. They don\'t know fire yet.' },
-    { speaker: '', text: 'Show them.' },
+    { speaker: '', text: 'Горячо. Живое. Это и есть мы.' },
+    { speaker: '', text: 'Деревья стоят холодные и тихие. Они ещё не знают огня.' },
+    { speaker: '', text: 'Покажи им.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Ten trees. The grove knows your name now. The spark is yours.' },
+    { speaker: '', text: 'Десять деревьев. Роща знает твоё имя. Искра — твоя.' },
   ],
   objectives: [
     // TODO: spawn dry_tree destructibles in fire zone when implemented
-    { type: 'destroy', count: 10, targetId: 'dry_tree', targetNameRu: 'Tree', description: 'Burn 10 trees' },
+    { type: 'destroy', count: 10, targetId: 'dry_tree', targetNameRu: 'Сухое дерево', description: 'Подожги 10 деревьев' },
   ],
   rewardSpellId: 'mob_fire_t1',
   xpReward: 50,
@@ -164,19 +164,19 @@ const QUEST_SPARK: BodyQuestDef = {
 
 const QUEST_SPLASHER: BodyQuestDef = {
   id: 'bq_splasher', bodyId: 'splasher', tier: 1,
-  nameRu: 'Quench',
-  description: 'Put out 5 burning trees.',
+  nameRu: 'Залить',
+  description: 'Вода исправляет то что огонь сломал. Потуши 5 горящих деревьев.',
   introMessages: [
-    { speaker: '', text: 'Fire. Wrong. It doesn\'t belong here.' },
-    { speaker: '', text: 'Five trees burning at the edge of the lake.' },
-    { speaker: '', text: 'Water fixes what fire breaks.' },
+    { speaker: '', text: 'Огонь. Неправильно. Ему здесь не место.' },
+    { speaker: '', text: 'Пять деревьев горят у края озера.' },
+    { speaker: '', text: 'Вода исправляет то что огонь сломал.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Cold. Quiet. The shore breathes again. Ice answers your call.' },
+    { speaker: '', text: 'Холодно. Тихо. Берег дышит снова. Лёд слушается тебя.' },
   ],
   objectives: [
     // TODO: spawn burning_tree destructibles near water zone edge
-    { type: 'destroy', count: 5, targetId: 'burning_tree', targetNameRu: 'Burning Tree', description: 'Put out 5 burning trees' },
+    { type: 'destroy', count: 5, targetId: 'burning_tree', targetNameRu: 'Горящее дерево', description: 'Потуши 5 горящих деревьев' },
   ],
   rewardSpellId: 'mob_water_t1',
   xpReward: 50,
@@ -184,18 +184,18 @@ const QUEST_SPLASHER: BodyQuestDef = {
 
 const QUEST_PEBBLE: BodyQuestDef = {
   id: 'bq_pebble', bodyId: 'pebble', tier: 1,
-  nameRu: 'Become the Wall',
-  description: 'Seal the breach in the cave.',
+  nameRu: 'Место в стене',
+  description: 'Доберись до пробоины и стань её частью.',
   introMessages: [
-    { speaker: '', text: 'Heavy. Stable. Right.' },
-    { speaker: '', text: 'There — a breach in the western cave wall.' },
-    { speaker: '', text: 'Without it the vault will sag. Must take your place.' },
+    { speaker: '', text: 'Тяжело. Устойчиво. Правильно.' },
+    { speaker: '', text: 'Там — пробоина в западной стене пещеры.' },
+    { speaker: '', text: 'Без неё свод начнёт оседать. Нужно занять место. Стать частью.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The wall holds. Stone remembers. Its weight — yours to throw.' },
+    { speaker: '', text: 'Пробоина закрыта. Свод держится. Тяжесть камня — теперь в твоих руках.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'cave_breach', description: 'Reach the breach' },
+    { type: 'reach', count: 1, targetId: 'cave_breach', targetNameRu: 'Пробоина в стене', description: 'Доберись до пробоины' },
   ],
   rewardSpellId: 'mob_earth_t1',
   xpReward: 50,
@@ -203,19 +203,19 @@ const QUEST_PEBBLE: BodyQuestDef = {
 
 const QUEST_GUSTY: BodyQuestDef = {
   id: 'bq_gusty', bodyId: 'gusty', tier: 1,
-  nameRu: 'Apex Predator',
-  description: 'Hunt down another elemental.',
+  nameRu: 'Хищник вершин',
+  description: 'Ветер бьёт первым. Уничтожь любого элементаля.',
   introMessages: [
-    { speaker: '', text: 'The wind doesn\'t wait. The wind doesn\'t ask.' },
-    { speaker: '', text: 'Another elemental stirs nearby. Doesn\'t matter which.' },
-    { speaker: '', text: 'Wind is fastest. Prove it.' },
+    { speaker: '', text: 'Ветер не ждёт. Ветер не спрашивает.' },
+    { speaker: '', text: 'Рядом шевелится другой элементаль. Неважно кто.' },
+    { speaker: '', text: 'Ветер — быстрее всех. Докажи.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Gone. The peaks are yours. The gust — yours to throw.' },
+    { speaker: '', text: 'Исчез. Вершины твои. Порыв — теперь твой.' },
   ],
   objectives: [
     // targetId undefined = matches any kill (any elemental in the zone will do)
-    { type: 'kill', count: 1, description: 'Hunt down any elemental' },
+    { type: 'kill', count: 1, description: 'Уничтожь любого элементаля' },
   ],
   rewardSpellId: 'mob_wind_t1',
   xpReward: 50,
@@ -227,23 +227,23 @@ const QUEST_GUSTY: BodyQuestDef = {
 
 const QUEST_BANDIT_ARCHER: BodyQuestDef = {
   id: 'bq_bandit_archer', bodyId: 'bandit_archer', tier: 2,
-  nameRu: 'Caravan Raid',
-  description: 'Destroy the caravan and seize the cargo.',
+  nameRu: 'Налёт на обоз',
+  description: 'Сожги телегу и забери груз.',
   introMessages: [
-    { speaker: '', text: 'Dust on the road. A caravan. Lightly guarded.' },
-    { speaker: '', text: 'The boss nods: "Burn the cart. Take what\'s inside."' },
-    { speaker: '', text: 'Arrows ready. Time to earn your share.' },
+    { speaker: '', text: 'Пыль на дороге. Обоз. Охраны почти нет.' },
+    { speaker: '', text: 'Главарь кивает: «Сожги телегу. Забери что внутри.»' },
+    { speaker: '', text: 'Стрелы наготове. Пора зарабатывать долю.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The cart burns. The cargo is yours. You learned to shoot and retreat.' },
+    { speaker: '', text: 'Телега горит. Груз твой. Научился стрелять и уходить.' },
   ],
   objectives: [
-    { type: 'destroy', count: 1, targetId: 'caravan_cart', targetNameRu: 'Cart', description: 'Destroy the cart' },
-    { type: 'collect', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Cargo', description: 'Seize the cargo' },
+    { type: 'destroy', count: 1, targetId: 'caravan_cart', targetNameRu: 'Телега', description: 'Разнеси телегу' },
+    { type: 'collect', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Груз', description: 'Забери груз' },
   ],
   spawnObjects: [
-    { objectId: 'caravan_cart', nameRu: 'Cart', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
-    { objectId: 'caravan_cargo', nameRu: 'Cargo', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
+    { objectId: 'caravan_cart', nameRu: 'Телега', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
+    { objectId: 'caravan_cargo', nameRu: 'Груз', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
   ],
   rewardSpellId: 'longbow_shot',
   xpReward: 100,
@@ -251,19 +251,19 @@ const QUEST_BANDIT_ARCHER: BodyQuestDef = {
 
 const QUEST_BANDIT_CROSSBOW: BodyQuestDef = {
   id: 'bq_bandit_crossbow', bodyId: 'bandit_crossbow', tier: 2,
-  nameRu: 'Lockbreaker',
-  description: 'Break into the old fort.',
+  nameRu: 'Взломщик',
+  description: 'Сбей замок старого форта и разберись с охраной.',
   introMessages: [
-    { speaker: '', text: 'The boss points at the old fort gate.' },
-    { speaker: '', text: 'A lock. Thick. Key\'s lost.' },
-    { speaker: '', text: '"You\'re the best shot. Find a way."' },
+    { speaker: '', text: 'Главарь показывает на ворота старого форта.' },
+    { speaker: '', text: 'Замок. Толстый. Ключ потерян.' },
+    { speaker: '', text: '«Ты лучший стрелок. Найди способ.»' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The lock is history. Precision has its rewards.' },
+    { speaker: '', text: 'Замок в прошлом. Точность всегда вознаграждается.' },
   ],
   objectives: [
-    { type: 'destroy', count: 1, targetId: 'fort_lock', targetNameRu: 'Lock', description: 'Destroy the fort lock' },
-    { type: 'kill', count: 2, targetId: 'fort_guard', targetNameRu: 'Fort guard', description: 'Deal with 2 fort guards' },
+    { type: 'destroy', count: 1, targetId: 'fort_lock', targetNameRu: 'Замок форта', description: 'Сбей замок форта' },
+    { type: 'kill', count: 2, targetId: 'fort_guard', targetNameRu: 'Охранник форта', description: 'Разберись с 2 охранниками' },
   ],
   rewardSpellId: 'crossbow_bolt',
   xpReward: 100,
@@ -271,23 +271,23 @@ const QUEST_BANDIT_CROSSBOW: BodyQuestDef = {
 
 const QUEST_BANDIT_SPEAR: BodyQuestDef = {
   id: 'bq_bandit_spear', bodyId: 'bandit_spear', tier: 2,
-  nameRu: 'Caravan Raid',
-  description: 'Destroy the caravan and seize the cargo.',
+  nameRu: 'Налёт на обоз',
+  description: 'Разнеси телегу и забери груз.',
   introMessages: [
-    { speaker: '', text: 'A caravan crawls along the road. Easy prey.' },
-    { speaker: '', text: 'The boss points at the cart: "Smash it. Take everything."' },
-    { speaker: '', text: 'Pike in hand. Simple work.' },
+    { speaker: '', text: 'Обоз ползёт по дороге. Лёгкая добыча.' },
+    { speaker: '', text: 'Главарь указывает на телегу: «Разнеси её. Забери всё.»' },
+    { speaker: '', text: 'Копьё в руке. Простая работа.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Splinters and loot. The pike strikes where it hurts.' },
+    { speaker: '', text: 'Щепки и добыча. Копьё бьёт туда куда надо.' },
   ],
   objectives: [
-    { type: 'destroy', count: 1, targetId: 'caravan_cart', targetNameRu: 'Cart', description: 'Destroy the cart' },
-    { type: 'collect', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Cargo', description: 'Seize the cargo' },
+    { type: 'destroy', count: 1, targetId: 'caravan_cart', targetNameRu: 'Телега', description: 'Разнеси телегу' },
+    { type: 'collect', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Груз', description: 'Забери груз' },
   ],
   spawnObjects: [
-    { objectId: 'caravan_cart', nameRu: 'Cart', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
-    { objectId: 'caravan_cargo', nameRu: 'Cargo', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
+    { objectId: 'caravan_cart', nameRu: 'Телега', icon: '🛒', color: 0x886633, type: 'destructible', count: 1, radius: 400 },
+    { objectId: 'caravan_cargo', nameRu: 'Груз', icon: '📦', color: 0xddaa33, type: 'collectible', count: 1, radius: 50 },
   ],
   rewardSpellId: 'spear_thrust',
   xpReward: 100,
@@ -295,18 +295,18 @@ const QUEST_BANDIT_SPEAR: BodyQuestDef = {
 
 const QUEST_BANDIT_BRUTE: BodyQuestDef = {
   id: 'bq_bandit_brute', bodyId: 'bandit_brute', tier: 2,
-  nameRu: 'Demolition',
-  description: 'Destroy the watchtower.',
+  nameRu: 'Снос',
+  description: 'Снеси сторожевую башню у дороги.',
   introMessages: [
-    { speaker: '', text: 'The boss points at an old watchtower by the road.' },
-    { speaker: '', text: '"The guards will use it. Knock it down."' },
-    { speaker: '', text: 'Big body. Heavy hammer. Simple job.' },
+    { speaker: '', text: 'Главарь показывает на старую сторожевую башню у дороги.' },
+    { speaker: '', text: '«Охрана будет её использовать. Снеси.»' },
+    { speaker: '', text: 'Большое тело. Тяжёлый молот. Простая работа.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Rubble. The earth shook. The hammer remembers.' },
+    { speaker: '', text: 'Щебень. Земля тряслась. Молот помнит.' },
   ],
   objectives: [
-    { type: 'destroy', count: 1, targetId: 'watchtower', targetNameRu: 'Watchtower', description: 'Destroy the watchtower' },
+    { type: 'destroy', count: 1, targetId: 'watchtower', targetNameRu: 'Сторожевая башня', description: 'Разрушь сторожевую башню' },
   ],
   rewardSpellId: 'hammer_strike',
   xpReward: 100,
@@ -318,22 +318,22 @@ const QUEST_BANDIT_BRUTE: BodyQuestDef = {
 
 const QUEST_ASHER: BodyQuestDef = {
   id: 'bq_asher', bodyId: 'asher', tier: 2,
-  nameRu: 'Border Marks',
-  description: 'Burn marks along the territorial border.',
+  nameRu: 'Метки',
+  description: 'Оставь огненные метки на границе и прогони чужаков.',
   introMessages: [
-    { speaker: '', text: 'Slow. Heavy. Ancient.' },
-    { speaker: '', text: 'The western slope — not our territory. But something entered.' },
-    { speaker: '', text: 'Smell of water. Must leave marks so they don\'t return.' },
+    { speaker: '', text: 'Медленно. Тяжело. Давно.' },
+    { speaker: '', text: 'Западный склон — не наша территория. Но что-то туда зашло.' },
+    { speaker: '', text: 'Запах воды. Запах чужого. Нужно оставить метки чтобы они не вернулись.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The marks burn bright. None shall pass. Arrows of flame — yours.' },
+    { speaker: '', text: 'Метки горят ярко. Никто не пройдёт. Огненные стрелы — твои.' },
   ],
   objectives: [
-    { type: 'reach', count: 3, targetId: 'border_mark', targetNameRu: 'Border mark', description: 'Burn 3 border marks' },
-    { type: 'kill', count: 2, targetId: 'splasher', targetNameRu: 'Water elemental', description: 'Repel 2 water intruders' },
+    { type: 'reach', count: 3, targetId: 'border_mark', targetNameRu: 'Пограничная метка', description: 'Отметь 3 пограничные точки' },
+    { type: 'kill', count: 2, targetId: 'splasher', targetNameRu: 'Водный элементаль', description: 'Прогони 2 водных чужака' },
   ],
   spawnObjects: [{
-    objectId: 'border_mark', nameRu: 'Border Mark', icon: '🔥', color: 0xff6633,
+    objectId: 'border_mark', nameRu: 'Пограничная метка', icon: '🔥', color: 0xff6633,
     type: 'waypoint', count: 3, radius: 500,
   }],
   rewardSpellId: 'mob_fire_t2',
@@ -342,21 +342,21 @@ const QUEST_ASHER: BodyQuestDef = {
 
 const QUEST_FOGGER: BodyQuestDef = {
   id: 'bq_fogger', bodyId: 'fogger', tier: 2,
-  nameRu: 'Restore the Veil',
-  description: 'Thicken the fog before the shore is exposed.',
+  nameRu: 'Туман уходит',
+  description: 'Восстанови покров тумана пока берег не виден насквозь.',
   introMessages: [
-    { speaker: '', text: 'The fog is thinning. This is wrong.' },
-    { speaker: '', text: 'The sun breaks through. It shouldn\'t.' },
-    { speaker: '', text: 'The northern shore is nearly visible. Must restore the veil.' },
+    { speaker: '', text: 'Туман редеет. Это неправильно.' },
+    { speaker: '', text: 'Солнце пробивается. Так не должно быть.' },
+    { speaker: '', text: 'Северный берег почти виден насквозь. Нужно восстановить покров.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The veil holds again. The lake keeps its secrets. Ice obeys.' },
+    { speaker: '', text: 'Покров снова плотный. Озеро хранит тайны. Лёд слушается.' },
   ],
   objectives: [
-    { type: 'reach', count: 4, targetId: 'fog_node', targetNameRu: 'Fog Node', description: 'Restore 4 fog nodes' },
+    { type: 'reach', count: 4, targetId: 'fog_node', targetNameRu: 'Узел тумана', description: 'Восстанови 4 узла тумана' },
   ],
   spawnObjects: [{
-    objectId: 'fog_node', nameRu: 'Fog Node', icon: '🌫️', color: 0x6699cc,
+    objectId: 'fog_node', nameRu: 'Узел тумана', icon: '🌫️', color: 0x6699cc,
     type: 'waypoint', count: 4, radius: 550,
   }],
   rewardSpellId: 'mob_water_t2',
@@ -365,23 +365,23 @@ const QUEST_FOGGER: BodyQuestDef = {
 
 const QUEST_MUDDER: BodyQuestDef = {
   id: 'bq_mudder', bodyId: 'mudder', tier: 2,
-  nameRu: 'Water Seeker',
-  description: 'Reach the underground water source.',
+  nameRu: 'Корни ищут воду',
+  description: 'Прорасти сквозь породу к подземному источнику.',
   introMessages: [
-    { speaker: '', text: 'Dry. Long dry.' },
-    { speaker: '', text: 'Somewhere deeper there\'s water. You can feel it.' },
-    { speaker: '', text: 'Must grow towards it. Through stone. Slowly.' },
+    { speaker: '', text: 'Сухо. Давно сухо.' },
+    { speaker: '', text: 'Где-то глубже есть вода. Чувствуется.' },
+    { speaker: '', text: 'Нужно прорасти туда. Через камень. Медленно.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Water found. The earth drinks. Stone spikes — yours to summon.' },
+    { speaker: '', text: 'Вода найдена. Земля пьёт. Каменные шипы — твои.' },
   ],
   objectives: [
-    { type: 'destroy', count: 3, targetId: 'rock_wall', targetNameRu: 'Rock Layer', description: 'Break through 3 rock layers' },
-    { type: 'reach', count: 1, targetId: 'water_source', targetNameRu: 'Water Source', description: 'Reach the water source' },
+    { type: 'destroy', count: 3, targetId: 'rock_wall', targetNameRu: 'Слой породы', description: 'Пробей 3 слоя породы' },
+    { type: 'reach', count: 1, targetId: 'water_source', targetNameRu: 'Подземный источник', description: 'Доберись до источника' },
   ],
   spawnObjects: [
-    { objectId: 'rock_wall', nameRu: 'Rock Layer', icon: '🪨', color: 0x886644, type: 'destructible', count: 3, radius: 400 },
-    { objectId: 'water_source', nameRu: 'Water Source', icon: '💧', color: 0x4499dd, type: 'waypoint', count: 1, radius: 600 },
+    { objectId: 'rock_wall', nameRu: 'Слой породы', icon: '🪨', color: 0x886644, type: 'destructible', count: 3, radius: 400 },
+    { objectId: 'water_source', nameRu: 'Подземный источник', icon: '💧', color: 0x4499dd, type: 'waypoint', count: 1, radius: 600 },
   ],
   rewardSpellId: 'mob_earth_t2',
   xpReward: 100,
@@ -389,23 +389,23 @@ const QUEST_MUDDER: BodyQuestDef = {
 
 const QUEST_WHISTLER: BodyQuestDef = {
   id: 'bq_whistler', bodyId: 'whistler', tier: 2,
-  nameRu: 'Broken Song',
-  description: 'Find and remove what cuts the wind\'s song.',
+  nameRu: 'Фальшивая нота',
+  description: 'Найди и убери то что режет песню ветра.',
   introMessages: [
-    { speaker: '', text: 'The wind should sing.' },
-    { speaker: '', text: 'But today — it\'s off. Something cuts the song in half.' },
-    { speaker: '', text: 'Somewhere on the southern slope. Must find it.' },
+    { speaker: '', text: 'Ветер должен петь.' },
+    { speaker: '', text: 'Но сегодня — не так. Что-то режет песню посередине.' },
+    { speaker: '', text: 'Где-то на южном склоне. Надо найти.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The song flows again. The wind cuts — both ways. Blades of air — yours.' },
+    { speaker: '', text: 'Песня течёт снова. Ветер режет — с обеих сторон. Лезвия воздуха — твои.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'wind_blocker', description: 'Find the disturbance' },
-    { type: 'destroy', count: 1, targetId: 'wind_blocker', targetNameRu: 'Obstruction', description: 'Remove it' },
+    { type: 'reach', count: 1, targetId: 'wind_blocker', targetNameRu: 'Источник помехи', description: 'Найди источник помехи' },
+    { type: 'destroy', count: 1, targetId: 'wind_blocker', targetNameRu: 'Помеха', description: 'Убери помеху' },
   ],
   spawnObjects: [
-    { objectId: 'wind_blocker', nameRu: 'Wind Disturbance', icon: '💨', color: 0x88aacc, type: 'waypoint', count: 1, radius: 500 },
-    { objectId: 'wind_blocker', nameRu: 'Obstruction', icon: '🔩', color: 0x888888, type: 'destructible', count: 1, radius: 500 },
+    { objectId: 'wind_blocker', nameRu: 'Источник помехи', icon: '💨', color: 0x88aacc, type: 'waypoint', count: 1, radius: 500 },
+    { objectId: 'wind_blocker', nameRu: 'Помеха', icon: '🔩', color: 0x888888, type: 'destructible', count: 1, radius: 500 },
   ],
   rewardSpellId: 'mob_wind_t2',
   xpReward: 100,
@@ -413,19 +413,19 @@ const QUEST_WHISTLER: BodyQuestDef = {
 
 const QUEST_SPIRIT_WOLF: BodyQuestDef = {
   id: 'bq_spirit_wolf', bodyId: 'spirit_wolf', tier: 2,
-  nameRu: 'Forest Mercy',
-  description: 'Find the wounded human in the forest.',
+  nameRu: 'Лесное милосердие',
+  description: 'Найди раненого человека и защити его от хищников.',
   introMessages: [
-    { speaker: '', text: 'The forest speaks of pain. Somewhere nearby, someone lies still.' },
-    { speaker: '', text: 'Not a beast. A human. Breathing hard.' },
-    { speaker: '', text: 'The forest spirits do not let anyone die without reason.' },
+    { speaker: '', text: 'Лес говорит о боли. Где-то рядом кто-то лежит без движения.' },
+    { speaker: '', text: 'Не зверь. Человек. Тяжело дышит.' },
+    { speaker: '', text: 'Духи леса не дают умереть без причины.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'He lives. The spirits nod. Bark shields those who serve.' },
+    { speaker: '', text: 'Он жив. Духи кивают. Кора защищает тех кто служит.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'wounded_human', description: 'Find the wounded human' },
-    { type: 'protect', count: 1, targetId: 'wounded_human', targetNameRu: 'Wounded human', description: 'Protect him from predators' },
+    { type: 'reach', count: 1, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Найди раненого человека' },
+    { type: 'protect', count: 1, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его от хищников' },
   ],
   rewardSpellId: 'mob_nature_t2',
   xpReward: 100,
@@ -440,21 +440,21 @@ const QUEST_SPIRIT_WOLF: BodyQuestDef = {
 
 const QUEST_GOBLIN_VETERAN: BodyQuestDef = {
   id: 'bq_goblin_veteran', bodyId: 'goblin_veteran', tier: 2,
-  nameRu: 'Shadow Run',
-  description: 'Raid the orc camp under cover of darkness.',
+  nameRu: 'Ночной рейд',
+  description: 'Проберись в лагерь орков под покровом ночи и вынеси добычу.',
   introMessages: [
-    { speaker: '', text: 'The orc camp sleeps. Almost.' },
-    { speaker: '', text: 'Three valuables. The chieftain\'s tent.' },
-    { speaker: '', text: 'Get in. Get out. Don\'t let them see your face.' },
+    { speaker: '', text: 'Лагерь орков спит. Почти.' },
+    { speaker: '', text: 'Три ценности. Шатёр вождя.' },
+    { speaker: '', text: 'Войди. Выйди. Не дай им увидеть твоё лицо.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Gone before they knew. The throwing blade — yours.' },
+    { speaker: '', text: 'Ушёл раньше чем поняли. Метательный клинок — твой.' },
   ],
   objectives: [
-    { type: 'steal', count: 3, targetId: 'orc_loot', targetNameRu: 'Loot', description: 'Steal 3 valuables from the orc camp' },
+    { type: 'steal', count: 3, targetId: 'orc_loot', targetNameRu: 'Орочья добыча', description: 'Укради 3 ценности из орочьего лагеря' },
   ],
   spawnObjects: [{
-    objectId: 'orc_loot', nameRu: 'Loot', icon: '💰', color: 0xddaa33,
+    objectId: 'orc_loot', nameRu: 'Орочья добыча', icon: '💰', color: 0xddaa33,
     type: 'collectible', count: 4, radius: 300,
   }],
   rewardSpellId: 'knife_throw',
@@ -463,18 +463,18 @@ const QUEST_GOBLIN_VETERAN: BodyQuestDef = {
 
 const QUEST_ORC_VETERAN: BodyQuestDef = {
   id: 'bq_orc_veteran', bodyId: 'orc_veteran', tier: 2,
-  nameRu: 'Camp Warden',
-  description: 'Drive out the goblin thieves before they empty the camp.',
+  nameRu: 'Страж лагеря',
+  description: 'Прогони гоблинов-воров одним широким ударом.',
   introMessages: [
-    { speaker: '', text: 'Something slips through the shadows.' },
-    { speaker: '', text: 'Goblins. Again.' },
-    { speaker: '', text: 'The sweep clears them all at once.' },
+    { speaker: '', text: 'Что-то скользит в тенях.' },
+    { speaker: '', text: 'Гоблины. Опять.' },
+    { speaker: '', text: 'Один широкий удар — и всех сразу.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Camp is clean. The wide arc — yours to keep.' },
+    { speaker: '', text: 'Лагерь чист. Широкая дуга — твоя.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'goblin', targetNameRu: 'Goblin', description: 'Kill 3 goblin thieves' },
+    { type: 'kill', count: 3, targetId: 'goblin', targetNameRu: 'Гоблин-вор', description: 'Убей 3 гоблинов-воров' },
   ],
   rewardSpellId: 'slash_sweep',
   xpReward: 100,
@@ -485,19 +485,19 @@ const QUEST_ORC_VETERAN: BodyQuestDef = {
 
 const QUEST_WOLF_VETERAN: BodyQuestDef = {
   id: 'bq_wolf_veteran', bodyId: 'wolf_veteran', tier: 2,
-  nameRu: 'Two Strikes',
-  description: 'Lead the pack hunt and prove your dominance.',
+  nameRu: 'Два удара',
+  description: 'Возглавь охоту и докажи право вожака.',
   introMessages: [
-    { speaker: '', text: 'The pack is lean. Three days without a real kill.' },
-    { speaker: '', text: 'A young one challenges you. Answer it.' },
-    { speaker: '', text: 'The alpha strikes twice. Once for rank. Once for food.' },
+    { speaker: '', text: 'Стая тощая. Трое суток без настоящей добычи.' },
+    { speaker: '', text: 'Молодой бросает вызов. Ответь.' },
+    { speaker: '', text: 'Вожак бьёт дважды. Раз за ранг. Раз за еду.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'None questioned the second strike. The pack feeds.' },
+    { speaker: '', text: 'Никто не оспорил второй удар. Стая сыта.' },
   ],
   objectives: [
-    { type: 'kill', count: 1, targetId: 'wolf', targetNameRu: 'Wolf', description: 'Defeat the challenger' },
-    { type: 'kill', count: 2, targetId: 'deer', targetNameRu: 'Deer', description: 'Lead the hunt' },
+    { type: 'kill', count: 1, targetId: 'wolf', targetNameRu: 'Претендент', description: 'Победи претендента' },
+    { type: 'kill', count: 2, targetId: 'deer', targetNameRu: 'Олень', description: 'Возглавь охоту: добудь 2 оленей' },
   ],
   rewardSpellId: 'double_strike',
   xpReward: 100,
@@ -506,18 +506,18 @@ const QUEST_WOLF_VETERAN: BodyQuestDef = {
 
 const QUEST_BEAR_VETERAN: BodyQuestDef = {
   id: 'bq_bear_veteran', bodyId: 'bear_veteran', tier: 2,
-  nameRu: 'Old Wounds',
-  description: 'Drive the wolf pack from the elder\'s territory.',
+  nameRu: 'Старые раны',
+  description: 'Отгони стаю волков от своей территории.',
   introMessages: [
-    { speaker: '', text: 'Old bones. Old scars.' },
-    { speaker: '', text: 'Four wolves circling. They smell age.' },
-    { speaker: '', text: 'They think age means slow. Show them otherwise.' },
+    { speaker: '', text: 'Старые кости. Старые шрамы.' },
+    { speaker: '', text: 'Четыре волка кружат. Чуют возраст.' },
+    { speaker: '', text: 'Думают — возраст значит медленный. Покажи иначе.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The pack scattered. Old is not the same as weak.' },
+    { speaker: '', text: 'Стая рассеялась. Старый не значит слабый.' },
   ],
   objectives: [
-    { type: 'kill', count: 4, targetId: 'wolf', targetNameRu: 'Wolf', description: 'Drive off 4 wolves' },
+    { type: 'kill', count: 4, targetId: 'wolf', targetNameRu: 'Волк', description: 'Отгони 4 волков' },
   ],
   rewardSpellId: 'mace_bash',
   xpReward: 100,
@@ -529,18 +529,18 @@ const QUEST_BEAR_VETERAN: BodyQuestDef = {
 
 const QUEST_CARAVAN_GUARD: BodyQuestDef = {
   id: 'bq_caravan_guard', bodyId: 'caravan_guard', tier: 2,
-  nameRu: 'Hold the Line',
-  description: 'Push back the bandit spearmen before they reach the cart.',
+  nameRu: 'Держать строй',
+  description: 'Оттесни копейщиков-разбойников от телеги.',
   introMessages: [
-    { speaker: '', text: 'The caravan rolls. You walk beside it.' },
-    { speaker: '', text: 'Spearmen at the tree line. Three of them.' },
-    { speaker: '', text: 'Push them back before they reach the cart.' },
+    { speaker: '', text: 'Обоз едет. Ты идёшь рядом.' },
+    { speaker: '', text: 'Копейщики у опушки. Трое.' },
+    { speaker: '', text: 'Оттесни их прежде чем доберутся до телеги.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The cart rolls on. The butt of the spear — as useful as the tip.' },
+    { speaker: '', text: 'Телега едет дальше. Тупой конец копья не хуже острого.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'bandit_spear', targetNameRu: 'Bandit Spearman', description: 'Drive off 3 spearmen' },
+    { type: 'kill', count: 3, targetId: 'bandit_spear', targetNameRu: 'Разбойник-копейщик', description: 'Отбей 3 копейщиков-разбойников' },
   ],
   rewardSpellId: 'spear_butt',
   xpReward: 100,
@@ -548,18 +548,18 @@ const QUEST_CARAVAN_GUARD: BodyQuestDef = {
 
 const QUEST_SCOUT_VETERAN: BodyQuestDef = {
   id: 'bq_scout_veteran', bodyId: 'scout_veteran', tier: 2,
-  nameRu: 'Countermeasure',
-  description: 'Take out the bandit archers before they burn the cart.',
+  nameRu: 'Контрмера',
+  description: 'Сними лучников-разбойников пока они не подожгли телегу.',
   introMessages: [
-    { speaker: '', text: 'Archers. Tree line, north side. Two of them.' },
-    { speaker: '', text: 'They have the angle on the cart.' },
-    { speaker: '', text: 'Shoot first. The jump keeps you from being a target.' },
+    { speaker: '', text: 'Лучники. Опушка с севера. Двое.' },
+    { speaker: '', text: 'Они держат угол на телегу.' },
+    { speaker: '', text: 'Стреляй первым. Прыжок назад — и ты не мишень.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Archers down. Jump back — let them shoot at air.' },
+    { speaker: '', text: 'Лучники пали. Прыгнул назад — пусть стреляют в воздух.' },
   ],
   objectives: [
-    { type: 'kill', count: 2, targetId: 'bandit_archer', targetNameRu: 'Bandit Archer', description: 'Take down 2 bandit archers' },
+    { type: 'kill', count: 2, targetId: 'bandit_archer', targetNameRu: 'Разбойник-лучник', description: 'Устрани 2 лучников-разбойников' },
   ],
   rewardSpellId: 'bow_backshot',
   xpReward: 100,
@@ -570,22 +570,22 @@ const QUEST_SCOUT_VETERAN: BodyQuestDef = {
 
 const QUEST_MONKEY: BodyQuestDef = {
   id: 'bq_monkey', bodyId: 'monkey', tier: 2,
-  nameRu: 'Troublemaker',
-  description: 'Claim the high ground and scatter the intruders.',
+  nameRu: 'Нарушитель спокойствия',
+  description: 'Займи высоту и разгони чужаков.',
   introMessages: [
-    { speaker: '', text: 'High. Loud. This tree — your throne.' },
-    { speaker: '', text: 'Strangers below. Too close to the troop.' },
-    { speaker: '', text: 'Jump in. Hit first. Confuse them before they know what hit.' },
+    { speaker: '', text: 'Высоко. Громко. Это дерево — твой трон.' },
+    { speaker: '', text: 'Чужаки внизу. Слишком близко к стае.' },
+    { speaker: '', text: 'Прыгни. Бей первым. Запутай их раньше чем поймут что произошло.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Scattered and confused. The disorienting blow — yours.' },
+    { speaker: '', text: 'Разбежались и растерялись. Дезориентирующий удар — твой.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'high_branch', description: 'Claim the high branch' },
-    { type: 'kill', count: 3, description: 'Scatter 3 intruders' },
+    { type: 'reach', count: 1, targetId: 'high_branch', targetNameRu: 'Высотная ветка', description: 'Займи высотную ветку' },
+    { type: 'kill', count: 3, description: 'Разгони 3 нарушителей' },
   ],
   spawnObjects: [{
-    objectId: 'high_branch', nameRu: 'High Branch', icon: '🌳', color: 0x44aa44,
+    objectId: 'high_branch', nameRu: 'Высотная ветка', icon: '🌳', color: 0x44aa44,
     type: 'waypoint', count: 1, radius: 300,
   }],
   rewardSpellId: 'fist_strike',
@@ -595,18 +595,18 @@ const QUEST_MONKEY: BodyQuestDef = {
 
 const QUEST_BANDIT_ARCHER_VET: BodyQuestDef = {
   id: 'bq_bandit_archer_veteran', bodyId: 'bandit_archer_veteran', tier: 2,
-  nameRu: 'Rain of Arrows',
-  description: 'Cover the retreat under suppressing fire.',
+  nameRu: 'Ливень стрел',
+  description: 'Прикрой отход подавляющим огнём.',
   introMessages: [
-    { speaker: '', text: 'The camp is pulling back. Guards are closing in.' },
-    { speaker: '', text: 'Hold the road. Wide coverage.' },
-    { speaker: '', text: 'When one arrow isn\'t enough — send twenty.' },
+    { speaker: '', text: 'Лагерь отступает. Охрана наседает.' },
+    { speaker: '', text: 'Держи дорогу. Широкое прикрытие.' },
+    { speaker: '', text: 'Когда одной стрелы мало — пусти двадцать.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The road held. The rain of arrows — yours.' },
+    { speaker: '', text: 'Дорога устояла. Ливень стрел — твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Hold back 4 guards' },
+    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Охранник', description: 'Сдержи 4 охранников' },
   ],
   rewardSpellId: 'arrow_rain',
   xpReward: 100,
@@ -615,18 +615,18 @@ const QUEST_BANDIT_ARCHER_VET: BodyQuestDef = {
 
 const QUEST_BANDIT_CROSSBOW_VET: BodyQuestDef = {
   id: 'bq_bandit_crossbow_veteran', bodyId: 'bandit_crossbow_veteran', tier: 2,
-  nameRu: 'Pinned Down',
-  description: 'Root the guards before they can regroup.',
+  nameRu: 'Прижать к земле',
+  description: 'Пригвозди охранников прежде чем они смогут перестроиться.',
   introMessages: [
-    { speaker: '', text: 'Three guards. Fast. Too spread out for a volley.' },
-    { speaker: '', text: 'Pin one. The others stop to help.' },
-    { speaker: '', text: 'Then pin them too.' },
+    { speaker: '', text: 'Трое охранников. Быстрые. Слишком рассредоточены для залпа.' },
+    { speaker: '', text: 'Прижми одного. Остальные остановятся помочь.' },
+    { speaker: '', text: 'Потом прижми и их.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'None of them moved where they wanted. Control — yours.' },
+    { speaker: '', text: 'Никто не пошёл туда куда хотел. Контроль — твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Pin down 3 guards' },
+    { type: 'kill', count: 3, targetId: 'caravan_guard', targetNameRu: 'Охранник', description: 'Нейтрализуй 3 охранников' },
   ],
   rewardSpellId: 'crossbow_snare',
   xpReward: 100,
@@ -635,18 +635,18 @@ const QUEST_BANDIT_CROSSBOW_VET: BodyQuestDef = {
 
 const QUEST_BANDIT_SPEAR_VET: BodyQuestDef = {
   id: 'bq_bandit_spear_veteran', bodyId: 'bandit_spear_veteran', tier: 2,
-  nameRu: 'Crowd Control',
-  description: 'Keep multiple guards at bay with the butt of the spear.',
+  nameRu: 'Сдержать натиск',
+  description: 'Удержи нескольких охранников тупым концом копья.',
   introMessages: [
-    { speaker: '', text: 'Four guards closing in from both sides.' },
-    { speaker: '', text: 'The tip kills one. The butt controls four.' },
-    { speaker: '', text: 'Knock them back before they can surround you.' },
+    { speaker: '', text: 'Четверо охранников наступают с двух сторон.' },
+    { speaker: '', text: 'Острие убивает одного. Тупой конец держит четверых.' },
+    { speaker: '', text: 'Оттолкни прежде чем окружат.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'None got close enough. The back end of a spear is half the weapon.' },
+    { speaker: '', text: 'Никто не подошёл достаточно близко. Задний конец копья — половина оружия.' },
   ],
   objectives: [
-    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Push back 4 guards' },
+    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Охранник', description: 'Оттолкни 4 охранников' },
   ],
   rewardSpellId: 'spear_butt',
   xpReward: 100,
@@ -655,18 +655,18 @@ const QUEST_BANDIT_SPEAR_VET: BodyQuestDef = {
 
 const QUEST_BANDIT_BRUTE_VET: BodyQuestDef = {
   id: 'bq_bandit_brute_veteran', bodyId: 'bandit_brute_veteran', tier: 2,
-  nameRu: 'Berserker',
-  description: 'Smash through the reinforcements\' heavy armor.',
+  nameRu: 'Берсерк',
+  description: 'Проломи тяжёлые латы подкрепления.',
   introMessages: [
-    { speaker: '', text: 'Reinforcements. Three of them. Heavy armor.' },
-    { speaker: '', text: 'The hammer doesn\'t care about armor.' },
-    { speaker: '', text: 'Smash the plate. Then finish what\'s inside.' },
+    { speaker: '', text: 'Подкрепление. Трое. Тяжёлые доспехи.' },
+    { speaker: '', text: 'Молоту всё равно что на тебе надето.' },
+    { speaker: '', text: 'Разбей латы. Потом разберись с тем что внутри.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Three suits of armor. Now scrap. The heavy smash — yours.' },
+    { speaker: '', text: 'Три комплекта доспехов. Теперь лом. Тяжёлый удар — твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Crush 3 armored guards' },
+    { type: 'kill', count: 3, targetId: 'caravan_guard', targetNameRu: 'Бронированный охранник', description: 'Расправься с 3 бронированными охранниками' },
   ],
   rewardSpellId: 'hammer_smash',
   xpReward: 100,
@@ -679,20 +679,20 @@ const QUEST_BANDIT_BRUTE_VET: BodyQuestDef = {
 
 export const CONFLICT_CARAVAN: ConflictQuestDef = {
   id: 'conflict_caravan',
-  nameRu: 'The Caravan',
-  description: 'A trade caravan crosses bandit territory. Both sides have a stake.',
+  nameRu: 'Обоз',
+  description: 'Торговый обоз пересекает земли разбойников. У обеих сторон свой интерес.',
   location: 'trade_road',
   sides: [
     {
       side: 'attacker',
       bodyIds: ['orc', 'goblin', 'bandit_brute'],
-      objectiveDescription: 'Rob the caravan. Take the cargo.',
+      objectiveDescription: 'Ограбь обоз. Забери груз.',
       npcCount: 6,
     },
     {
       side: 'defender',
       bodyIds: ['scout', 'bandit_spear'],
-      objectiveDescription: 'Escort the caravan to safety.',
+      objectiveDescription: 'Сопроводи обоз до безопасного места.',
       npcCount: 4,
     },
   ],
@@ -704,19 +704,19 @@ export const CONFLICT_CARAVAN: ConflictQuestDef = {
 
 const QUEST_ORC_CARAVAN: BodyQuestDef = {
   id: 'bq_orc_caravan', bodyId: 'orc', tier: 3,
-  nameRu: 'Caravan Raid',
-  description: 'Lead the ambush on the trade caravan.',
+  nameRu: 'Налёт на обоз',
+  description: 'Возглавь засаду на торговый обоз.',
   introMessages: [
-    { speaker: 'Chieftain', text: 'The caravan crosses our land. They pay no tribute.' },
-    { speaker: 'Chieftain', text: 'Take warriors. Bring back the cargo. Kill if you must.' },
-    { speaker: '', text: 'Six warriors wait at the treeline. The dust of wheels rises on the road.' },
+    { speaker: 'Вождь', text: 'Обоз пересекает наши земли. Дань не платят.' },
+    { speaker: 'Вождь', text: 'Возьми воинов. Верни груз. Убивай если надо.' },
+    { speaker: '', text: 'Шестеро воинов ждут у опушки. На дороге поднимается пыль колёс.' },
   ],
   completeMessages: [
-    { speaker: 'Chieftain', text: 'Good. The clan feasts tonight. You\'ve earned the blood sweep.' },
+    { speaker: 'Вождь', text: 'Хорошо. Клан сегодня пирует. Ты заслужил кровавый размах.' },
   ],
   objectives: [
-    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Caravan guard', description: 'Defeat 4 guards' },
-    { type: 'steal', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Cargo', description: 'Seize the cargo' },
+    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Охранник обоза', description: 'Победи 4 охранников' },
+    { type: 'steal', count: 1, targetId: 'caravan_cargo', targetNameRu: 'Груз', description: 'Захвати груз' },
   ],
   rewardSpellId: 'bloody_sweep',
   xpReward: 200,
@@ -726,19 +726,19 @@ const QUEST_ORC_CARAVAN: BodyQuestDef = {
 
 const QUEST_SCOUT_ESCORT: BodyQuestDef = {
   id: 'bq_scout_escort', bodyId: 'scout', tier: 3,
-  nameRu: 'Caravan Escort',
-  description: 'Escort the trade caravan through bandit territory.',
+  nameRu: 'Сопровождение обоза',
+  description: 'Проведи торговый обоз через земли разбойников.',
   introMessages: [
-    { speaker: 'Merchant', text: 'We need to cross the forest. Bandits have been seen.' },
-    { speaker: 'Merchant', text: 'You know these paths. Lead us safely.' },
-    { speaker: '', text: 'Four guards take positions. The caravan rolls forward.' },
+    { speaker: 'Торговец', text: 'Нам нужно пересечь лес. Видели разбойников.' },
+    { speaker: 'Торговец', text: 'Ты знаешь эти тропы. Веди нас.' },
+    { speaker: '', text: 'Четыре охранника занимают позиции. Обоз трогается.' },
   ],
   completeMessages: [
-    { speaker: 'Merchant', text: 'We made it. You have the eyes of a hawk. This is yours.' },
+    { speaker: 'Торговец', text: 'Мы добрались. У тебя глаза ястреба. Это тебе.' },
   ],
   objectives: [
-    { type: 'escort', count: 1, targetId: 'caravan', targetNameRu: 'Caravan', description: 'Escort the caravan' },
-    { type: 'kill', count: 3, targetId: 'ambusher', targetNameRu: 'Ambusher', description: 'Repel 3 ambushers' },
+    { type: 'escort', count: 1, targetId: 'caravan', targetNameRu: 'Обоз', description: 'Сопроводи обоз' },
+    { type: 'kill', count: 3, targetId: 'ambusher', targetNameRu: 'Засадник', description: 'Отбей 3 засадников' },
   ],
   rewardSpellId: 'trap',
   xpReward: 200,
@@ -752,21 +752,21 @@ const QUEST_SCOUT_ESCORT: BodyQuestDef = {
 
 const QUEST_HARE: BodyQuestDef = {
   id: 'bq_hare', bodyId: 'hare', tier: 1,
-  nameRu: 'Quick Paws',
-  description: 'Gather carrots scattered nearby.',
+  nameRu: 'Быстрые лапки',
+  description: 'Собери морковки прежде чем появится кто-то крупный.',
   introMessages: [
-    { speaker: '', text: 'Small. Fast. The world is full of giants.' },
-    { speaker: '', text: 'But right now — hunger. The nose twitches. Carrots. Nearby.' },
-    { speaker: '', text: 'Gather them before something bigger shows up.' },
+    { speaker: '', text: 'Маленькое. Быстрое. Мир полон великанов.' },
+    { speaker: '', text: 'Но сейчас — голод. Нос подрагивает. Морковка. Рядом.' },
+    { speaker: '', text: 'Собрать пока что-то крупное не появилось.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Belly full. The body taught you to be quick — truly quick.' },
+    { speaker: '', text: 'Сыт. Тело быстрее чем казалось. Ускорение — твоё.' },
   ],
   objectives: [
-    { type: 'collect', count: 5, targetId: 'carrot', targetNameRu: 'Carrot', description: 'Collect 5 carrots' },
+    { type: 'collect', count: 5, targetId: 'carrot', targetNameRu: 'Морковка', description: 'Собери 5 морковок' },
   ],
   spawnObjects: [{
-    objectId: 'carrot', nameRu: 'Carrot', icon: '🥕', color: 0xff8833,
+    objectId: 'carrot', nameRu: 'Морковка', icon: '🥕', color: 0xff8833,
     type: 'collectible', count: 6, radius: 300,
   }],
   rewardSpellId: 'acceleration',
@@ -775,21 +775,21 @@ const QUEST_HARE: BodyQuestDef = {
 
 const QUEST_DEER: BodyQuestDef = {
   id: 'bq_deer', bodyId: 'deer', tier: 1,
-  nameRu: 'Fleet Foot',
-  description: 'Reach the safe clearing before they catch you.',
+  nameRu: 'Лёгкий бег',
+  description: 'Доберись до безопасной поляны и не оглядывайся.',
   introMessages: [
-    { speaker: '', text: 'Graceful legs. Wind in the fur. The meadow stretches wide.' },
-    { speaker: '', text: 'Something is watching from the treeline. A clearing far ahead — safety.' },
-    { speaker: '', text: 'Run. Don\'t look back.' },
+    { speaker: '', text: 'Стройные ноги. Ветер в шерсти. Луг широкий.' },
+    { speaker: '', text: 'Что-то смотрит из опушки. Далеко — поляна. Безопасно.' },
+    { speaker: '', text: 'Бежать. Не оглядываться.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Nothing could catch you. The wind itself taught you to dash.' },
+    { speaker: '', text: 'Никто не догнал. Сам ветер научил делать рывок.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'safe_clearing', targetNameRu: 'Safe Clearing', description: 'Reach the safe clearing' },
+    { type: 'reach', count: 1, targetId: 'safe_clearing', targetNameRu: 'Безопасная поляна', description: 'Доберись до безопасной поляны' },
   ],
   spawnObjects: [{
-    objectId: 'safe_clearing', nameRu: 'Safe Clearing', icon: '🌿', color: 0x44dd44,
+    objectId: 'safe_clearing', nameRu: 'Безопасная поляна', icon: '🌿', color: 0x44dd44,
     type: 'waypoint', count: 1, radius: 700,
   }],
   rewardSpellId: 'dash',
@@ -798,18 +798,18 @@ const QUEST_DEER: BodyQuestDef = {
 
 const QUEST_FOX: BodyQuestDef = {
   id: 'bq_fox', bodyId: 'fox', tier: 1,
-  nameRu: 'Cunning Hunter',
-  description: 'Hunt hares in the meadow.',
+  nameRu: 'Хитрый охотник',
+  description: 'Поймай зайцев на лугу — тело само знает как.',
   introMessages: [
-    { speaker: '', text: 'Sharp nose. Sharp mind. The meadow smells of hare.' },
-    { speaker: '', text: 'They\'re fast — but not fast enough.' },
-    { speaker: '', text: 'Three will do. The body knows what to do.' },
+    { speaker: '', text: 'Острый нос. Острый ум. На лугу пахнет зайцем.' },
+    { speaker: '', text: 'Они быстрые — но не быстрее.' },
+    { speaker: '', text: 'Трёх хватит. Тело само знает что делать.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Quick and precise. The fox body taught you to disorient.' },
+    { speaker: '', text: 'Быстро и точно. Тело лисы учит бить первой. Хук — твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'hare', targetNameRu: 'Hare', description: 'Hunt 3 hares' },
+    { type: 'kill', count: 3, targetId: 'hare', targetNameRu: 'Заяц', description: 'Поймай 3 зайца' },
   ],
   rewardSpellId: 'hook',
   xpReward: 50,
@@ -817,17 +817,17 @@ const QUEST_FOX: BodyQuestDef = {
 
 const QUEST_BOAR: BodyQuestDef = {
   id: 'bq_boar', bodyId: 'boar', tier: 1,
-  nameRu: 'Unstoppable',
-  description: 'Charge through anything in your path.',
+  nameRu: 'Неудержимый',
+  description: 'Прогони волков — лес расступается перед тобой.',
   introMessages: [
-    { speaker: '', text: 'Thick hide. Powerful legs. The forest parts before you.' },
-    { speaker: '', text: 'Wolves circle nearby. They will learn to fear the charge.' },
+    { speaker: '', text: 'Толстая шкура. Мощные ноги. Лес расступается перед тобой.' },
+    { speaker: '', text: 'Волки кружат рядом. Они научатся бояться удара.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Nothing stands before the charge. The body taught you the ram.' },
+    { speaker: '', text: 'Ничто не встало поперёк. Тело кабана учит идти напролом. Таран — твой.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'wolf', targetNameRu: 'Wolf', description: 'Drive away 3 wolves' },
+    { type: 'kill', count: 3, targetId: 'wolf', targetNameRu: 'Волк', description: 'Прогони 3 волков' },
   ],
   rewardSpellId: 'ram',
   xpReward: 60,
@@ -835,17 +835,17 @@ const QUEST_BOAR: BodyQuestDef = {
 
 const QUEST_GROUSE: BodyQuestDef = {
   id: 'bq_grouse', bodyId: 'grouse', tier: 1,
-  nameRu: 'Healer\'s Instinct',
-  description: 'Survive by knowing which herbs restore strength.',
+  nameRu: 'Инстинкт целителя',
+  description: 'Выживи 30 секунд — тело само подбирает целебные ягоды.',
   introMessages: [
-    { speaker: '', text: 'Tiny wings. Sharp eyes. The undergrowth hides many secrets.' },
-    { speaker: '', text: 'Some berries heal. The body remembers which.' },
+    { speaker: '', text: 'Маленькие крылья. Острые глаза. В подлеске много тайн.' },
+    { speaker: '', text: 'Некоторые ягоды лечат. Тело помнит какие.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'The smallest creature taught you the greatest gift — healing.' },
+    { speaker: '', text: 'Самое маленькое существо научило самому важному — лечить.' },
   ],
   objectives: [
-    { type: 'survive', count: 30, description: 'Survive 30 seconds' },
+    { type: 'survive', count: 30, description: 'Выживи 30 секунд' },
   ],
   rewardSpellId: 'neutral_heal',
   xpReward: 40,
