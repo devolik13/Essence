@@ -128,8 +128,13 @@ const QUEST_SHAMAN: BodyQuestDef = {
   ],
   objectives: [
     { type: 'reach', count: 1, targetId: 'spirit_clearing', description: 'Reach the spirit clearing' },
-    { type: 'survive', count: 1, description: 'Meditate for 30 seconds' },
+    { type: 'survive', count: 30, description: 'Meditate for 30 seconds' },
   ],
+  // TODO: replace with fixed map coordinates once clearing location is decided
+  spawnObjects: [{
+    objectId: 'spirit_clearing', nameRu: 'Spirit Clearing', icon: '🌀', color: 0x8866ff,
+    type: 'waypoint', count: 1, radius: 450,
+  }],
   rewardSpellId: 'mob_nature_t1',
   xpReward: 50,
 };
