@@ -1340,7 +1340,7 @@ export class UIScene extends Phaser.Scene {
         const sprite = spriteForSpell(ability.id);
         const key = sprite ? spriteTextureKey(sprite.id) : null;
         if (key && this.textures.exists(key)) {
-          img.setTexture(key).setVisible(true);
+          img.setTexture(key).setDisplaySize(SKILL_SLOT_SIZE - 8, SKILL_SLOT_SIZE - 8).setVisible(true);
           txt.setText('');
         } else {
           img.setVisible(false);
