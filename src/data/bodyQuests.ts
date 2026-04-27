@@ -417,6 +417,248 @@ const QUEST_SPIRIT_WOLF: BodyQuestDef = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// T2 — Veterans & new bodies → T2 weapon spells
+// Paired events marked with ── ПАРА ──
+// ═══════════════════════════════════════════════════════════════
+
+// ── ПАРА: Рейд на лагерь (goblin_veteran атакует ↔ orc_veteran защищает) ──
+
+const QUEST_GOBLIN_VETERAN: BodyQuestDef = {
+  id: 'bq_goblin_veteran', bodyId: 'goblin_veteran', tier: 2,
+  nameRu: 'Shadow Run',
+  description: 'Raid the orc camp under cover of darkness.',
+  introMessages: [
+    { speaker: '', text: 'The orc camp sleeps. Almost.' },
+    { speaker: '', text: 'Three valuables. The chieftain\'s tent.' },
+    { speaker: '', text: 'Get in. Get out. Don\'t let them see your face.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Gone before they knew. The throwing blade — yours.' },
+  ],
+  objectives: [
+    { type: 'steal', count: 3, targetId: 'orc_loot', targetNameRu: 'Loot', description: 'Steal 3 valuables from the orc camp' },
+  ],
+  spawnObjects: [{
+    objectId: 'orc_loot', nameRu: 'Loot', icon: '💰', color: 0xddaa33,
+    type: 'collectible', count: 4, radius: 300,
+  }],
+  rewardSpellId: 'knife_throw',
+  xpReward: 100,
+};
+
+const QUEST_ORC_VETERAN: BodyQuestDef = {
+  id: 'bq_orc_veteran', bodyId: 'orc_veteran', tier: 2,
+  nameRu: 'Camp Warden',
+  description: 'Drive out the goblin thieves before they empty the camp.',
+  introMessages: [
+    { speaker: '', text: 'Something slips through the shadows.' },
+    { speaker: '', text: 'Goblins. Again.' },
+    { speaker: '', text: 'The sweep clears them all at once.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Camp is clean. The wide arc — yours to keep.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'goblin', targetNameRu: 'Goblin', description: 'Kill 3 goblin thieves' },
+  ],
+  rewardSpellId: 'slash_sweep',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_orc',
+};
+
+// ── ПАРА: Лесной конфликт (wolf_veteran охотится ↔ bear_veteran защищает) ──
+
+const QUEST_WOLF_VETERAN: BodyQuestDef = {
+  id: 'bq_wolf_veteran', bodyId: 'wolf_veteran', tier: 2,
+  nameRu: 'Two Strikes',
+  description: 'Lead the pack hunt and prove your dominance.',
+  introMessages: [
+    { speaker: '', text: 'The pack is lean. Three days without a real kill.' },
+    { speaker: '', text: 'A young one challenges you. Answer it.' },
+    { speaker: '', text: 'The alpha strikes twice. Once for rank. Once for food.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'None questioned the second strike. The pack feeds.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 1, targetId: 'wolf', targetNameRu: 'Wolf', description: 'Defeat the challenger' },
+    { type: 'kill', count: 2, targetId: 'deer', targetNameRu: 'Deer', description: 'Lead the hunt' },
+  ],
+  rewardSpellId: 'double_strike',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_wolf',
+};
+
+const QUEST_BEAR_VETERAN: BodyQuestDef = {
+  id: 'bq_bear_veteran', bodyId: 'bear_veteran', tier: 2,
+  nameRu: 'Old Wounds',
+  description: 'Drive the wolf pack from the elder\'s territory.',
+  introMessages: [
+    { speaker: '', text: 'Old bones. Old scars.' },
+    { speaker: '', text: 'Four wolves circling. They smell age.' },
+    { speaker: '', text: 'They think age means slow. Show them otherwise.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'The pack scattered. Old is not the same as weak.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 4, targetId: 'wolf', targetNameRu: 'Wolf', description: 'Drive off 4 wolves' },
+  ],
+  rewardSpellId: 'mace_bash',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_bear',
+};
+
+// ── ПАРА: Защита каравана (bandit_spear атакует ↔ caravan_guard защищает) ──
+// ── (bandit_archer атакует ↔ scout_veteran подавляет лучников) ──
+
+const QUEST_CARAVAN_GUARD: BodyQuestDef = {
+  id: 'bq_caravan_guard', bodyId: 'caravan_guard', tier: 2,
+  nameRu: 'Hold the Line',
+  description: 'Push back the bandit spearmen before they reach the cart.',
+  introMessages: [
+    { speaker: '', text: 'The caravan rolls. You walk beside it.' },
+    { speaker: '', text: 'Spearmen at the tree line. Three of them.' },
+    { speaker: '', text: 'Push them back before they reach the cart.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'The cart rolls on. The butt of the spear — as useful as the tip.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'bandit_spear', targetNameRu: 'Bandit Spearman', description: 'Drive off 3 spearmen' },
+  ],
+  rewardSpellId: 'spear_butt',
+  xpReward: 100,
+};
+
+const QUEST_SCOUT_VETERAN: BodyQuestDef = {
+  id: 'bq_scout_veteran', bodyId: 'scout_veteran', tier: 2,
+  nameRu: 'Countermeasure',
+  description: 'Take out the bandit archers before they burn the cart.',
+  introMessages: [
+    { speaker: '', text: 'Archers. Tree line, north side. Two of them.' },
+    { speaker: '', text: 'They have the angle on the cart.' },
+    { speaker: '', text: 'Shoot first. The jump keeps you from being a target.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Archers down. Jump back — let them shoot at air.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 2, targetId: 'bandit_archer', targetNameRu: 'Bandit Archer', description: 'Take down 2 bandit archers' },
+  ],
+  rewardSpellId: 'bow_backshot',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_scout',
+};
+
+// ── ОДИНОЧНЫЕ ──────────────────────────────────────────────────
+
+const QUEST_MONKEY: BodyQuestDef = {
+  id: 'bq_monkey', bodyId: 'monkey', tier: 2,
+  nameRu: 'Troublemaker',
+  description: 'Claim the high ground and scatter the intruders.',
+  introMessages: [
+    { speaker: '', text: 'High. Loud. This tree — your throne.' },
+    { speaker: '', text: 'Strangers below. Too close to the troop.' },
+    { speaker: '', text: 'Jump in. Hit first. Confuse them before they know what hit.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Scattered and confused. The disorienting blow — yours.' },
+  ],
+  objectives: [
+    { type: 'reach', count: 1, targetId: 'high_branch', description: 'Claim the high branch' },
+    { type: 'kill', count: 3, description: 'Scatter 3 intruders' },
+  ],
+  spawnObjects: [{
+    objectId: 'high_branch', nameRu: 'High Branch', icon: '🌳', color: 0x44aa44,
+    type: 'waypoint', count: 1, radius: 300,
+  }],
+  rewardSpellId: 'fist_strike',
+  xpReward: 100,
+  // TODO: add monkey to creatureDB (Fists weapon, Passive/Combat)
+};
+
+const QUEST_BANDIT_ARCHER_VET: BodyQuestDef = {
+  id: 'bq_bandit_archer_veteran', bodyId: 'bandit_archer_veteran', tier: 2,
+  nameRu: 'Rain of Arrows',
+  description: 'Cover the retreat under suppressing fire.',
+  introMessages: [
+    { speaker: '', text: 'The camp is pulling back. Guards are closing in.' },
+    { speaker: '', text: 'Hold the road. Wide coverage.' },
+    { speaker: '', text: 'When one arrow isn\'t enough — send twenty.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'The road held. The rain of arrows — yours.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Hold back 4 guards' },
+  ],
+  rewardSpellId: 'arrow_rain',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_bandit_archer',
+};
+
+const QUEST_BANDIT_CROSSBOW_VET: BodyQuestDef = {
+  id: 'bq_bandit_crossbow_veteran', bodyId: 'bandit_crossbow_veteran', tier: 2,
+  nameRu: 'Pinned Down',
+  description: 'Root the guards before they can regroup.',
+  introMessages: [
+    { speaker: '', text: 'Three guards. Fast. Too spread out for a volley.' },
+    { speaker: '', text: 'Pin one. The others stop to help.' },
+    { speaker: '', text: 'Then pin them too.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'None of them moved where they wanted. Control — yours.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Pin down 3 guards' },
+  ],
+  rewardSpellId: 'crossbow_snare',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_bandit_crossbow',
+};
+
+const QUEST_BANDIT_SPEAR_VET: BodyQuestDef = {
+  id: 'bq_bandit_spear_veteran', bodyId: 'bandit_spear_veteran', tier: 2,
+  nameRu: 'Crowd Control',
+  description: 'Keep multiple guards at bay with the butt of the spear.',
+  introMessages: [
+    { speaker: '', text: 'Four guards closing in from both sides.' },
+    { speaker: '', text: 'The tip kills one. The butt controls four.' },
+    { speaker: '', text: 'Knock them back before they can surround you.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'None got close enough. The back end of a spear is half the weapon.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Push back 4 guards' },
+  ],
+  rewardSpellId: 'spear_butt',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_bandit_spear',
+};
+
+const QUEST_BANDIT_BRUTE_VET: BodyQuestDef = {
+  id: 'bq_bandit_brute_veteran', bodyId: 'bandit_brute_veteran', tier: 2,
+  nameRu: 'Berserker',
+  description: 'Smash through the reinforcements\' heavy armor.',
+  introMessages: [
+    { speaker: '', text: 'Reinforcements. Three of them. Heavy armor.' },
+    { speaker: '', text: 'The hammer doesn\'t care about armor.' },
+    { speaker: '', text: 'Smash the plate. Then finish what\'s inside.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Three suits of armor. Now scrap. The heavy smash — yours.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'caravan_guard', targetNameRu: 'Guard', description: 'Crush 3 armored guards' },
+  ],
+  rewardSpellId: 'hammer_smash',
+  xpReward: 100,
+  prerequisiteBodyQuestId: 'bq_bandit_brute',
+};
+
+// ═══════════════════════════════════════════════════════════════
 // CONFLICT QUESTS — opposing sides, same event
 // ═══════════════════════════════════════════════════════════════
 
@@ -610,6 +852,14 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_BANDIT_ARCHER, QUEST_BANDIT_CROSSBOW, QUEST_BANDIT_SPEAR, QUEST_BANDIT_BRUTE,
   // T2 Elementals
   QUEST_ASHER, QUEST_FOGGER, QUEST_MUDDER, QUEST_WHISTLER, QUEST_SPIRIT_WOLF,
+  // T2 Veterans — paired events
+  QUEST_GOBLIN_VETERAN, QUEST_ORC_VETERAN,       // Рейд на лагерь
+  QUEST_WOLF_VETERAN, QUEST_BEAR_VETERAN,         // Лесной конфликт
+  QUEST_CARAVAN_GUARD, QUEST_SCOUT_VETERAN,       // Защита каравана
+  // T2 Veterans — solo
+  QUEST_MONKEY,
+  QUEST_BANDIT_ARCHER_VET, QUEST_BANDIT_CROSSBOW_VET,
+  QUEST_BANDIT_SPEAR_VET, QUEST_BANDIT_BRUTE_VET,
   // T3 Conflict
   QUEST_ORC_CARAVAN, QUEST_SCOUT_ESCORT,
 ];
