@@ -29,9 +29,9 @@ function makeAnimCfg(scene: Phaser.Scene, id: string, displaySize: number): Anim
   };
 }
 
-const SWORDSMAN_ANIM: AnimCfg = { idle: () => 'swordsman_idle_down', walk: () => 'swordsman_walk_down', atk: () => 'swordsman_atk_down', displaySize: 48 };
-const ARCHER_ANIM: AnimCfg    = { idle: () => 'archer_idle_down',    walk: () => 'archer_walk_down',    atk: () => 'archer_atk_down',    displaySize: 48 };
-const WIZARD_ANIM: AnimCfg    = { idle: () => 'wizard_idle_down',    walk: () => 'wizard_walk_down',    atk: () => 'wizard_atk_down',    displaySize: 48 };
+const SWORDSMAN_ANIM: AnimCfg = { idle: (d) => `swordsman_idle_${d}`, walk: (d) => `swordsman_walk_${d}`, atk: (d) => `swordsman_atk_${d}`, displaySize: 48 };
+const ARCHER_ANIM: AnimCfg    = { idle: (d) => `archer_idle_${d}`,    walk: (d) => `archer_walk_${d}`,    atk: (d) => `archer_atk_${d}`,    displaySize: 48 };
+const WIZARD_ANIM: AnimCfg    = { idle: (d) => `wizard_idle_${d}`,    walk: (d) => `wizard_walk_${d}`,    atk: (d) => `wizard_atk_${d}`,    displaySize: 48 };
 
 const ANIMATED_BODIES: Record<string, AnimCfg> = {
   human_warrior: SWORDSMAN_ANIM,
