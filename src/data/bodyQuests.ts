@@ -37,8 +37,7 @@ const QUEST_BEAR: BodyQuestDef = {
     { speaker: '', text: 'The fires are out. The grove holds. The body taught you to crush.' },
   ],
   objectives: [
-    // TODO: spawn forest_spark near grey_forest + add tree-burn counter to elemental AI
-    { type: 'kill', count: 2, targetId: 'forest_spark', targetNameRu: 'Forest Fire', description: 'Kill 2 fire elementals' },
+    { type: 'kill', count: 2, targetId: 'spark', targetNameRu: 'Forest Fire', description: 'Kill 2 fire elementals' },
   ],
   rewardSpellId: 'mace_strike',
   xpReward: 50,
@@ -330,9 +329,13 @@ const QUEST_ASHER: BodyQuestDef = {
     { speaker: '', text: 'The marks burn bright. None shall pass. Arrows of flame — yours.' },
   ],
   objectives: [
-    { type: 'reach', count: 3, targetId: 'border_mark', targetNameRu: 'Border', description: 'Burn 3 border marks' },
-    { type: 'kill', count: 2, targetId: 'water_intruder', targetNameRu: 'Water elemental', description: 'Repel 2 intruders' },
+    { type: 'reach', count: 3, targetId: 'border_mark', targetNameRu: 'Border mark', description: 'Burn 3 border marks' },
+    { type: 'kill', count: 2, targetId: 'splasher', targetNameRu: 'Water elemental', description: 'Repel 2 water intruders' },
   ],
+  spawnObjects: [{
+    objectId: 'border_mark', nameRu: 'Border Mark', icon: '🔥', color: 0xff6633,
+    type: 'waypoint', count: 3, radius: 500,
+  }],
   rewardSpellId: 'mob_fire_t2',
   xpReward: 100,
 };
@@ -350,8 +353,12 @@ const QUEST_FOGGER: BodyQuestDef = {
     { speaker: '', text: 'The veil holds again. The lake keeps its secrets. Ice obeys.' },
   ],
   objectives: [
-    { type: 'reach', count: 4, targetId: 'fog_node', targetNameRu: 'Fog node', description: 'Restore 4 fog nodes' },
+    { type: 'reach', count: 4, targetId: 'fog_node', targetNameRu: 'Fog Node', description: 'Restore 4 fog nodes' },
   ],
+  spawnObjects: [{
+    objectId: 'fog_node', nameRu: 'Fog Node', icon: '🌫️', color: 0x6699cc,
+    type: 'waypoint', count: 4, radius: 550,
+  }],
   rewardSpellId: 'mob_water_t2',
   xpReward: 100,
 };
@@ -369,8 +376,12 @@ const QUEST_MUDDER: BodyQuestDef = {
     { speaker: '', text: 'Water found. The earth drinks. Stone spikes — yours to summon.' },
   ],
   objectives: [
-    { type: 'destroy', count: 3, targetId: 'rock_wall', targetNameRu: 'Rock wall', description: 'Break through 3 rock layers' },
-    { type: 'reach', count: 1, targetId: 'water_source', description: 'Reach the water source' },
+    { type: 'destroy', count: 3, targetId: 'rock_wall', targetNameRu: 'Rock Layer', description: 'Break through 3 rock layers' },
+    { type: 'reach', count: 1, targetId: 'water_source', targetNameRu: 'Water Source', description: 'Reach the water source' },
+  ],
+  spawnObjects: [
+    { objectId: 'rock_wall', nameRu: 'Rock Layer', icon: '🪨', color: 0x886644, type: 'destructible', count: 3, radius: 400 },
+    { objectId: 'water_source', nameRu: 'Water Source', icon: '💧', color: 0x4499dd, type: 'waypoint', count: 1, radius: 600 },
   ],
   rewardSpellId: 'mob_earth_t2',
   xpReward: 100,
@@ -391,6 +402,10 @@ const QUEST_WHISTLER: BodyQuestDef = {
   objectives: [
     { type: 'reach', count: 1, targetId: 'wind_blocker', description: 'Find the disturbance' },
     { type: 'destroy', count: 1, targetId: 'wind_blocker', targetNameRu: 'Obstruction', description: 'Remove it' },
+  ],
+  spawnObjects: [
+    { objectId: 'wind_blocker', nameRu: 'Wind Disturbance', icon: '💨', color: 0x88aacc, type: 'waypoint', count: 1, radius: 500 },
+    { objectId: 'wind_blocker', nameRu: 'Obstruction', icon: '🔩', color: 0x888888, type: 'destructible', count: 1, radius: 500 },
   ],
   rewardSpellId: 'mob_wind_t2',
   xpReward: 100,
@@ -830,7 +845,7 @@ const QUEST_GROUSE: BodyQuestDef = {
     { speaker: '', text: 'The smallest creature taught you the greatest gift — healing.' },
   ],
   objectives: [
-    { type: 'survive', count: 1, description: 'Survive 30 seconds' },
+    { type: 'survive', count: 30, description: 'Survive 30 seconds' },
   ],
   rewardSpellId: 'neutral_heal',
   xpReward: 40,
