@@ -177,10 +177,10 @@ const WIZARD_SPRITES: MobSpriteSet = {
 
 const ORC_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/orc/',
-  frameW: 120, frameH: 120,
+  frameW: 256, frameH: 256,
   anims: {
     front_idle:   { file: 'orc-idle-v1.webp',   frames: 25 },
-    front_walk:   { file: 'orc-walk-v1.webp',   frames: 25 }, // white bg — replace when fixed
+    front_walk:   { file: 'orc-walk-v1.webp',   frames: 25 },
     front_attack: { file: 'orc-attack-v1.webp', frames: 25 },
     dying:        { file: 'orc-death-v1.webp',  frames: 25 },
   },
