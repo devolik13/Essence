@@ -393,13 +393,28 @@ export class Creature extends Phaser.GameObjects.Container {
       newState = 'dying';
     } else if (this.aiState === 'attack' && this.attackCooldown <= 0) {
       newState = 'atk';
-    } else if (this.aiState === 'chase' || this.aiState === 'return' || this.aiState === 'wander') {
+    } else if (this.aiState === 'chase' || this.aiState === 'return' || this.aiState === 'wander' ||
+               (this.aiState === 'idle' && (Math.abs(this.wanderDirX) > 0.01 || Math.abs(this.wanderDirY) > 0.01))) {
       newState = 'walk';
     }
 
-    const key = newState === 'dying'
+    let key = newState === 'dying'
       ? `${this.animPrefix}_dying`
       : `${this.animPrefix}_${newState}_${this.facingDir}`;
+
+    // FRONT_ONLY sprites: left = mirror of right (same sheet, just flipped)
+    let flipX = false;
+    if (this.facingDir === 'left' && newState !== 'dying') {
+      const rightKey = `${this.animPrefix}_${newState}_right`;
+      const leftAnim  = this.scene.anims.get(key);
+      const rightAnim = this.scene.anims.get(rightKey);
+      if (leftAnim && rightAnim &&
+          leftAnim.frames[0]?.textureKey === rightAnim.frames[0]?.textureKey) {
+        key = rightKey;
+        flipX = true;
+      }
+    }
+    spr.setFlipX(flipX);
 
     if (spr.anims?.currentAnim?.key !== key && this.scene.anims.exists(key)) {
       const isAnimal = (spr.texture.key ?? '').startsWith('animal_');
