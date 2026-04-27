@@ -1,0 +1,279 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <linearGradient id="g_steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d8d4cc"></stop>
+      <stop offset="0.5" stop-color="#8a857a"></stop>
+      <stop offset="1" stop-color="#3a362e"></stop>
+    </linearGradient>
+    <linearGradient id="g_brass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6c578"></stop>
+      <stop offset="0.5" stop-color="#a07a2f"></stop>
+      <stop offset="1" stop-color="#4a3818"></stop>
+    </linearGradient>
+
+    
+    <linearGradient id="hex_poison" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a8030"></stop><stop offset="1" stop-color="#1f3008"></stop></linearGradient>
+    <linearGradient id="hex_bleed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a83030"></stop><stop offset="1" stop-color="#3a0808"></stop></linearGradient>
+    <linearGradient id="hex_burn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d06030"></stop><stop offset="1" stop-color="#4a1808"></stop></linearGradient>
+    <linearGradient id="hex_burn_mana" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a30c0"></stop><stop offset="1" stop-color="#1a0840"></stop></linearGradient>
+    <linearGradient id="hex_slow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a8ab8"></stop><stop offset="1" stop-color="#1a3050"></stop></linearGradient>
+    <linearGradient id="hex_chill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#88b6d0"></stop><stop offset="1" stop-color="#2a4860"></stop></linearGradient>
+    <linearGradient id="hex_freeze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8d8f0"></stop><stop offset="1" stop-color="#3a6a8a"></stop></linearGradient>
+    <linearGradient id="hex_root" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a5a30"></stop><stop offset="1" stop-color="#2a1808"></stop></linearGradient>
+    <linearGradient id="hex_stun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8b840"></stop><stop offset="1" stop-color="#4a3a08"></stop></linearGradient>
+    <linearGradient id="hex_silence" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a040c0"></stop><stop offset="1" stop-color="#2a0840"></stop></linearGradient>
+    <linearGradient id="hex_sleep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a608a"></stop><stop offset="1" stop-color="#0a1830"></stop></linearGradient>
+    <linearGradient id="hex_daze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d09040"></stop><stop offset="1" stop-color="#3a2008"></stop></linearGradient>
+    <linearGradient id="hex_armor_reduce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a7a6a"></stop><stop offset="1" stop-color="#2a2018"></stop></linearGradient>
+    <linearGradient id="hex_armor_break" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a4a3a"></stop><stop offset="1" stop-color="#1a1208"></stop></linearGradient>
+    <linearGradient id="hex_vuln" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d04848"></stop><stop offset="1" stop-color="#400808"></stop></linearGradient>
+    <linearGradient id="hex_weaken" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a7090"></stop><stop offset="1" stop-color="#2a1838"></stop></linearGradient>
+    <linearGradient id="hex_accel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#88c048"></stop><stop offset="1" stop-color="#2a4810"></stop></linearGradient>
+    <linearGradient id="hex_fortify" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8b870"></stop><stop offset="1" stop-color="#4a3818"></stop></linearGradient>
+    <linearGradient id="hex_bark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#688a40"></stop><stop offset="1" stop-color="#1f2810"></stop></linearGradient>
+    <linearGradient id="hex_leaf_regen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#48d878"></stop><stop offset="1" stop-color="#0a4a20"></stop></linearGradient>
+    <linearGradient id="hex_mana_regen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4878d0"></stop><stop offset="1" stop-color="#0a1840"></stop></linearGradient>
+  </defs>
+
+  
+  <symbol id="st_base" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="#1a1208" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+  </symbol>
+
+  
+
+  
+  <symbol id="st_poison" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_poison)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 16 Q42 28 42 38 Q42 48 32 48 Q22 48 22 38 Q22 28 32 16 Z" fill="#9adc4a" stroke="#1a1208" stroke-width="1.2"></path>
+    
+    <circle cx="28" cy="36" r="2.4" fill="#1a1208"></circle>
+    <circle cx="36" cy="36" r="2.4" fill="#1a1208"></circle>
+    <path d="M28 42 L30 42 M32 42 L34 42 M36 42 L38 42" stroke="#1a1208" stroke-width="1.2" stroke-linecap="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_bleed" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_bleed)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M32 14 Q44 30 44 42 Q44 52 32 52 Q20 52 20 42 Q20 30 32 14 Z" fill="#e83838" stroke="#1a1208" stroke-width="1.2"></path>
+    <path d="M28 22 Q26 32 28 40" fill="none" stroke="#ffffff" opacity="0.55" stroke-width="1.4" stroke-linecap="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_burn" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_burn)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 12 Q40 22 40 32 Q40 44 32 50 Q24 44 24 32 Q24 22 32 12 Z" fill="#ff8030" stroke="#1a1208" stroke-width="1.2"></path>
+    <path d="M32 22 Q36 28 36 36 Q36 42 32 46 Q28 42 28 36 Q28 28 32 22 Z" fill="#ffe070"></path>
+  </symbol>
+
+  
+  <symbol id="st_burn_mana" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_burn_mana)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M30 12 Q38 24 38 34 Q38 44 30 48 Q22 44 22 34 Q22 24 30 12 Z" fill="#5a90f0" stroke="#1a1208" stroke-width="1.2"></path>
+    <path d="M30 22 Q34 28 34 36 Q34 42 30 44 Q26 42 26 36 Q26 28 30 22 Z" fill="#c0e0ff" opacity="0.7"></path>
+    
+    <path d="M44 32 L44 46 L40 42 M44 46 L48 42" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_slow" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_slow)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 16 L32 42 M24 34 L32 42 L40 34" fill="none" stroke="#e6f0ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M22 22 L26 22 M22 28 L26 28 M38 22 L42 22 M38 28 L42 28" stroke="#e6f0ff" stroke-width="2" stroke-linecap="round" opacity="0.6"></path>
+  </symbol>
+
+  
+  <symbol id="st_chill" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_chill)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <g stroke="#e8f4ff" stroke-width="2.6" stroke-linecap="round">
+      <path d="M32 14 L32 50"></path>
+      <path d="M14 32 L50 32"></path>
+    </g>
+    <g stroke="#e8f4ff" stroke-width="1.6" stroke-linecap="round">
+      <path d="M28 18 L32 14 L36 18"></path>
+      <path d="M28 46 L32 50 L36 46"></path>
+      <path d="M18 28 L14 32 L18 36"></path>
+      <path d="M46 28 L50 32 L46 36"></path>
+    </g>
+  </symbol>
+
+  
+  <symbol id="st_freeze" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_freeze)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <g stroke="#ffffff" stroke-width="2.4" stroke-linecap="round">
+      <path d="M32 12 L32 52"></path>
+      <path d="M12 32 L52 32"></path>
+      <path d="M18 18 L46 46"></path>
+      <path d="M46 18 L18 46"></path>
+    </g>
+    <g stroke="#ffffff" stroke-width="1.4" stroke-linecap="round">
+      <path d="M28 16 L32 12 L36 16"></path>
+      <path d="M28 48 L32 52 L36 48"></path>
+      <path d="M16 28 L12 32 L16 36"></path>
+      <path d="M48 28 L52 32 L48 36"></path>
+    </g>
+    <circle cx="32" cy="32" r="3" fill="#ffffff"></circle>
+  </symbol>
+
+  
+  <symbol id="st_root" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_root)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 16 L32 42" stroke="#3a1a08" stroke-width="3.5" stroke-linecap="round"></path>
+    
+    <path d="M22 22 L42 22" stroke="#3a1a08" stroke-width="2.6" stroke-linecap="round"></path>
+    
+    <path d="M32 42 Q24 48 18 50" fill="none" stroke="#3a1a08" stroke-width="2.6" stroke-linecap="round"></path>
+    <path d="M32 42 Q40 48 46 50" fill="none" stroke="#3a1a08" stroke-width="2.6" stroke-linecap="round"></path>
+    <path d="M32 42 Q32 50 30 54" fill="none" stroke="#3a1a08" stroke-width="2.6" stroke-linecap="round"></path>
+    
+    <path d="M32 18 L32 30" stroke="#a87040" stroke-width="0.8" opacity="0.6"></path>
+  </symbol>
+
+  
+  <symbol id="st_stun" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_stun)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <g fill="#fff5d8" stroke="#1a1208" stroke-width="0.8">
+      <path d="M22 20 L24 24 L28 25 L24 26 L22 30 L20 26 L16 25 L20 24 Z"></path>
+      <path d="M44 28 L46 32 L50 33 L46 34 L44 38 L42 34 L38 33 L42 32 Z"></path>
+      <path d="M30 42 L32 46 L36 47 L32 48 L30 52 L28 48 L24 47 L28 46 Z"></path>
+    </g>
+  </symbol>
+
+  
+  <symbol id="st_silence" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_silence)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M28 16 L40 14 L40 38" fill="none" stroke="#f0e8ff" stroke-width="2.6" stroke-linecap="round"></path>
+    <ellipse cx="26" cy="40" rx="6" ry="4.5" fill="#f0e8ff" stroke="#1a1208" stroke-width="1"></ellipse>
+    <ellipse cx="38" cy="40" rx="5" ry="4" fill="#f0e8ff" stroke="#1a1208" stroke-width="1"></ellipse>
+    
+    <path d="M14 14 L52 50" stroke="#e83838" stroke-width="4" stroke-linecap="round"></path>
+    <path d="M14 14 L52 50" stroke="#1a1208" stroke-width="0.8" stroke-linecap="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_sleep" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_sleep)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M22 22 L42 22 L22 44 L42 44" fill="none" stroke="#e0e8ff" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+    <path d="M40 14 L46 14 L40 20 L46 20" fill="none" stroke="#e0e8ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.7"></path>
+  </symbol>
+
+  
+  <symbol id="st_daze" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_daze)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M46 32 A14 14 0 1 1 32 18" fill="none" stroke="#fff0d0" stroke-width="3" stroke-linecap="round"></path>
+    <path d="M30 14 L34 18 L30 22" fill="none" stroke="#fff0d0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M18 32 A14 14 0 0 1 32 46" fill="none" stroke="#fff0d0" stroke-width="3" stroke-linecap="round" opacity="0.55"></path>
+    <path d="M34 50 L30 46 L34 42" fill="none" stroke="#fff0d0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"></path>
+  </symbol>
+
+  
+  <symbol id="st_armor_reduce" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_armor_reduce)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 14 L46 18 L46 36 Q46 46 32 50 Q18 46 18 36 L18 18 Z" fill="url(#g_steel)" stroke="#1a1208" stroke-width="1.2"></path>
+    
+    <path d="M32 22 L32 44 M26 38 L32 44 L38 38" fill="none" stroke="#e84848" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_armor_break" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_armor_break)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 14 L18 18 L18 36 Q18 46 30 50 L34 32 L28 28 L34 22 Z" fill="url(#g_steel)" stroke="#1a1208" stroke-width="1.2" stroke-linejoin="round"></path>
+    
+    <path d="M34 14 L48 18 L48 36 Q48 46 36 50 L34 32 L40 28 L34 22 Z" fill="url(#g_steel)" stroke="#1a1208" stroke-width="1.2" stroke-linejoin="round" transform="translate(2 1)"></path>
+    
+    <path d="M34 14 L28 26 L36 32 L30 44 L36 50" fill="none" stroke="#1a1208" stroke-width="1.2"></path>
+  </symbol>
+
+  
+  <symbol id="st_vulnerability" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_vuln)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <circle cx="32" cy="32" r="16" fill="#1a1208" stroke="#fff0e0" stroke-width="2"></circle>
+    <circle cx="32" cy="32" r="10" fill="#e84848" stroke="#fff0e0" stroke-width="1.4"></circle>
+    <circle cx="32" cy="32" r="4" fill="#fff0e0"></circle>
+    <path d="M32 14 L32 22 M32 42 L32 50 M14 32 L22 32 M42 32 L50 32" stroke="#fff0e0" stroke-width="1.6" stroke-linecap="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_weaken" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_weaken)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M22 28 L22 38 Q22 44 28 44 L40 44 Q44 44 44 40 L44 30 L40 28 L40 24 L36 22 L36 26 L32 24 L32 28 Z" fill="#d8c0a8" stroke="#1a1208" stroke-width="1.2" stroke-linejoin="round"></path>
+    <path d="M28 32 L40 32 M28 36 L40 36" stroke="#1a1208" stroke-width="0.8" opacity="0.5"></path>
+    
+    <path d="M50 24 L50 40 L46 36 M50 40 L54 36" fill="none" stroke="#e84848" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_acceleration" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_accel)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M16 22 L28 32 L16 42" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M30 22 L42 32 L30 42" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M44 22 L52 32 L44 42" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"></path>
+  </symbol>
+
+  
+  <symbol id="st_fortify" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_fortify)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M32 14 L46 18 L46 36 Q46 46 32 50 Q18 46 18 36 L18 18 Z" fill="url(#g_brass)" stroke="#1a1208" stroke-width="1.2"></path>
+    <path d="M32 44 L32 22 M26 28 L32 22 L38 28" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+  </symbol>
+
+  
+  <symbol id="st_bark_armor" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_bark)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M32 14 L46 18 L46 36 Q46 46 32 50 Q18 46 18 36 L18 18 Z" fill="#5a8a32" stroke="#1a1208" stroke-width="1.2"></path>
+    
+    <path d="M32 18 L32 48" stroke="#1a1208" stroke-width="1" opacity="0.8"></path>
+    <path d="M32 24 L24 26 M32 30 L22 30 M32 36 L24 38 M32 24 L40 26 M32 30 L42 30 M32 36 L40 38" stroke="#1a1208" stroke-width="0.8" opacity="0.7"></path>
+    <path d="M22 22 Q26 18 32 18" fill="none" stroke="#a8d068" stroke-width="1" opacity="0.6"></path>
+  </symbol>
+
+  
+  <symbol id="st_leaf_regen" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_leaf_regen)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    
+    <path d="M32 48 Q14 38 14 26 Q14 18 22 18 Q28 18 32 24 Q36 18 42 18 Q50 18 50 26 Q50 38 32 48 Z" fill="#e84848" stroke="#1a1208" stroke-width="1.2"></path>
+    
+    <path d="M40 22 Q48 22 48 14 Q40 14 40 22 Z" fill="#9adc4a" stroke="#1a1208" stroke-width="1"></path>
+    <path d="M40 22 Q44 18 48 14" fill="none" stroke="#1a1208" stroke-width="0.7"></path>
+    <path d="M22 28 Q26 26 32 30" fill="none" stroke="#ffffff" stroke-width="1.4" opacity="0.5"></path>
+  </symbol>
+
+  
+  <symbol id="st_mana_regen" viewBox="0 0 64 64">
+    <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#hex_mana_regen)" stroke="#1a1208" stroke-width="1.4" stroke-linejoin="round"></path>
+    <path d="M10 18 L32 6 L54 18 L52 22 Q32 12 12 22 Z" fill="#ffffff" opacity="0.18"></path>
+    <path d="M32 14 Q44 30 44 40 Q44 50 32 50 Q20 50 20 40 Q20 30 32 14 Z" fill="#5aa0f0" stroke="#1a1208" stroke-width="1.2"></path>
+    <path d="M28 24 Q26 32 28 40" fill="none" stroke="#ffffff" opacity="0.6" stroke-width="1.4" stroke-linecap="round"></path>
+    
+    <path d="M44 18 L46 22 L50 24 L46 26 L44 30 L42 26 L38 24 L42 22 Z" fill="#fff8c0" stroke="#1a1208" stroke-width="0.7"></path>
+  </symbol>
+
+</svg>

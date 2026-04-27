@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <radialGradient id="coin_copper" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#f0a878"></stop>
+      <stop offset="0.45" stop-color="#c27550"></stop>
+      <stop offset="0.85" stop-color="#7a3a1a"></stop>
+      <stop offset="1" stop-color="#2a1408"></stop>
+    </radialGradient>
+    <radialGradient id="coin_silver" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#f4f6f8"></stop>
+      <stop offset="0.45" stop-color="#b8c0c8"></stop>
+      <stop offset="0.85" stop-color="#5a6068"></stop>
+      <stop offset="1" stop-color="#1f2226"></stop>
+    </radialGradient>
+    <radialGradient id="coin_gold" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#fff0c0"></stop>
+      <stop offset="0.45" stop-color="#f0d896"></stop>
+      <stop offset="0.85" stop-color="#a07a2f"></stop>
+      <stop offset="1" stop-color="#3a2808"></stop>
+    </radialGradient>
+  </defs>
+
+  
+  <symbol id="icon_coin_copper" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="26" fill="url(#coin_copper)" stroke="#1a1208" stroke-width="1.6"></circle>
+    <circle cx="32" cy="32" r="22" fill="none" stroke="#1a1208" stroke-width="0.8" opacity="0.5"></circle>
+    
+    <path d="M40 22 Q34 18 28 22 Q22 26 28 30 L36 34 Q42 38 36 42 Q30 46 24 42" fill="none" stroke="#1a1208" stroke-width="3.5" stroke-linecap="round"></path>
+    
+    <ellipse cx="22" cy="20" rx="9" ry="5" fill="#ffe6c0" opacity="0.55"></ellipse>
+    
+    <path d="M14 40 Q32 56 50 40 Q42 54 32 56 Q22 54 14 40 Z" fill="#0d0a06" opacity="0.35"></path>
+  </symbol>
+
+  
+  <symbol id="icon_coin_silver" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="26" fill="url(#coin_silver)" stroke="#1a1208" stroke-width="1.6"></circle>
+    <circle cx="32" cy="32" r="22" fill="none" stroke="#1a1208" stroke-width="0.8" opacity="0.5"></circle>
+    <path d="M40 22 Q34 18 28 22 Q22 26 28 30 L36 34 Q42 38 36 42 Q30 46 24 42" fill="none" stroke="#1a1208" stroke-width="3.5" stroke-linecap="round"></path>
+    <ellipse cx="22" cy="20" rx="9" ry="5" fill="#ffffff" opacity="0.6"></ellipse>
+    <path d="M14 40 Q32 56 50 40 Q42 54 32 56 Q22 54 14 40 Z" fill="#0d0a06" opacity="0.35"></path>
+  </symbol>
+
+  
+  <symbol id="icon_coin_gold" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="26" fill="url(#coin_gold)" stroke="#1a1208" stroke-width="1.6"></circle>
+    <circle cx="32" cy="32" r="22" fill="none" stroke="#1a1208" stroke-width="0.8" opacity="0.55"></circle>
+    <path d="M40 22 Q34 18 28 22 Q22 26 28 30 L36 34 Q42 38 36 42 Q30 46 24 42" fill="none" stroke="#1a1208" stroke-width="3.5" stroke-linecap="round"></path>
+    <ellipse cx="22" cy="20" rx="9" ry="5" fill="#fffbe0" opacity="0.7"></ellipse>
+    <path d="M14 40 Q32 56 50 40 Q42 54 32 56 Q22 54 14 40 Z" fill="#0d0a06" opacity="0.35"></path>
+  </symbol>
+</svg>
