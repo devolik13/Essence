@@ -1066,22 +1066,26 @@ export class BootScene extends Phaser.Scene {
     mkMobAnim('goblin_atk_right',  'mob_sheet_goblin_right_attack', 10, 14, 0);
     mkMobAnim('goblin_dying',      'mob_sheet_goblin_dying',        10, 10, 0);
 
-    // Front-only mobs (rangers etc.) — same sheet for all directions
-    const FRONT_ONLY_MOBS = ['ranger', 'ranger_archer', 'ranger_pike', 'swordsman', 'archer', 'wizard', 'orc', 'orc_veteran'];
-    for (const mobId of FRONT_ONLY_MOBS) {
-      const set = MOB_SPRITE_SETS[mobId];
-      if (!set) continue;
-      const sh = `mob_sheet_${mobId}_front`;
-      const idleN = set.anims.front_idle?.frames ?? 18;
-      const walkN = set.anims.front_walk?.frames ?? 24;
-      const atkN = set.anims.front_attack?.frames ?? 9;
-      const dieN = set.anims.dying?.frames ?? 15;
-      for (const dir of ['down', 'up', 'left', 'right']) {
-        mkMobAnim(`${mobId}_idle_${dir}`, sh + '_idle', idleN, 8, -1);
-        mkMobAnim(`${mobId}_walk_${dir}`, sh + '_walk', walkN, 12, -1);
-        mkMobAnim(`${mobId}_atk_${dir}`,  sh + '_attack', atkN, 14, 0);
-      }
+    // All MOB_SPRITE_SETS (except goblin hardcoded above)
+    // hasDirs=true  → 4-directional sheets (bandit, bear, shaman format)
+    // hasDirs=false → front-only sheet used for all directions (ranger, orc format)
+    const DIR_PREFIXES: Array<[string, string]> = [['down','front'],['up','back'],['left','left'],['right','right']];
+    for (const [mobId, set] of Object.entries(MOB_SPRITE_SETS)) {
+      if (mobId === 'goblin' || mobId === 'goblin_veteran') continue;
+      const hasDirs = 'back_idle' in set.anims;
+      const dieN = set.anims['dying']?.frames ?? 10;
       mkMobAnim(`${mobId}_dying`, `mob_sheet_${mobId}_dying`, dieN, 10, 0);
+      for (const [gameDir, prefix] of DIR_PREFIXES) {
+        const iKey = hasDirs ? `${prefix}_idle`   : 'front_idle';
+        const wKey = hasDirs ? `${prefix}_walk`   : 'front_walk';
+        const aKey = hasDirs ? `${prefix}_attack` : 'front_attack';
+        const idleN = set.anims[iKey]?.frames ?? 16;
+        const walkN = set.anims[wKey]?.frames ?? 20;
+        const atkN  = set.anims[aKey]?.frames ?? 10;
+        mkMobAnim(`${mobId}_idle_${gameDir}`, `mob_sheet_${mobId}_${iKey}`, idleN, 8,  -1);
+        mkMobAnim(`${mobId}_walk_${gameDir}`, `mob_sheet_${mobId}_${wKey}`, walkN, 12, -1);
+        mkMobAnim(`${mobId}_atk_${gameDir}`,  `mob_sheet_${mobId}_${aKey}`, atkN,  14,  0);
+      }
     }
 
     // ── Animal animations (rows: down=0, up=1, left=2, right=3) ────────────
