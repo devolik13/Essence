@@ -723,9 +723,13 @@ export class UIScene extends Phaser.Scene {
           const obj = bq.def.objectives[i];
           const cur = bq.counts[i];
           const isDone = cur >= obj.count;
-          if (obj.type === 'survive' && !isDone) {
-            const secs = Math.ceil(bq.surviveTimers[i]);
-            lines.push(`  ${secs}s ${obj.description}`);
+          if ((obj.type === 'survive' || obj.type === 'protect') && !isDone) {
+            const secs = Math.ceil(obj.type === 'protect' ? bq.protectTimers[i] : bq.surviveTimers[i]);
+            // protect only shows timer after reach is done
+            const reachDone = obj.type !== 'protect' || bq.def.objectives.some(
+              (o, j) => o.type === 'reach' && o.targetId === obj.targetId && bq.counts[j] >= o.count,
+            );
+            lines.push(`  ${reachDone ? `${secs}s` : '–'} ${obj.description}`);
           } else {
             const label = obj.description || obj.targetNameRu || '';
             lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${label}`);

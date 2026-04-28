@@ -5,6 +5,7 @@ export interface BodyQuestProgress {
   counts: number[];
   completed: boolean;
   surviveTimers: number[];
+  protectTimers: number[];  // countdown for protect objectives (seconds remaining)
   started: boolean;
 }
 
@@ -16,9 +17,8 @@ export class BodyQuestTracker {
       def,
       counts: def.objectives.map(() => 0),
       completed: false,
-      surviveTimers: def.objectives.map(obj =>
-        obj.type === 'survive' ? obj.count : 0
-      ),
+      surviveTimers: def.objectives.map(obj => obj.type === 'survive' ? obj.count : 0),
+      protectTimers: def.objectives.map(obj => obj.type === 'protect' ? obj.count : 0),
       started: true,
     };
   }
@@ -41,18 +41,60 @@ export class BodyQuestTracker {
     let changed = false;
     for (let i = 0; i < this.active.def.objectives.length; i++) {
       const obj = this.active.def.objectives[i];
-      if (obj.type !== 'survive') continue;
-      if (this.active.counts[i] >= obj.count) continue;
-      this.active.surviveTimers[i] -= dt;
-      if (this.active.surviveTimers[i] <= 0) {
-        this.active.counts[i] = obj.count;
-        changed = true;
+
+      if (obj.type === 'survive') {
+        if (this.active.counts[i] >= obj.count) continue;
+        this.active.surviveTimers[i] -= dt;
+        if (this.active.surviveTimers[i] <= 0) {
+          this.active.counts[i] = obj.count;
+          changed = true;
+        }
+      }
+
+      if (obj.type === 'protect') {
+        if (this.active.counts[i] >= obj.count) continue;
+        // Only tick after the preceding reach objective is done
+        const reachDone = this.active.def.objectives.some(
+          (o, j) => o.type === 'reach' && o.targetId === obj.targetId && this.active!.counts[j] >= o.count,
+        );
+        if (!reachDone) continue;
+        this.active.protectTimers[i] -= dt;
+        if (this.active.protectTimers[i] <= 0) {
+          this.active.counts[i] = obj.count;
+          changed = true;
+        }
       }
     }
     if (changed && this.isComplete()) {
       this.active.completed = true;
     }
     return changed;
+  }
+
+  /** Called when a protected creature dies — resets the protect timer so player must try again. */
+  onProtectedCreatureDead(creatureId: string): boolean {
+    if (!this.active || this.active.completed) return false;
+    let reset = false;
+    for (let i = 0; i < this.active.def.objectives.length; i++) {
+      const obj = this.active.def.objectives[i];
+      if (obj.type !== 'protect' || obj.targetId !== creatureId) continue;
+      if (this.active.counts[i] >= obj.count) continue;
+      // Reset timer and the reach objective so player must find the target again
+      this.active.protectTimers[i] = obj.count;
+      for (let j = 0; j < this.active.def.objectives.length; j++) {
+        const o = this.active.def.objectives[j];
+        if (o.type === 'reach' && o.targetId === creatureId) {
+          this.active.counts[j] = 0;
+        }
+      }
+      reset = true;
+    }
+    return reset;
+  }
+
+  getProtectRemaining(index: number): number {
+    if (!this.active) return 0;
+    return Math.max(0, this.active.protectTimers[index]);
   }
 
   onKill(creatureId: string): boolean {

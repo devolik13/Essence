@@ -166,6 +166,16 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: MOB_NATURE_T1,
   },
 
+  wounded_human: {
+    id: 'wounded_human', name: 'Wounded Human', nameRu: 'Раненый человек',
+    type: BodyType.Passive, damageType: 'melee',
+    caps: { [StatName.Health]: 8 },
+    xpReward: 0,
+    npcStats: { [StatName.Health]: 8, [StatName.Armor]: 2 },
+    weapon: WeaponType.Fists, color: 0xccaa88, abilityName: '',
+    canUseAllSpells: false,
+  },
+
   spirit_wolf: {
     id: 'spirit_wolf', name: 'Spirit Wolf', nameRu: 'Spirit Wolf',
     type: BodyType.Combat, damageType: 'magic', element: 'nature' as any,

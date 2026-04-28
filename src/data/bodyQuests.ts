@@ -414,7 +414,7 @@ const QUEST_WHISTLER: BodyQuestDef = {
 const QUEST_SPIRIT_WOLF: BodyQuestDef = {
   id: 'bq_spirit_wolf', bodyId: 'spirit_wolf', tier: 2,
   nameRu: 'Лесное милосердие',
-  description: 'Найди раненого человека и защити его от хищников.',
+  description: 'Найди раненого человека и защити его от хищников 30 секунд.',
   introMessages: [
     { speaker: '', text: 'Лес говорит о боли. Где-то рядом кто-то лежит без движения.' },
     { speaker: '', text: 'Не зверь. Человек. Тяжело дышит.' },
@@ -424,9 +424,10 @@ const QUEST_SPIRIT_WOLF: BodyQuestDef = {
     { speaker: '', text: 'Он жив. Духи кивают. Кора защищает тех кто служит.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Найди раненого человека' },
-    { type: 'protect', count: 1, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его от хищников' },
+    { type: 'reach',   count: 1,  targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Найди раненого человека' },
+    { type: 'protect', count: 30, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его 30 сек' },
   ],
+  friendlyCreatureIds: ['wounded_human'],
   rewardSpellId: 'mob_nature_t2',
   xpReward: 100,
 };

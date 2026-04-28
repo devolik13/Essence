@@ -354,6 +354,8 @@ export const ZONE_EARTH: ZoneConfig = {
     // Волки-духи
     { x: 500,  y: 600,  creatureId: 'spirit_wolf', count: 2 },
     { x: 600,  y: 700,  creatureId: 'spirit_wolf', count: 2 },
+    // Раненый человек (цель квеста bq_spirit_wolf)
+    { x: 550,  y: 650,  creatureId: 'wounded_human', count: 1 },
     // Босс Терра (дальний запад)
     { x: 300, y: PH / 2, creatureId: 'terra', count: 1 },
   ],

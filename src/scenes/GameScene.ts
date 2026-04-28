@@ -1383,6 +1383,8 @@ export class GameScene extends Phaser.Scene {
     if (!bq || bq.completed) return;
 
     const px = this.playerBody.x, py = this.playerBody.y;
+
+    // Waypoint quest objects
     for (const qo of this.questObjects) {
       if (qo.used || qo.objType !== 'waypoint') continue;
       const d = distance(px, py, qo.x, qo.y);
@@ -1393,6 +1395,26 @@ export class GameScene extends Phaser.Scene {
           qo.gfx.setAlpha(0.3);
           sfxBuff();
           this.showMessage(`${qo.nameRu} ✓`);
+          if (this.bodyQuestTracker.isComplete()) {
+            this.onBodyQuestComplete();
+          }
+        }
+      }
+    }
+
+    // Proximity-reach: reach objectives targeting a live creature (e.g. wounded_human)
+    for (const obj of bq.def.objectives) {
+      if (obj.type !== 'reach' || !obj.targetId) continue;
+      // Already done?
+      const idx = bq.def.objectives.indexOf(obj);
+      if (bq.counts[idx] >= obj.count) continue;
+      const target = this.creatures.find(c => c.definition.id === obj.targetId && !c.isDead);
+      if (!target) continue;
+      if (distance(px, py, target.x, target.y) < 80) {
+        const advanced = this.bodyQuestTracker.onReach(obj.targetId);
+        if (advanced) {
+          sfxBuff();
+          this.showMessage(`${obj.targetNameRu} ✓`);
           if (this.bodyQuestTracker.isComplete()) {
             this.onBodyQuestComplete();
           }
@@ -2670,6 +2692,14 @@ export class GameScene extends Phaser.Scene {
       this.bodyQuestTracker.onKill(creatureId);
       if (!wasComplete && this.bodyQuestTracker.isComplete()) {
         this.onBodyQuestComplete();
+      }
+    }
+
+    // Protected creature died → reset protect objective, player must try again
+    if (this.bodyQuestTracker.getActive()) {
+      const reset = this.bodyQuestTracker.onProtectedCreatureDead(creatureId);
+      if (reset) {
+        this.showMessage('Раненый погиб. Подойди снова чтобы попробовать ещё раз.');
       }
     }
   }
