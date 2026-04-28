@@ -39,6 +39,7 @@ const CREATURE_SPRITE_MAP: Record<string, string> = {
 };
 
 const SLIME_IDS = new Set(['slime_fire', 'slime_water', 'slime_earth', 'slime_air']);
+const BEAR_IDS  = new Set(['bear', 'bear_veteran']);
 
 /**
  * Существо (NPC/моб) — враг или пассивное существо в мире.
@@ -128,7 +129,9 @@ export class Creature extends Phaser.GameObjects.Container {
       const isAnimal = sheetKey.startsWith('animal_');
       const spr = scene.add.sprite(0, 0, sheetKey, firstAnim.frames[0]?.textureFrame ?? 0);
       spr.play(animTestKey);
-      spr.setDisplaySize(isAnimal ? 30 : 34, isAnimal ? 30 : 34);
+      const isBear = BEAR_IDS.has(spriteId);
+      const initSz = isBear ? 41 : isAnimal ? 30 : 34;
+      spr.setDisplaySize(initSz, initSz);
       this.bodySprite = spr;
     } else {
       const textureKey = `body_${definition.id}`;
@@ -438,7 +441,8 @@ export class Creature extends Phaser.GameObjects.Container {
       const texKey = spr.texture.key ?? '';
       const isSlime  = SLIME_IDS.has(this.animPrefix ?? '');
       const isAnimal = texKey.startsWith('animal_');
-      const sz = isSlime ? 40 : isAnimal ? 30 : 34;
+      const isBear = BEAR_IDS.has(this.animPrefix ?? '');
+      const sz = isSlime ? 40 : isBear ? 41 : isAnimal ? 30 : 34;
       spr.play(key);
       spr.setDisplaySize(sz, sz);
     }
