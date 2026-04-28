@@ -1014,16 +1014,28 @@ export class UIScene extends Phaser.Scene {
     if (!this.maximapOpen) return;
     const PAD = 60;
     const HEADER = 30;
-    const ox = PAD;
-    const oy = PAD + HEADER;
-    const w  = GAME_WIDTH  - PAD * 2;
-    const h  = GAME_HEIGHT - PAD * 2 - HEADER;
+    const areaX = PAD;
+    const areaY = PAD + HEADER;
+    const areaW = GAME_WIDTH  - PAD * 2;
+    const areaH = GAME_HEIGHT - PAD * 2 - HEADER;
+
+    // Сохраняем аспект карты — letterbox внутри доступной области
+    const mapAspect  = this.minimapMapW / this.minimapMapH;
+    const areaAspect = areaW / areaH;
+    let w: number, h: number;
+    if (mapAspect > areaAspect) { w = areaW;            h = areaW / mapAspect; }
+    else                        { h = areaH;            w = areaH * mapAspect; }
+    const ox = areaX + (areaW - w) / 2;
+    const oy = areaY + (areaH - h) / 2;
 
     if (this.maximapTerrainImg) {
       this.maximapTerrainImg.setPosition(ox, oy).setDisplaySize(w, h).setVisible(true);
     }
 
     this.maximapGfx.clear();
+    // Рамка вокруг карты, чтобы было видно где её края
+    this.maximapGfx.lineStyle(1, THEME.brass1, 0.5);
+    this.maximapGfx.strokeRect(ox, oy, w, h);
     this.drawMapDots(this.maximapGfx, data, ox, oy, w, h, 4, 3);
   }
 
@@ -1135,33 +1147,44 @@ export class UIScene extends Phaser.Scene {
     const sx = w / mapW;
     const sy = h / mapH;
 
-    // Resource nodes (green — depleted = dark)
+    // Точки в границах карты: проецируем мир в [ox..ox+w] × [oy..oy+h] и пропускаем то, что вышло
+    const inBounds = (wx: number, wy: number) => wx >= 0 && wx <= mapW && wy >= 0 && wy <= mapH;
+    const drawDot = (wx: number, wy: number, size: number) => {
+      const px = ox + wx * sx;
+      const py = oy + wy * sy;
+      const half = size * 0.5;
+      // Клампим в области карты, чтобы маркер не выходил за рамку
+      const dx = Math.min(Math.max(px, ox + half), ox + w - half);
+      const dy = Math.min(Math.max(py, oy + half), oy + h - half);
+      g.fillRect(dx - half, dy - half, size, size);
+    };
+
     for (const n of data.mapDotNodes ?? []) {
+      if (!inBounds(n.x, n.y)) continue;
       g.fillStyle(n.depleted ? 0x336633 : 0x44bb44, n.depleted ? 0.4 : 0.8);
-      g.fillRect(ox + n.x * sx - dotSize * 0.5, oy + n.y * sy - dotSize * 0.5, dotSize, dotSize);
+      drawDot(n.x, n.y, dotSize);
     }
 
-    // NPCs (yellow)
     for (const n of data.mapDotNpcs ?? []) {
+      if (!inBounds(n.x, n.y)) continue;
       g.fillStyle(0xffdd55, 0.9);
-      g.fillRect(ox + n.x * sx - dotSize * 0.5, oy + n.y * sy - dotSize * 0.5, dotSize, dotSize);
+      drawDot(n.x, n.y, dotSize);
     }
 
-    // Creatures (red scale by aggro)
     for (const c of data.creatures) {
       if (c.isDead) continue;
+      if (!inBounds(c.x, c.y)) continue;
       g.fillStyle(
         c.isPassive ? 0x888888 : c.isAggro ? 0xff3333 : 0xcc4444,
         c.isPassive ? 0.7 : c.isAggro ? 1.0 : 0.65,
       );
-      g.fillRect(ox + c.x * sx - dotSize * 0.5, oy + c.y * sy - dotSize * 0.5, dotSize, dotSize);
+      drawDot(c.x, c.y, dotSize);
     }
 
-    // Player (bright ether dot with outline)
-    if (data.playerPos) {
-      const px = ox + data.playerPos.x * sx;
-      const py = oy + data.playerPos.y * sy;
+    if (data.playerPos && inBounds(data.playerPos.x, data.playerPos.y)) {
       const ps = playerSize + 0.5;
+      const px = Math.min(Math.max(ox + data.playerPos.x * sx, ox + ps), ox + w - ps);
+      const py = Math.min(Math.max(oy + data.playerPos.y * sy, oy + ps), oy + h - ps);
       g.fillStyle(THEME.ether2, 1.0);
       g.fillRect(px - ps, py - ps, ps * 2, ps * 2);
       g.lineStyle(1, THEME.ether3, 0.6);
