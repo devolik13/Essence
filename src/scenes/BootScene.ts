@@ -1078,9 +1078,19 @@ export class BootScene extends Phaser.Scene {
         const idleN = set.anims[iKey]?.frames ?? 16;
         const walkN = set.anims[wKey]?.frames ?? 20;
         const atkN  = set.anims[aKey]?.frames ?? 10;
-        mkMobAnim(`${mobId}_idle_${gameDir}`, `mob_sheet_${mobId}_${iKey}`, idleN, 8,  -1);
-        mkMobAnim(`${mobId}_walk_${gameDir}`, `mob_sheet_${mobId}_${wKey}`, walkN, 12, -1);
-        mkMobAnim(`${mobId}_atk_${gameDir}`,  `mob_sheet_${mobId}_${aKey}`, atkN,  14,  0);
+        // If left_* uses same file as right_*, register the animation using the right_ texture key.
+        // This makes the textureKey comparison in Creature.ts flip detection work correctly.
+        let iTexKey = `mob_sheet_${mobId}_${iKey}`;
+        let wTexKey = `mob_sheet_${mobId}_${wKey}`;
+        let aTexKey = `mob_sheet_${mobId}_${aKey}`;
+        if (hasDirs && gameDir === 'left') {
+          if (set.anims['left_idle']?.file   === set.anims['right_idle']?.file)   iTexKey = `mob_sheet_${mobId}_right_idle`;
+          if (set.anims['left_walk']?.file   === set.anims['right_walk']?.file)   wTexKey = `mob_sheet_${mobId}_right_walk`;
+          if (set.anims['left_attack']?.file === set.anims['right_attack']?.file) aTexKey = `mob_sheet_${mobId}_right_attack`;
+        }
+        mkMobAnim(`${mobId}_idle_${gameDir}`, iTexKey, idleN, 8,  -1);
+        mkMobAnim(`${mobId}_walk_${gameDir}`, wTexKey, walkN, 12, -1);
+        mkMobAnim(`${mobId}_atk_${gameDir}`,  aTexKey, atkN,  14,  0);
       }
     }
 
