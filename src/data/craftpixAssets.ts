@@ -258,6 +258,44 @@ export const ANIMAL_SPRITE_SETS: Record<string, AnimalSpriteSet> = {
       death:{ file: 'Black_grouse_Death_with_shadow.png', cols: 6 },
     },
   },
+
+  // ── Элементали-слаймы (4 направления, 64×64) ────────────────────────────
+  slime_fire: {
+    folder: 'assets/mobs/slime_fire/', frameW: 64, frameH: 64,
+    sheets: {
+      idle:   { file: 'idle.png',   cols: 6 },
+      walk:   { file: 'walk.png',   cols: 8 },
+      attack: { file: 'attack.png', cols: 10 },
+      death:  { file: 'death.png',  cols: 10 },
+    },
+  },
+  slime_water: {
+    folder: 'assets/mobs/slime_water/', frameW: 64, frameH: 64,
+    sheets: {
+      idle:   { file: 'idle.png',   cols: 6 },
+      walk:   { file: 'walk.png',   cols: 8 },
+      attack: { file: 'attack.png', cols: 10 },
+      death:  { file: 'death.png',  cols: 10 },
+    },
+  },
+  slime_earth: {
+    folder: 'assets/mobs/slime_earth/', frameW: 64, frameH: 64,
+    sheets: {
+      idle:   { file: 'idle.png',   cols: 6 },
+      walk:   { file: 'walk.png',   cols: 8 },
+      attack: { file: 'attack.png', cols: 10 },
+      death:  { file: 'death.png',  cols: 10 },
+    },
+  },
+  slime_air: {
+    folder: 'assets/mobs/slime_air/', frameW: 64, frameH: 64,
+    sheets: {
+      idle:   { file: 'idle.png',   cols: 6 },
+      walk:   { file: 'walk.png',   cols: 8 },
+      attack: { file: 'attack.png', cols: 10 },
+      death:  { file: 'death.png',  cols: 10 },
+    },
+  },
 };
 
 /** Масштаб — ассеты большие (~200-500px), в игре нужно мельче. */

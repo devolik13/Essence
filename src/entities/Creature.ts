@@ -20,7 +20,21 @@ const CREATURE_SPRITE_MAP: Record<string, string> = {
   bandit_archer_veteran: 'ranger_archer',
   bandit_spear: 'ranger_pike',
   bandit_spear_veteran: 'ranger_pike',
+  // Fire elementals
+  spark: 'slime_fire',
+  asher: 'slime_fire',
+  // Water elementals
+  splasher: 'slime_water',
+  fogger:   'slime_water',
+  // Earth elementals
+  pebble: 'slime_earth',
+  mudder: 'slime_earth',
+  // Wind elementals
+  gusty:    'slime_air',
+  whistler: 'slime_air',
 };
+
+const SLIME_IDS = new Set(['slime_fire', 'slime_water', 'slime_earth', 'slime_air']);
 
 /**
  * Существо (NPC/моб) — враг или пассивное существо в мире.
@@ -417,8 +431,10 @@ export class Creature extends Phaser.GameObjects.Container {
     spr.setFlipX(flipX);
 
     if (spr.anims?.currentAnim?.key !== key && this.scene.anims.exists(key)) {
-      const isAnimal = (spr.texture.key ?? '').startsWith('animal_');
-      const sz = isAnimal ? 30 : 34;
+      const texKey = spr.texture.key ?? '';
+      const isSlime  = SLIME_IDS.has(this.animPrefix ?? '');
+      const isAnimal = texKey.startsWith('animal_');
+      const sz = isSlime ? 40 : isAnimal ? 30 : 34;
       spr.play(key);
       spr.setDisplaySize(sz, sz);
     }
