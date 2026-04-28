@@ -206,6 +206,26 @@ const ORC_SPRITES: MobSpriteSet = {
   },
 };
 
+const BANDIT_CROSSBOW_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/bandit_crossbow/',
+  frameW: 480, frameH: 480,
+  anims: {
+    front_idle:   { file: 'front_idle.png',      frames: 16 },
+    front_walk:   { file: 'front_walking.png',   frames: 20 },
+    front_attack: { file: 'front_attacking.png', frames: 10 },
+    back_idle:    { file: 'back_idle.png',        frames: 16 },
+    back_walk:    { file: 'back_walking.png',     frames: 20 },
+    back_attack:  { file: 'back_attacking.png',   frames: 10 },
+    left_idle:    { file: 'left_idle.png',        frames: 16 },
+    left_walk:    { file: 'left_walking.png',     frames: 20 },
+    left_attack:  { file: 'left_attacking.png',   frames: 10 },
+    right_idle:   { file: 'right_idle.png',       frames: 16 },
+    right_walk:   { file: 'right_walking.png',    frames: 20 },
+    right_attack: { file: 'right_attacking.png',  frames: 10 },
+    dying:        { file: 'dying.png',            frames: 10 },
+  },
+};
+
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_SPRITES,
@@ -219,6 +239,7 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   orc_veteran: ORC_SPRITES,
   bandit: BANDIT_SPRITES,
   bandit_veteran: BANDIT_SPRITES,
+  bandit_cbow: BANDIT_CROSSBOW_SPRITES,
 };
 
 /**
