@@ -128,6 +128,7 @@ export class GameScene extends Phaser.Scene {
     elapsed: number; duration: number;
   } | null = null;
   private aoeIndicator!: Phaser.GameObjects.Graphics;
+  private protectZoneGfx!: Phaser.GameObjects.Graphics;
 
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
@@ -300,6 +301,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── AoE индикатор (следует за мышью) ─────────────
     this.aoeIndicator = this.add.graphics().setDepth(60).setVisible(false);
+    this.protectZoneGfx = this.add.graphics().setDepth(2).setVisible(false);
 
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
@@ -1405,7 +1407,6 @@ export class GameScene extends Phaser.Scene {
     // Proximity-reach: reach objectives targeting a live creature (e.g. wounded_human)
     for (const obj of bq.def.objectives) {
       if (obj.type !== 'reach' || !obj.targetId) continue;
-      // Already done?
       const idx = bq.def.objectives.indexOf(obj);
       if (bq.counts[idx] >= obj.count) continue;
       const target = this.creatures.find(c => c.definition.id === obj.targetId && !c.isDead);
@@ -1419,6 +1420,32 @@ export class GameScene extends Phaser.Scene {
             this.onBodyQuestComplete();
           }
         }
+      }
+    }
+
+    // Protect zone: draw circle + fail if player leaves
+    this.protectZoneGfx.clear().setVisible(false);
+    for (const obj of bq.def.objectives) {
+      if (obj.type !== 'protect' || !obj.targetId || !obj.zoneRadius) continue;
+      const target = this.creatures.find(c => c.definition.id === obj.targetId && !c.isDead);
+      if (!target) continue;
+      const isActive = this.bodyQuestTracker.isProtectActive(obj.targetId);
+      // Draw circle whenever target is alive and protect not yet done
+      const idx = bq.def.objectives.indexOf(obj);
+      const done = bq.counts[idx] >= obj.count;
+      if (done) continue;
+      // Pulsing dashed-ish circle
+      const pulse = 0.35 + 0.15 * Math.sin(this.time.now / 250);
+      this.protectZoneGfx.setVisible(true);
+      this.protectZoneGfx.lineStyle(2, isActive ? 0x88ddaa : 0xaaaa66, pulse);
+      this.protectZoneGfx.strokeCircle(target.x, target.y, obj.zoneRadius);
+      this.protectZoneGfx.lineStyle(1, isActive ? 0x88ddaa : 0xaaaa66, pulse * 0.5);
+      this.protectZoneGfx.strokeCircle(target.x, target.y, obj.zoneRadius - 4);
+
+      // Fail check only after reach is done (timer ticking)
+      if (isActive && distance(px, py, target.x, target.y) > obj.zoneRadius) {
+        const reset = this.bodyQuestTracker.failProtect(obj.targetId);
+        if (reset) this.showMessage('Ты слишком далеко. Раненый остался без защиты — вернись и начни заново.');
       }
     }
   }
@@ -2697,7 +2724,7 @@ export class GameScene extends Phaser.Scene {
 
     // Protected creature died → reset protect objective, player must try again
     if (this.bodyQuestTracker.getActive()) {
-      const reset = this.bodyQuestTracker.onProtectedCreatureDead(creatureId);
+      const reset = this.bodyQuestTracker.failProtect(creatureId);
       if (reset) {
         this.showMessage('Раненый погиб. Подойди снова чтобы попробовать ещё раз.');
       }
@@ -2763,6 +2790,7 @@ export class GameScene extends Phaser.Scene {
       if (idx >= 0) this.questObjects.splice(idx, 1);
     }
     this.bodyQuestObjects = [];
+    this.protectZoneGfx?.clear().setVisible(false);
   }
 
   private onBodyQuestComplete(): void {

@@ -425,7 +425,7 @@ const QUEST_SPIRIT_WOLF: BodyQuestDef = {
   ],
   objectives: [
     { type: 'reach',   count: 1,  targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Найди раненого человека' },
-    { type: 'protect', count: 30, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его 30 сек' },
+    { type: 'protect', count: 30, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его 30 сек', zoneRadius: 240 },
   ],
   friendlyCreatureIds: ['wounded_human'],
   rewardSpellId: 'mob_nature_t2',

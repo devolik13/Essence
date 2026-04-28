@@ -72,14 +72,14 @@ export class BodyQuestTracker {
   }
 
   /** Called when a protected creature dies — resets the protect timer so player must try again. */
-  onProtectedCreatureDead(creatureId: string): boolean {
+  /** Reset protect+reach for a target — used when target dies or player leaves the zone. */
+  failProtect(creatureId: string): boolean {
     if (!this.active || this.active.completed) return false;
     let reset = false;
     for (let i = 0; i < this.active.def.objectives.length; i++) {
       const obj = this.active.def.objectives[i];
       if (obj.type !== 'protect' || obj.targetId !== creatureId) continue;
       if (this.active.counts[i] >= obj.count) continue;
-      // Reset timer and the reach objective so player must find the target again
       this.active.protectTimers[i] = obj.count;
       for (let j = 0; j < this.active.def.objectives.length; j++) {
         const o = this.active.def.objectives[j];
@@ -90,6 +90,21 @@ export class BodyQuestTracker {
       reset = true;
     }
     return reset;
+  }
+
+  /** True if a protect objective for this id is currently active (reach done, timer ticking). */
+  isProtectActive(creatureId: string): boolean {
+    if (!this.active || this.active.completed) return false;
+    for (let i = 0; i < this.active.def.objectives.length; i++) {
+      const obj = this.active.def.objectives[i];
+      if (obj.type !== 'protect' || obj.targetId !== creatureId) continue;
+      if (this.active.counts[i] >= obj.count) continue;
+      const reachDone = this.active.def.objectives.some(
+        (o, j) => o.type === 'reach' && o.targetId === creatureId && this.active!.counts[j] >= o.count,
+      );
+      if (reachDone) return true;
+    }
+    return false;
   }
 
   getProtectRemaining(index: number): number {

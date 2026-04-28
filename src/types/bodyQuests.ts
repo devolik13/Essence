@@ -10,6 +10,8 @@ export interface BodyQuestObjective {
   targetNameRu?: string;
   count: number;
   description: string;
+  /** For 'protect': max distance (px) the player can stray from the target. Reset on exit. */
+  zoneRadius?: number;
 }
 
 export interface BodyQuestSpawnObject {
