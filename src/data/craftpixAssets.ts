@@ -72,9 +72,9 @@ export const CP_POOLS = {
 export const MOB_ASSETS: Array<[string, string, number, number]> = [
   ['mob_goblin',         'assets/mobs/goblin/front_idle.webp', 480, 480],
   ['mob_goblin_veteran', 'assets/mobs/goblin/front_idle.webp', 480, 480],
-  ['mob_ranger',         'assets/mobs/ranger/front_idle.webp', 512, 512],
-  ['mob_ranger_archer',  'assets/mobs/ranger_archer/front_idle.webp', 512, 512],
-  ['mob_ranger_pike',    'assets/mobs/ranger_pike/front_idle.webp', 512, 512],
+  ['mob_ranger',         'assets/mobs/ranger/front_idle.webp', 320, 320],
+  ['mob_ranger_archer',  'assets/mobs/ranger_archer/front_idle.webp', 320, 320],
+  ['mob_ranger_pike',    'assets/mobs/ranger_pike/front_idle.webp', 320, 320],
   ['mob_hare',           'assets/mobs/animals/Hare/Hare_Idle_with_shadow.webp', 32, 32],
   ['mob_deer',           'assets/mobs/animals/Deer/Deer_Idle_with_shadow.webp', 32, 32],
   ['mob_fox',            'assets/mobs/animals/Fox/Fox_Idle_with_shadow.webp', 32, 32],
@@ -167,10 +167,10 @@ const BANDIT_SPRITES: MobSpriteSet = {
 
 const RANGER_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/ranger/',
-  frameW: 512, frameH: 512,
+  frameW: 320, frameH: 320,
   anims: {
     front_idle:     { file: 'front_idle.webp',      frames: 18 },
-    front_walk:     { file: 'front_walking.png',   frames: 24 },
+    front_walk:     { file: 'front_walking.webp',   frames: 24 },
     front_attack:   { file: 'front_attacking.webp', frames: 9 },
     dying:          { file: 'dying.webp',            frames: 15 },
   },
@@ -178,10 +178,10 @@ const RANGER_SPRITES: MobSpriteSet = {
 
 const RANGER_ARCHER_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/ranger_archer/',
-  frameW: 512, frameH: 512,
+  frameW: 320, frameH: 320,
   anims: {
     front_idle:     { file: 'front_idle.webp',      frames: 18 },
-    front_walk:     { file: 'front_walking.png',   frames: 24 },
+    front_walk:     { file: 'front_walking.webp',   frames: 24 },
     front_attack:   { file: 'front_attacking.webp', frames: 12 },
     dying:          { file: 'dying.webp',            frames: 15 },
   },
@@ -189,10 +189,10 @@ const RANGER_ARCHER_SPRITES: MobSpriteSet = {
 
 const RANGER_PIKE_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/ranger_pike/',
-  frameW: 512, frameH: 512,
+  frameW: 320, frameH: 320,
   anims: {
     front_idle:     { file: 'front_idle.webp',      frames: 18 },
-    front_walk:     { file: 'front_walking.png',   frames: 24 },
+    front_walk:     { file: 'front_walking.webp',   frames: 24 },
     front_attack:   { file: 'front_attacking.webp', frames: 12 },
     dying:          { file: 'dying.webp',            frames: 15 },
   },
