@@ -72,9 +72,9 @@ export const CP_POOLS = {
 export const MOB_ASSETS: Array<[string, string, number, number]> = [
   ['mob_goblin',         'assets/mobs/goblin/front_idle.webp', 480, 480],
   ['mob_goblin_veteran', 'assets/mobs/goblin/front_idle.webp', 480, 480],
-  ['mob_ranger',         'assets/mobs/ranger/front_idle.webp', 900, 900],
-  ['mob_ranger_archer',  'assets/mobs/ranger_archer/front_idle.webp', 900, 900],
-  ['mob_ranger_pike',    'assets/mobs/ranger_pike/front_idle.webp', 900, 900],
+  ['mob_ranger',         'assets/mobs/ranger/front_idle.webp', 512, 512],
+  ['mob_ranger_archer',  'assets/mobs/ranger_archer/front_idle.webp', 512, 512],
+  ['mob_ranger_pike',    'assets/mobs/ranger_pike/front_idle.webp', 512, 512],
   ['mob_hare',           'assets/mobs/animals/Hare/Hare_Idle_with_shadow.webp', 32, 32],
   ['mob_deer',           'assets/mobs/animals/Deer/Deer_Idle_with_shadow.webp', 32, 32],
   ['mob_fox',            'assets/mobs/animals/Fox/Fox_Idle_with_shadow.webp', 32, 32],
@@ -167,7 +167,7 @@ const BANDIT_SPRITES: MobSpriteSet = {
 
 const RANGER_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/ranger/',
-  frameW: 900, frameH: 900,
+  frameW: 512, frameH: 512,
   anims: {
     front_idle:     { file: 'front_idle.webp',      frames: 18 },
     front_walk:     { file: 'front_walking.png',   frames: 24 },
@@ -178,7 +178,7 @@ const RANGER_SPRITES: MobSpriteSet = {
 
 const RANGER_ARCHER_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/ranger_archer/',
-  frameW: 900, frameH: 900,
+  frameW: 512, frameH: 512,
   anims: {
     front_idle:     { file: 'front_idle.webp',      frames: 18 },
     front_walk:     { file: 'front_walking.png',   frames: 24 },
@@ -189,7 +189,7 @@ const RANGER_ARCHER_SPRITES: MobSpriteSet = {
 
 const RANGER_PIKE_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/ranger_pike/',
-  frameW: 900, frameH: 900,
+  frameW: 512, frameH: 512,
   anims: {
     front_idle:     { file: 'front_idle.webp',      frames: 18 },
     front_walk:     { file: 'front_walking.png',   frames: 24 },
@@ -366,7 +366,7 @@ export const ANIMAL_SPRITE_SETS: Record<string, AnimalSpriteSet> = {
     sheets: {
       idle:   { file: 'idle.webp',   cols: 6 },
       walk:   { file: 'walk.webp',   cols: 8 },
-      attack: { file: 'attack.webp', cols: 10 },
+      attack: { file: 'attack.webp', cols: 9 },
       death:  { file: 'death.webp',  cols: 10 },
     },
   },

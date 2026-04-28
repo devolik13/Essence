@@ -242,6 +242,10 @@ export class Body extends Phaser.GameObjects.Container {
   /** Запустить анимацию атаки (вызывается из GameScene при ударе) */
   playAttackAnim() {
     if (!this.resolvedAnim || this.isAttackPlaying) return;
+    // Skip if no real attack anim (key falls back to idle) — avoids isAttackPlaying stuck forever
+    const atkKey = this.resolvedAnim.atk(this.facingDir);
+    const idleKey = this.resolvedAnim.idle(this.facingDir);
+    if (atkKey === idleKey) return;
     this.isAttackPlaying = true;
     this.playAnim('atk');
   }
