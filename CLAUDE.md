@@ -914,7 +914,7 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 | `boar` | Убить 3 волков | `ram` |
 | `grouse` | Выжить 30 сек | `neutral_heal` |
 | `wolf` | Убить 3 оленей | `sword_strike` |
-| `bear` | Убить 2 forest_spark | `mace_strike` |
+| `bear` | Убить 2 spark (малых огн. элементалей) | `mace_strike` |
 | `goblin` | Украсть 3 ящика | `sting` |
 | `orc` | Убить орка-военачальника | `slash` |
 | `scout` | Достичь 3 checkpoint | `bow_shot` |
@@ -954,7 +954,6 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 | Существо | Оружие | Назначение |
 |----------|--------|------------|
 | `monkey` | Fists | T2 Кастеты (`fist_strike`) |
-| `forest_spark` | — | Враг медведя в bq_bear |
 
 ## i18n (локализация)
 
@@ -971,10 +970,9 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 - **Фоновая музыка**: нет (есть 12 процедурных SFX)
 - **Боссы Главы 1**: механики боссов (HP бар, фазы, AI) не реализованы — используются стандартные существа
 - **Стартовые тела**: в лоре именованные (Конрад/Рен/Эйла), в коде — generic
-- **Квесты тел**: kill, survive, reach, collect, steal, destroy работают. `protect` и `escort` не подключены (spirit_wolf, scout_escort сломаны)
-- **Новые существа**: `monkey` (Fists T2) и `forest_spark` (враг медведя) нужно добавить в creatureDB + спавны
-- **Объекты квестов**: `dry_tree`, `burning_tree`, `forest_spark` — нужны как destructible объекты в зонах огня/воды
-- **spirit_wolf квест**: `protect` объектив не вызывается в GameScene — квест недостижим
+- **Квесты тел**: kill, survive, reach, collect, steal, destroy работают. `protect` не подключён в движке (квест `bq_spirit_wolf` недостижим — нужен NPC `wounded_human` + защита от волн хищников)
+- **Новые существа**: `monkey` (Fists T2) — нужно добавить в creatureDB + спавны
+- **Объекты квестов**: `dry_tree`, `burning_tree` — нужны как destructible объекты в зонах огня/воды (для квестов `bq_spark`/`bq_splasher`)
 - **Конфликтные квесты**: `ConflictQuestDef` определён, данные готовы. Нужен спавн каравана + AI эскорта
 - **Экипировка мана-бонус**: поле `manaBonus` поддержано в формуле, но ни один предмет его не использует
 - **Вальдмар NPC**: Captain Vern, Healer Lena, Blacksmith Gorm — нет диалогов
