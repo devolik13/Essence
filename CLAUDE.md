@@ -946,9 +946,7 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 | `fogger` | Восстановить туман (4 точки) | `mob_water_t2` | одиночный |
 | `mudder` | Пробить породу + источник | `mob_earth_t2` | одиночный |
 | `whistler` | Найти и убрать помеху | `mob_wind_t2` | одиночный |
-| `spirit_wolf` | Найти раненого + защитить ⚠️ | `mob_nature_t2` | одиночный |
-
-⚠️ `spirit_wolf` — `protect` объектив не подключён в движке
+| `spirit_wolf` | Найти раненого + защитить 30 сек | `mob_nature_t2` | одиночный |
 
 ### Новые существа (нужны в коде)
 | Существо | Оружие | Назначение |
@@ -970,7 +968,7 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 - **Фоновая музыка**: нет (есть 12 процедурных SFX)
 - **Боссы Главы 1**: механики боссов (HP бар, фазы, AI) не реализованы — используются стандартные существа
 - **Стартовые тела**: в лоре именованные (Конрад/Рен/Эйла), в коде — generic
-- **Квесты тел**: kill, survive, reach, collect, steal, destroy работают. `protect` не подключён в движке (квест `bq_spirit_wolf` недостижим — нужен NPC `wounded_human` + защита от волн хищников)
+- **Квесты тел**: kill, survive, reach, collect, steal, destroy, protect работают. `escort` не реализован.
 - **Новые существа**: `monkey` (Fists T2) — нужно добавить в creatureDB + спавны
 - **Объекты квестов**: `dry_tree`, `burning_tree` — нужны как destructible объекты в зонах огня/воды (для квестов `bq_spark`/`bq_splasher`)
 - **Конфликтные квесты**: `ConflictQuestDef` определён, данные готовы. Нужен спавн каравана + AI эскорта
