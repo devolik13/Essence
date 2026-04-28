@@ -14,7 +14,7 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     // Тайлсет мира — 10 терреновых тайлов 32×32 (5×2 грид, 160×64)
-    this.load.image('tileset_world', 'assets/tileset_world.png');
+    this.load.image('tileset_world', 'assets/tileset_world.webp');
 
     // CraftPix "Top-Down Simple Summer" — 89 PNG (56 земли + 33 пропа)
     for (const [key, path] of CP_ASSETS) {
