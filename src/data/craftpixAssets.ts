@@ -68,46 +68,51 @@ export const CP_POOLS = {
   banners: ['cp_banner_blue', 'cp_banner_red', 'cp_flag'],
 } as const;
 
-/** Ассеты мобов для редактора карт. [key, path, frameWidth, frameHeight] */
-export const MOB_ASSETS: Array<[string, string, number, number]> = [
+/** Мобы для редактора карт — используют уже загруженные mob_sheet_* / animal_* текстуры. */
+export interface EditorMobEntry { key: string; textureKey: string }
+export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
+  // key = mob_{creatureId} (getMobSpawns strips mob_ prefix)
+  // textureKey = already loaded via MOB_SPRITE_SETS / ANIMAL_SPRITE_SETS
   // ── Гоблины ──────────────────────────────────────────────────────────────
-  ['mob_goblin',                  'assets/mobs/goblin/front_idle.webp',          480, 480],
-  ['mob_goblin_veteran',          'assets/mobs/goblin/front_idle.webp',          480, 480],
+  { key: 'mob_goblin',                  textureKey: 'mob_sheet_goblin_front_idle'          },
+  { key: 'mob_goblin_veteran',          textureKey: 'mob_sheet_goblin_veteran_front_idle'  },
   // ── Орки ─────────────────────────────────────────────────────────────────
-  ['mob_orc',                     'assets/mobs/orc/orc-idle-v1.webp',            256, 256],
-  ['mob_orc_veteran',             'assets/mobs/orc/orc-idle-v1.webp',            256, 256],
-  ['mob_shaman',                  'assets/mobs/shaman/front_idle.webp',          256, 256],
+  { key: 'mob_orc',                     textureKey: 'mob_sheet_orc_front_idle'             },
+  { key: 'mob_orc_veteran',             textureKey: 'mob_sheet_orc_veteran_front_idle'     },
+  { key: 'mob_shaman',                  textureKey: 'mob_sheet_shaman_front_idle'          },
   // ── Бандиты ──────────────────────────────────────────────────────────────
-  ['mob_bandit_brute',            'assets/mobs/bandit/front_idle.webp',          480, 480],
-  ['mob_bandit_brute_veteran',    'assets/mobs/bandit/front_idle.webp',          480, 480],
-  ['mob_bandit_crossbow',         'assets/mobs/bandit_crossbow/front_idle.webp', 480, 480],
-  ['mob_bandit_crossbow_veteran', 'assets/mobs/bandit_crossbow/front_idle.webp', 480, 480],
-  ['mob_bandit_archer',           'assets/mobs/ranger_archer/front_idle.webp',   320, 320],
-  ['mob_bandit_archer_veteran',   'assets/mobs/ranger_archer/front_idle.webp',   320, 320],
-  ['mob_bandit_spear',            'assets/mobs/ranger_pike/front_idle.webp',     320, 320],
-  ['mob_bandit_spear_veteran',    'assets/mobs/ranger_pike/front_idle.webp',     320, 320],
-  // ── Разведчики ───────────────────────────────────────────────────────────
-  ['mob_scout',                   'assets/mobs/ranger/front_idle.webp',          320, 320],
-  ['mob_scout_veteran',           'assets/mobs/ranger/front_idle.webp',          320, 320],
+  { key: 'mob_bandit_brute',            textureKey: 'mob_sheet_bandit_front_idle'          },
+  { key: 'mob_bandit_brute_veteran',    textureKey: 'mob_sheet_bandit_veteran_front_idle'  },
+  { key: 'mob_bandit_crossbow',         textureKey: 'mob_sheet_bandit_cbow_front_idle'     },
+  { key: 'mob_bandit_crossbow_veteran', textureKey: 'mob_sheet_bandit_cbow_front_idle'     },
+  { key: 'mob_bandit_archer',           textureKey: 'mob_sheet_ranger_archer_front_idle'   },
+  { key: 'mob_bandit_archer_veteran',   textureKey: 'mob_sheet_ranger_archer_front_idle'   },
+  { key: 'mob_bandit_spear',            textureKey: 'mob_sheet_ranger_pike_front_idle'     },
+  { key: 'mob_bandit_spear_veteran',    textureKey: 'mob_sheet_ranger_pike_front_idle'     },
+  // ── Скауты ───────────────────────────────────────────────────────────────
+  { key: 'mob_scout',                   textureKey: 'mob_sheet_ranger_front_idle'          },
+  { key: 'mob_scout_veteran',           textureKey: 'mob_sheet_ranger_front_idle'          },
   // ── Медведи ──────────────────────────────────────────────────────────────
-  ['mob_bear',                    'assets/mobs/bear/front_idle.webp',            256, 256],
-  ['mob_bear_veteran',            'assets/mobs/bear/front_idle.webp',            256, 256],
+  { key: 'mob_bear',                    textureKey: 'mob_sheet_bear_front_idle'            },
+  { key: 'mob_bear_veteran',            textureKey: 'mob_sheet_bear_veteran_front_idle'    },
   // ── Элементали ───────────────────────────────────────────────────────────
-  ['mob_spark',                   'assets/mobs/slime_fire/idle.webp',             64,  64],
-  ['mob_asher',                   'assets/mobs/slime_fire/idle.webp',             64,  64],
-  ['mob_splasher',                'assets/mobs/slime_water/idle.webp',            64,  64],
-  ['mob_fogger',                  'assets/mobs/slime_water/idle.webp',            64,  64],
-  ['mob_pebble',                  'assets/mobs/slime_earth/idle.webp',            64,  64],
-  ['mob_mudder',                  'assets/mobs/slime_earth/idle.webp',            64,  64],
-  ['mob_gusty',                   'assets/mobs/slime_air/idle.webp',              64,  64],
-  ['mob_whistler',                'assets/mobs/slime_air/idle.webp',              64,  64],
+  { key: 'mob_spark',                   textureKey: 'animal_slime_fire_idle'               },
+  { key: 'mob_asher',                   textureKey: 'animal_slime_fire_idle'               },
+  { key: 'mob_splasher',                textureKey: 'animal_slime_water_idle'              },
+  { key: 'mob_fogger',                  textureKey: 'animal_slime_water_idle'              },
+  { key: 'mob_pebble',                  textureKey: 'animal_slime_earth_idle'              },
+  { key: 'mob_mudder',                  textureKey: 'animal_slime_earth_idle'              },
+  { key: 'mob_gusty',                   textureKey: 'animal_slime_air_idle'                },
+  { key: 'mob_whistler',                textureKey: 'animal_slime_air_idle'                },
   // ── Животные ─────────────────────────────────────────────────────────────
-  ['mob_hare',    'assets/mobs/animals/Hare/Hare_Idle_with_shadow.webp',         32,  32],
-  ['mob_deer',    'assets/mobs/animals/Deer/Deer_Idle_with_shadow.webp',         32,  32],
-  ['mob_fox',     'assets/mobs/animals/Fox/Fox_Idle_with_shadow.webp',           32,  32],
-  ['mob_boar',    'assets/mobs/animals/Boar/Boar_Idle_with_shadow.webp',         32,  32],
-  ['mob_grouse',  'assets/mobs/animals/Black_grouse/Black_grouse_Idle_with_shadow.webp', 32, 32],
+  { key: 'mob_hare',                    textureKey: 'animal_hare_idle'                     },
+  { key: 'mob_deer',                    textureKey: 'animal_deer_idle'                     },
+  { key: 'mob_fox',                     textureKey: 'animal_fox_idle'                      },
+  { key: 'mob_boar',                    textureKey: 'animal_boar_idle'                     },
+  { key: 'mob_grouse',                  textureKey: 'animal_grouse_idle'                   },
 ];
+/** @deprecated use EDITOR_MOB_ENTRIES — kept only to avoid import errors during migration */
+export const MOB_ASSETS: Array<[string, string, number, number]> = [];
 
 export interface MobSpriteSet {
   folder: string;

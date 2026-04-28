@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
-import { CP_ASSETS, MOB_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
 import { loadAllSpriteSheets } from '../systems/spriteSheetLoader';
 
 /**
@@ -21,10 +21,6 @@ export class BootScene extends Phaser.Scene {
       this.load.image(key, path);
     }
 
-    // Mob spritesheets — editor thumbnails
-    for (const [key, path, fw, fh] of MOB_ASSETS) {
-      this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fh });
-    }
     // Mob directional spritesheets — all animations (goblin style: separate files per direction)
     const loadedSheets = new Set<string>();
     for (const [mobId, spriteSet] of Object.entries(MOB_SPRITE_SETS)) {

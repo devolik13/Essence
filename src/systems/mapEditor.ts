@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CP_ASSETS, MOB_ASSETS } from '../data/craftpixAssets';
+import { CP_ASSETS, EDITOR_MOB_ENTRIES } from '../data/craftpixAssets';
 import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects, resetToBundled, hasUnsavedChanges } from './mapObjectStore';
 import { addMapCollider, clearMapColliders } from './mapColliders';
@@ -364,10 +364,10 @@ export class MapEditor {
     this.thumbLabels = [];
 
     let decoKeys = CP_ASSETS.map(([k]) => k);
-    let mobKeys = MOB_ASSETS.map(([k]) => k);
+    let mobEntries = EDITOR_MOB_ENTRIES;
     if (this.filterText) {
       decoKeys = decoKeys.filter(k => k.toLowerCase().includes(this.filterText));
-      mobKeys = mobKeys.filter(k => k.toLowerCase().includes(this.filterText));
+      mobEntries = mobEntries.filter(e => e.key.toLowerCase().includes(this.filterText));
     }
     const startY = this.PANEL_HEADER_H - this.scrollOffset;
     const cam = this.scene.cameras.main;
@@ -375,7 +375,7 @@ export class MapEditor {
     let idx = 0;
 
     // ── Mobs section ──
-    if (mobKeys.length > 0) {
+    if (mobEntries.length > 0) {
       const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
       if (headerY + 40 > 0 && headerY + 40 < cam.height) {
         const hdr = this.scene.add.text(8, headerY, '▸ Mobs', {
@@ -386,8 +386,8 @@ export class MapEditor {
       }
       idx += this.COLS; // reserve a row for header
 
-      for (const key of mobKeys) {
-        if (!this.scene.textures.exists(key)) continue;
+      for (const entry of mobEntries) {
+        if (!this.scene.textures.exists(entry.textureKey)) continue;
         const col = idx % this.COLS;
         const row = Math.floor(idx / this.COLS);
         const x = 8 + col * (this.THUMB_SIZE + this.GAP);
@@ -396,16 +396,16 @@ export class MapEditor {
         idx++;
         if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
 
-        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key, 0)
+        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey, 0)
           .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
           .setInteractive({ useHandCursor: true })
           .setScrollFactor(0);
-        thumb.on('pointerdown', () => this.selectAsset(key));
-        if (key === this.selectedKey) thumb.setTint(0xffdd55);
+        thumb.on('pointerdown', () => this.selectAsset(entry.key));
+        if (entry.key === this.selectedKey) thumb.setTint(0xffdd55);
         this.panel.add(thumb);
         this.thumbs.push(thumb);
 
-        const short = key.replace('mob_', '');
+        const short = entry.key.replace('mob_', '');
         const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
           short, { fontSize: '8px', color: '#ff8855' } as Phaser.Types.GameObjects.Text.TextStyle)
           .setOrigin(0.5, 0);
