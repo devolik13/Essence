@@ -109,6 +109,26 @@ const GOBLIN_SPRITES: MobSpriteSet = {
   },
 };
 
+const SHAMAN_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/shaman/',
+  frameW: 256, frameH: 256,
+  anims: {
+    front_idle:   { file: 'front_idle.webp',   frames: 25 },
+    back_idle:    { file: 'back_idle.webp',    frames: 25 },
+    left_idle:    { file: 'right_idle.webp',   frames: 25 },
+    right_idle:   { file: 'right_idle.webp',   frames: 25 },
+    front_walk:   { file: 'front_walk.webp',   frames: 25 },
+    back_walk:    { file: 'back_walk.webp',    frames: 25 },
+    left_walk:    { file: 'right_walk.webp',   frames: 25 },
+    right_walk:   { file: 'right_walk.webp',   frames: 25 },
+    front_attack: { file: 'front_attack.webp', frames: 25 },
+    back_attack:  { file: 'back_attack.webp',  frames: 25 },
+    left_attack:  { file: 'right_attack.webp', frames: 25 },
+    right_attack: { file: 'right_attack.webp', frames: 25 },
+    dying:        { file: 'dying.webp',        frames: 25 },
+  },
+};
+
 const BEAR_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/bear/',
   frameW: 256, frameH: 256,
@@ -253,6 +273,8 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   wizard: WIZARD_SPRITES,
   orc: ORC_SPRITES,
   orc_veteran: ORC_SPRITES,
+  shaman: SHAMAN_SPRITES,
+  spirit_wolf: SHAMAN_SPRITES,
   bear: BEAR_SPRITES,
   bear_veteran: BEAR_SPRITES,
   bandit: BANDIT_SPRITES,
