@@ -221,6 +221,25 @@ const QUEST_GUSTY: BodyQuestDef = {
   xpReward: 50,
 };
 
+const QUEST_CARAVAN_MERCHANT: BodyQuestDef = {
+  id: 'bq_caravan_merchant', bodyId: 'caravan_merchant', tier: 1,
+  nameRu: 'Живой груз',
+  description: 'Обоз атакован. Охрана дерётся. Ты — лечи.',
+  introMessages: [
+    { speaker: '', text: 'Стрелы. Сзади. Трое лучников у опушки.' },
+    { speaker: '', text: 'Охрана держится — но ненадолго.' },
+    { speaker: '', text: 'У тебя нет оружия. Но ты можешь держать их на ногах.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Охрана выжила. Обоз прошёл. Руки торговца — не только для золота.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'bandit_archer', targetNameRu: 'Разбойник-лучник', description: 'Защити охрану — убей 3 разбойников-лучников' },
+  ],
+  rewardSpellId: 'ally_heal',
+  xpReward: 50,
+};
+
 // ═══════════════════════════════════════════════════════════════
 // T2 — Bandits/advanced humanoids → T2 weapon spells
 // ═══════════════════════════════════════════════════════════════
@@ -818,7 +837,7 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_WOLF, QUEST_BEAR,
   QUEST_HARE, QUEST_DEER, QUEST_FOX, QUEST_BOAR, QUEST_GROUSE,
   // T1 Humanoids
-  QUEST_GOBLIN, QUEST_ORC, QUEST_SCOUT, QUEST_SHAMAN,
+  QUEST_GOBLIN, QUEST_ORC, QUEST_SCOUT, QUEST_SHAMAN, QUEST_CARAVAN_MERCHANT,
   // T1 Elementals
   QUEST_SPARK, QUEST_SPLASHER, QUEST_PEBBLE, QUEST_GUSTY,
   // T2 Bandits

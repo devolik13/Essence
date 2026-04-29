@@ -1,9 +1,8 @@
 /**
- * Neutral school spells — утилита без элемента.
+ * Neutral school spells — утилита без элемента, без привязки к оружию.
  * T1: 5 маны | T2: 10 маны
  */
 import { AbilityDef } from '../types/abilities';
-import { WeaponType } from '../types/bodies';
 
 // ─── NEUTRAL SCHOOL ────────────────────────────────────────────────────────────
 
@@ -54,63 +53,7 @@ export const MOB_NEUTRAL_T2: AbilityDef = {
   description: 'Мгновенный бросок вперёд на 180px. Требует Ускорение.',
 };
 
-// ─── НОВЫЕ НЕЙТРАЛЬНЫЕ ───────────────────────────────────────────────────────
-
-/** Маневр — групповой бонус к уклонению на 3 сек */
-export const ABILITY_MANEUVER: AbilityDef = {
-  id: 'maneuver',
-  nameRu: 'Maneuver',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  cooldown: 15,
-  castTime: 1,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 200,
-  statusEffect: 'evasion_boost',
-  requiredWeapons: [WeaponType.Fists],
-  description: 'Союзники в r200 получают +10 Уклонение на 3 сек.',
-};
-
-/** Прикрытие — групповой блок следующей 1 атаки */
-export const ABILITY_COVER: AbilityDef = {
-  id: 'cover',
-  nameRu: 'Cover',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  cooldown: 20,
-  castTime: 1,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 200,
-  statusEffect: 'block_next',
-  requiredWeapons: [WeaponType.Sword],
-  description: 'Союзники в r200 блокируют следующую 1 атаку (10 сек).',
-};
-
-/** Щитовая стойка — замедление + броня, только для меча/булавы (со щитом) */
-export const ABILITY_SHIELD_STANCE: AbilityDef = {
-  id: 'shield_stance',
-  nameRu: 'Shield Stance',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'shield_stance',
-  cooldown: 15,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  requiredWeapons: [WeaponType.Sword],
-  description: 'Замедление −30% на 5 сек, но +15 Armor. Только для меча (со щитом).',
-};
-
-/** Отчаяние — удар с +10 урона за каждый дебафф на себе. Только ближний бой */
+/** Отчаяние — удар с +10 урона за каждый дебафф на себе */
 export const ABILITY_DESPERATION: AbilityDef = {
   id: 'desperation',
   nameRu: 'Desperation',
@@ -124,22 +67,7 @@ export const ABILITY_DESPERATION: AbilityDef = {
   description: 'Удар ближнего боя. +10 урона за каждый дебафф на себе.',
 };
 
-/** Разоблачение — удар с +10% урона за каждый бафф на противнике */
-export const ABILITY_EXPOSE: AbilityDef = {
-  id: 'expose',
-  nameRu: 'Expose',
-  school: 'neutral',
-  damageType: 'melee',
-  cooldown: 8,
-  manaCost: 10,
-  range: 60,
-  baseDamage: 12,
-  bonusDamagePercentPerTargetBuff: 0.1,
-  requiredWeapons: [WeaponType.LongBow],
-  description: 'Удар. +10% урона за каждый бафф на противнике.',
-};
-
-/** Адаптация — при смене оружия следующий навык бесплатный */
+/** Адаптация — следующий навык бесплатный */
 export const ABILITY_ADAPTATION: AbilityDef = {
   id: 'adaptation',
   nameRu: 'Adaptation',
@@ -151,7 +79,7 @@ export const ABILITY_ADAPTATION: AbilityDef = {
   range: 0,
   baseDamage: 0,
   grantFreeNextCast: true,
-  description: 'Следующий навык не тратит ману. Идеально после смены оружия/тела.',
+  description: 'Следующий навык не тратит ману.',
 };
 
 /** Подпитка — реген HP за каждый бафф на себе */
@@ -186,22 +114,6 @@ export const ABILITY_SPIRIT_RESILIENCE: AbilityDef = {
   description: '+3 HP/сек за каждый активный дебафф на себе (8 сек).',
 };
 
-/** Закалка — защита от дальних атак */
-export const ABILITY_RANGED_RESIST: AbilityDef = {
-  id: 'ranged_resist',
-  nameRu: 'Hardening',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'ranged_resist',
-  cooldown: 12,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  requiredWeapons: [WeaponType.LongBow],
-  description: '−30% входящего дальнего урона на 5 сек.',
-};
-
 /** Очищение — лечение за каждый статус на себе */
 export const ABILITY_PURIFY: AbilityDef = {
   id: 'purify',
@@ -216,74 +128,6 @@ export const ABILITY_PURIFY: AbilityDef = {
   baseDamage: 0,
   healPerStatusEffect: 10,
   description: 'Лечит 10 HP за каждый активный статус (бафф или дебафф) на себе.',
-};
-
-/** Непоколебимость — иммунитет к оглушению */
-export const ABILITY_UNSHAKEABLE: AbilityDef = {
-  id: 'unshakeable',
-  nameRu: 'Unshakeable',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'stun_immune',
-  cooldown: 15,
-  manaCost: 5,
-  range: 0,
-  baseDamage: 0,
-  requiredWeapons: [WeaponType.Spear],
-  description: 'Иммунитет к оглушению на 5 сек.',
-};
-
-/** Твёрдая стойка — иммунитет к отбрасыванию */
-export const ABILITY_FIRM_STANCE: AbilityDef = {
-  id: 'firm_stance',
-  nameRu: 'Firm Stance',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'knockback_immune',
-  cooldown: 15,
-  manaCost: 5,
-  range: 0,
-  baseDamage: 0,
-  requiredWeapons: [WeaponType.Mace],
-  description: 'Иммунитет к отбрасыванию на 5 сек.',
-};
-
-/** Iron Skin — бафф группы (party) +10% брони, не по радиусу */
-export const ABILITY_IRON_SKIN: AbilityDef = {
-  id: 'iron_skin',
-  nameRu: 'Iron Skin',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'armor_group_buff',
-  cooldown: 20,
-  castTime: 1,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  targetParty: true, // применяется на всю группу (party), не по радиусу
-  requiredWeapons: [WeaponType.Mace],
-  description: 'All party members gain +10% Armor for 6 sec.',
-};
-
-/** Fortune's Blessing — группа +20% удачи */
-export const ABILITY_FORTUNE: AbilityDef = {
-  id: 'fortune',
-  nameRu: "Fortune's Blessing",
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  statusEffect: 'luck_group_buff',
-  cooldown: 20,
-  castTime: 1,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  targetParty: true,
-  requiredWeapons: [WeaponType.Dagger],
-  description: 'All party members gain +20% Luck for 5 sec.',
 };
 
 /** Mana Flow — группа +20% реген маны */
@@ -310,192 +154,13 @@ export const ABILITY_MANA_LINK: AbilityDef = {
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
-  isToggle: true, // toggle-аура как enchantment
+  isToggle: true,
   cooldown: 0,
   manaCost: 0,
   range: 0,
   baseDamage: 0,
-  targetParty: true, // выбирает сопартийца
+  targetParty: true,
   description: 'Toggle: Self -10% mana regen, target ally +15% mana regen. Active until cancelled.',
-};
-
-/** Боевой марш — ускорение союзников */
-export const ABILITY_BATTLE_MARCH: AbilityDef = {
-  id: 'battle_march',
-  nameRu: 'Battle March',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'self_buff',
-  cooldown: 20,
-  castTime: 1,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 200,
-  statusEffect: 'acceleration',
-  requiredWeapons: [WeaponType.Hammer],
-  description: 'Союзники в r200 получают +50% скорости на 5 сек.',
-};
-
-/** Добивание — бонус урон если у цели < 50% HP */
-export const ABILITY_EXECUTE: AbilityDef = {
-  id: 'execute',
-  nameRu: 'Execute',
-  school: 'neutral',
-  damageType: 'melee',
-  cooldown: 8,
-  manaCost: 10,
-  range: 60,
-  baseDamage: 12,
-  executeBonusPercent: 0.5,
-  requiredWeapons: [WeaponType.Crossbow],
-  description: 'Удар. +50% урона если у цели менее 50% HP.',
-};
-
-/** Чистый удар — бонус урон если нет зачарования */
-export const ABILITY_PURE_STRIKE: AbilityDef = {
-  id: 'pure_strike',
-  nameRu: 'Pure Strike',
-  school: 'neutral',
-  damageType: 'melee',
-  cooldown: 6,
-  manaCost: 10,
-  range: 60,
-  baseDamage: 12,
-  bonusDamageIfNoEnchant: 0.3,
-  requiredWeapons: [WeaponType.ShortBow],
-  description: 'Удар. +30% урона если нет активного зачарования.',
-};
-
-/** Огненная ловушка — зона на земле, при наступлении горение */
-export const ABILITY_FIRE_TRAP: AbilityDef = {
-  id: 'fire_trap',
-  nameRu: 'Fire Trap',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'ground_zone',
-  cooldown: 15,
-  castTime: 1,
-  manaCost: 10,
-  range: 150,
-  baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 40,
-  zoneDuration: 10,
-  zoneDps: 0,
-  statusEffect: 'burn',
-  statusChance: 1.0,
-  requiredWeapons: [WeaponType.ShortBow],
-  description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает горение.',
-};
-
-/** Ядовитая ловушка — зона на земле, при наступлении яд */
-export const ABILITY_POISON_TRAP: AbilityDef = {
-  id: 'poison_trap',
-  nameRu: 'Poison Trap',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'ground_zone',
-  cooldown: 15,
-  castTime: 1,
-  manaCost: 10,
-  range: 150,
-  baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 40,
-  zoneDuration: 10,
-  zoneDps: 0,
-  statusEffect: 'poison',
-  statusChance: 1.0,
-  requiredWeapons: [WeaponType.ShortBow],
-  description: 'Ставит ловушку (r40, 10 сек). Враг наступив получает яд.',
-};
-
-/** Кручение — вращение двуручником, урон вокруг себя 3 сек */
-export const ABILITY_WHIRLWIND: AbilityDef = {
-  id: 'whirlwind',
-  nameRu: 'Whirlwind',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'ground_zone',
-  cooldown: 15,
-  castTime: 0,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  isAoe: true,
-  aoeRadius: 60,
-  zoneDuration: 3,
-  zoneDps: 15,
-  requiredWeapons: [WeaponType.Greatsword],
-  description: 'Кручение двуручником 3 сек. Наносит урон всем врагам вокруг (r60).',
-};
-
-/** Бросок к цели — кинжальщик прыгает к выбранной цели */
-export const ABILITY_SHADOW_STEP: AbilityDef = {
-  id: 'shadow_step',
-  nameRu: 'Shadow Step',
-  school: 'neutral',
-  damageType: 'melee',
-  cooldown: 10,
-  manaCost: 10,
-  range: 300,
-  baseDamage: 8,
-  leapDistance: 150,
-  requiredWeapons: [WeaponType.Dagger],
-  description: 'Прыжок к цели (макс 150px). Если цель дальше — не достанет.',
-};
-
-/** Серия ударов — тройной удар кастетами */
-export const ABILITY_COMBO: AbilityDef = {
-  id: 'combo',
-  nameRu: 'Combo',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'multi_hit',
-  hitCount: 3,
-  cooldown: 8,
-  manaCost: 10,
-  range: 36,
-  baseDamage: 10,
-  requiredWeapons: [WeaponType.Fists],
-  description: 'Серия из 3 быстрых ударов кастетами. Эффект оружия на каждый удар.',
-};
-
-/** Таран — рывок копьём, отталкивает врагов на пути без урона */
-export const ABILITY_RAM: AbilityDef = {
-  id: 'ram',
-  nameRu: 'Ram',
-  school: 'neutral',
-  damageType: 'melee',
-  effectType: 'dash_forward',
-  dashDistance: 200,
-  cooldown: 12,
-  manaCost: 10,
-  range: 0,
-  baseDamage: 0,
-  statusEffect: 'knockback',
-  statusChance: 1.0,
-  requiredWeapons: [WeaponType.Spear],
-  description: 'Рывок вперёд на 200px. Отталкивает всех врагов на пути без урона.',
-};
-
-/** Рикошет — болт отскакивает ко второй цели рядом */
-export const ABILITY_RICOCHET: AbilityDef = {
-  id: 'ricochet',
-  nameRu: 'Ricochet',
-  school: 'neutral',
-  damageType: 'ranged',
-  effectType: 'chain_lightning',
-  chainRadius: 150,
-  chainCount: 1,
-  cooldown: 8,
-  manaCost: 10,
-  range: 280,
-  baseDamage: 10,
-  requiredWeapons: [WeaponType.Crossbow],
-  description: 'Болт попадает в цель и отскакивает к ближайшему врагу в r150.',
 };
 
 /** Исцеление союзника — лечит выбранного союзника */
@@ -516,13 +181,7 @@ export const ABILITY_ALLY_HEAL: AbilityDef = {
 
 export const NEUTRAL_SPELLS: AbilityDef[] = [
   MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL,
-  ABILITY_MANEUVER, ABILITY_COVER, ABILITY_SHIELD_STANCE,
-  ABILITY_DESPERATION, ABILITY_EXPOSE,
-  ABILITY_ADAPTATION, ABILITY_IRON_SKIN, ABILITY_FORTUNE, ABILITY_MANA_FLOW,
-  ABILITY_MANA_LINK, ABILITY_SUSTAIN, ABILITY_SPIRIT_RESILIENCE,
-  ABILITY_RANGED_RESIST, ABILITY_PURIFY, ABILITY_UNSHAKEABLE,
-  ABILITY_FIRM_STANCE, ABILITY_BATTLE_MARCH, ABILITY_EXECUTE,
-  ABILITY_PURE_STRIKE, ABILITY_ALLY_HEAL,
-  ABILITY_FIRE_TRAP, ABILITY_POISON_TRAP, ABILITY_RAM,
-  ABILITY_SHADOW_STEP, ABILITY_WHIRLWIND, ABILITY_RICOCHET, ABILITY_COMBO,
+  ABILITY_DESPERATION, ABILITY_ADAPTATION,
+  ABILITY_SUSTAIN, ABILITY_SPIRIT_RESILIENCE, ABILITY_PURIFY,
+  ABILITY_MANA_FLOW, ABILITY_MANA_LINK, ABILITY_ALLY_HEAL,
 ];

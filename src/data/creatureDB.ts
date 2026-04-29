@@ -5,7 +5,8 @@ import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3 } from './spells/water';
 import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3 } from './spells/earth';
 import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3 } from './spells/wind';
 import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3 } from './spells/nature';
-import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL, ABILITY_RAM } from './neutralSpells';
+import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL } from './neutralSpells';
+import { ABILITY_RAM } from './specialAbilities';
 import {
   ABILITY_STING,
   ABILITY_KNIFE_THROW,
