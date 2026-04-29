@@ -13,8 +13,6 @@ import { pushOutOfColliders } from '../systems/mapColliders';
 export type CreatureAIState = 'idle' | 'wander' | 'chase' | 'attack' | 'return' | 'dead';
 
 const CREATURE_SPRITE_MAP: Record<string, string> = {
-  scout: 'ranger',
-  scout_veteran: 'ranger',
   // Fire elementals
   spark: 'slime_fire',
   asher: 'slime_fire',

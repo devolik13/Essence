@@ -90,8 +90,8 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
   { key: 'mob_bandit_spear',            textureKey: 'mob_sheet_bandit_spear_front_idle'    },
   { key: 'mob_bandit_spear_veteran',    textureKey: 'mob_sheet_bandit_spear_front_idle'    },
   // ── Скауты ───────────────────────────────────────────────────────────────
-  { key: 'mob_scout',                   textureKey: 'mob_sheet_ranger_front_idle'          },
-  { key: 'mob_scout_veteran',           textureKey: 'mob_sheet_ranger_front_idle'          },
+  { key: 'mob_scout',                   textureKey: 'mob_sheet_scout_front_idle'           },
+  { key: 'mob_scout_veteran',           textureKey: 'mob_sheet_scout_front_idle'           },
   // ── Медведи ──────────────────────────────────────────────────────────────
   { key: 'mob_bear',                    textureKey: 'mob_sheet_bear_front_idle'            },
   { key: 'mob_bear_veteran',            textureKey: 'mob_sheet_bear_veteran_front_idle'    },
@@ -183,17 +183,21 @@ const SHAMAN_SPRITES: MobSpriteSet = {
 
 const BEAR_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/bear/',
-  frameW: 256, frameH: 256,
+  frameW: 128, frameH: 128,
   anims: {
-    front_idle:   { file: 'front_idle.webp',  frames: 25 },
-    back_idle:    { file: 'back_idle.webp',   frames: 25 },
-    left_idle:    { file: 'right_idle.webp',  frames: 25 },
-    right_idle:   { file: 'right_idle.webp',  frames: 25 },
-    front_walk:   { file: 'front_walk.webp',  frames: 25 },
-    back_walk:    { file: 'back_walk.webp',   frames: 25 },
-    left_walk:    { file: 'right_walk.webp',  frames: 25 },
-    right_walk:   { file: 'right_walk.webp',  frames: 25 },
-    dying:        { file: 'dying.webp',       frames: 25 },
+    front_idle:   { file: 'bear-iso_idle_down-v1.webp',         frames: 16 },
+    back_idle:    { file: 'bear-iso_idle_up-v1.webp',           frames: 16 },
+    left_idle:    { file: 'bear-iso_idle_right-v1.webp',        frames: 16 },
+    right_idle:   { file: 'bear-iso_idle_right-v1.webp',        frames: 16 },
+    front_walk:   { file: 'bear-iso_walk_down-v1.webp',         frames: 16 },
+    back_walk:    { file: 'bear-iso_walk_up-v1.webp',           frames: 16 },
+    left_walk:    { file: 'bear-iso_walk_right-v1.webp',        frames: 16 },
+    right_walk:   { file: 'bear-iso_walk_right-v1.webp',        frames: 16 },
+    front_attack: { file: 'bear-iso_custom_bite_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'bear-iso_custom_bite_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'bear-iso_custom_bite_right-v1.webp', frames: 16 },
+    right_attack: { file: 'bear-iso_custom_bite_right-v1.webp', frames: 16 },
+    dying:        { file: 'bear-iso_custom_death_down-v1.webp', frames: 16 },
   },
 };
 
@@ -257,14 +261,23 @@ const BANDIT_BRUTE_SPRITES: MobSpriteSet = {
   },
 };
 
-const RANGER_SPRITES: MobSpriteSet = {
-  folder: 'assets/mobs/ranger/',
-  frameW: 320, frameH: 320,
+const SCOUT_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/scout/',
+  frameW: 128, frameH: 128,
   anims: {
-    front_idle:     { file: 'front_idle.webp',      frames: 18 },
-    front_walk:     { file: 'front_walking.webp',   frames: 24 },
-    front_attack:   { file: 'front_attacking.webp', frames: 9 },
-    dying:          { file: 'dying.webp',            frames: 15 },
+    front_idle:   { file: 'Scout_shortbow-iso_idle_down-v1.webp',          frames: 16 },
+    back_idle:    { file: 'Scout_shortbow-iso_idle_up-v1.webp',            frames: 16 },
+    left_idle:    { file: 'Scout_shortbow-iso_idle_right-v1.webp',         frames: 16 },
+    right_idle:   { file: 'Scout_shortbow-iso_idle_right-v1.webp',         frames: 16 },
+    front_walk:   { file: 'Scout_shortbow-iso_walk_down-v1.webp',          frames: 16 },
+    back_walk:    { file: 'Scout_shortbow-iso_walk_up-v1.webp',            frames: 16 },
+    left_walk:    { file: 'Scout_shortbow-iso_walk_right-v1.webp',         frames: 16 },
+    right_walk:   { file: 'Scout_shortbow-iso_walk_right-v1.webp',         frames: 16 },
+    front_attack: { file: 'Scout_shortbow-iso_custom_shoot_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'Scout_shortbow-iso_custom_shoot_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'Scout_shortbow-iso_custom_shoot_right-v1.webp', frames: 16 },
+    right_attack: { file: 'Scout_shortbow-iso_custom_shoot_right-v1.webp', frames: 16 },
+    dying:        { file: 'Scout_shortbow-iso_custom_death_down-v1.webp',  frames: 16 },
   },
 };
 
@@ -330,12 +343,21 @@ const WIZARD_SPRITES: MobSpriteSet = {
 
 const ORC_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/orc/',
-  frameW: 256, frameH: 256,
+  frameW: 128, frameH: 128,
   anims: {
-    front_idle:   { file: 'orc-idle-v1.webp',   frames: 25 },
-    front_walk:   { file: 'orc-walk-v1.webp',   frames: 25 },
-    front_attack: { file: 'orc-attack-v1.webp', frames: 25 },
-    dying:        { file: 'orc-death-v1.webp',  frames: 25 },
+    front_idle:   { file: 'orc_greatsword-iso_idle_down-v1.webp',              frames: 16 },
+    back_idle:    { file: 'orc_greatsword-iso_idle_up-v1.webp',                frames: 16 },
+    left_idle:    { file: 'orc_greatsword-iso_idle_right-v1.webp',             frames: 16 },
+    right_idle:   { file: 'orc_greatsword-iso_idle_right-v1.webp',             frames: 16 },
+    front_walk:   { file: 'orc_greatsword-iso_walk_down-v1.webp',              frames: 16 },
+    back_walk:    { file: 'orc_greatsword-iso_walk_up-v1.webp',                frames: 16 },
+    left_walk:    { file: 'orc_greatsword-iso_walk_right-v1.webp',             frames: 16 },
+    right_walk:   { file: 'orc_greatsword-iso_walk_right-v1.webp',             frames: 16 },
+    front_attack: { file: 'orc_greatsword-iso_custom_attack_gs_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'orc_greatsword-iso_custom_attack_gs_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'orc_greatsword-iso_custom_attack_gs_right-v1.webp', frames: 16 },
+    right_attack: { file: 'orc_greatsword-iso_custom_attack_gs_right-v1.webp', frames: 16 },
+    dying:        { file: 'orc_greatsword-iso_custom_death_down-v1.webp',      frames: 16 },
   },
 };
 
@@ -362,7 +384,8 @@ const BANDIT_CROSSBOW_SPRITES: MobSpriteSet = {
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_VETERAN_SPRITES,
-  ranger: RANGER_SPRITES,
+  scout: SCOUT_SPRITES,
+  scout_veteran: SCOUT_SPRITES,
   swordsman: SWORDSMAN_SPRITES,
   archer: ARCHER_SPRITES,
   wizard: WIZARD_SPRITES,
