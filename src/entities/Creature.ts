@@ -13,7 +13,6 @@ import { pushOutOfColliders } from '../systems/mapColliders';
 export type CreatureAIState = 'idle' | 'wander' | 'chase' | 'attack' | 'return' | 'dead';
 
 const CREATURE_SPRITE_MAP: Record<string, string> = {
-  goblin_veteran: 'goblin',
   scout: 'ranger',
   scout_veteran: 'ranger',
   bandit_archer: 'ranger_archer',

@@ -141,6 +141,26 @@ const GOBLIN_SPRITES: MobSpriteSet = {
   },
 };
 
+const GOBLIN_VETERAN_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/goblin_veteran/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'Goblin_veteran-iso_idle_down-v2.webp',                  frames: 16 },
+    back_idle:    { file: 'Goblin_veteran-iso_idle_up-v2.webp',                    frames: 16 },
+    left_idle:    { file: 'Goblin_veteran-iso_idle_right-v2.webp',                 frames: 16 },
+    right_idle:   { file: 'Goblin_veteran-iso_idle_right-v2.webp',                 frames: 16 },
+    front_walk:   { file: 'Goblin_veteran-iso_walk_down-v2.webp',                  frames: 16 },
+    back_walk:    { file: 'Goblin_veteran-iso_walk_up-v2.webp',                    frames: 16 },
+    left_walk:    { file: 'Goblin_veteran-iso_walk_right-v2.webp',                 frames: 16 },
+    right_walk:   { file: 'Goblin_veteran-iso_walk_right-v2.webp',                 frames: 16 },
+    front_attack: { file: 'Goblin_veteran-iso_custom_attack_dagger_down-v2.webp',  frames: 16 },
+    back_attack:  { file: 'Goblin_veteran-iso_custom_attack_dagger_up-v2.webp',    frames: 16 },
+    left_attack:  { file: 'Goblin_veteran-iso_custom_attack_dagger_right-v2.webp', frames: 16 },
+    right_attack: { file: 'Goblin_veteran-iso_custom_attack_dagger_right-v2.webp', frames: 16 },
+    dying:        { file: 'Goblin_veteran-iso_custom_death_down-v2.webp',          frames: 16 },
+  },
+};
+
 const SHAMAN_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/shaman/',
   frameW: 128, frameH: 128,
@@ -296,7 +316,7 @@ const BANDIT_CROSSBOW_SPRITES: MobSpriteSet = {
 
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
-  goblin_veteran: GOBLIN_SPRITES,
+  goblin_veteran: GOBLIN_VETERAN_SPRITES,
   ranger: RANGER_SPRITES,
   ranger_archer: RANGER_ARCHER_SPRITES,
   ranger_pike: RANGER_PIKE_SPRITES,

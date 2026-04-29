@@ -1067,7 +1067,7 @@ export class BootScene extends Phaser.Scene {
     // hasDirs=false → front-only sheet used for all directions (ranger, orc format)
     const DIR_PREFIXES: Array<[string, string]> = [['down','front'],['up','back'],['left','left'],['right','right']];
     for (const [mobId, set] of Object.entries(MOB_SPRITE_SETS)) {
-      if (mobId === 'goblin' || mobId === 'goblin_veteran') continue;
+      if (mobId === 'goblin') continue;
       const hasDirs = 'back_idle' in set.anims;
       const dieN = set.anims['dying']?.frames ?? 10;
       mkMobAnim(`${mobId}_dying`, `mob_sheet_${mobId}_dying`, dieN, 10, 0);
