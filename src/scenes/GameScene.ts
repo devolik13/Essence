@@ -61,6 +61,7 @@ export class GameScene extends Phaser.Scene {
     idleTimer: number;
     walking: boolean;
     animBase: string;
+    facingDir: 'down' | 'up' | 'left' | 'right';
   }[] = [];
 
   // World objects
@@ -946,7 +947,7 @@ export class GameScene extends Phaser.Scene {
       if (anim && this.anims.exists(anim.idle)) {
         const sprite = this.add.sprite(pos.x, pos.y, anim.idle);
         sprite.play(anim.idle);
-        sprite.setDisplaySize(48, 48);
+        sprite.setDisplaySize(58, 58);
         this.starterBodies.push({
           sprite, nameLabel, possessLabel,
           x: pos.x, y: pos.y,
@@ -954,6 +955,7 @@ export class GameScene extends Phaser.Scene {
           idleTimer: 1 + Math.random() * 3,
           walking: false,
           animBase: anim.base,
+          facingDir: 'down',
         });
       } else {
         const marker = this.add.arc(pos.x, pos.y, 14, 0, 360, false, def.color, 0.7);
@@ -964,6 +966,7 @@ export class GameScene extends Phaser.Scene {
           idleTimer: 1 + Math.random() * 3,
           walking: false,
           animBase: '',
+          facingDir: 'down',
         });
       }
     });
@@ -979,6 +982,27 @@ export class GameScene extends Phaser.Scene {
     if (!sz) return;
     const pad = 40;
 
+    const playDirectional = (sb: typeof this.starterBodies[number], state: 'idle' | 'walk') => {
+      if (!sb.animBase) return;
+      const spr = sb.sprite as Phaser.GameObjects.Sprite;
+      const nativeKey = `${sb.animBase}_${state}_${sb.facingDir}`;
+      let key = nativeKey;
+      let flip = false;
+      if (sb.facingDir === 'left') {
+        const rightKey = `${sb.animBase}_${state}_right`;
+        const leftAnim  = this.anims.get(nativeKey);
+        const rightAnim = this.anims.get(rightKey);
+        const sameTexture = !!leftAnim && !!rightAnim &&
+          leftAnim.frames[0]?.textureKey === rightAnim.frames[0]?.textureKey;
+        if (!this.anims.exists(nativeKey) || sameTexture) {
+          key = rightKey;
+          flip = true;
+        }
+      }
+      spr.setFlipX(flip);
+      if (spr.anims?.currentAnim?.key !== key && this.anims.exists(key)) spr.play(key);
+    };
+
     for (const sb of this.starterBodies) {
       if (sb.walking) {
         const dx = sb.targetX - sb.x;
@@ -987,12 +1011,7 @@ export class GameScene extends Phaser.Scene {
         if (dist < 3) {
           sb.walking = false;
           sb.idleTimer = 2 + Math.random() * 4;
-          if (sb.animBase) {
-            const idleKey = `${sb.animBase}_idle_down`;
-            const spr = sb.sprite as Phaser.GameObjects.Sprite;
-            if (spr.anims?.currentAnim?.key !== idleKey) spr.play(idleKey);
-            spr.setFlipX(false);
-          }
+          playDirectional(sb, 'idle');
         } else {
           const step = GameScene.STARTER_WANDER_SPEED * dt;
           sb.x += (dx / dist) * step;
@@ -1000,10 +1019,9 @@ export class GameScene extends Phaser.Scene {
           sb.sprite.setPosition(sb.x, sb.y);
           sb.nameLabel.setPosition(sb.x, sb.y + 36);
           sb.possessLabel.setPosition(sb.x, sb.y + 48);
-          if (sb.animBase) {
-            const spr = sb.sprite as Phaser.GameObjects.Sprite;
-            spr.setFlipX(dx < 0);
-          }
+          if (Math.abs(dx) > Math.abs(dy)) sb.facingDir = dx > 0 ? 'right' : 'left';
+          else                              sb.facingDir = dy > 0 ? 'down'  : 'up';
+          playDirectional(sb, 'walk');
         }
       } else {
         sb.idleTimer -= dt;
@@ -1017,11 +1035,11 @@ export class GameScene extends Phaser.Scene {
           sb.targetX = tx;
           sb.targetY = ty;
           sb.walking = true;
-          if (sb.animBase) {
-            const walkKey = `${sb.animBase}_walk_down`;
-            const spr = sb.sprite as Phaser.GameObjects.Sprite;
-            if (spr.anims?.currentAnim?.key !== walkKey) spr.play(walkKey);
-          }
+          const dx = tx - sb.x;
+          const dy = ty - sb.y;
+          if (Math.abs(dx) > Math.abs(dy)) sb.facingDir = dx > 0 ? 'right' : 'left';
+          else                              sb.facingDir = dy > 0 ? 'down'  : 'up';
+          playDirectional(sb, 'walk');
         }
       }
     }
