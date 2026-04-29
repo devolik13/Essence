@@ -15,13 +15,6 @@ export type CreatureAIState = 'idle' | 'wander' | 'chase' | 'attack' | 'return' 
 const CREATURE_SPRITE_MAP: Record<string, string> = {
   scout: 'ranger',
   scout_veteran: 'ranger',
-  bandit_archer: 'ranger_archer',
-  bandit_archer_veteran: 'ranger_archer',
-  bandit_spear: 'ranger_pike',
-  bandit_spear_veteran: 'ranger_pike',
-  bandit_brute: 'bandit',
-  bandit_brute_veteran: 'bandit_veteran',
-  bandit_crossbow_veteran: 'bandit_crossbow',
   // Fire elementals
   spark: 'slime_fire',
   asher: 'slime_fire',

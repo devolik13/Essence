@@ -81,14 +81,14 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
   { key: 'mob_orc_veteran',             textureKey: 'mob_sheet_orc_veteran_front_idle'     },
   { key: 'mob_shaman',                  textureKey: 'mob_sheet_shaman_front_idle'          },
   // ── Бандиты ──────────────────────────────────────────────────────────────
-  { key: 'mob_bandit_brute',            textureKey: 'mob_sheet_bandit_front_idle'          },
-  { key: 'mob_bandit_brute_veteran',    textureKey: 'mob_sheet_bandit_veteran_front_idle'  },
+  { key: 'mob_bandit_brute',            textureKey: 'mob_sheet_bandit_brute_front_idle'    },
+  { key: 'mob_bandit_brute_veteran',    textureKey: 'mob_sheet_bandit_brute_front_idle'    },
   { key: 'mob_bandit_crossbow',         textureKey: 'mob_sheet_bandit_crossbow_front_idle' },
   { key: 'mob_bandit_crossbow_veteran', textureKey: 'mob_sheet_bandit_crossbow_front_idle' },
-  { key: 'mob_bandit_archer',           textureKey: 'mob_sheet_ranger_archer_front_idle'   },
-  { key: 'mob_bandit_archer_veteran',   textureKey: 'mob_sheet_ranger_archer_front_idle'   },
-  { key: 'mob_bandit_spear',            textureKey: 'mob_sheet_ranger_pike_front_idle'     },
-  { key: 'mob_bandit_spear_veteran',    textureKey: 'mob_sheet_ranger_pike_front_idle'     },
+  { key: 'mob_bandit_archer',           textureKey: 'mob_sheet_bandit_archer_front_idle'   },
+  { key: 'mob_bandit_archer_veteran',   textureKey: 'mob_sheet_bandit_archer_front_idle'   },
+  { key: 'mob_bandit_spear',            textureKey: 'mob_sheet_bandit_spear_front_idle'    },
+  { key: 'mob_bandit_spear_veteran',    textureKey: 'mob_sheet_bandit_spear_front_idle'    },
   // ── Скауты ───────────────────────────────────────────────────────────────
   { key: 'mob_scout',                   textureKey: 'mob_sheet_ranger_front_idle'          },
   { key: 'mob_scout_veteran',           textureKey: 'mob_sheet_ranger_front_idle'          },
@@ -197,23 +197,63 @@ const BEAR_SPRITES: MobSpriteSet = {
   },
 };
 
-const BANDIT_SPRITES: MobSpriteSet = {
-  folder: 'assets/mobs/bandit/',
-  frameW: 480, frameH: 480,
+const BANDIT_ARCHER_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/bandit_archer/',
+  frameW: 128, frameH: 128,
   anims: {
-    front_idle:     { file: 'front_idle.webp',      frames: 16 },
-    front_walk:     { file: 'front_walking.webp',   frames: 20 },
-    front_attack:   { file: 'front_attacking.webp', frames: 10 },
-    back_idle:      { file: 'back_idle.webp',       frames: 16 },
-    back_walk:      { file: 'back_walking.webp',    frames: 20 },
-    back_attack:    { file: 'back_attacking.webp',  frames: 10 },
-    left_idle:      { file: 'left_idle.webp',       frames: 16 },
-    left_walk:      { file: 'left_walking.webp',    frames: 20 },
-    left_attack:    { file: 'left_attacking.webp',  frames: 10 },
-    right_idle:     { file: 'right_idle.webp',      frames: 16 },
-    right_walk:     { file: 'right_walking.webp',   frames: 20 },
-    right_attack:   { file: 'right_attacking.webp', frames: 10 },
-    dying:          { file: 'dying.webp',           frames: 10 },
+    front_idle:   { file: 'bandit_female_archer-iso_idle_down-v2.webp',                  frames: 16 },
+    back_idle:    { file: 'bandit_female_archer-iso_idle_up-v2.webp',                    frames: 16 },
+    left_idle:    { file: 'bandit_female_archer-iso_idle_right-v2.webp',                 frames: 16 },
+    right_idle:   { file: 'bandit_female_archer-iso_idle_right-v2.webp',                 frames: 16 },
+    front_walk:   { file: 'bandit_female_archer-iso_walk_down-v2.webp',                  frames: 16 },
+    back_walk:    { file: 'bandit_female_archer-iso_walk_up-v2.webp',                    frames: 16 },
+    left_walk:    { file: 'bandit_female_archer-iso_walk_right-v2.webp',                 frames: 16 },
+    right_walk:   { file: 'bandit_female_archer-iso_walk_right-v2.webp',                 frames: 16 },
+    front_attack: { file: 'bandit_female_archer-iso_custom_shoots_a_bow_down-v2.webp',   frames: 16 },
+    back_attack:  { file: 'bandit_female_archer-iso_custom_shoots_a_bow_up-v2.webp',     frames: 16 },
+    left_attack:  { file: 'bandit_female_archer-iso_custom_shoots_a_bow_right-v2.webp',  frames: 16 },
+    right_attack: { file: 'bandit_female_archer-iso_custom_shoots_a_bow_right-v2.webp',  frames: 16 },
+    dying:        { file: 'bandit_female_archer-iso_custom_death_down-v2.webp',          frames: 16 },
+  },
+};
+
+const BANDIT_SPEAR_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/bandit_spear/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'Bandit_spear-iso_idle_down-v1.webp',                      frames: 16 },
+    back_idle:    { file: 'Bandit_spear-iso_idle_up-v1.webp',                        frames: 16 },
+    left_idle:    { file: 'Bandit_spear-iso_idle_right-v1.webp',                     frames: 16 },
+    right_idle:   { file: 'Bandit_spear-iso_idle_right-v1.webp',                     frames: 16 },
+    front_walk:   { file: 'Bandit_spear-iso_walk_down-v1.webp',                      frames: 16 },
+    back_walk:    { file: 'Bandit_spear-iso_walk_up-v1.webp',                        frames: 16 },
+    left_walk:    { file: 'Bandit_spear-iso_walk_right-v1.webp',                     frames: 16 },
+    right_walk:   { file: 'Bandit_spear-iso_walk_right-v1.webp',                     frames: 16 },
+    front_attack: { file: 'Bandit_spear-iso_custom_attack_with_spear_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'Bandit_spear-iso_custom_attack_with_spear_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'Bandit_spear-iso_custom_attack_with_spear_right-v1.webp', frames: 16 },
+    right_attack: { file: 'Bandit_spear-iso_custom_attack_with_spear_right-v1.webp', frames: 16 },
+    dying:        { file: 'Bandit_spear-iso_custom_death_down-v1.webp',              frames: 16 },
+  },
+};
+
+const BANDIT_BRUTE_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/bandit_brute/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'bandit_hammer-iso_idle_down-v1.webp',                          frames: 16 },
+    back_idle:    { file: 'bandit_hammer-iso_idle_up-v1.webp',                            frames: 16 },
+    left_idle:    { file: 'bandit_hammer-iso_idle_right-v1.webp',                         frames: 16 },
+    right_idle:   { file: 'bandit_hammer-iso_idle_right-v1.webp',                         frames: 16 },
+    front_walk:   { file: 'bandit_hammer-iso_walk_down-v1.webp',                          frames: 16 },
+    back_walk:    { file: 'bandit_hammer-iso_walk_up-v1.webp',                            frames: 16 },
+    left_walk:    { file: 'bandit_hammer-iso_walk_right-v1.webp',                         frames: 16 },
+    right_walk:   { file: 'bandit_hammer-iso_walk_right-v1.webp',                         frames: 16 },
+    front_attack: { file: 'bandit_hammer-iso_custom_attack_with_his_hammer_down-v1.webp', frames: 16 },
+    back_attack:  { file: 'bandit_hammer-iso_custom_attack_with_his_hammer_up-v1.webp',   frames: 16 },
+    left_attack:  { file: 'bandit_hammer-iso_custom_attack_with_his_hammer_right-v1.webp',frames: 16 },
+    right_attack: { file: 'bandit_hammer-iso_custom_attack_with_his_hammer_right-v1.webp',frames: 16 },
+    dying:        { file: 'bandit_hammer-iso_custom_death_down-v1.webp',                  frames: 16 },
   },
 };
 
@@ -356,9 +396,14 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   spirit_wolf: SHAMAN_SPRITES,
   bear: BEAR_SPRITES,
   bear_veteran: BEAR_SPRITES,
-  bandit: BANDIT_SPRITES,
-  bandit_veteran: BANDIT_SPRITES,
+  bandit_archer: BANDIT_ARCHER_SPRITES,
+  bandit_archer_veteran: BANDIT_ARCHER_SPRITES,
+  bandit_spear: BANDIT_SPEAR_SPRITES,
+  bandit_spear_veteran: BANDIT_SPEAR_SPRITES,
+  bandit_brute: BANDIT_BRUTE_SPRITES,
+  bandit_brute_veteran: BANDIT_BRUTE_SPRITES,
   bandit_crossbow: BANDIT_CROSSBOW_SPRITES,
+  bandit_crossbow_veteran: BANDIT_CROSSBOW_SPRITES,
 };
 
 /**
