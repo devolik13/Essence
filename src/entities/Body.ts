@@ -254,17 +254,26 @@ export class Body extends Phaser.GameObjects.Container {
     const animCfg = this.resolvedAnim;
     if (!animCfg) return;
 
-    // Try native direction first; fall back to mirrored 'right' for humanoid sheets
-    // that only ship a down-facing animation (their cfg ignores `d`).
     const nativeFn = type === 'atk' ? animCfg.atk
                    : type === 'walk' ? animCfg.walk
                    : animCfg.idle;
     const nativeKey = nativeFn(this.facingDir);
     let key = nativeKey;
     let flip = false;
-    if (this.facingDir === 'left' && !this.bodySprite.scene.anims.exists(nativeKey)) {
-      key = nativeFn('right');
-      flip = true;
+    // For left direction, mirror right when:
+    //  - left animation doesn't exist (front-only sheets), or
+    //  - left and right animations share the same texture (iso 3-direction sheets).
+    if (this.facingDir === 'left') {
+      const scene = this.bodySprite.scene;
+      const rightKey = nativeFn('right');
+      const leftAnim  = scene.anims.get(nativeKey);
+      const rightAnim = scene.anims.get(rightKey);
+      const sameTexture = !!leftAnim && !!rightAnim &&
+        leftAnim.frames[0]?.textureKey === rightAnim.frames[0]?.textureKey;
+      if (!scene.anims.exists(nativeKey) || sameTexture) {
+        key = rightKey;
+        flip = true;
+      }
     }
     this.bodySprite.setFlipX(flip);
 
