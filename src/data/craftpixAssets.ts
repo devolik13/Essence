@@ -268,28 +268,6 @@ const RANGER_SPRITES: MobSpriteSet = {
   },
 };
 
-const RANGER_ARCHER_SPRITES: MobSpriteSet = {
-  folder: 'assets/mobs/ranger_archer/',
-  frameW: 320, frameH: 320,
-  anims: {
-    front_idle:     { file: 'front_idle.webp',      frames: 18 },
-    front_walk:     { file: 'front_walking.webp',   frames: 24 },
-    front_attack:   { file: 'front_attacking.webp', frames: 12 },
-    dying:          { file: 'dying.webp',            frames: 15 },
-  },
-};
-
-const RANGER_PIKE_SPRITES: MobSpriteSet = {
-  folder: 'assets/mobs/ranger_pike/',
-  frameW: 320, frameH: 320,
-  anims: {
-    front_idle:     { file: 'front_idle.webp',      frames: 18 },
-    front_walk:     { file: 'front_walking.webp',   frames: 24 },
-    front_attack:   { file: 'front_attacking.webp', frames: 12 },
-    dying:          { file: 'dying.webp',            frames: 15 },
-  },
-};
-
 const SWORDSMAN_SPRITES: MobSpriteSet = {
   folder: 'assets/mobs/swordsman/',
   frameW: 128, frameH: 128,
@@ -385,8 +363,6 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_VETERAN_SPRITES,
   ranger: RANGER_SPRITES,
-  ranger_archer: RANGER_ARCHER_SPRITES,
-  ranger_pike: RANGER_PIKE_SPRITES,
   swordsman: SWORDSMAN_SPRITES,
   archer: ARCHER_SPRITES,
   wizard: WIZARD_SPRITES,
