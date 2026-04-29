@@ -1468,6 +1468,11 @@
   position: relative;
   overflow: hidden;
 }
+#bf-root .bf-art-image {
+  width: 200px;
+  height: 200px;
+  flex: 0 0 auto;
+}
 #bf-root .bf-art-letter {
   font-family: 'Cormorant Garamond', serif;
   font-size: 96px;

@@ -504,6 +504,64 @@ export const ANIMAL_SPRITE_SETS: Record<string, AnimalSpriteSet> = {
   },
 };
 
+/** Bestiary preview helpers — render first idle frame as static thumbnail */
+export interface BestiaryPreviewMeta {
+  url: string;
+  frameW: number;
+  frameH: number;
+  sheetCols: number;
+  sheetRows: number;
+}
+
+const ANIMAL_ALIAS: Record<string, string> = {
+  spark: 'slime_fire',    asher: 'slime_fire',
+  splasher: 'slime_water', fogger: 'slime_water',
+  pebble: 'slime_earth',   mudder: 'slime_earth',
+  gusty: 'slime_air',      whistler: 'slime_air',
+};
+
+const MOB_ALIAS: Record<string, string> = {
+  scout_veteran: 'scout',
+  bandit_archer_veteran: 'bandit_archer',
+  bandit_spear_veteran: 'bandit_spear',
+  bandit_brute_veteran: 'bandit_brute',
+  bandit_crossbow_veteran: 'bandit_crossbow',
+  goblin_veteran: 'goblin_veteran',
+  orc_veteran: 'orc',
+  bear_veteran: 'bear',
+  spirit_wolf: 'shaman',
+};
+
+export function getBestiaryPreview(creatureId: string): BestiaryPreviewMeta | null {
+  const mobKey = MOB_SPRITE_SETS[creatureId] ? creatureId : MOB_ALIAS[creatureId];
+  if (mobKey && MOB_SPRITE_SETS[mobKey]) {
+    const set = MOB_SPRITE_SETS[mobKey];
+    const idle = set.anims['front_idle'];
+    if (idle) {
+      return { url: '/' + set.folder + idle.file, frameW: set.frameW, frameH: set.frameH, sheetCols: 4, sheetRows: 4 };
+    }
+  }
+  const animalKey = ANIMAL_SPRITE_SETS[creatureId] ? creatureId : ANIMAL_ALIAS[creatureId];
+  if (animalKey && ANIMAL_SPRITE_SETS[animalKey]) {
+    const set = ANIMAL_SPRITE_SETS[animalKey];
+    const idle = set.sheets.idle;
+    if (idle) {
+      return { url: '/' + set.folder + idle.file, frameW: set.frameW, frameH: set.frameH, sheetCols: idle.cols, sheetRows: 4 };
+    }
+  }
+  return null;
+}
+
+export function applyBestiaryPreview(el: HTMLElement, preview: BestiaryPreviewMeta, tileSize: number): void {
+  const scaleX = tileSize / preview.frameW;
+  const scaleY = tileSize / preview.frameH;
+  el.style.backgroundImage = `url('${preview.url}')`;
+  el.style.backgroundSize = `${preview.sheetCols * preview.frameW * scaleX}px ${preview.sheetRows * preview.frameH * scaleY}px`;
+  el.style.backgroundPosition = '0 0';
+  el.style.backgroundRepeat = 'no-repeat';
+  el.style.imageRendering = 'pixelated';
+}
+
 /** Масштаб — ассеты большие (~200-500px), в игре нужно мельче. */
 export const CP_SCALE = {
   ground: 0.125,   // 256px → 32px тайл

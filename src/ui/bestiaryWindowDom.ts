@@ -5,6 +5,7 @@
 import { BodyDefinition, BodyType } from '../types/bodies';
 import { StatName } from '../types/stats';
 import { CREATURE_DB } from '../data/creatureDB';
+import { getBestiaryPreview, applyBestiaryPreview } from '../data/craftpixAssets';
 import { BESTIARY_GROUPS, bestiaryTotalCount } from '../data/bestiaryGroups';
 import { loadProgress, isRevealed, BestiaryProgress } from '../data/bestiaryProgress';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
@@ -134,10 +135,14 @@ function buildSidebar(): HTMLElement {
       if (!isRev) {
         dot.appendChild(sym('bf_lock', 24));
       } else {
-        // Coloured token + first letter as glyph fallback (no creature art yet)
-        dot.style.background = colorHex(def.color);
-        const letter = el('span', 'bf-tile-letter', def.nameRu.charAt(0));
-        dot.appendChild(letter);
+        const preview = getBestiaryPreview(def.id);
+        if (preview) {
+          applyBestiaryPreview(dot, preview, 32);
+        } else {
+          dot.style.background = colorHex(def.color);
+          const letter = el('span', 'bf-tile-letter', def.nameRu.charAt(0));
+          dot.appendChild(letter);
+        }
       }
       tile.appendChild(dot);
 
@@ -218,10 +223,17 @@ function buildRevealedCard(def: BodyDefinition): HTMLElement {
   badges.appendChild(buildBadge(`bf_seal_${elem}`, t(`bestiary.element.${elem}`)));
   card.appendChild(badges);
 
-  // Art slot — placeholder swatch with first letter
+  // Art slot — first idle frame, fallback to coloured swatch with first letter
   const art = el('div', 'bf-art revealed');
   art.style.background = `radial-gradient(circle at 50% 40%, ${colorHex(def.color)} 0%, #1a1208 80%)`;
-  art.appendChild(el('div', 'bf-art-letter', def.nameRu.charAt(0)));
+  const preview = getBestiaryPreview(def.id);
+  if (preview) {
+    const img = el('div', 'bf-art-image');
+    applyBestiaryPreview(img, preview, 200);
+    art.appendChild(img);
+  } else {
+    art.appendChild(el('div', 'bf-art-letter', def.nameRu.charAt(0)));
+  }
   card.appendChild(art);
 
   // Divider — keep symbol's 320x24 ratio
