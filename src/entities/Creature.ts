@@ -21,8 +21,7 @@ const CREATURE_SPRITE_MAP: Record<string, string> = {
   bandit_spear_veteran: 'ranger_pike',
   bandit_brute: 'bandit',
   bandit_brute_veteran: 'bandit_veteran',
-  bandit_crossbow: 'bandit_cbow',
-  bandit_crossbow_veteran: 'bandit_cbow',
+  bandit_crossbow_veteran: 'bandit_crossbow',
   // Fire elementals
   spark: 'slime_fire',
   asher: 'slime_fire',

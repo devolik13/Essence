@@ -1048,26 +1048,11 @@ export class BootScene extends Phaser.Scene {
         });
       }
     };
-    mkMobAnim('goblin_idle_down',  'mob_sheet_goblin_front_idle',   16, 8,  -1);
-    mkMobAnim('goblin_idle_up',    'mob_sheet_goblin_back_idle',    16, 8,  -1);
-    mkMobAnim('goblin_idle_left',  'mob_sheet_goblin_left_idle',    16, 8,  -1);
-    mkMobAnim('goblin_idle_right', 'mob_sheet_goblin_right_idle',   16, 8,  -1);
-    mkMobAnim('goblin_walk_down',  'mob_sheet_goblin_front_walk',   20, 12, -1);
-    mkMobAnim('goblin_walk_up',    'mob_sheet_goblin_back_walk',    20, 12, -1);
-    mkMobAnim('goblin_walk_left',  'mob_sheet_goblin_left_walk',    20, 12, -1);
-    mkMobAnim('goblin_walk_right', 'mob_sheet_goblin_right_walk',   20, 12, -1);
-    mkMobAnim('goblin_atk_down',   'mob_sheet_goblin_front_attack', 10, 14, 0);
-    mkMobAnim('goblin_atk_up',     'mob_sheet_goblin_back_attack',  10, 14, 0);
-    mkMobAnim('goblin_atk_left',   'mob_sheet_goblin_left_attack',  10, 14, 0);
-    mkMobAnim('goblin_atk_right',  'mob_sheet_goblin_right_attack', 10, 14, 0);
-    mkMobAnim('goblin_dying',      'mob_sheet_goblin_dying',        10, 10, 0);
-
-    // All MOB_SPRITE_SETS (except goblin hardcoded above)
+    // All MOB_SPRITE_SETS animations
     // hasDirs=true  → 4-directional sheets (bandit, bear, shaman format)
     // hasDirs=false → front-only sheet used for all directions (ranger, orc format)
     const DIR_PREFIXES: Array<[string, string]> = [['down','front'],['up','back'],['left','left'],['right','right']];
     for (const [mobId, set] of Object.entries(MOB_SPRITE_SETS)) {
-      if (mobId === 'goblin') continue;
       const hasDirs = 'back_idle' in set.anims;
       const dieN = set.anims['dying']?.frames ?? 10;
       mkMobAnim(`${mobId}_dying`, `mob_sheet_${mobId}_dying`, dieN, 10, 0);
