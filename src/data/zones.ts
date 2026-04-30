@@ -238,6 +238,19 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 6100,  y: 5800, creatureId: 'fox', count: 1 },
     { x: 8800,  y: 5700, creatureId: 'fox', count: 1 },
     { x: 5400,  y: 6800, creatureId: 'fox', count: 1 },
+
+    // Bears — 10 scattered for bq_bear quest (kill 2 sparks → mace_strike).
+    // Combat type, large/dangerous; placed in deeper forest areas.
+    { x: 2700,  y: 1700, creatureId: 'bear', count: 1 },
+    { x: 5800,  y: 1100, creatureId: 'bear', count: 1 },
+    { x: 9900,  y: 1700, creatureId: 'bear', count: 1 },
+    { x: 4300,  y: 3100, creatureId: 'bear', count: 1 },
+    { x: 7400,  y: 3100, creatureId: 'bear', count: 1 },
+    { x: 1100,  y: 4500, creatureId: 'bear', count: 1 },
+    { x: 5300,  y: 4600, creatureId: 'bear', count: 1 },
+    { x: 8300,  y: 4500, creatureId: 'bear', count: 1 },
+    { x: 3500,  y: 6100, creatureId: 'bear', count: 1 },
+    { x: 9500,  y: 6500, creatureId: 'bear', count: 1 },
   ],
 
   exits: [
