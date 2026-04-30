@@ -321,22 +321,26 @@ const QUEST_BANDIT_SPEAR: BodyQuestDef = {
 };
 
 const QUEST_BANDIT_BRUTE: BodyQuestDef = {
-  id: 'bq_bandit_brute', bodyId: 'bandit_brute', tier: 2,
-  nameRu: 'Снос',
-  description: 'Снеси сторожевую башню у дороги.',
+  id: 'bq_bandit_brute', bodyId: 'bandit_brute', tier: 1,
+  nameRu: 'Налёт на храм',
+  description: 'Разрушь алтарь храма — монахи мешают племени.',
   introMessages: [
-    { speaker: '', text: 'Главарь показывает на старую сторожевую башню у дороги.' },
-    { speaker: '', text: '«Охрана будет её использовать. Снеси.»' },
+    { speaker: '', text: 'Главарь показывает на храм у дороги.' },
+    { speaker: '', text: '«Монахи мешают. Алтарь — их сила. Разнеси.»' },
     { speaker: '', text: 'Большое тело. Тяжёлый молот. Простая работа.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Щебень. Земля тряслась. Молот помнит.' },
+    { speaker: '', text: 'Камни алтаря треснули. Молот помнит — сокрушает первым.' },
   ],
   objectives: [
-    { type: 'destroy', count: 1, targetId: 'watchtower', targetNameRu: 'Сторожевая башня', description: 'Разрушь сторожевую башню' },
+    { type: 'destroy', count: 1, targetId: 'temple_altar', targetNameRu: 'Алтарь храма', description: 'Разрушь алтарь храма' },
   ],
+  spawnObjects: [{
+    objectId: 'temple_altar', nameRu: 'Алтарь храма', icon: '⛩', color: 0xddccaa,
+    type: 'destructible', count: 1, radius: 350,
+  }],
   rewardSpellId: 'hammer_strike',
-  xpReward: 100,
+  xpReward: 80,
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -596,29 +600,23 @@ const QUEST_SCOUT_VETERAN: BodyQuestDef = {
 
 // ── ОДИНОЧНЫЕ ──────────────────────────────────────────────────
 
-const QUEST_MONKEY: BodyQuestDef = {
-  id: 'bq_monkey', bodyId: 'monkey', tier: 2,
-  nameRu: 'Нарушитель спокойствия',
-  description: 'Займи высоту и разгони чужаков.',
+const QUEST_MONK: BodyQuestDef = {
+  id: 'bq_monk', bodyId: 'monk', tier: 1,
+  nameRu: 'Дисциплина кулака',
+  description: 'Защити храм — прогони разбойников.',
   introMessages: [
-    { speaker: '', text: 'Высоко. Громко. Это дерево — твой трон.' },
-    { speaker: '', text: 'Чужаки внизу. Слишком близко к стае.' },
-    { speaker: '', text: 'Прыгни. Бей первым. Запутай их раньше чем поймут что произошло.' },
+    { speaker: '', text: 'Храм тих. Дыхание ровное. Кулак готов.' },
+    { speaker: '', text: 'У ворот — разбойники. Опять.' },
+    { speaker: '', text: 'Каждый удар точен. Храм не падёт пока есть руки.' },
   ],
   completeMessages: [
-    { speaker: '', text: 'Разбежались и растерялись. Дезориентирующий удар — твой.' },
+    { speaker: '', text: 'Разбойники бежали. Удар у тебя — короткий, дезориентирующий.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'high_branch', targetNameRu: 'Высотная ветка', description: 'Займи высотную ветку' },
-    { type: 'kill', count: 3, description: 'Разгони 3 нарушителей' },
+    { type: 'kill', count: 3, targetId: 'bandit_brute', targetNameRu: 'Разбойник', description: 'Прогони 3 разбойников' },
   ],
-  spawnObjects: [{
-    objectId: 'high_branch', nameRu: 'Высотная ветка', icon: '🌳', color: 0x44aa44,
-    type: 'waypoint', count: 1, radius: 300,
-  }],
   rewardSpellId: 'fist_strike',
-  xpReward: 100,
-  // TODO: add monkey to creatureDB (Fists weapon, Passive/Combat)
+  xpReward: 80,
 };
 
 const QUEST_BANDIT_ARCHER_VET: BodyQuestDef = {
@@ -857,7 +855,7 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_WOLF_VETERAN, QUEST_BEAR_VETERAN,         // Лесной конфликт
   QUEST_CARAVAN_GUARD, QUEST_SCOUT_VETERAN,       // Защита каравана
   // T2 Veterans — solo
-  QUEST_MONKEY,
+  QUEST_MONK,
   QUEST_BANDIT_ARCHER_VET, QUEST_BANDIT_CROSSBOW_VET,
   QUEST_BANDIT_SPEAR_VET, QUEST_BANDIT_BRUTE_VET,
 ];

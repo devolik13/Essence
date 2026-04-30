@@ -209,6 +209,22 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_BOW_SHOT,
   },
 
+  // Монах храма — защитник, обучает Fist Strike (T2 кастеты).
+  // Pair: bandit_brute разбивает алтарь храма, монах защищает.
+  monk: {
+    id: 'monk', name: 'Monk', nameRu: 'Монах',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Agility]: 18, [StatName.Evasion]: 14, [StatName.Will]: 8 },
+    xpReward: 35,
+    npcStats: {
+      [StatName.Strength]: 5, [StatName.Accuracy]: 8, [StatName.Evasion]: 10,
+      [StatName.Health]: 8, [StatName.Armor]: 2, [StatName.Will]: 5, [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Fists, color: 0xddccaa, abilityName: 'Fist Strike',
+    npcSpells: [ABILITY_FIST_STRIKE],
+    signatureSpell: ABILITY_FIST_STRIKE,
+  },
+
 
   // ─── Глава 1: Элементали Огня ───────────────────────────────────────────────
 
