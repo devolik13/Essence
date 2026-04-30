@@ -444,6 +444,28 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 7700,  y: 5700, creatureId: 'orc', count: 1 },
     { x: 10500, y: 5500, creatureId: 'orc', count: 1 },
 
+    // Scouts — 20 (T1 short bow, learns Bow Shot)
+    { x: 1000,  y: 1400, creatureId: 'scout', count: 1 },
+    { x: 3500,  y: 1700, creatureId: 'scout', count: 1 },
+    { x: 5900,  y: 1500, creatureId: 'scout', count: 1 },
+    { x: 8700,  y: 1300, creatureId: 'scout', count: 1 },
+    { x: 11000, y: 1900, creatureId: 'scout', count: 1 },
+    { x: 1500,  y: 3100, creatureId: 'scout', count: 1 },
+    { x: 3900,  y: 3300, creatureId: 'scout', count: 1 },
+    { x: 6900,  y: 3100, creatureId: 'scout', count: 1 },
+    { x: 9500,  y: 3300, creatureId: 'scout', count: 1 },
+    { x: 11200, y: 3900, creatureId: 'scout', count: 1 },
+    { x: 700,   y: 4500, creatureId: 'scout', count: 1 },
+    { x: 3100,  y: 4700, creatureId: 'scout', count: 1 },
+    { x: 5500,  y: 4500, creatureId: 'scout', count: 1 },
+    { x: 8300,  y: 4700, creatureId: 'scout', count: 1 },
+    { x: 10300, y: 4700, creatureId: 'scout', count: 1 },
+    { x: 1900,  y: 6300, creatureId: 'scout', count: 1 },
+    { x: 4900,  y: 6100, creatureId: 'scout', count: 1 },
+    { x: 7100,  y: 6300, creatureId: 'scout', count: 1 },
+    { x: 9300,  y: 6100, creatureId: 'scout', count: 1 },
+    { x: 11200, y: 6300, creatureId: 'scout', count: 1 },
+
     // Boars — 20 scattered for bq_boar quest (kill 3 wolves → ram).
     // Combat type, individual spawns; positions interleave with wolf packs.
     { x: 1100,  y: 900,  creatureId: 'boar', count: 1 },
