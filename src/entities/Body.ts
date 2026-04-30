@@ -404,13 +404,13 @@ export class Body extends Phaser.GameObjects.Container {
       }
     }
 
-    // Обновление направления по движению (для всех тел)
+    // Обновление направления по движению (для всех тел).
+    // Compare absolute components so click-to-move with continuous vx/vy
+    // doesn't always pick up/down whenever there's any vertical bias.
     const moving = vx !== 0 || vy !== 0;
     if (moving) {
-      if      (vy > 0)  this.facingDir = 'down';
-      else if (vy < 0)  this.facingDir = 'up';
-      else if (vx < 0)  this.facingDir = 'left';
-      else if (vx > 0)  this.facingDir = 'right';
+      if (Math.abs(vx) > Math.abs(vy)) this.facingDir = vx > 0 ? 'right' : 'left';
+      else                              this.facingDir = vy > 0 ? 'down'  : 'up';
     }
 
     // Обновление анимации тела (humanoid + animals со спрайтшитом)
