@@ -5,7 +5,7 @@ import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3 } from './spells/water';
 import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3 } from './spells/earth';
 import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3 } from './spells/wind';
 import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3 } from './spells/nature';
-import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL, ABILITY_ALLY_HEAL } from './neutralSpells';
+import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL, ABILITY_ALLY_HEAL, ABILITY_SPIRIT_RESILIENCE } from './neutralSpells';
 import { ABILITY_RAM } from './specialAbilities';
 import {
   ABILITY_STING,
@@ -223,6 +223,21 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Fists, color: 0xddccaa, abilityName: 'Fist Strike',
     npcSpells: [ABILITY_FIST_STRIKE],
     signatureSpell: ABILITY_FIST_STRIKE,
+  },
+
+  // Старец храма — терпеливый аскет, учит Spirit Resilience (нейтральный buff).
+  // Pair с другим бандитом-нападающим (по тематике защиты храма).
+  elder: {
+    id: 'elder', name: 'Elder', nameRu: 'Старец',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Health]: 12, [StatName.Will]: 12, [StatName.Armor]: 5 },
+    xpReward: 40,
+    npcStats: {
+      [StatName.Strength]: 4, [StatName.Accuracy]: 6, [StatName.Evasion]: 5,
+      [StatName.Health]: 12, [StatName.Armor]: 4, [StatName.Will]: 8, [StatName.Luck]: 3,
+    },
+    weapon: WeaponType.Fists, color: 0xc8b896, abilityName: 'Spirit Resilience',
+    signatureSpell: ABILITY_SPIRIT_RESILIENCE,
   },
 
 
@@ -586,6 +601,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.StaffEarth, color: 0x886622, abilityName: 'Earth Wall',
     npcSpells: [MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3],
     isBoss: true,
+    displaySizeMultiplier: 3.5,
   },
 
   aeros: {
@@ -601,6 +617,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.StaffWind, color: 0xccddff, abilityName: 'Wind Barrier',
     npcSpells: [MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3],
     isBoss: true,
+    displaySizeMultiplier: 3.5,
   },
 
   // ─── Тестовые сферы (пассивные, 1 заклинание, порог 1 XP) ────────────────────

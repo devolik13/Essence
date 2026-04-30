@@ -619,6 +619,25 @@ const QUEST_MONK: BodyQuestDef = {
   xpReward: 80,
 };
 
+const QUEST_ELDER: BodyQuestDef = {
+  id: 'bq_elder', bodyId: 'elder', tier: 1,
+  nameRu: 'Стойкость духа',
+  description: 'Терпение через испытание. Дай боли стать силой.',
+  introMessages: [
+    { speaker: '', text: 'Старое тело. Тяжёлые шаги. Каждая рана помнит.' },
+    { speaker: '', text: 'Молодые монахи бьют первыми. Старец стоит крепче.' },
+    { speaker: '', text: 'Прими удары. Боль — учитель.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'Боль ушла внутрь и обратилась в силу. Стойкость духа — твоя.' },
+  ],
+  objectives: [
+    { type: 'kill', count: 3, targetId: 'bandit_brute', targetNameRu: 'Разбойник', description: 'Останови 3 разбойников' },
+  ],
+  rewardSpellId: 'spirit_resilience',
+  xpReward: 80,
+};
+
 const QUEST_BANDIT_ARCHER_VET: BodyQuestDef = {
   id: 'bq_bandit_archer_veteran', bodyId: 'bandit_archer_veteran', tier: 2,
   nameRu: 'Ливень стрел',
@@ -856,6 +875,7 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_CARAVAN_GUARD, QUEST_SCOUT_VETERAN,       // Защита каравана
   // T2 Veterans — solo
   QUEST_MONK,
+  QUEST_ELDER,
   QUEST_BANDIT_ARCHER_VET, QUEST_BANDIT_CROSSBOW_VET,
   QUEST_BANDIT_SPEAR_VET, QUEST_BANDIT_BRUTE_VET,
 ];
