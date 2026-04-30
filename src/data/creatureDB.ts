@@ -152,6 +152,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Slash',
     npcSpells: [ABILITY_SLASH],
     signatureSpell: ABILITY_SLASH,
+    displaySizeMultiplier: 1.5,
   },
 
   // ─── Глава 1: Школа природы ─────────────────────────────────────────────────
@@ -432,18 +433,24 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_MACE_BASH,     spellXPThreshold: 100,
   },
 
+  // Renamed renamed orc_veteran → "Вождь орков" (chief). Same stats as a
+  // regular orc per design; only name + scale differ. signatureSpell is
+  // SLASH (T1) since the bq_orc reward is 'slash' and we're phasing veterans
+  // out. Identifier kept as 'orc_veteran' so existing map editor placements
+  // and bq_orc 'kill orc_veteran' objective continue to resolve.
   orc_veteran: {
-    id: 'orc_veteran', name: 'Orc Warchief', nameRu: 'Orc Warchief',
+    id: 'orc_veteran', name: 'Orc Chief', nameRu: 'Вождь орков',
     type: BodyType.Combat, damageType: 'melee',
-    caps: { [StatName.Strength]: 55, [StatName.Health]: 30, [StatName.Armor]: 18 },
-    xpReward: 140,
+    caps: { [StatName.Strength]: 40, [StatName.Health]: 20, [StatName.Armor]: 12 },
+    xpReward: 70,
     npcStats: {
-      [StatName.Strength]: 22, [StatName.Accuracy]: 11, [StatName.Evasion]: 5,
-      [StatName.Health]: 28,   [StatName.Armor]: 12,    [StatName.Luck]: 3,
+      [StatName.Strength]: 15, [StatName.Accuracy]: 8, [StatName.Evasion]: 4,
+      [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 3,
     },
-    weapon: WeaponType.Greatsword, color: 0x224411, abilityName: 'Sweep',
-    npcSpells: [ABILITY_SLASH, ABILITY_SLASH_SWEEP],
-    signatureSpell: ABILITY_SLASH_SWEEP,   spellXPThreshold: 100,
+    weapon: WeaponType.Greatsword, color: 0x224411, abilityName: 'Slash',
+    npcSpells: [ABILITY_SLASH],
+    signatureSpell: ABILITY_SLASH,
+    displaySizeMultiplier: 2.0,
   },
 
   scout_veteran: {

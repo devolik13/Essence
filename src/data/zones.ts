@@ -427,6 +427,23 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 9900,  y: 6300, creatureId: 'goblin', count: 1 },
     { x: 11200, y: 6500, creatureId: 'goblin', count: 1 },
 
+    // Orcs — 15 scattered (regular Combat orcs; chief is in editor layout)
+    { x: 1700,  y: 800,  creatureId: 'orc', count: 1 },
+    { x: 5300,  y: 1100, creatureId: 'orc', count: 1 },
+    { x: 8100,  y: 700,  creatureId: 'orc', count: 1 },
+    { x: 10700, y: 1100, creatureId: 'orc', count: 1 },
+    { x: 600,   y: 2900, creatureId: 'orc', count: 1 },
+    { x: 3700,  y: 2700, creatureId: 'orc', count: 1 },
+    { x: 6500,  y: 2900, creatureId: 'orc', count: 1 },
+    { x: 9500,  y: 2700, creatureId: 'orc', count: 1 },
+    { x: 11100, y: 3300, creatureId: 'orc', count: 1 },
+    { x: 2300,  y: 4300, creatureId: 'orc', count: 1 },
+    { x: 5700,  y: 4500, creatureId: 'orc', count: 1 },
+    { x: 8700,  y: 4300, creatureId: 'orc', count: 1 },
+    { x: 4100,  y: 5500, creatureId: 'orc', count: 1 },
+    { x: 7700,  y: 5700, creatureId: 'orc', count: 1 },
+    { x: 10500, y: 5500, creatureId: 'orc', count: 1 },
+
     // Boars — 20 scattered for bq_boar quest (kill 3 wolves → ram).
     // Combat type, individual spawns; positions interleave with wolf packs.
     { x: 1100,  y: 900,  creatureId: 'boar', count: 1 },

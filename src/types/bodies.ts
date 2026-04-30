@@ -72,6 +72,8 @@ export interface BodyDefinition {
   canUseAllSpells?: boolean;
   /** Фракционная принадлежность для межсуществной вражды (e.g. 'caravan' vs 'raider'). */
   faction?: string;
+  /** Multiplier on the rendered display size (1.0 = default, 1.5 = +50%, 2.0 = +100%). */
+  displaySizeMultiplier?: number;
 }
 
 // ─── Стартовые тела ────────────────────────────────────

@@ -119,7 +119,8 @@ export class Creature extends Phaser.GameObjects.Container {
       const spr = scene.add.sprite(0, 0, sheetKey, firstAnim.frames[0]?.textureFrame ?? 0);
       spr.play(animTestKey);
       const isBear = BEAR_IDS.has(spriteId);
-      const initSz = isBear ? 41 : isAnimal ? 30 : 34;
+      const baseSize = isBear ? 41 : isAnimal ? 30 : 34;
+      const initSz = baseSize * (definition.displaySizeMultiplier ?? 1);
       spr.setDisplaySize(initSz, initSz);
       this.bodySprite = spr;
     } else {
@@ -435,7 +436,8 @@ export class Creature extends Phaser.GameObjects.Container {
       const isSlime  = SLIME_IDS.has(this.animPrefix ?? '');
       const isAnimal = texKey.startsWith('animal_');
       const isBear = BEAR_IDS.has(this.animPrefix ?? '');
-      const sz = isSlime ? 40 : isBear ? 41 : isAnimal ? 30 : 34;
+      const baseSize = isSlime ? 40 : isBear ? 41 : isAnimal ? 30 : 34;
+      const sz = baseSize * (this.definition.displaySizeMultiplier ?? 1);
       spr.play(key);
       spr.setDisplaySize(sz, sz);
     }
