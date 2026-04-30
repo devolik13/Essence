@@ -2,9 +2,18 @@
  * DOM-based Bestiary window — book-spread layout.
  * Reads creature data directly from CREATURE_DB; reveal state from bestiaryProgress.
  */
-import { BodyDefinition, BodyType } from '../types/bodies';
+import { BodyDefinition, BodyType, STARTER_BODIES } from '../types/bodies';
 import { StatName } from '../types/stats';
 import { CREATURE_DB } from '../data/creatureDB';
+
+// Starter bodies aren't in CREATURE_DB but are valid possessable bodies —
+// merge them into the bestiary lookup.
+const STARTER_BY_ID: Record<string, BodyDefinition> = Object.fromEntries(
+  STARTER_BODIES.map(b => [b.id, b]),
+);
+function getBodyDef(id: string): BodyDefinition | undefined {
+  return CREATURE_DB[id] ?? STARTER_BY_ID[id];
+}
 import { getBestiaryPreview, applyBestiaryPreview } from '../data/craftpixAssets';
 import { BESTIARY_GROUPS, bestiaryTotalCount } from '../data/bestiaryGroups';
 import { loadProgress, isRevealed, BestiaryProgress } from '../data/bestiaryProgress';
@@ -107,7 +116,7 @@ function buildSidebar(): HTMLElement {
   const lang = getLang();
   for (const g of BESTIARY_GROUPS) {
     const groupEntries = g.ids
-      .map(id => CREATURE_DB[id])
+      .map(id => getBodyDef(id))
       .filter((d): d is BodyDefinition => !!d);
     if (!groupEntries.length) continue;
 
@@ -406,7 +415,7 @@ function rerender(): void {
   if (!state.selectedId) {
     card = buildEmptyCard();
   } else {
-    const def = CREATURE_DB[state.selectedId];
+    const def = getBodyDef(state.selectedId);
     if (!def) card = buildEmptyCard();
     else if (isRevealed(state.progress, def.id)) card = buildRevealedCard(def);
     else card = buildLockedCard(def);

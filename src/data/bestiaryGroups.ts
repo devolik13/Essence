@@ -11,6 +11,8 @@ export interface BestiaryGroup {
 }
 
 export const BESTIARY_GROUPS: BestiaryGroup[] = [
+  { id: 'starters',  titleRu: 'Стартовые тела',   titleEn: 'Starter bodies',
+    ids: ['human_warrior', 'human_archer', 'human_mage'] },
   { id: 'beasts',    titleRu: 'Лесные звери',     titleEn: 'Forest beasts',
     ids: ['hare', 'deer', 'fox', 'grouse', 'boar', 'wolf', 'bear'] },
   { id: 'humanoids', titleRu: 'Гуманоиды',        titleEn: 'Humanoids',

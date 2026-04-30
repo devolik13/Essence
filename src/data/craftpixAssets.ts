@@ -595,7 +595,12 @@ const MOB_ALIAS: Record<string, string> = {
   goblin_veteran: 'goblin_veteran',
   orc_veteran: 'orc',
   bear_veteran: 'bear',
+  wolf_veteran: 'wolf',
   spirit_wolf: 'shaman',
+  // Starter bodies share their class sprite
+  human_warrior: 'swordsman',
+  human_archer: 'archer',
+  human_mage: 'wizard',
 };
 
 export function getBestiaryPreview(creatureId: string): BestiaryPreviewMeta | null {
