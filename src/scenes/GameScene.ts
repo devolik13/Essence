@@ -1094,8 +1094,9 @@ export class GameScene extends Phaser.Scene {
     const py = this.playerBody?.y ?? this.sphere.y;
 
     for (const creature of this.creatures) {
-      const canCapturAlive = creature.definition.type === BodyType.Passive || creature.definition.type === BodyType.Fleeing;
-      // Пассивных — только вне боя; боевых — только мёртвых
+      // Passive (hare/grouse) — capturable alive when out of combat.
+      // Fleeing (deer/merchant) and Combat — must be killed first.
+      const canCapturAlive = creature.definition.type === BodyType.Passive;
       const eligible = canCapturAlive ? !this.isInCombat : creature.isDead;
       if (!eligible) continue;
 

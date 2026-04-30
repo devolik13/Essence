@@ -13,30 +13,10 @@ export const QUESTS: QuestDef[] = [
     dialogEnd: "Good. You can feel it now — the weight, the strength. This body is your tool.",
   },
 
-  {
-    id: 'q2_first_steps',
-    nameRu: 'First Steps',
-    description: 'Prove yourself in combat. Defeat the goblins near the village.',
-    objectives: [{ type: 'kill', targetId: 'goblin', targetNameRu: 'Goblins', count: 3 }],
-    xpReward: 40,
-    prerequisiteIds: ['q1_awakening'],
-    dialogStart: "Goblins have been causing trouble near the village. Deal with them — it will be good practice.",
-    dialogEnd: "Well done. You're adapting quickly.",
-  },
-
-  {
-    id: 'q3_essence_within',
-    nameRu: 'The Essence Within',
-    description: 'Capture a goblin body and learn its ability.',
-    objectives: [
-      { type: 'capture', targetId: 'goblin', targetNameRu: 'Goblin body', count: 1 },
-      { type: 'learn_spell', targetId: 'sting', targetNameRu: 'Sting', count: 1 },
-    ],
-    xpReward: 60,
-    prerequisiteIds: ['q2_first_steps'],
-    dialogStart: "Every creature carries knowledge. Capture a goblin — possess its corpse and learn its technique.",
-    dialogEnd: "You've absorbed the goblin's skill. It's yours forever now, even in other bodies.",
-  },
+  // q2_first_steps and q3_essence_within (goblin kill / capture quests)
+  // are temporarily removed because goblins aren't on the map yet.
+  // q4_rangers_request still depends on q3 in the chain — once Bert and
+  // goblins return, restore both quests.
 
   // ═══ ACT 2 — NPC QUESTS (talk to specific NPCs) ══════════════════════════
 
