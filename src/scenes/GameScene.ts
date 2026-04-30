@@ -957,7 +957,7 @@ export class GameScene extends Phaser.Scene {
       if (anim && this.anims.exists(anim.idle)) {
         const sprite = this.add.sprite(pos.x, pos.y, anim.idle);
         sprite.play(anim.idle);
-        sprite.setDisplaySize(58, 58);
+        sprite.setDisplaySize(48, 48);
         this.starterBodies.push({
           sprite, nameLabel, possessLabel,
           x: pos.x, y: pos.y,

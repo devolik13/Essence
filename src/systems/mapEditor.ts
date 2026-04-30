@@ -203,9 +203,9 @@ export class MapEditor {
       : this.scene.add.image(obj.x, obj.y, textureKey);
     img.setOrigin(0.5, isMob ? 0.5 : 0.9);
     if (isMob) {
-      // Mobs render at their in-game display size (~40px) regardless of
+      // Mobs render at their in-game display size (~32px) regardless of
       // sheet frame dimensions (which can be 128/256/etc per source).
-      const sz = 40 * obj.scale;
+      const sz = 32 * obj.scale;
       img.setDisplaySize(sz, sz);
     } else {
       img.setScale(obj.scale);
