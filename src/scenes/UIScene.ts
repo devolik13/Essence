@@ -11,6 +11,7 @@ import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
 import { ITEMS, RECIPES } from '../data/itemDB';
+import { WEAPONS } from '../data/weapons';
 import { formatCurrency } from '../systems/currency';
 import { AchievementDef } from '../data/achievementDB';
 import { STATUS_DEFS } from '../types/statuses';
@@ -107,6 +108,12 @@ export class UIScene extends Phaser.Scene {
   private menuBtnIcons: Phaser.GameObjects.Text[]      = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
   private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells', 'bestiary'];
+
+  // Weapon block (active equipped weapon: icon + damage)
+  private weaponBlockBg?: Phaser.GameObjects.Rectangle;
+  private weaponBlockIcon?: Phaser.GameObjects.Text;
+  private weaponBlockDmg?: Phaser.GameObjects.Text;
+  private weaponBlockTooltip?: Phaser.GameObjects.Container;
 
   // ── Floating window ───────────────────────────────────
   private currentWindow: WindowType | null = null;
@@ -679,6 +686,7 @@ export class UIScene extends Phaser.Scene {
     if (this.cachedInCombat && this.spellPickerSlot >= 0) this.closeSpellPicker();
 
     this.updateSealIndicator(sphere);
+    this.updateWeaponBlock(data);
 
     // ── Tracked quest HUD (right side) ─────────────────────
     {
@@ -1715,6 +1723,83 @@ export class UIScene extends Phaser.Scene {
     this.bossHpText = hp;
   }
 
+  // ── Weapon block ─────────────────────────────────────
+
+  private buildWeaponBlock(x: number, y: number, btnSz: number) {
+    // Outer ink frame (matches skill slot styling)
+    this.weaponBlockBg = this.add.rectangle(x, y, btnSz, btnSz, THEME.ink0, 0.95)
+      .setScrollFactor(0).setDepth(1000)
+      .setInteractive({ useHandCursor: false })
+      .on('pointerover', () => this.showWeaponTooltip(x, y))
+      .on('pointerout',  () => this.hideWeaponTooltip());
+    // Brass frame
+    this.add.rectangle(x, y, btnSz, btnSz)
+      .setStrokeStyle(1, THEME.brass1, 0.9).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(1001);
+    this.add.rectangle(x, y, btnSz - 4, btnSz - 4)
+      .setStrokeStyle(1, THEME.brass2, 0.18).setFillStyle(0, 0)
+      .setScrollFactor(0).setDepth(1001);
+    // Weapon icon
+    this.weaponBlockIcon = this.add.text(x, y - 4, '—', {
+      fontSize: '22px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass3, align: 'center',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
+    // Damage label below
+    this.weaponBlockDmg = this.add.text(x, y + 16, '', {
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, align: 'center',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
+  }
+
+  private showWeaponTooltip(x: number, y: number) {
+    const data = this.lastUIData;
+    if (!data?.body || !data?.sphere) return;
+    const eq = data.sphere.equipment;
+    const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
+    if (!activeId) return;
+    const item = ITEMS[activeId];
+    if (!item) return;
+    const weapon = WEAPONS[data.body.definition.weapon];
+    const str = data.body.stats.strength ?? 0;
+    const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
+    const inactiveId = data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon;
+    const lines = [
+      item.nameRu,
+      `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
+      `Damage (STR ${str}): ${dmg}`,
+      weapon.weaponEffect ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
+      inactiveId ? `[Tab] swap → ${ITEMS[inactiveId]?.nameRu ?? inactiveId}` : '',
+    ].filter(Boolean);
+    this.hideWeaponTooltip();
+    const c = this.add.container(x, y - 60).setScrollFactor(0).setDepth(1100);
+    const txt = this.add.text(0, 0, lines.join('\n'), {
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1,
+      backgroundColor: '#0d0b08', padding: { x: 6, y: 4 }, align: 'left',
+    }).setOrigin(0.5, 1);
+    c.add([txt]);
+    this.weaponBlockTooltip = c;
+  }
+
+  private hideWeaponTooltip() {
+    this.weaponBlockTooltip?.destroy();
+    this.weaponBlockTooltip = undefined;
+  }
+
+  private updateWeaponBlock(data: UIData) {
+    if (!this.weaponBlockIcon || !this.weaponBlockDmg) return;
+    const eq = data.sphere.equipment;
+    const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
+    if (!activeId || !data.body) {
+      this.weaponBlockIcon.setText('—');
+      this.weaponBlockDmg.setText('');
+      return;
+    }
+    const item = ITEMS[activeId];
+    const weapon = WEAPONS[data.body.definition.weapon];
+    const str = data.body.stats.strength ?? 0;
+    const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
+    this.weaponBlockIcon.setText(item?.icon ?? '⚔');
+    this.weaponBlockDmg.setText(String(dmg));
+  }
+
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
@@ -1733,12 +1818,15 @@ export class UIScene extends Phaser.Scene {
     const trayLeft = barCx - trayW / 2;
     const trayRight = barCx + trayW / 2;
 
-    // Left group: Stats, Inventory, Quests (3 buttons)
+    // Left group: Stats, Inventory, Quests (3 buttons), weapon block, then tray.
     // Right group: Achievements, Spells, Bestiary (3 buttons)
     const leftCount = 3;
     const sideGap = 10;
-    // Left buttons sit past the lock icon (22px wide at startX - 22, left of tray start).
-    const leftAnchor = trayLeft - 22 - 14;
+    // Weapon block sits just to the left of the lock icon.
+    const weaponBlockX = trayLeft - 22 - btnSz / 2;
+    this.buildWeaponBlock(weaponBlockX, barY, btnSz);
+    // Left buttons go further left, past the weapon block.
+    const leftAnchor = weaponBlockX - btnSz / 2 - gap - btnSz / 2;
 
     for (let i = 0; i < labels.length; i++) {
       let x: number;
