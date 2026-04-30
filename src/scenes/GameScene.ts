@@ -542,8 +542,10 @@ export class GameScene extends Phaser.Scene {
 
       // ── Поиск вражеской фракции ──────────────────────────
       // Если моб имеет faction и рядом есть живой моб противоположной
-      // фракции — он становится предпочтительной целью. Иначе — игрок.
-      creature.factionTarget = this.findFactionEnemy(creature);
+      // фракции — он становится предпочтительной целью.
+      // Если нет вражеской фракции, но это хищник — ищем добычу (Passive/Fleeing).
+      // Иначе — игрок.
+      creature.factionTarget = this.findFactionEnemy(creature) ?? this.findPreyTarget(creature);
       let targetX = px, targetY = py;
       if (creature.factionTarget) {
         targetX = creature.factionTarget.x;
@@ -4402,6 +4404,25 @@ export class GameScene extends Phaser.Scene {
       if (other === creature || other.isDead || other.isSummoned) continue;
       const otherFaction = other.definition.faction;
       if (!otherFaction || otherFaction === selfFaction) continue;
+      const d = distance(creature.x, creature.y, other.x, other.y);
+      if (d < bestDist) { bestDist = d; best = other; }
+    }
+    return best;
+  }
+
+  /** Predator → prey: Combat creatures hunt nearby Passive/Fleeing creatures. */
+  private static PREY_SIGHT = 240;
+  private findPreyTarget(creature: Creature): Creature | null {
+    if (creature.definition.type !== BodyType.Combat) return null;
+    const selfFaction = creature.definition.faction;
+    let best: Creature | null = null;
+    let bestDist = GameScene.PREY_SIGHT;
+    for (const other of this.creatures) {
+      if (other === creature || other.isDead || other.isSummoned) continue;
+      // Predators only hunt non-Combat (Passive/Fleeing) creatures
+      if (other.definition.type === BodyType.Combat) continue;
+      // Same-faction NPCs (e.g. caravan_merchant ↔ caravan_guard) don't hunt each other
+      if (selfFaction && other.definition.faction === selfFaction) continue;
       const d = distance(creature.x, creature.y, other.x, other.y);
       if (d < bestDist) { bestDist = d; best = other; }
     }
