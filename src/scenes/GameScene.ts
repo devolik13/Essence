@@ -2802,11 +2802,22 @@ export class GameScene extends Phaser.Scene {
     const mapH = this.currentZone.heightTiles * TILE_SIZE;
 
     for (const so of bq.spawnObjects) {
+      // Minimum spacing between same-batch objects so they don't clump.
+      // Scales with available area: ~half the avg cell size for `count` items
+      // packed into the (0.4–1.0)·radius annulus.
+      const minSpacing = Math.max(60, so.radius / Math.sqrt(so.count) * 0.7);
+      const placed: Array<{ x: number; y: number }> = [];
       for (let i = 0; i < so.count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = so.radius * 0.4 + Math.random() * so.radius * 0.6;
-        const ox = Math.max(40, Math.min(mapW - 40, cx + Math.cos(angle) * dist));
-        const oy = Math.max(40, Math.min(mapH - 40, cy + Math.sin(angle) * dist));
+        let ox = 0, oy = 0;
+        for (let attempt = 0; attempt < 30; attempt++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = so.radius * 0.4 + Math.random() * so.radius * 0.6;
+          ox = Math.max(40, Math.min(mapW - 40, cx + Math.cos(angle) * dist));
+          oy = Math.max(40, Math.min(mapH - 40, cy + Math.sin(angle) * dist));
+          const tooClose = placed.some(p => Math.hypot(p.x - ox, p.y - oy) < minSpacing);
+          if (!tooClose) break;
+        }
+        placed.push({ x: ox, y: oy });
 
         const container = this.add.container(ox, oy).setDepth(3);
         const glow = this.add.circle(0, 0, 14, so.color, 0.3);
