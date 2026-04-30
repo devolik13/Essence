@@ -405,6 +405,28 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 9500,  y: 6100, creatureId: 'gusty', count: 1 },
     { x: 11000, y: 6900, creatureId: 'gusty', count: 1 },
 
+    // Goblins — 20 (T1 dagger, learns Sting)
+    { x: 1300,  y: 1000, creatureId: 'goblin', count: 1 },
+    { x: 4100,  y: 1100, creatureId: 'goblin', count: 1 },
+    { x: 6900,  y: 1500, creatureId: 'goblin', count: 1 },
+    { x: 9700,  y: 1300, creatureId: 'goblin', count: 1 },
+    { x: 11200, y: 2500, creatureId: 'goblin', count: 1 },
+    { x: 600,   y: 2500, creatureId: 'goblin', count: 1 },
+    { x: 2500,  y: 3500, creatureId: 'goblin', count: 1 },
+    { x: 4900,  y: 3500, creatureId: 'goblin', count: 1 },
+    { x: 7700,  y: 3300, creatureId: 'goblin', count: 1 },
+    { x: 10200, y: 3700, creatureId: 'goblin', count: 1 },
+    { x: 1100,  y: 4700, creatureId: 'goblin', count: 1 },
+    { x: 3700,  y: 4700, creatureId: 'goblin', count: 1 },
+    { x: 6100,  y: 4900, creatureId: 'goblin', count: 1 },
+    { x: 8900,  y: 4900, creatureId: 'goblin', count: 1 },
+    { x: 11100, y: 4500, creatureId: 'goblin', count: 1 },
+    { x: 2100,  y: 6300, creatureId: 'goblin', count: 1 },
+    { x: 4700,  y: 6500, creatureId: 'goblin', count: 1 },
+    { x: 7300,  y: 6500, creatureId: 'goblin', count: 1 },
+    { x: 9900,  y: 6300, creatureId: 'goblin', count: 1 },
+    { x: 11200, y: 6500, creatureId: 'goblin', count: 1 },
+
     // Boars — 20 scattered for bq_boar quest (kill 3 wolves → ram).
     // Combat type, individual spawns; positions interleave with wolf packs.
     { x: 1100,  y: 900,  creatureId: 'boar', count: 1 },
