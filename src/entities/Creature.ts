@@ -225,9 +225,10 @@ export class Creature extends Phaser.GameObjects.Container {
         if (dist < AGGRO_RANGE && this.definition.type === BodyType.Combat && !this.skipAggro) {
           this.aiState = 'chase';
         }
-        // Убегающие (Fleeing) — всегда убегают, никогда не дерутся
+        // Убегающие (Fleeing) — всегда убегают, никогда не дерутся.
+        // Скорость 1.2× даёт хищнику (BODY_SPEED 120) реальный шанс догнать.
         if (dist < AGGRO_RANGE * 0.7 && this.definition.type === BodyType.Fleeing) {
-          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 1.5, dt);
+          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 1.2, dt);
         }
       }
     }
