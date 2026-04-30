@@ -147,8 +147,14 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   spawnGroups: [
-    // Cleared. Mobs are added back per body-quest design — see CLAUDE.md
-    // "ГЛАВНЫЙ ПРИНЦИП ДИЗАЙНА: Умения первичны, мобы вторичны".
+    // Wolves scattered across the map (~30 total, in 6 packs of 5).
+    // Coordinates pick wide-open forest/wilderness, away from safe zones.
+    { x: 5000, y: 1500, creatureId: 'wolf', count: 5 },  // North forest, east of Eshworth
+    { x: 2000, y: 1200, creatureId: 'wolf', count: 5 },  // Far NW wilderness
+    { x: 6500, y: 4500, creatureId: 'wolf', count: 5 },  // East-central woods
+    { x: 7000, y: 6500, creatureId: 'wolf', count: 5 },  // South-east clearing
+    { x: 3500, y: 5000, creatureId: 'wolf', count: 5 },  // South of Eshworth
+    { x: 8000, y: 1500, creatureId: 'wolf', count: 5 },  // North of Waldmar
   ],
 
   exits: [
