@@ -60,11 +60,11 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   deer: {
     id: 'deer', name: 'Deer', nameRu: 'Deer',
     type: BodyType.Fleeing, damageType: 'melee',
-    caps: { [StatName.Agility]: 40, [StatName.Evasion]: 30, [StatName.Luck]: 20 },
-    xpReward: 60,
+    caps: { [StatName.Agility]: 18, [StatName.Evasion]: 14, [StatName.Luck]: 6 },
+    xpReward: 25,
     npcStats: {
-      [StatName.Agility]: 20, [StatName.Accuracy]: 5, [StatName.Evasion]: 18,
-      [StatName.Health]: 6, [StatName.Armor]: 1, [StatName.Luck]: 8,
+      [StatName.Agility]: 8, [StatName.Accuracy]: 4, [StatName.Evasion]: 8,
+      [StatName.Health]: 5, [StatName.Armor]: 1, [StatName.Luck]: 5,
     },
     weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Dash',
     npcSpells: [MOB_NEUTRAL_T1, MOB_NEUTRAL_T2],
