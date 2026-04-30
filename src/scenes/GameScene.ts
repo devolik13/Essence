@@ -260,6 +260,9 @@ export class GameScene extends Phaser.Scene {
       if (loaded) this.events.emit('save-loaded');
     }
 
+    // UI scenes (e.g. inventory equip/unequip) request a save via this event.
+    this.events.on('persist', () => this.persistState());
+
     // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
     const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
     if (autoBodyId) {

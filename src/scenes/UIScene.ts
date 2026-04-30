@@ -2213,6 +2213,7 @@ export class UIScene extends Phaser.Scene {
           sphere.inventory.splice(invIdx, 1);
           if (prev) sphere.inventory.push({ itemId: prev, quantity: 1 });
           this.refreshInventoryDom();
+          this.scene.get('GameScene').events.emit('persist');
         },
         onUnequip: (slot) => {
           const equip = sphere.equipment as any;
@@ -2221,6 +2222,7 @@ export class UIScene extends Phaser.Scene {
           equip[slot] = undefined;
           sphere.inventory.push({ itemId: iid, quantity: 1 });
           this.refreshInventoryDom();
+          this.scene.get('GameScene').events.emit('persist');
         },
         onUseConsumable: (itemId) => {
           this.scene.get('GameScene').events.emit('use-item', itemId);
@@ -2251,6 +2253,7 @@ export class UIScene extends Phaser.Scene {
           sphere.inventory.splice(invIdx, 1);
           if (prev) sphere.inventory.push({ itemId: prev, quantity: 1 });
           this.refreshInventoryDom();
+          this.scene.get('GameScene').events.emit('persist');
         },
         onUnequip: (slot) => {
           const equip = sphere.equipment as any;
@@ -2259,6 +2262,7 @@ export class UIScene extends Phaser.Scene {
           equip[slot] = undefined;
           sphere.inventory.push({ itemId: iid, quantity: 1 });
           this.refreshInventoryDom();
+          this.scene.get('GameScene').events.emit('persist');
         },
         onUseConsumable: (itemId) => {
           this.scene.get('GameScene').events.emit('use-item', itemId);
