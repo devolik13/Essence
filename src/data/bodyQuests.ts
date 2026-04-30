@@ -178,9 +178,12 @@ const QUEST_SPLASHER: BodyQuestDef = {
     { speaker: '', text: 'Холодно. Тихо. Берег дышит снова. Лёд слушается тебя.' },
   ],
   objectives: [
-    // TODO: spawn burning_tree destructibles near water zone edge
     { type: 'destroy', count: 5, targetId: 'burning_tree', targetNameRu: 'Горящее дерево', description: 'Потуши 5 горящих деревьев' },
   ],
+  spawnObjects: [{
+    objectId: 'burning_tree', nameRu: 'Горящее дерево', icon: '🔥', color: 0xff7733,
+    type: 'destructible', count: 7, radius: 400,
+  }],
   rewardSpellId: 'mob_water_t1',
   xpReward: 50,
 };
@@ -200,6 +203,10 @@ const QUEST_PEBBLE: BodyQuestDef = {
   objectives: [
     { type: 'reach', count: 1, targetId: 'cave_breach', targetNameRu: 'Пробоина в стене', description: 'Доберись до пробоины' },
   ],
+  spawnObjects: [{
+    objectId: 'cave_breach', nameRu: 'Пробоина в стене', icon: '🪨', color: 0x886633,
+    type: 'waypoint', count: 1, radius: 600,
+  }],
   rewardSpellId: 'mob_earth_t1',
   xpReward: 50,
 };
