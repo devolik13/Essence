@@ -251,6 +251,29 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 8300,  y: 4500, creatureId: 'bear', count: 1 },
     { x: 3500,  y: 6100, creatureId: 'bear', count: 1 },
     { x: 9500,  y: 6500, creatureId: 'bear', count: 1 },
+
+    // Sparks (fire slimes) — 2 per bear, ~150px offset, for bq_bear targets.
+    // Note: kept in village zone only; other zones (fire/water/etc.) untouched.
+    { x: 2550,  y: 1850, creatureId: 'spark', count: 1 },
+    { x: 2850,  y: 1550, creatureId: 'spark', count: 1 },
+    { x: 5650,  y: 1250, creatureId: 'spark', count: 1 },
+    { x: 5950,  y: 950,  creatureId: 'spark', count: 1 },
+    { x: 9750,  y: 1850, creatureId: 'spark', count: 1 },
+    { x: 10050, y: 1550, creatureId: 'spark', count: 1 },
+    { x: 4150,  y: 3250, creatureId: 'spark', count: 1 },
+    { x: 4450,  y: 2950, creatureId: 'spark', count: 1 },
+    { x: 7250,  y: 3250, creatureId: 'spark', count: 1 },
+    { x: 7550,  y: 2950, creatureId: 'spark', count: 1 },
+    { x: 950,   y: 4650, creatureId: 'spark', count: 1 },
+    { x: 1250,  y: 4350, creatureId: 'spark', count: 1 },
+    { x: 5150,  y: 4750, creatureId: 'spark', count: 1 },
+    { x: 5450,  y: 4450, creatureId: 'spark', count: 1 },
+    { x: 8150,  y: 4650, creatureId: 'spark', count: 1 },
+    { x: 8450,  y: 4350, creatureId: 'spark', count: 1 },
+    { x: 3350,  y: 6250, creatureId: 'spark', count: 1 },
+    { x: 3650,  y: 5950, creatureId: 'spark', count: 1 },
+    { x: 9350,  y: 6650, creatureId: 'spark', count: 1 },
+    { x: 9650,  y: 6350, creatureId: 'spark', count: 1 },
   ],
 
   exits: [
