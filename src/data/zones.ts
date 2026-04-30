@@ -220,6 +220,24 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 6500,  y: 6300, creatureId: 'hare', count: 1 },
     { x: 8200,  y: 6800, creatureId: 'hare', count: 1 },
     { x: 9800,  y: 6300, creatureId: 'hare', count: 1 },
+
+    // Foxes — 15 scattered for bq_fox quest (kill 3 hares → hook).
+    // Combat type, hunts hares; spread thin so player faces one at a time.
+    { x: 1500,  y: 1100, creatureId: 'fox', count: 1 },
+    { x: 4000,  y: 1300, creatureId: 'fox', count: 1 },
+    { x: 6200,  y: 700,  creatureId: 'fox', count: 1 },
+    { x: 9400,  y: 1100, creatureId: 'fox', count: 1 },
+    { x: 2400,  y: 2700, creatureId: 'fox', count: 1 },
+    { x: 5500,  y: 2500, creatureId: 'fox', count: 1 },
+    { x: 8500,  y: 2700, creatureId: 'fox', count: 1 },
+    { x: 1800,  y: 4400, creatureId: 'fox', count: 1 },
+    { x: 4800,  y: 4400, creatureId: 'fox', count: 1 },
+    { x: 7700,  y: 4500, creatureId: 'fox', count: 1 },
+    { x: 10500, y: 4500, creatureId: 'fox', count: 1 },
+    { x: 3100,  y: 5700, creatureId: 'fox', count: 1 },
+    { x: 6100,  y: 5800, creatureId: 'fox', count: 1 },
+    { x: 8800,  y: 5700, creatureId: 'fox', count: 1 },
+    { x: 5400,  y: 6800, creatureId: 'fox', count: 1 },
   ],
 
   exits: [
