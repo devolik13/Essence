@@ -501,8 +501,13 @@ export class GameScene extends Phaser.Scene {
     const px = this.playerBody?.x ?? -9999;
     const py = this.playerBody?.y ?? -9999;
     const friendlyIds = this.bodyQuestTracker.getActive()?.def.friendlyCreatureIds;
+    // While the player body is inside any safe zone, all aggro on player is
+    // suppressed — chasing mobs return to spawn. NPC faction wars continue
+    // (creature.factionTarget is unaffected by skipAggro).
+    const playerInSafe = !!(this.playerBody && this.isInSafeZone(this.playerBody.x, this.playerBody.y));
     for (const creature of this.creatures) {
-      creature.skipAggro = !!friendlyIds && friendlyIds.includes(creature.definition.id);
+      creature.skipAggro = playerInSafe ||
+        (!!friendlyIds && friendlyIds.includes(creature.definition.id));
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
         if (creature.isDead) continue;
