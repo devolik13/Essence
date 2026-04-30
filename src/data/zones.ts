@@ -180,6 +180,10 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: WX + 800, y: WY + 800, creatureId: 'bandit_crossbow', count: 2 },
     { x: WX + 750, y: WY + 600, creatureId: 'bandit_spear', count: 2 },
 
+    // Старый форт к северо-западу от Вальдмара — цель квеста bandit_crossbow.
+    { x: WX - 1000, y: WY - 700, creatureId: 'fort_guard', count: 2 },
+    { x: WX - 900,  y: WY - 800, creatureId: 'fort_guard', count: 1 },
+
   ],
 
   exits: [

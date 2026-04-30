@@ -14,6 +14,7 @@ import {
   ABILITY_DOUBLE_STRIKE,
   ABILITY_MACE_STRIKE,
   ABILITY_MACE_BASH,
+  ABILITY_MACE_CONCUSS,
   ABILITY_SLASH,
   ABILITY_SLASH_SWEEP,
   ABILITY_BOW_SHOT,
@@ -692,6 +693,20 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     npcSpells: [ABILITY_SLASH],
     signatureSpell: ABILITY_SLASH,
     faction: 'raider',
+  },
+
+  // Тяжёлый страж форта с булавой — цель квеста bq_bandit_crossbow.
+  fort_guard: {
+    id: 'fort_guard', name: 'Fort Guard', nameRu: 'Охранник форта',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 22, [StatName.Health]: 18, [StatName.Armor]: 14 },
+    xpReward: 55,
+    npcStats: {
+      [StatName.Strength]: 10, [StatName.Accuracy]: 8, [StatName.Evasion]: 3,
+      [StatName.Health]: 16,   [StatName.Armor]: 9,    [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Mace, color: 0x6677aa, abilityName: 'Concussion',
+    signatureSpell: ABILITY_MACE_CONCUSS,
   },
 
   caravan_merchant: {
