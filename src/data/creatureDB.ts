@@ -28,6 +28,7 @@ import {
   ABILITY_HAMMER_STRIKE,
   ABILITY_HAMMER_SMASH,
   ABILITY_FIST_STRIKE,
+  ABILITY_HOOK,
 } from './specialAbilities';
 
 
@@ -72,15 +73,16 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   fox: {
     id: 'fox', name: 'Fox', nameRu: 'Fox',
-    type: BodyType.Passive, damageType: 'melee',
+    type: BodyType.Combat, damageType: 'melee',
     caps: { [StatName.Agility]: 15, [StatName.Evasion]: 12 },
     xpReward: 15,
     npcStats: {
       [StatName.Strength]: 3, [StatName.Accuracy]: 4, [StatName.Evasion]: 6,
       [StatName.Health]: 4, [StatName.Armor]: 1, [StatName.Luck]: 4,
     },
-    weapon: WeaponType.Fists, color: 0xdd6622, abilityName: 'Disorienting Blow',
-    signatureSpell: ABILITY_FIST_STRIKE,
+    weapon: WeaponType.Fists, color: 0xdd6622, abilityName: 'Hook',
+    npcSpells: [ABILITY_HOOK],
+    signatureSpell: ABILITY_HOOK,
   },
 
   boar: {
