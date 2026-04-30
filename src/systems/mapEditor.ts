@@ -191,11 +191,16 @@ export class MapEditor {
   }
 
   private renderObject(obj: PlacedMapObject): void {
-    if (!this.scene.textures.exists(obj.key)) return;
     const isMob = obj.key.startsWith('mob_');
+    // For mobs, the placement key (e.g. 'mob_wolf') is not a real texture —
+    // map it to the actual loaded sheet via EDITOR_MOB_ENTRIES.
+    const textureKey = isMob
+      ? (EDITOR_MOB_ENTRIES.find(e => e.key === obj.key)?.textureKey ?? obj.key)
+      : obj.key;
+    if (!this.scene.textures.exists(textureKey)) return;
     const img = isMob
-      ? this.scene.add.image(obj.x, obj.y, obj.key, 0)
-      : this.scene.add.image(obj.x, obj.y, obj.key);
+      ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
+      : this.scene.add.image(obj.x, obj.y, textureKey);
     img.setOrigin(0.5, isMob ? 0.5 : 0.9);
     img.setScale(obj.scale);
     img.setAngle(obj.angle ?? 0);
