@@ -5,7 +5,7 @@ import { MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3 } from './spells/water';
 import { MOB_EARTH_T1, MOB_EARTH_T2, MOB_EARTH_T3 } from './spells/earth';
 import { MOB_WIND_T1, MOB_WIND_T2, MOB_WIND_T3 } from './spells/wind';
 import { MOB_NATURE_T1, MOB_NATURE_T2, MOB_NATURE_T3 } from './spells/nature';
-import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL } from './neutralSpells';
+import { MOB_NEUTRAL_T1, MOB_NEUTRAL_T2, MOB_NEUTRAL_HEAL, ABILITY_ALLY_HEAL } from './neutralSpells';
 import { ABILITY_RAM } from './specialAbilities';
 import {
   ABILITY_STING,
@@ -696,15 +696,16 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   caravan_merchant: {
     id: 'caravan_merchant', name: 'Merchant', nameRu: 'Merchant',
-    type: BodyType.Fleeing, damageType: 'melee',
-    caps: { [StatName.Health]: 10, [StatName.Evasion]: 6 },
+    type: BodyType.Fleeing, damageType: 'magic',
+    caps: { [StatName.Intellect]: 12, [StatName.Health]: 10, [StatName.Evasion]: 6 },
     xpReward: 15,
     npcStats: {
-      [StatName.Strength]: 2, [StatName.Accuracy]: 3, [StatName.Evasion]: 4,
-      [StatName.Health]: 10,  [StatName.Armor]: 2,    [StatName.Luck]: 2,
+      [StatName.Intellect]: 8, [StatName.Accuracy]: 3, [StatName.Evasion]: 4,
+      [StatName.Health]: 10,   [StatName.Armor]: 2,    [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Acceleration',
-    signatureSpell: MOB_NEUTRAL_T1,
+    weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Ally Heal',
+    npcSpells: [ABILITY_ALLY_HEAL],
+    signatureSpell: ABILITY_ALLY_HEAL,
     faction: 'caravan',
   },
 };

@@ -381,6 +381,46 @@ const BANDIT_CROSSBOW_SPRITES: MobSpriteSet = {
   },
 };
 
+const CARAVAN_GUARD_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/caravan_guard/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'Caravan_guard-iso_idle_down-v1.webp',                 frames: 16 },
+    back_idle:    { file: 'Caravan_guard-iso_idle_up-v1.webp',                   frames: 16 },
+    left_idle:    { file: 'Caravan_guard-iso_idle_right-v1.webp',                frames: 16 },
+    right_idle:   { file: 'Caravan_guard-iso_idle_right-v1.webp',                frames: 16 },
+    front_walk:   { file: 'Caravan_guard-iso_walk_down-v1.webp',                 frames: 16 },
+    back_walk:    { file: 'Caravan_guard-iso_walk_up-v1.webp',                   frames: 16 },
+    left_walk:    { file: 'Caravan_guard-iso_walk_right-v1.webp',                frames: 16 },
+    right_walk:   { file: 'Caravan_guard-iso_walk_right-v1.webp',                frames: 16 },
+    front_attack: { file: 'Caravan_guard-iso_custom_spear_attack_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'Caravan_guard-iso_custom_spear_attack_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'Caravan_guard-iso_custom_spear_attack_right-v1.webp', frames: 16 },
+    right_attack: { file: 'Caravan_guard-iso_custom_spear_attack_right-v1.webp', frames: 16 },
+    dying:        { file: 'Caravan_guard-iso_custom_death_down-v1.webp',         frames: 16 },
+  },
+};
+
+const CARAVAN_MERCHANT_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/caravan_merchant/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'Caravan_merchant-iso_idle_down-v1.webp',                          frames: 16 },
+    back_idle:    { file: 'Caravan_merchant-iso_idle_up-v1.webp',                            frames: 16 },
+    left_idle:    { file: 'Caravan_merchant-iso_idle_right-v1.webp',                         frames: 16 },
+    right_idle:   { file: 'Caravan_merchant-iso_idle_right-v1.webp',                         frames: 16 },
+    front_walk:   { file: 'Caravan_merchant-iso_walk_down-v1.webp',                          frames: 16 },
+    back_walk:    { file: 'Caravan_merchant-iso_walk_up-v1.webp',                            frames: 16 },
+    left_walk:    { file: 'Caravan_merchant-iso_walk_right-v1.webp',                         frames: 16 },
+    right_walk:   { file: 'Caravan_merchant-iso_walk_right-v1.webp',                         frames: 16 },
+    front_attack: { file: 'Caravan_merchant-iso_custom_casting_a_heal_spell_down-v1.webp',   frames: 16 },
+    back_attack:  { file: 'Caravan_merchant-iso_custom_casting_a_heal_spell_up-v1.webp',     frames: 16 },
+    left_attack:  { file: 'Caravan_merchant-iso_custom_casting_a_heal_spell_right-v1.webp',  frames: 16 },
+    right_attack: { file: 'Caravan_merchant-iso_custom_casting_a_heal_spell_right-v1.webp',  frames: 16 },
+    dying:        { file: 'Caravan_merchant-iso_custom_death_down-v1.webp',                  frames: 16 },
+  },
+};
+
 export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   goblin: GOBLIN_SPRITES,
   goblin_veteran: GOBLIN_VETERAN_SPRITES,
@@ -403,6 +443,8 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   bandit_brute_veteran: BANDIT_BRUTE_SPRITES,
   bandit_crossbow: BANDIT_CROSSBOW_SPRITES,
   bandit_crossbow_veteran: BANDIT_CROSSBOW_SPRITES,
+  caravan_guard: CARAVAN_GUARD_SPRITES,
+  caravan_merchant: CARAVAN_MERCHANT_SPRITES,
 };
 
 /**
