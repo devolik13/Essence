@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
+import { Caravan } from '../entities/Caravan';
 import { DamageText } from '../entities/DamageText';
 import { STARTER_BODIES, GOBLIN, WEAPON_COOLDOWNS, BodyType } from '../types/bodies';
 import { lookupStarterBody } from '../data/starterBodies';
@@ -48,6 +49,7 @@ export class GameScene extends Phaser.Scene {
   private sphere!: Sphere;
   private playerBody: Body | null = null;
   private creatures: Creature[] = [];
+  private caravans: Caravan[] = [];
   private damageTexts: DamageText[] = [];
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
@@ -177,6 +179,8 @@ export class GameScene extends Phaser.Scene {
     this.newGameCharName = data?.characterName;
     // Очищаем все ссылки при перезагрузке сцены
     this.creatures = [];
+    for (const c of this.caravans) c.destroy();
+    this.caravans = [];
     this.damageTexts = [];
     this.groundZones = [];
     this.windBarriers = [];
@@ -483,6 +487,12 @@ export class GameScene extends Phaser.Scene {
         this.tryCaptureDead();
       }
     }
+
+    // Обновляем караваны (двигают телегу + строят охрану в формацию)
+    // Делаем это ПЕРЕД обновлением мобов, чтобы каждый кадр их позиции
+    // были выставлены к слотам формации до AI-логики мобов.
+    for (const caravan of this.caravans) caravan.update(time, delta);
+    this.caravans = this.caravans.filter(c => !c.destroyed && !c.arrived);
 
     // Обновляем мобов
     const px = this.playerBody?.x ?? -9999;
@@ -1253,6 +1263,18 @@ export class GameScene extends Phaser.Scene {
         if (!def) continue;
         this.creatures.push(new Creature(this, ms.x, ms.y, def));
       }
+    }
+
+    // Караваны (живые группы: телега + охранники + мерчант, едут по маршруту)
+    for (const cs of this.currentZone.caravans ?? []) {
+      this.caravans.push(new Caravan(
+        this,
+        cs.start.x, cs.start.y,
+        cs.end.x,   cs.end.y,
+        cs.speed ?? 36,
+        cs.guardCount ?? 2,
+        this.creatures,
+      ));
     }
 
     // Подключаем проверку стен и сейф-зоны ко всем существам

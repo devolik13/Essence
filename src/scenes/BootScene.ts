@@ -45,6 +45,12 @@ export class BootScene extends Phaser.Scene {
       }
     }
 
+    // Caravan cart spritesheets (4x4 / 128px / 16 frames)
+    const CART_DIR = 'assets/objects/caravan_cart/';
+    this.load.spritesheet('cart_move_down',  CART_DIR + 'merchant_cart-iso_custom_move_down-v1.webp',  { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('cart_move_right', CART_DIR + 'merchant_cart-iso_custom_move_right-v1.webp', { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('cart_move_up',    CART_DIR + 'merchant_cart-iso_custom_move_up-v1.webp',    { frameWidth: 128, frameHeight: 128 });
+
     const gfx = this.add.graphics();
 
     // ── Тайл травы 32x32 ────────────────────────────────
@@ -1106,6 +1112,18 @@ export class BootScene extends Phaser.Scene {
           });
         }
       }
+    }
+
+    // ── Cart animations (caravan) ────────────────────────────────────────────
+    for (const dir of ['down', 'right', 'up']) {
+      const key = `cart_move_${dir}`;
+      if (this.anims.exists(key) || !this.textures.exists(key)) continue;
+      this.anims.create({
+        key,
+        frames: this.anims.generateFrameNumbers(key, { start: 0, end: 15 }),
+        frameRate: 10,
+        repeat: -1,
+      });
     }
 
     // ── Spell animations ─────────────────────────────────────────────────────

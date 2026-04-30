@@ -54,6 +54,20 @@ export interface SafeZone {
   nameRu?: string;
 }
 
+/** Live caravan: cart + guards + merchant traveling along a route. */
+export interface CaravanSpawn {
+  /** Starting position (e.g., gate of origin city) */
+  start: { x: number; y: number };
+  /** Final destination (gate of target city) */
+  end: { x: number; y: number };
+  /** Cart speed in px/sec while moving */
+  speed?: number;
+  /** Number of caravan_guard escorts (positioned around cart) */
+  guardCount?: number;
+  /** Spawn this caravan only after this body-quest id is started/known */
+  requiresQuestId?: string;
+}
+
 export interface ZoneConfig {
   id: string;
   nameRu: string;
@@ -75,6 +89,8 @@ export interface ZoneConfig {
   npcs?: NPCSpawn[];
   /** Quest-related world objects (waypoints, collectibles, destructibles) */
   questObjects?: QuestObjectSpawn[];
+  /** Live caravans traveling between cities */
+  caravans?: CaravanSpawn[];
 }
 
 // ── Размеры зон ──────────────────────────────────────────────────────────────
@@ -148,14 +164,12 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: ROAD_MID_X + 800, y: ROAD_MID_Y + 100, creatureId: 'orc', count: 3 },
     { x: ROAD_MID_X - 700, y: ROAD_MID_Y + 400, creatureId: 'bandit_spear_veteran', count: 1 },
     { x: ROAD_MID_X + 900, y: ROAD_MID_Y - 500, creatureId: 'bandit_archer_veteran', count: 1 },
-    // ─── The Caravan (conflict_caravan) ───
-    // Merchant + 4 guards parked at the cargo location.
-    { x: ROAD_MID_X - 40,  y: ROAD_MID_Y - 10, creatureId: 'caravan_merchant', count: 1 },
-    { x: ROAD_MID_X + 60,  y: ROAD_MID_Y - 50, creatureId: 'caravan_guard', count: 2 },
-    { x: ROAD_MID_X - 80,  y: ROAD_MID_Y + 60, creatureId: 'caravan_guard', count: 2 },
-    // 4 ambushers waiting in the treeline at the marked ambush points.
-    { x: ROAD_MID_X - 400, y: ROAD_MID_Y - 100, creatureId: 'ambusher', count: 2 },
-    { x: ROAD_MID_X + 400, y: ROAD_MID_Y + 100, creatureId: 'ambusher', count: 2 },
+
+    // ─── Ambush waiting in trees/bushes north of road, halfway between cities.
+    // Stay in idle until caravan enters faction sight (~600px), then attack.
+    { x: ROAD_MID_X - 100, y: ROAD_MID_Y - 320, creatureId: 'ambusher', count: 2 },
+    { x: ROAD_MID_X + 120, y: ROAD_MID_Y - 340, creatureId: 'ambusher', count: 1 },
+    { x: ROAD_MID_X + 40,  y: ROAD_MID_Y - 380, creatureId: 'bandit_brute', count: 1 },
 
     // ═══ WALDMAR AREA ═══
     { x: WX - 500, y: WY + 500, creatureId: 'scout', count: 3 },
@@ -172,6 +186,17 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { edge: 'north', targetZone: 'water',  spawnX: PW / 2, spawnY: PH - 80 },
     { edge: 'south', targetZone: 'fire',   spawnX: PW / 2, spawnY: 80 },
     { edge: 'west',  targetZone: 'earth',  spawnX: PW - 80, spawnY: PH / 2 },
+  ],
+
+  caravans: [
+    // Eshworth → Waldmar trade caravan: cart + 2 guards + merchant.
+    // Bandits in ambush north of mid-road will attack via faction system.
+    {
+      start: { x: EX + 280, y: EY },
+      end:   { x: WX - 280, y: WY },
+      speed: 36,
+      guardCount: 2,
+    },
   ],
 
   resourceNodes: [],
