@@ -147,43 +147,8 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   spawnGroups: [
-    // ═══ ESHWORTH AREA ═══
-    // Orcs — south
-    { x: EX + 200,  y: EY + 900, creatureId: 'orc', count: 3 },
-    { x: EX + 350,  y: EY + 1000, creatureId: 'orc', count: 2 },
-    // Scouts — north-east
-    { x: EX + 1000, y: EY - 500, creatureId: 'scout', count: 3 },
-    { x: EX + 1150, y: EY - 550, creatureId: 'scout', count: 2 },
-
-    // ═══ TRADE ROAD (between villages) ═══
-    { x: ROAD_MID_X - 600, y: ROAD_MID_Y - 200, creatureId: 'bandit_archer', count: 3 },
-    { x: ROAD_MID_X - 400, y: ROAD_MID_Y + 300, creatureId: 'bandit_crossbow', count: 2 },
-    { x: ROAD_MID_X,       y: ROAD_MID_Y - 400, creatureId: 'bandit_spear', count: 3 },
-    { x: ROAD_MID_X + 300, y: ROAD_MID_Y + 200, creatureId: 'bandit_brute', count: 2 },
-    { x: ROAD_MID_X + 600, y: ROAD_MID_Y - 100, creatureId: 'scout', count: 3 },
-    { x: ROAD_MID_X + 800, y: ROAD_MID_Y + 100, creatureId: 'orc', count: 3 },
-    { x: ROAD_MID_X - 700, y: ROAD_MID_Y + 400, creatureId: 'bandit_spear_veteran', count: 1 },
-    { x: ROAD_MID_X + 900, y: ROAD_MID_Y - 500, creatureId: 'bandit_archer_veteran', count: 1 },
-
-    // ─── Ambush waiting in trees/bushes north of road, halfway between cities.
-    // Stay in idle until caravan enters faction sight (~600px), then attack.
-    { x: ROAD_MID_X - 100, y: ROAD_MID_Y - 320, creatureId: 'ambusher', count: 2 },
-    { x: ROAD_MID_X + 120, y: ROAD_MID_Y - 340, creatureId: 'ambusher', count: 1 },
-    { x: ROAD_MID_X + 40,  y: ROAD_MID_Y - 380, creatureId: 'bandit_brute', count: 1 },
-
-    // ═══ WALDMAR AREA ═══
-    { x: WX - 500, y: WY + 500, creatureId: 'scout', count: 3 },
-    { x: WX + 500, y: WY + 500, creatureId: 'scout', count: 3 },
-    { x: WX + 600, y: WY - 800, creatureId: 'orc', count: 3 },
-    { x: WX + 700, y: WY - 900, creatureId: 'orc_veteran', count: 1 },
-    { x: WX + 700, y: WY + 700, creatureId: 'bandit_archer', count: 2 },
-    { x: WX + 800, y: WY + 800, creatureId: 'bandit_crossbow', count: 2 },
-    { x: WX + 750, y: WY + 600, creatureId: 'bandit_spear', count: 2 },
-
-    // Старый форт к северо-западу от Вальдмара — цель квеста bandit_crossbow.
-    { x: WX - 1000, y: WY - 700, creatureId: 'fort_guard', count: 2 },
-    { x: WX - 900,  y: WY - 800, creatureId: 'fort_guard', count: 1 },
-
+    // Cleared. Mobs are added back per body-quest design — see CLAUDE.md
+    // "ГЛАВНЫЙ ПРИНЦИП ДИЗАЙНА: Умения первичны, мобы вторичны".
   ],
 
   exits: [
@@ -194,7 +159,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
   caravans: [
     // Eshworth → Waldmar trade caravan: cart + 2 guards + merchant.
-    // Bandits in ambush north of mid-road will attack via faction system.
+    // Spawned via Caravan system, not via spawnGroups.
     {
       start: { x: EX + 280, y: EY },
       end:   { x: WX - 280, y: WY },
@@ -238,30 +203,7 @@ export const ZONE_WATER: ZoneConfig = {
   tint: 0x3377cc,
   respawnPoint: { x: PW / 2, y: PH - 200 },
   safeBounds: { x1: PW / 2 - 150, y1: PH - 320, x2: PW / 2 + 150, y2: PH - 80 },
-  spawnGroups: [
-    // Начало зоны (юг — вход из деревни)
-    { x: PW / 2 - 300, y: PH - 500, creatureId: 'splasher', count: 3 },
-    { x: PW / 2 + 300, y: PH - 500, creatureId: 'fogger',   count: 2 },
-    // Середина
-    { x: PW / 2 - 500, y: PH / 2,   creatureId: 'splasher', count: 3 },
-    { x: PW / 2,       y: PH / 2,   creatureId: 'fogger',   count: 3 },
-    { x: PW / 2 + 500, y: PH / 2,   creatureId: 'splasher', count: 2 },
-    { x: PW / 2 + 200, y: PH / 2 - 200, creatureId: 'fogger', count: 2 },
-    // Разрушенный мост (центр-восток)
-    { x: PW / 2 + 600, y: PH / 2 + 200, creatureId: 'splasher', count: 2 },
-    { x: PW / 2 + 700, y: PH / 2 + 150, creatureId: 'fogger',   count: 2 },
-    // Башня мага (запад)
-    { x: PW / 2 - 700, y: PH / 2 - 200, creatureId: 'shaman',      count: 2 },
-    { x: PW / 2 - 600, y: PH / 2 - 100, creatureId: 'spirit_wolf', count: 2 },
-    // Глубже (север) — усиленные группы
-    { x: PW / 2 - 400, y: 600, creatureId: 'splasher', count: 3 },
-    { x: PW / 2,       y: 500, creatureId: 'fogger',   count: 3 },
-    { x: PW / 2 + 400, y: 600, creatureId: 'splasher', count: 2 },
-    { x: PW / 2 + 200, y: 400, creatureId: 'fogger',   count: 2 },
-    // Ветераны T2 — глубже в зоне
-    // Босс Акварис (центр-север)
-    { x: PW / 2, y: 300, creatureId: 'aquaris', count: 1 },
-  ],
+  spawnGroups: [],
   exits: [
     { edge: 'south', targetZone: 'village', spawnX: PW / 2, spawnY: 80 },
   ],
@@ -279,31 +221,7 @@ export const ZONE_FIRE: ZoneConfig = {
   tint: 0xff7733,
   respawnPoint: { x: PW / 2, y: 200 },
   safeBounds: { x1: PW / 2 - 150, y1: 80, x2: PW / 2 + 150, y2: 320 },
-  spawnGroups: [
-    // Вход (север)
-    { x: PW / 2 - 300, y: 500,  creatureId: 'spark', count: 3 },
-    { x: PW / 2 + 300, y: 500,  creatureId: 'asher', count: 2 },
-    // Середина
-    { x: PW / 2 - 500, y: PH / 2,       creatureId: 'spark', count: 3 },
-    { x: PW / 2,       y: PH / 2,       creatureId: 'asher', count: 3 },
-    { x: PW / 2 + 500, y: PH / 2,       creatureId: 'spark', count: 2 },
-    { x: PW / 2 + 200, y: PH / 2 + 200, creatureId: 'asher', count: 2 },
-    // Глубже (юг)
-    { x: PW / 2 - 400, y: PH - 600, creatureId: 'spark', count: 3 },
-    { x: PW / 2,       y: PH - 500, creatureId: 'asher', count: 3 },
-    { x: PW / 2 + 400, y: PH - 600, creatureId: 'spark', count: 2 },
-    { x: PW / 2 + 200, y: PH - 700, creatureId: 'asher', count: 2 },
-    // Лагерь разбойников (T1 молот, копьё, дл.лук, арбалет)
-    { x: PW / 2 - 700, y: PH / 2 + 500, creatureId: 'bandit_brute', count: 2 },
-    { x: PW / 2 - 600, y: PH / 2 + 550, creatureId: 'bandit_spear', count: 2 },
-    { x: PW / 2 - 500, y: PH / 2 + 500, creatureId: 'bandit_archer', count: 2 },
-    { x: PW / 2 - 650, y: PH / 2 + 600, creatureId: 'bandit_crossbow', count: 2 },
-    // Ветераны T2 — глубже
-    { x: PW / 2 - 600, y: PH - 400, creatureId: 'bandit_brute_veteran', count: 1 },
-    { x: PW / 2 - 500, y: PH - 350, creatureId: 'bandit_spear_veteran', count: 1 },
-    // Босс Игнис (центр-юг)
-    { x: PW / 2, y: PH - 300, creatureId: 'ignis', count: 1 },
-  ],
+  spawnGroups: [],
   exits: [
     { edge: 'north', targetZone: 'village', spawnX: PW / 2, spawnY: PH - 80 },
   ],
@@ -321,28 +239,7 @@ export const ZONE_WIND: ZoneConfig = {
   tint: 0x99ddbb,
   respawnPoint: { x: 200, y: PH / 2 },
   safeBounds: { x1: 80, y1: PH / 2 - 150, x2: 320, y2: PH / 2 + 150 },
-  spawnGroups: [
-    // Вход (запад)
-    { x: 500,  y: PH / 2 - 200, creatureId: 'gusty',    count: 3 },
-    { x: 500,  y: PH / 2 + 200, creatureId: 'whistler', count: 2 },
-    // Середина
-    { x: PW / 2 - 200, y: PH / 2 - 300, creatureId: 'gusty',    count: 3 },
-    { x: PW / 2,       y: PH / 2,       creatureId: 'whistler', count: 3 },
-    { x: PW / 2 + 200, y: PH / 2 + 300, creatureId: 'gusty',    count: 2 },
-    { x: PW / 2,       y: PH / 2 - 500, creatureId: 'whistler', count: 2 },
-    // Поляна духов (юг)
-    // Глубже (восток)
-    { x: PW - 600, y: PH / 2 - 300, creatureId: 'gusty',    count: 3 },
-    { x: PW - 500, y: PH / 2,       creatureId: 'whistler', count: 3 },
-    { x: PW - 600, y: PH / 2 + 300, creatureId: 'gusty',    count: 2 },
-    // Ветераны T2 — глубже
-    { x: PW - 400, y: PH / 2 - 100, creatureId: 'scout_veteran', count: 1 },
-    { x: PW - 400, y: PH / 2 + 100, creatureId: 'orc_veteran',  count: 1 },
-    // Шаманы
-    { x: PW / 2 + 300, y: 400, creatureId: 'shaman', count: 2 },
-    // Босс Аэрос (дальний восток)
-    { x: PW - 300, y: PH / 2, creatureId: 'aeros', count: 1 },
-  ],
+  spawnGroups: [],
   exits: [
     { edge: 'west', targetZone: 'village', spawnX: PW - 80, spawnY: PH / 2 },
   ],
@@ -360,34 +257,7 @@ export const ZONE_EARTH: ZoneConfig = {
   tint: 0x886633,
   respawnPoint: { x: PW - 200, y: PH / 2 },
   safeBounds: { x1: PW - 320, y1: PH / 2 - 150, x2: PW - 80, y2: PH / 2 + 150 },
-  spawnGroups: [
-    // Вход (восток)
-    { x: PW - 500, y: PH / 2 - 200, creatureId: 'pebble', count: 3 },
-    { x: PW - 500, y: PH / 2 + 200, creatureId: 'mudder', count: 2 },
-    // Середина
-    { x: PW / 2 + 200, y: PH / 2 - 300, creatureId: 'pebble', count: 3 },
-    { x: PW / 2,       y: PH / 2,       creatureId: 'mudder', count: 3 },
-    { x: PW / 2 - 200, y: PH / 2 + 300, creatureId: 'pebble', count: 2 },
-    { x: PW / 2,       y: PH / 2 + 500, creatureId: 'mudder', count: 2 },
-    // Заброшенная шахта (юго-запад)
-    { x: 600,  y: PH - 600, creatureId: 'pebble', count: 3 },
-    { x: 700,  y: PH - 500, creatureId: 'mudder', count: 2 },
-    { x: 500,  y: PH - 450, creatureId: 'pebble', count: 2 },
-    // Глубже (запад)
-    { x: 600,  y: PH / 2 - 300, creatureId: 'pebble', count: 3 },
-    { x: 500,  y: PH / 2,       creatureId: 'mudder', count: 3 },
-    { x: 600,  y: PH / 2 + 300, creatureId: 'pebble', count: 2 },
-    // Ветераны T2
-    { x: 400,  y: PH / 2 - 100, creatureId: 'bandit_archer_veteran',   count: 1 },
-    { x: 400,  y: PH / 2 + 100, creatureId: 'bandit_crossbow_veteran', count: 1 },
-    // Волки-духи
-    { x: 500,  y: 600,  creatureId: 'spirit_wolf', count: 2 },
-    { x: 600,  y: 700,  creatureId: 'spirit_wolf', count: 2 },
-    // Раненый человек (цель квеста bq_spirit_wolf)
-    { x: 550,  y: 650,  creatureId: 'wounded_human', count: 1 },
-    // Босс Терра (дальний запад)
-    { x: 300, y: PH / 2, creatureId: 'terra', count: 1 },
-  ],
+  spawnGroups: [],
   exits: [
     { edge: 'east', targetZone: 'village', spawnX: 80, spawnY: PH / 2 },
     { edge: 'south', targetZone: 'cave', spawnX: PW / 2, spawnY: 80 },
