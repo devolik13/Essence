@@ -155,6 +155,38 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 7000, y: 6500, creatureId: 'wolf', count: 5 },  // South-east clearing
     { x: 3500, y: 5000, creatureId: 'wolf', count: 5 },  // South of Eshworth
     { x: 8000, y: 1500, creatureId: 'wolf', count: 5 },  // North of Waldmar
+
+    // Deer — 30 spawned individually so the player can engage one at a time.
+    { x: 1200,  y: 800,  creatureId: 'deer', count: 1 },
+    { x: 2400,  y: 1200, creatureId: 'deer', count: 1 },
+    { x: 4500,  y: 700,  creatureId: 'deer', count: 1 },
+    { x: 6500,  y: 1100, creatureId: 'deer', count: 1 },
+    { x: 7800,  y: 600,  creatureId: 'deer', count: 1 },
+    { x: 10500, y: 900,  creatureId: 'deer', count: 1 },
+    { x: 800,   y: 1900, creatureId: 'deer', count: 1 },
+    { x: 3000,  y: 2200, creatureId: 'deer', count: 1 },
+    { x: 4900,  y: 1700, creatureId: 'deer', count: 1 },
+    { x: 6800,  y: 2400, creatureId: 'deer', count: 1 },
+    { x: 8200,  y: 2100, creatureId: 'deer', count: 1 },
+    { x: 10800, y: 1800, creatureId: 'deer', count: 1 },
+    { x: 1500,  y: 3700, creatureId: 'deer', count: 1 },
+    { x: 2700,  y: 4100, creatureId: 'deer', count: 1 },
+    { x: 5000,  y: 3600, creatureId: 'deer', count: 1 },
+    { x: 6300,  y: 4300, creatureId: 'deer', count: 1 },
+    { x: 8100,  y: 3700, creatureId: 'deer', count: 1 },
+    { x: 10300, y: 4200, creatureId: 'deer', count: 1 },
+    { x: 2200,  y: 4900, creatureId: 'deer', count: 1 },
+    { x: 3800,  y: 5300, creatureId: 'deer', count: 1 },
+    { x: 5500,  y: 4900, creatureId: 'deer', count: 1 },
+    { x: 6900,  y: 5400, creatureId: 'deer', count: 1 },
+    { x: 9300,  y: 5100, creatureId: 'deer', count: 1 },
+    { x: 10700, y: 5500, creatureId: 'deer', count: 1 },
+    { x: 1800,  y: 6200, creatureId: 'deer', count: 1 },
+    { x: 4200,  y: 6500, creatureId: 'deer', count: 1 },
+    { x: 5800,  y: 6100, creatureId: 'deer', count: 1 },
+    { x: 7200,  y: 6700, creatureId: 'deer', count: 1 },
+    { x: 8800,  y: 6200, creatureId: 'deer', count: 1 },
+    { x: 10200, y: 6800, creatureId: 'deer', count: 1 },
   ],
 
   exits: [
