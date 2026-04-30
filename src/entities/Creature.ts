@@ -202,7 +202,10 @@ export class Creature extends Phaser.GameObjects.Container {
       const distFromSpawn = distance(this.x, this.y, this.spawnX, this.spawnY);
 
       const weapon = WEAPONS[this.definition.weapon];
-      const attackRange = weapon.isMelee ? 44 : weapon.range * 0.85; // дальнобойные чуть не дотягиваются до max
+      // Melee — close in to actual weapon range (was hardcoded 44, which left
+      // short-melee weapons like Fists range=36 stuck in attack state but
+      // never firing because creatureAttackPlayer checks weapon.range × 1.1).
+      const attackRange = weapon.isMelee ? weapon.range : weapon.range * 0.85;
       const preferredDist = weapon.isMelee ? 0 : weapon.range * 0.6; // дистанция удержания для ranged
 
       if (this.aiState === 'chase' || this.aiState === 'attack') {
