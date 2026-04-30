@@ -95,6 +95,9 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
   // ── Медведи ──────────────────────────────────────────────────────────────
   { key: 'mob_bear',                    textureKey: 'mob_sheet_bear_front_idle'            },
   { key: 'mob_bear_veteran',            textureKey: 'mob_sheet_bear_veteran_front_idle'    },
+  { key: 'mob_monk',                    textureKey: 'mob_sheet_monk_front_idle'            },
+  { key: 'mob_ignis',                   textureKey: 'mob_sheet_ignis_front_idle'           },
+  { key: 'mob_aquaris',                 textureKey: 'mob_sheet_aquaris_front_idle'         },
   { key: 'mob_wolf',                    textureKey: 'mob_sheet_wolf_front_idle'            },
   { key: 'mob_wolf_veteran',            textureKey: 'mob_sheet_wolf_front_idle'            },
   // ── Элементали ───────────────────────────────────────────────────────────
@@ -200,6 +203,66 @@ const WOLF_SPRITES: MobSpriteSet = {
     left_attack:  { file: 'wolf_E-iso_custom_bite_right-v1.webp', frames: 16 },
     right_attack: { file: 'wolf_E-iso_custom_bite_right-v1.webp', frames: 16 },
     dying:        { file: 'wolf_E-iso_custom_death_down-v1.webp', frames: 16 },
+  },
+};
+
+const MONK_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/monk/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'Monk-iso_idle_down-v1.webp',          frames: 16 },
+    back_idle:    { file: 'Monk-iso_idle_up-v1.webp',            frames: 16 },
+    left_idle:    { file: 'Monk-iso_idle_right-v1.webp',         frames: 16 },
+    right_idle:   { file: 'Monk-iso_idle_right-v1.webp',         frames: 16 },
+    front_walk:   { file: 'Monk-iso_walk_down-v1.webp',          frames: 16 },
+    back_walk:    { file: 'Monk-iso_walk_up-v1.webp',            frames: 16 },
+    left_walk:    { file: 'Monk-iso_walk_right-v1.webp',         frames: 16 },
+    right_walk:   { file: 'Monk-iso_walk_right-v1.webp',         frames: 16 },
+    front_attack: { file: 'Monk-iso_custom_punch_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'Monk-iso_custom_punch_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'Monk-iso_custom_punch_right-v1.webp', frames: 16 },
+    right_attack: { file: 'Monk-iso_custom_punch_right-v1.webp', frames: 16 },
+    dying:        { file: 'Monk-iso_custom_death_down-v1.webp',  frames: 16 },
+  },
+};
+
+const IGNIS_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/ignis/',
+  frameW: 256, frameH: 256,
+  anims: {
+    front_idle:   { file: 'Fire_boss-iso_idle_down-v1.webp',         frames: 16 },
+    back_idle:    { file: 'Fire_boss-iso_idle_up-v1.webp',           frames: 16 },
+    left_idle:    { file: 'Fire_boss-iso_idle_right-v1.webp',        frames: 16 },
+    right_idle:   { file: 'Fire_boss-iso_idle_right-v1.webp',        frames: 16 },
+    front_walk:   { file: 'Fire_boss-iso_walk_down-v1.webp',         frames: 16 },
+    back_walk:    { file: 'Fire_boss-iso_walk_up-v1.webp',           frames: 16 },
+    left_walk:    { file: 'Fire_boss-iso_walk_right-v1.webp',        frames: 16 },
+    right_walk:   { file: 'Fire_boss-iso_walk_right-v1.webp',        frames: 16 },
+    front_attack: { file: 'Fire_boss-iso_custom_cast_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'Fire_boss-iso_custom_cast_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'Fire_boss-iso_custom_cast_right-v1.webp', frames: 16 },
+    right_attack: { file: 'Fire_boss-iso_custom_cast_right-v1.webp', frames: 16 },
+    dying:        { file: 'Fire_boss-iso_custom_death_down-v1.webp', frames: 16 },
+  },
+};
+
+const AQUARIS_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/aquaris/',
+  frameW: 256, frameH: 256,
+  anims: {
+    front_idle:   { file: 'Water_boss-iso_idle_down-v1.webp',         frames: 16 },
+    back_idle:    { file: 'Water_boss-iso_idle_up-v1.webp',           frames: 16 },
+    left_idle:    { file: 'Water_boss-iso_idle_right-v1.webp',        frames: 16 },
+    right_idle:   { file: 'Water_boss-iso_idle_right-v1.webp',        frames: 16 },
+    front_walk:   { file: 'Water_boss-iso_walk_down-v1.webp',         frames: 16 },
+    back_walk:    { file: 'Water_boss-iso_walk_up-v1.webp',           frames: 16 },
+    left_walk:    { file: 'Water_boss-iso_walk_right-v1.webp',        frames: 16 },
+    right_walk:   { file: 'Water_boss-iso_walk_right-v1.webp',        frames: 16 },
+    front_attack: { file: 'Water_boss-iso_custom_cast_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'Water_boss-iso_custom_cast_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'Water_boss-iso_custom_cast_right-v1.webp', frames: 16 },
+    right_attack: { file: 'Water_boss-iso_custom_cast_right-v1.webp', frames: 16 },
+    dying:        { file: 'Water_boss-iso_custom_death_down-v1.webp', frames: 16 },
   },
 };
 
@@ -459,6 +522,9 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   bear_veteran: BEAR_SPRITES,
   wolf: WOLF_SPRITES,
   wolf_veteran: WOLF_SPRITES,
+  monk: MONK_SPRITES,
+  ignis: IGNIS_SPRITES,
+  aquaris: AQUARIS_SPRITES,
   bandit_archer: BANDIT_ARCHER_SPRITES,
   bandit_archer_veteran: BANDIT_ARCHER_SPRITES,
   bandit_spear: BANDIT_SPEAR_SPRITES,

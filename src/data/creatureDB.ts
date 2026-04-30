@@ -554,6 +554,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.StaffFire, color: 0xff3300, abilityName: 'Fire Wall',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3],
     isBoss: true,
+    displaySizeMultiplier: 3.5,
   },
 
   aquaris: {
@@ -569,6 +570,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.StaffWater, color: 0x0066ff, abilityName: 'Ice Rain',
     npcSpells: [MOB_WATER_T1, MOB_WATER_T2, MOB_WATER_T3],
     isBoss: true,
+    displaySizeMultiplier: 3.5,
   },
 
   terra: {
