@@ -155,9 +155,12 @@ const QUEST_SPARK: BodyQuestDef = {
     { speaker: '', text: 'Десять деревьев. Роща знает твоё имя. Искра — твоя.' },
   ],
   objectives: [
-    // TODO: spawn dry_tree destructibles in fire zone when implemented
     { type: 'destroy', count: 10, targetId: 'dry_tree', targetNameRu: 'Сухое дерево', description: 'Подожги 10 деревьев' },
   ],
+  spawnObjects: [{
+    objectId: 'dry_tree', nameRu: 'Сухое дерево', icon: '🪵', color: 0x886633,
+    type: 'destructible', count: 12, radius: 400,
+  }],
   rewardSpellId: 'mob_fire_t1',
   xpReward: 50,
 };
