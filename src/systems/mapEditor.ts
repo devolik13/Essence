@@ -202,7 +202,14 @@ export class MapEditor {
       ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
       : this.scene.add.image(obj.x, obj.y, textureKey);
     img.setOrigin(0.5, isMob ? 0.5 : 0.9);
-    img.setScale(obj.scale);
+    if (isMob) {
+      // Mobs render at their in-game display size (~40px) regardless of
+      // sheet frame dimensions (which can be 128/256/etc per source).
+      const sz = 40 * obj.scale;
+      img.setDisplaySize(sz, sz);
+    } else {
+      img.setScale(obj.scale);
+    }
     img.setAngle(obj.angle ?? 0);
     img.setDepth(obj.y);
     if (obj.tint !== undefined && obj.tint !== 0xffffff) img.setTint(obj.tint);
