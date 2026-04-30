@@ -158,14 +158,9 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   caravans: [
-    // Eshworth → Waldmar trade caravan: cart + 2 guards + merchant.
-    // Spawned via Caravan system, not via spawnGroups.
-    {
-      start: { x: EX + 280, y: EY },
-      end:   { x: WX - 280, y: WY },
-      speed: 36,
-      guardCount: 2,
-    },
+    // Cleared along with all other map mobs. Will be re-added under the
+    // "skills first" design pass once caravan_guard / caravan_merchant
+    // teach distinct, undisputed abilities.
   ],
 
   resourceNodes: [],
