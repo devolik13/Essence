@@ -274,6 +274,29 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 3650,  y: 5950, creatureId: 'spark', count: 1 },
     { x: 9350,  y: 6650, creatureId: 'spark', count: 1 },
     { x: 9650,  y: 6350, creatureId: 'spark', count: 1 },
+
+    // Boars — 20 scattered for bq_boar quest (kill 3 wolves → ram).
+    // Combat type, individual spawns; positions interleave with wolf packs.
+    { x: 1100,  y: 900,  creatureId: 'boar', count: 1 },
+    { x: 3300,  y: 1400, creatureId: 'boar', count: 1 },
+    { x: 5500,  y: 700,  creatureId: 'boar', count: 1 },
+    { x: 8400,  y: 900,  creatureId: 'boar', count: 1 },
+    { x: 10700, y: 1400, creatureId: 'boar', count: 1 },
+    { x: 1900,  y: 2500, creatureId: 'boar', count: 1 },
+    { x: 4500,  y: 2700, creatureId: 'boar', count: 1 },
+    { x: 7300,  y: 2500, creatureId: 'boar', count: 1 },
+    { x: 9500,  y: 2700, creatureId: 'boar', count: 1 },
+    { x: 2300,  y: 3900, creatureId: 'boar', count: 1 },
+    { x: 5700,  y: 3700, creatureId: 'boar', count: 1 },
+    { x: 7900,  y: 3900, creatureId: 'boar', count: 1 },
+    { x: 10800, y: 3500, creatureId: 'boar', count: 1 },
+    { x: 1500,  y: 5500, creatureId: 'boar', count: 1 },
+    { x: 4100,  y: 5400, creatureId: 'boar', count: 1 },
+    { x: 6700,  y: 5500, creatureId: 'boar', count: 1 },
+    { x: 9000,  y: 5400, creatureId: 'boar', count: 1 },
+    { x: 2900,  y: 6700, creatureId: 'boar', count: 1 },
+    { x: 7000,  y: 6500, creatureId: 'boar', count: 1 },
+    { x: 10500, y: 6700, creatureId: 'boar', count: 1 },
   ],
 
   exits: [
