@@ -6,6 +6,7 @@ export interface BodyQuestProgress {
   completed: boolean;
   surviveTimers: number[];
   protectTimers: number[];  // countdown for protect objectives (seconds remaining)
+  meditateTimers: number[]; // countdown for meditate objectives (seconds remaining inside circle)
   started: boolean;
 }
 
@@ -19,6 +20,7 @@ export class BodyQuestTracker {
       completed: false,
       surviveTimers: def.objectives.map(obj => obj.type === 'survive' ? obj.count : 0),
       protectTimers: def.objectives.map(obj => obj.type === 'protect' ? obj.count : 0),
+      meditateTimers: def.objectives.map(obj => obj.type === 'meditate' ? obj.count : 0),
       started: true,
     };
   }
@@ -110,6 +112,42 @@ export class BodyQuestTracker {
   getProtectRemaining(index: number): number {
     if (!this.active) return 0;
     return Math.max(0, this.active.protectTimers[index]);
+  }
+
+  /** Tick meditation timer for a given waypoint target (called while player inside circle). */
+  tickMeditate(targetId: string, dt: number): boolean {
+    if (!this.active || this.active.completed) return false;
+    let completed = false;
+    for (let i = 0; i < this.active.def.objectives.length; i++) {
+      const obj = this.active.def.objectives[i];
+      if (obj.type !== 'meditate' || obj.targetId !== targetId) continue;
+      if (this.active.counts[i] >= obj.count) continue;
+      this.active.meditateTimers[i] -= dt;
+      if (this.active.meditateTimers[i] <= 0) {
+        this.active.counts[i] = obj.count;
+        completed = true;
+      }
+    }
+    if (completed && this.isComplete()) {
+      this.active.completed = true;
+    }
+    return completed;
+  }
+
+  /** Reset meditation timer (called when player leaves circle and a new one is placed). */
+  resetMeditate(targetId: string): void {
+    if (!this.active || this.active.completed) return;
+    for (let i = 0; i < this.active.def.objectives.length; i++) {
+      const obj = this.active.def.objectives[i];
+      if (obj.type !== 'meditate' || obj.targetId !== targetId) continue;
+      if (this.active.counts[i] >= obj.count) continue;
+      this.active.meditateTimers[i] = obj.count;
+    }
+  }
+
+  getMeditateRemaining(index: number): number {
+    if (!this.active) return 0;
+    return Math.max(0, this.active.meditateTimers[index]);
   }
 
   onKill(creatureId: string): boolean {

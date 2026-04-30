@@ -126,10 +126,8 @@ const QUEST_SHAMAN: BodyQuestDef = {
     { speaker: '', text: 'Духи откликнулись. Их дар — спутник из леса.' },
   ],
   objectives: [
-    { type: 'reach', count: 1, targetId: 'spirit_clearing', targetNameRu: 'Духовная поляна', description: 'Дойди до духовной поляны' },
-    { type: 'survive', count: 30, description: 'Медитируй 30 секунд' },
+    { type: 'meditate', count: 30, targetId: 'spirit_clearing', meditateRadius: 100, description: 'Медитируй 30 сек на поляне (не покидай круг)' },
   ],
-  // TODO: replace with fixed map coordinates once clearing location is decided
   spawnObjects: [{
     objectId: 'spirit_clearing', nameRu: 'Духовная поляна', icon: '🌀', color: 0x8866ff,
     type: 'waypoint', count: 1, radius: 450,

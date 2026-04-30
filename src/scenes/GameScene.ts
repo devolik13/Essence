@@ -1459,6 +1459,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // Meditate objectives — tick timer while inside the circle, relocate on exit.
+    this.checkMeditation(bq, px, py);
+
     // Proximity-reach: reach objectives targeting a live creature (e.g. wounded_human)
     for (const obj of bq.def.objectives) {
       if (obj.type !== 'reach' || !obj.targetId) continue;
@@ -1501,6 +1504,50 @@ export class GameScene extends Phaser.Scene {
       if (isActive && distance(px, py, target.x, target.y) > obj.zoneRadius) {
         const reset = this.bodyQuestTracker.failProtect(obj.targetId);
         if (reset) this.showMessage('Ты слишком далеко. Раненый остался без защиты — вернись и начни заново.');
+      }
+    }
+  }
+
+  /**
+   * Meditate objectives: while player stays within the circle around a waypoint
+   * (default radius 100), tick the meditate timer. If player leaves, relocate
+   * the waypoint to a nearby random spot and reset the timer — gives the player
+   * a way to evade hostile mobs without giving up the quest.
+   */
+  private checkMeditation(bq: NonNullable<ReturnType<BodyQuestTracker['getActive']>>, px: number, py: number) {
+    for (const obj of bq.def.objectives) {
+      if (obj.type !== 'meditate' || !obj.targetId) continue;
+      const idx = bq.def.objectives.indexOf(obj);
+      if (bq.counts[idx] >= obj.count) continue;
+      const radius = obj.meditateRadius ?? 100;
+
+      const qo = this.bodyQuestObjects.find(o => o.objectId === obj.targetId && !o.used);
+      if (!qo) continue;
+
+      const dist = distance(px, py, qo.x, qo.y);
+      if (dist <= radius) {
+        // Inside the circle — tick timer
+        const completed = this.bodyQuestTracker.tickMeditate(obj.targetId, this.game.loop.delta / 1000);
+        if (completed) {
+          qo.used = true;
+          qo.gfx.setAlpha(0.3);
+          sfxBuff();
+          this.showMessage(`${qo.nameRu} ✓`);
+          if (this.bodyQuestTracker.isComplete()) {
+            this.onBodyQuestComplete();
+          }
+        }
+      } else if (dist > radius + 200) {
+        // Player is far away — relocate waypoint nearby and reset timer
+        const angle = Math.random() * Math.PI * 2;
+        const moveDist = 250 + Math.random() * 200;
+        const mapW = this.currentZone.widthTiles * TILE_SIZE;
+        const mapH = this.currentZone.heightTiles * TILE_SIZE;
+        const nx = Math.max(40, Math.min(mapW - 40, px + Math.cos(angle) * moveDist));
+        const ny = Math.max(40, Math.min(mapH - 40, py + Math.sin(angle) * moveDist));
+        qo.x = nx; qo.y = ny;
+        qo.gfx.setPosition(nx, ny);
+        this.bodyQuestTracker.resetMeditate(obj.targetId);
       }
     }
   }

@@ -2,7 +2,7 @@ import { DialogMessage } from '../data/dialogs';
 
 export type BodyQuestTier = 1 | 2 | 3;
 
-export type BodyObjectiveType = 'kill' | 'survive' | 'escort' | 'collect' | 'reach' | 'protect' | 'steal' | 'destroy';
+export type BodyObjectiveType = 'kill' | 'survive' | 'escort' | 'collect' | 'reach' | 'protect' | 'steal' | 'destroy' | 'meditate';
 
 export interface BodyQuestObjective {
   type: BodyObjectiveType;
@@ -12,6 +12,8 @@ export interface BodyQuestObjective {
   description: string;
   /** For 'protect': max distance (px) the player can stray from the target. Reset on exit. */
   zoneRadius?: number;
+  /** For 'meditate': radius (px) within which the timer ticks. Leaving relocates the spot. */
+  meditateRadius?: number;
 }
 
 export interface BodyQuestSpawnObject {
