@@ -147,14 +147,37 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   spawnGroups: [
-    // Wolves scattered across the map (~30 total, in 6 packs of 5).
-    // Coordinates pick wide-open forest/wilderness, away from safe zones.
-    { x: 5000, y: 1500, creatureId: 'wolf', count: 5 },  // North forest, east of Eshworth
-    { x: 2000, y: 1200, creatureId: 'wolf', count: 5 },  // Far NW wilderness
-    { x: 6500, y: 4500, creatureId: 'wolf', count: 5 },  // East-central woods
-    { x: 7000, y: 6500, creatureId: 'wolf', count: 5 },  // South-east clearing
-    { x: 3500, y: 5000, creatureId: 'wolf', count: 5 },  // South of Eshworth
-    { x: 8000, y: 1500, creatureId: 'wolf', count: 5 },  // North of Waldmar
+    // Wolves — 30 spawned individually so packs don't shred the player.
+    { x: 1100,  y: 1300, creatureId: 'wolf', count: 1 },
+    { x: 2700,  y: 800,  creatureId: 'wolf', count: 1 },
+    { x: 4200,  y: 1500, creatureId: 'wolf', count: 1 },
+    { x: 5500,  y: 600,  creatureId: 'wolf', count: 1 },
+    { x: 6900,  y: 1300, creatureId: 'wolf', count: 1 },
+    { x: 8500,  y: 700,  creatureId: 'wolf', count: 1 },
+    { x: 10100, y: 1400, creatureId: 'wolf', count: 1 },
+    { x: 11200, y: 800,  creatureId: 'wolf', count: 1 },
+    { x: 1500,  y: 2700, creatureId: 'wolf', count: 1 },
+    { x: 3700,  y: 2300, creatureId: 'wolf', count: 1 },
+    { x: 5300,  y: 2700, creatureId: 'wolf', count: 1 },
+    { x: 7100,  y: 2300, creatureId: 'wolf', count: 1 },
+    { x: 9000,  y: 2700, creatureId: 'wolf', count: 1 },
+    { x: 10900, y: 2400, creatureId: 'wolf', count: 1 },
+    { x: 600,   y: 4300, creatureId: 'wolf', count: 1 },
+    { x: 2400,  y: 4500, creatureId: 'wolf', count: 1 },
+    { x: 3900,  y: 4100, creatureId: 'wolf', count: 1 },
+    { x: 6100,  y: 4500, creatureId: 'wolf', count: 1 },
+    { x: 7800,  y: 4100, creatureId: 'wolf', count: 1 },
+    { x: 9700,  y: 4500, creatureId: 'wolf', count: 1 },
+    { x: 11200, y: 4300, creatureId: 'wolf', count: 1 },
+    { x: 1700,  y: 5700, creatureId: 'wolf', count: 1 },
+    { x: 3500,  y: 5500, creatureId: 'wolf', count: 1 },
+    { x: 5500,  y: 5800, creatureId: 'wolf', count: 1 },
+    { x: 7300,  y: 5500, creatureId: 'wolf', count: 1 },
+    { x: 9100,  y: 5800, creatureId: 'wolf', count: 1 },
+    { x: 10800, y: 5500, creatureId: 'wolf', count: 1 },
+    { x: 2100,  y: 6700, creatureId: 'wolf', count: 1 },
+    { x: 6300,  y: 6700, creatureId: 'wolf', count: 1 },
+    { x: 8800,  y: 6700, creatureId: 'wolf', count: 1 },
 
     // Deer — 30 spawned individually so the player can engage one at a time.
     { x: 1200,  y: 800,  creatureId: 'deer', count: 1 },
