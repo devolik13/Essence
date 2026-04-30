@@ -418,7 +418,10 @@ export class GameScene extends Phaser.Scene {
           this.selectedTarget = null;
         } else {
           this.selectedStarterDef = null;
-          this.handleAttack();
+          // Empty-area click — move player body toward the click point
+          if (this.playerBody) {
+            this.playerBody.setClickMoveTarget(worldX, worldY);
+          }
         }
       }
     });

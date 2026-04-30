@@ -77,6 +77,12 @@ export class Body extends Phaser.GameObjects.Container {
   private facingDir: 'down' | 'right' | 'up' | 'left' = 'down';
   /** Флаг воспроизведения атаки */
   private isAttackPlaying: boolean = false;
+  /** Click-to-move destination. Cleared when target is reached or WASD is pressed. */
+  private clickMoveTarget: { x: number; y: number } | null = null;
+
+  setClickMoveTarget(x: number, y: number): void {
+    this.clickMoveTarget = { x, y };
+  }
   /** Resolved animation config (humanoid, animal, or null for static) */
   private resolvedAnim: AnimCfg | null = null;
 
@@ -367,10 +373,25 @@ export class Body extends Phaser.GameObjects.Container {
       if (this.keys.W.isDown) vy = -1;
       if (this.keys.S.isDown) vy = 1;
 
-      if (vx !== 0 && vy !== 0) {
-        const norm = 1 / Math.SQRT2;
-        vx *= norm;
-        vy *= norm;
+      // WASD overrides click-to-move
+      const hasWasd = vx !== 0 || vy !== 0;
+      if (hasWasd) {
+        this.clickMoveTarget = null;
+        if (vx !== 0 && vy !== 0) {
+          const norm = 1 / Math.SQRT2;
+          vx *= norm;
+          vy *= norm;
+        }
+      } else if (this.clickMoveTarget) {
+        const dx = this.clickMoveTarget.x - this.x;
+        const dy = this.clickMoveTarget.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 8) {
+          this.clickMoveTarget = null;
+        } else {
+          vx = dx / dist;
+          vy = dy / dist;
+        }
       }
 
       const speedMult = this.getSpeedMult();
