@@ -95,6 +95,8 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
   // ── Медведи ──────────────────────────────────────────────────────────────
   { key: 'mob_bear',                    textureKey: 'mob_sheet_bear_front_idle'            },
   { key: 'mob_bear_veteran',            textureKey: 'mob_sheet_bear_veteran_front_idle'    },
+  { key: 'mob_wolf',                    textureKey: 'mob_sheet_wolf_front_idle'            },
+  { key: 'mob_wolf_veteran',            textureKey: 'mob_sheet_wolf_front_idle'            },
   // ── Элементали ───────────────────────────────────────────────────────────
   { key: 'mob_spark',                   textureKey: 'animal_slime_fire_idle'               },
   { key: 'mob_asher',                   textureKey: 'animal_slime_fire_idle'               },
@@ -178,6 +180,26 @@ const SHAMAN_SPRITES: MobSpriteSet = {
     left_attack:  { file: 'Shaman-iso_custom_cast_spell_right-v1.webp', frames: 16 },
     right_attack: { file: 'Shaman-iso_custom_cast_spell_right-v1.webp', frames: 16 },
     dying:        { file: 'Shaman-iso_custom_death_down-v1.webp',       frames: 16 },
+  },
+};
+
+const WOLF_SPRITES: MobSpriteSet = {
+  folder: 'assets/mobs/wolf/',
+  frameW: 128, frameH: 128,
+  anims: {
+    front_idle:   { file: 'wolf_E-iso_idle_down-v1.webp',         frames: 16 },
+    back_idle:    { file: 'wolf_E-iso_idle_up-v1.webp',           frames: 16 },
+    left_idle:    { file: 'wolf_E-iso_idle_right-v1.webp',        frames: 16 },
+    right_idle:   { file: 'wolf_E-iso_idle_right-v1.webp',        frames: 16 },
+    front_walk:   { file: 'wolf_E-iso_custom_move_down-v1.webp',  frames: 16 },
+    back_walk:    { file: 'wolf_E-iso_custom_move_up-v1.webp',    frames: 16 },
+    left_walk:    { file: 'wolf_E-iso_custom_move_right-v1.webp', frames: 16 },
+    right_walk:   { file: 'wolf_E-iso_custom_move_right-v1.webp', frames: 16 },
+    front_attack: { file: 'wolf_E-iso_custom_bite_down-v1.webp',  frames: 16 },
+    back_attack:  { file: 'wolf_E-iso_custom_bite_up-v1.webp',    frames: 16 },
+    left_attack:  { file: 'wolf_E-iso_custom_bite_right-v1.webp', frames: 16 },
+    right_attack: { file: 'wolf_E-iso_custom_bite_right-v1.webp', frames: 16 },
+    dying:        { file: 'wolf_E-iso_custom_death_down-v1.webp', frames: 16 },
   },
 };
 
@@ -435,6 +457,8 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   spirit_wolf: SHAMAN_SPRITES,
   bear: BEAR_SPRITES,
   bear_veteran: BEAR_SPRITES,
+  wolf: WOLF_SPRITES,
+  wolf_veteran: WOLF_SPRITES,
   bandit_archer: BANDIT_ARCHER_SPRITES,
   bandit_archer_veteran: BANDIT_ARCHER_SPRITES,
   bandit_spear: BANDIT_SPEAR_SPRITES,
