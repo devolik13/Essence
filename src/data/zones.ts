@@ -466,6 +466,28 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 9300,  y: 6100, creatureId: 'scout', count: 1 },
     { x: 11200, y: 6300, creatureId: 'scout', count: 1 },
 
+    // Shamans — 20 (T1 nature, learns Summon Wolf)
+    { x: 1200,  y: 700,  creatureId: 'shaman', count: 1 },
+    { x: 4300,  y: 1500, creatureId: 'shaman', count: 1 },
+    { x: 6700,  y: 700,  creatureId: 'shaman', count: 1 },
+    { x: 9300,  y: 1500, creatureId: 'shaman', count: 1 },
+    { x: 11000, y: 700,  creatureId: 'shaman', count: 1 },
+    { x: 600,   y: 3300, creatureId: 'shaman', count: 1 },
+    { x: 2900,  y: 3300, creatureId: 'shaman', count: 1 },
+    { x: 5300,  y: 2700, creatureId: 'shaman', count: 1 },
+    { x: 7900,  y: 3300, creatureId: 'shaman', count: 1 },
+    { x: 10500, y: 2700, creatureId: 'shaman', count: 1 },
+    { x: 1700,  y: 4900, creatureId: 'shaman', count: 1 },
+    { x: 4500,  y: 4100, creatureId: 'shaman', count: 1 },
+    { x: 6700,  y: 4900, creatureId: 'shaman', count: 1 },
+    { x: 9100,  y: 4100, creatureId: 'shaman', count: 1 },
+    { x: 11000, y: 4900, creatureId: 'shaman', count: 1 },
+    { x: 2300,  y: 6500, creatureId: 'shaman', count: 1 },
+    { x: 5500,  y: 6300, creatureId: 'shaman', count: 1 },
+    { x: 7900,  y: 6500, creatureId: 'shaman', count: 1 },
+    { x: 10100, y: 6300, creatureId: 'shaman', count: 1 },
+    { x: 11200, y: 6700, creatureId: 'shaman', count: 1 },
+
     // Boars — 20 scattered for bq_boar quest (kill 3 wolves → ram).
     // Combat type, individual spawns; positions interleave with wolf packs.
     { x: 1100,  y: 900,  creatureId: 'boar', count: 1 },
