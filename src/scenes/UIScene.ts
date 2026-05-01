@@ -1767,7 +1767,7 @@ export class UIScene extends Phaser.Scene {
     const item = ITEMS[activeId];
     if (!item) return;
     const weapon = WEAPONS[data.body.definition.weapon];
-    const str = data.body.stats.strength ?? 0;
+    const str = data.sphere.stats?.strength ?? 0;
     const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
     const inactiveId = data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon;
     const lines = [
@@ -1803,7 +1803,8 @@ export class UIScene extends Phaser.Scene {
     }
     const item = ITEMS[activeId];
     const weapon = WEAPONS[data.body.definition.weapon];
-    const str = data.body.stats.strength ?? 0;
+    // Body itself doesn't store stats — they live on the Sphere.
+    const str = data.sphere.stats?.strength ?? 0;
     const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
     this.weaponBlockIcon.setText(item?.icon ?? '⚔');
     this.weaponBlockDmg.setText(String(dmg));

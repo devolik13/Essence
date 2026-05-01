@@ -30,6 +30,8 @@ const STATUS_SPRITE: Record<string, string> = {
   leaf_regen: 'st_leaf_regen',
   hp_regen_boost: 'st_leaf_regen',
   mana_regen_boost: 'st_mana_regen',
+  regen_per_debuff: 'st_leaf_regen',  // Spirit Resilience — HP regen visual
+  regen_per_buff: 'st_leaf_regen',     // Sustain — same regen visual
 };
 
 export interface StatusEntry {

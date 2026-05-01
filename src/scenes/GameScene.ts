@@ -125,6 +125,8 @@ export class GameScene extends Phaser.Scene {
 
   // AoE прицеливание
   private aoeTargeting: { slotIndex: number; spell: AbilityDef } | null = null;
+  /** Ally-target spell (e.g. Ally Heal): waits for click on a friendly creature. */
+  private allyTargeting: { slotIndex: number; spell: AbilityDef } | null = null;
   private aoeCasting: {
     slotIndex: number; spell: AbilityDef;
     targetX: number; targetY: number;
@@ -439,6 +441,7 @@ export class GameScene extends Phaser.Scene {
       // Правая кнопка — отмена AoE
       if (pointer.rightButtonDown()) {
         this.exitAoeTargeting();
+        if (this.allyTargeting) this.exitAllyTargeting();
         return;
       }
       if (!pointer.leftButtonDown()) return;
@@ -446,6 +449,21 @@ export class GameScene extends Phaser.Scene {
       // Если активен режим AoE — выстрел
       if (this.aoeTargeting) {
         this.fireAoeSpell(pointer.worldX, pointer.worldY);
+        return;
+      }
+
+      // Ally-targeting: click on a friendly creature (summoned wolf, caravan, etc.)
+      if (this.allyTargeting) {
+        const wx = pointer.worldX, wy = pointer.worldY;
+        const clickedAlly = this.creatures.find(c =>
+          !c.isDead && distance(c.x, c.y, wx, wy) < 30 &&
+          (c.isSummoned || c.definition.faction === 'caravan'),
+        );
+        if (clickedAlly) {
+          this.fireAllySpell(clickedAlly);
+        } else {
+          this.showMessage('Выбери союзника');
+        }
         return;
       }
 
@@ -530,6 +548,7 @@ export class GameScene extends Phaser.Scene {
       // ESC — отмена AoE
       if (Phaser.Input.Keyboard.JustDown(this.keyEsc)) {
         this.exitAoeTargeting();
+        if (this.allyTargeting) this.exitAllyTargeting();
       }
     } else {
       this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
@@ -3131,6 +3150,12 @@ export class GameScene extends Phaser.Scene {
 
     const spell = slot.ability;
 
+    // Школьная проверка: огненная магия требует огненный посох и т.д.
+    if (!this.canUseSpellWithWeapon(spell)) {
+      this.showMessage(`Need ${spell.school} staff`);
+      return;
+    }
+
     // Проверка маны
     if (this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
@@ -3822,9 +3847,48 @@ export class GameScene extends Phaser.Scene {
       // Входим в режим прицеливания
       this.aoeTargeting = { slotIndex, spell };
       this.events.emit('aoe-targeting', spell.nameRu);
+    } else if (spell.targetAlly) {
+      // Ally targeting — wait for click on friendly creature
+      this.allyTargeting = { slotIndex, spell };
+      this.events.emit('aoe-targeting', `${spell.nameRu} — выбери союзника`);
     } else {
       this.handleSpell(slotIndex);
     }
+  }
+
+  /** Click in ally-targeting mode — heals the chosen ally. */
+  private fireAllySpell(target: Creature) {
+    if (!this.allyTargeting || !this.playerBody) return;
+    const { slotIndex, spell } = this.allyTargeting;
+    const slot = this.playerBody.abilitySlots[slotIndex];
+    if (!slot?.ability) { this.exitAllyTargeting(); return; }
+    if (slot.cooldownRemaining > 0) { this.exitAllyTargeting(); return; }
+
+    const d = distance(this.playerBody.x, this.playerBody.y, target.x, target.y);
+    if (d > spell.range) {
+      this.showMessage('Out of range');
+      return;
+    }
+    if (this.playerBody.currentMana < spell.manaCost) {
+      this.events.emit('no-mana');
+      return;
+    }
+
+    this.playerBody.currentMana -= spell.manaCost;
+    slot.cooldownRemaining = spell.cooldown;
+
+    const intel = this.sphere.stats.intellect ?? 0;
+    const healAmount = Math.round(spell.baseDamage * (1 + intel / 100));
+    target.currentHP = Math.min(target.currentHP + healAmount, target.maxHP);
+    this.damageTexts.push(new DamageText(this, target.x, target.y - 10, healAmount, false, false));
+    spawnHealVFX(this, target.x, target.y);
+
+    this.exitAllyTargeting();
+  }
+
+  private exitAllyTargeting() {
+    this.allyTargeting = null;
+    this.events.emit('aoe-cancel');
   }
 
   /** Клик в режиме прицеливания — проверки и запуск каста */
