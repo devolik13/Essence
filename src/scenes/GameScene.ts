@@ -1824,7 +1824,8 @@ export class GameScene extends Phaser.Scene {
       staff_fire: 'fire', staff_water: 'water', staff_earth: 'earth',
       staff_wind: 'wind', staff_nature: 'nature',
     };
-    return weaponSchoolMap[this.playerBody.definition.weapon] ?? null;
+    // body.weapon follows the active equipped item, so Tab swap changes the school.
+    return weaponSchoolMap[this.playerBody.weapon.type] ?? null;
   }
 
   /** Проверяет можно ли заклинание поставить в слот с текущим оружием */
@@ -3197,23 +3198,33 @@ export class GameScene extends Phaser.Scene {
       const dir = this.playerBody.getFacingVector();
       const startX = this.playerBody.x;
       const startY = this.playerBody.y;
-      this.playerBody.x = clamp(startX + dir.x * dist, 16, this.playerBody.mapW - 16);
-      this.playerBody.y = clamp(startY + dir.y * dist, 16, this.playerBody.mapH - 16);
+      const targetX = clamp(startX + dir.x * dist, 16, this.playerBody.mapW - 16);
+      const targetY = clamp(startY + dir.y * dist, 16, this.playerBody.mapH - 16);
 
-      // Таран: отталкивание врагов вдоль пути рывка
+      // Smooth dash — visual ram, ~600px/sec (200px ≈ 0.33s)
+      const realDist = Math.hypot(targetX - startX, targetY - startY);
+      const duration = Math.max(120, (realDist / 600) * 1000);
+      this.tweens.add({
+        targets: this.playerBody,
+        x: targetX,
+        y: targetY,
+        duration,
+        ease: 'Cubic.Out',
+      });
+
+      // Таран: отталкивание врагов вдоль пути рывка (apply at start, before tween settles)
       if (spell.statusEffect === 'knockback') {
         const pushDist = 80;
         for (const c of this.creatures) {
           if (c.isDead) continue;
-          // Проверяем расстояние от линии рывка (start→end)
+          // Расстояние от линии рывка (start→target)
           const ax = c.x - startX, ay = c.y - startY;
-          const bx = this.playerBody.x - startX, by = this.playerBody.y - startY;
+          const bx = targetX - startX, by = targetY - startY;
           const lenSq = bx * bx + by * by;
           const t = lenSq > 0 ? Math.max(0, Math.min(1, (ax * bx + ay * by) / lenSq)) : 0;
           const projX = startX + t * bx, projY = startY + t * by;
           const d = distance(c.x, c.y, projX, projY);
           if (d < 40) {
-            // Отталкиваем перпендикулярно от линии рывка
             const dx = c.x - projX, dy = c.y - projY;
             const nd = Math.sqrt(dx * dx + dy * dy) || 1;
             c.x += (dx / nd) * pushDist;

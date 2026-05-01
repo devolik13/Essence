@@ -1378,7 +1378,9 @@ export class UIScene extends Phaser.Scene {
         .map(s => s.ability!.id) ?? []
     );
     const weaponSchool = this.cachedUIData?.weaponSchool ?? null;
-    const bodyWeapon = this.cachedBody?.definition.weapon ?? null;
+    // Use body.weapon getter (follows active equipped slot), not raw definition.weapon —
+    // so Tab swap actually changes which weapon-bound spells are pickable.
+    const bodyWeapon = this.cachedBody?.weapon.type ?? null;
     const isWeaponSlot = slotIndex < 5;
     const spells = this.cachedLearnedSpells.filter(sp => {
       if (usedIds.has(sp.id)) return false;
