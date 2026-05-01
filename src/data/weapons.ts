@@ -55,3 +55,31 @@ export const WEAPONS: Record<WeaponType, WeaponDef> = {
   [WeaponType.StaffNature]: { type: WeaponType.StaffNature, nameRu: 'Nature Staff',   cooldown: WEAPON_COOLDOWNS[WeaponType.StaffNature], range: 180, isMelee: false, baseDamage: 9 },
   [WeaponType.Fists]:       { type: WeaponType.Fists,       nameRu: 'Fists',         cooldown: WEAPON_COOLDOWNS[WeaponType.Fists],       range: 36,  isMelee: true,  baseDamage: 10, weaponEffect: 'daze', weaponEffectChance: 0.2 },
 };
+
+
+/**
+ * Map item id (e.g. "starter_sword", "fine_longbow") to its WeaponType.
+ * Returns undefined for non-weapon items or unknown patterns.
+ */
+export function getItemWeaponType(itemId: string): WeaponType | undefined {
+  // Strip rarity/tier prefix like "starter_", "basic_", "fine_", "master_"
+  const base = itemId.replace(/^(starter|basic|fine|master|legendary)_/, "");
+  switch (base) {
+    case "sword":           return WeaponType.Sword;
+    case "mace":            return WeaponType.Mace;
+    case "greatsword":      return WeaponType.Greatsword;
+    case "spear":           return WeaponType.Spear;
+    case "hammer":          return WeaponType.Hammer;
+    case "dagger":          return WeaponType.Dagger;
+    case "fists":           return WeaponType.Fists;
+    case "shortbow":        return WeaponType.ShortBow;
+    case "longbow":         return WeaponType.LongBow;
+    case "crossbow":        return WeaponType.Crossbow;
+    case "staff_fire":      return WeaponType.StaffFire;
+    case "staff_water":     return WeaponType.StaffWater;
+    case "staff_earth":     return WeaponType.StaffEarth;
+    case "staff_wind":      return WeaponType.StaffWind;
+    case "staff_nature":    return WeaponType.StaffNature;
+    default: return undefined;
+  }
+}

@@ -5,7 +5,7 @@ import { AbilitySlot, createEmptySlots } from '../types/abilities';
 import { StatusEffectId, ActiveStatusEffect, STATUS_DEFS } from '../types/statuses';
 import { maxHP, maxMana, hpRegenPerSec, manaRegenPerSec } from '../systems/combat';
 import { BODY_SPEED } from '../utils/constants';
-import { WEAPONS, STRENGTH_WEAPONS, AGILITY_WEAPONS } from '../data/weapons';
+import { WEAPONS, STRENGTH_WEAPONS, AGILITY_WEAPONS, getItemWeaponType } from '../data/weapons';
 import { clamp } from '../utils/math';
 import { pushOutOfColliders } from '../systems/mapColliders';
 import { WeaponType } from '../types/bodies';
@@ -200,7 +200,21 @@ export class Body extends Phaser.GameObjects.Container {
   get maxHP(): number { return maxHP(this.sphereStats); }
   get maxMana(): number { return maxMana(this.sphereStats); }
   get isDead(): boolean { return this.currentHP <= 0; }
-  get weapon() { return WEAPONS[this.definition.weapon]; }
+  get weapon() {
+    // If the player has an equipped weapon item, use ITS weapon type so
+    // basic attacks follow the equipped slot (Tab swap → bow combat etc.).
+    // Falls back to body's intrinsic weapon when no item is equipped.
+    const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
+    if (sphere?.equipment) {
+      const slot = sphere.activeWeaponSlot ?? 0;
+      const id = slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
+      if (id) {
+        const wt = getItemWeaponType(id);
+        if (wt) return WEAPONS[wt];
+      }
+    }
+    return WEAPONS[this.definition.weapon];
+  }
 
   possess(scene: Phaser.Scene) {
     this.isPlayerControlled = true;
