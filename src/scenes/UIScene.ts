@@ -431,6 +431,15 @@ export class UIScene extends Phaser.Scene {
     // M — toggle maxi-map; ESC also closes it
     this.input.keyboard?.on('keydown-M',   () => this.toggleMaximap());
     this.input.keyboard?.on('keydown-ESC', () => { if (this.maximapOpen) this.toggleMaximap(); });
+
+    // Window shortcuts: I=inventory, Q=quests, C=stats(char), K=spells, B=bestiary, J=achievements
+    this.input.keyboard?.on('keydown-I', () => this.toggleWindow('inventory'));
+    this.input.keyboard?.on('keydown-Q', () => this.toggleWindow('quests'));
+    this.input.keyboard?.on('keydown-C', () => this.toggleWindow('stats'));
+    this.input.keyboard?.on('keydown-K', () => this.toggleWindow('spells'));
+    this.input.keyboard?.on('keydown-B', () => this.toggleWindow('bestiary'));
+    this.input.keyboard?.on('keydown-J', () => this.toggleWindow('achievements'));
+    this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow) this.toggleWindow(this.currentWindow); });
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
