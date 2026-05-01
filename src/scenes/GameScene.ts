@@ -283,30 +283,18 @@ export class GameScene extends Phaser.Scene {
       console.log(`[cheat] Added ${added} starter weapons:`, weaponIds);
     };
     (window as unknown as { cheatSpells: () => void }).cheatSpells = () => {
-      // All T1 spells across schools + weapon T1s + neutrals
-      const t1Ids = [
-        // Weapon T1
-        'sword_strike', 'sting', 'mace_strike', 'slash', 'spear_thrust',
-        'hammer_strike', 'bow_shot', 'longbow_shot', 'crossbow_bolt', 'hook',
-        // Schools T1
-        'mob_fire_t1', 'mob_water_t1', 'mob_earth_t1', 'mob_wind_t1', 'mob_nature_t1',
-        // Neutrals T1
-        'acceleration', 'dash', 'neutral_heal', 'ally_heal', 'spirit_resilience',
-        // Bonus weapon T2 used by current mobs (ram, fist_strike)
-        'ram', 'fist_strike',
-      ];
+      // Learn every spell registered in ALL_KNOWN_SPELLS — covers all weapon
+      // tiers, all school tiers, and all neutrals.
       let added = 0;
-      for (const sid of t1Ids) {
-        const spell = getSpellById(sid);
-        if (!spell) { console.warn(`[cheat] spell not found: ${sid}`); continue; }
-        if (this.sphere.learnedSpells.some(s => s.id === sid)) continue;
+      for (const spell of ALL_KNOWN_SPELLS) {
+        if (this.sphere.learnedSpells.some(s => s.id === spell.id)) continue;
         this.sphere.learnedSpells.push(spell);
-        this.sphere.spellProgress[sid] = 9999;
+        this.sphere.spellProgress[spell.id] = 9999;
         added++;
       }
       this.persistState();
       this.events.emit('log', { text: `[cheat] +${added} spells learned`, color: '#66ccff' });
-      console.log(`[cheat] Learned ${added} spells:`, this.sphere.learnedSpells.map(s => s.id));
+      console.log(`[cheat] Learned ${added} spells. Total now: ${this.sphere.learnedSpells.length}`);
     };
     (window as unknown as { cheatAll: () => void }).cheatAll = () => {
       (window as unknown as { cheatWeapons: () => void }).cheatWeapons();
