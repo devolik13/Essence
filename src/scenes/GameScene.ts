@@ -263,6 +263,54 @@ export class GameScene extends Phaser.Scene {
     // UI scenes (e.g. inventory equip/unequip) request a save via this event.
     this.events.on('persist', () => this.persistState());
 
+    // ─── Debug / cheat commands (DevTools console) ──────────────────────────
+    // Usage: cheatWeapons() — adds 1 of every starter weapon to inventory
+    //        cheatSpells()  — learns every T1 spell + neutrals + nature/wolf
+    //        cheatAll()     — both at once
+    (window as unknown as { cheatWeapons: () => void }).cheatWeapons = () => {
+      const weaponIds = Object.keys(ITEMS).filter(id => id.startsWith('starter_'));
+      let added = 0;
+      for (const id of weaponIds) {
+        if (!this.sphere.inventory.find(i => i.itemId === id)) {
+          this.sphere.inventory.push({ itemId: id, quantity: 1 });
+          added++;
+        }
+      }
+      this.persistState();
+      this.events.emit('log', { text: `[cheat] +${added} weapons (${weaponIds.length} types)`, color: '#ffcc66' });
+      console.log(`[cheat] Added ${added} starter weapons:`, weaponIds);
+    };
+    (window as unknown as { cheatSpells: () => void }).cheatSpells = () => {
+      // All T1 spells across schools + weapon T1s + neutrals
+      const t1Ids = [
+        // Weapon T1
+        'sword_strike', 'sting', 'mace_strike', 'slash', 'spear_thrust',
+        'hammer_strike', 'bow_shot', 'longbow_shot', 'crossbow_bolt', 'hook',
+        // Schools T1
+        'mob_fire_t1', 'mob_water_t1', 'mob_earth_t1', 'mob_wind_t1', 'mob_nature_t1',
+        // Neutrals T1
+        'acceleration', 'dash', 'neutral_heal', 'ally_heal', 'spirit_resilience',
+        // Bonus weapon T2 used by current mobs (ram, fist_strike)
+        'ram', 'fist_strike',
+      ];
+      let added = 0;
+      for (const sid of t1Ids) {
+        const spell = getSpellById(sid);
+        if (!spell) { console.warn(`[cheat] spell not found: ${sid}`); continue; }
+        if (this.sphere.learnedSpells.some(s => s.id === sid)) continue;
+        this.sphere.learnedSpells.push(spell);
+        this.sphere.spellProgress[sid] = 9999;
+        added++;
+      }
+      this.persistState();
+      this.events.emit('log', { text: `[cheat] +${added} spells learned`, color: '#66ccff' });
+      console.log(`[cheat] Learned ${added} spells:`, this.sphere.learnedSpells.map(s => s.id));
+    };
+    (window as unknown as { cheatAll: () => void }).cheatAll = () => {
+      (window as unknown as { cheatWeapons: () => void }).cheatWeapons();
+      (window as unknown as { cheatSpells: () => void }).cheatSpells();
+    };
+
     // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
     const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
     if (autoBodyId) {
