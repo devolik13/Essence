@@ -40,6 +40,25 @@ const STATUS_SPRITE: Record<string, string> = {
   ranged_resist: 'st_bark_armor',      // Hardening — defensive
   evasion_boost: 'st_acceleration',    // Maneuver — agility-like
   armor_group_buff: 'st_fortify',       // Iron Skin — armor stack
+  // Debuffs / control without dedicated sprite
+  accuracy_reduce: 'st_daze',           // Disorienting Blow — accuracy down
+  concussion: 'st_daze',                // Concussion — next ability +CD
+  blind: 'st_daze',
+  curse: 'st_poison',                   // generic debuff visual
+  drain: 'st_poison',
+  fear: 'st_daze',
+  knockdown: 'st_stun',
+  magic_vulnerability: 'st_vulnerability',
+  mana_regen_block: 'st_burn_mana',
+  stagger: 'st_daze',
+  // Group / utility buffs
+  damage_boost: 'st_fortify',           // War Cry — generic buff
+  focus: 'st_fortify',                   // Focus — accuracy/buff
+  luck_group_buff: 'st_acceleration',  // Fortune's Blessing
+  mana_flow: 'st_mana_regen',
+  mana_link_self: 'st_mana_regen',
+  mana_link_target: 'st_mana_regen',
+  inspiration: 'st_fortify',
 };
 
 export interface StatusEntry {
