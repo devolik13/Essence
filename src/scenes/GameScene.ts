@@ -3231,8 +3231,8 @@ export class GameScene extends Phaser.Scene {
 
     // ── Самобафф (ускорение и пр.) ─────────────────────────────────────────
     if (spell.effectType === 'self_buff') {
-      // Проверка requiredWeapons
-      if (spell.requiredWeapons && !spell.requiredWeapons.includes(this.playerBody.definition.weapon)) {
+      // Проверка requiredWeapons — используем активное оружие, а не intrinsic body weapon
+      if (spell.requiredWeapons && !spell.requiredWeapons.includes(this.playerBody.weapon.type)) {
         slot.cooldownRemaining = 0;
         this.playerBody.currentMana += spell.manaCost;
         return;
@@ -3519,7 +3519,7 @@ export class GameScene extends Phaser.Scene {
       this.applyEnchantDamage(target, result.hit);
     }
     // Статус-эффект: спелл > оружие (+ alsoApplyWeaponEffect для двойного)
-    const weapon = this.playerBody ? WEAPONS[this.playerBody.definition.weapon] : null;
+    const weapon = this.playerBody ? this.playerBody.weapon : null;
     const effectId = spell.statusEffect ?? weapon?.weaponEffect;
     const effectChance = spell.statusEffect ? (spell.statusChance ?? 1.0) : (weapon?.weaponEffectChance ?? 0.2);
     if (effectId && result.hit) {

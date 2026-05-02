@@ -32,6 +32,14 @@ const STATUS_SPRITE: Record<string, string> = {
   mana_regen_boost: 'st_mana_regen',
   regen_per_debuff: 'st_leaf_regen',  // Spirit Resilience — HP regen visual
   regen_per_buff: 'st_leaf_regen',     // Sustain — same regen visual
+  // Misc buffs without dedicated sprite — fall back to closest visual
+  block_next: 'st_bark_armor',         // Cover (block next attack) — shield-like
+  shield_stance: 'st_bark_armor',      // Shield Stance — same
+  knockback_immune: 'st_fortify',      // Firm Stance — armor-up visual
+  stun_immune: 'st_fortify',            // Unshakeable — armor-up visual
+  ranged_resist: 'st_bark_armor',      // Hardening — defensive
+  evasion_boost: 'st_acceleration',    // Maneuver — agility-like
+  armor_group_buff: 'st_fortify',       // Iron Skin — armor stack
 };
 
 export interface StatusEntry {
