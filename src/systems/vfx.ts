@@ -26,7 +26,8 @@ export const SPELL_IMPACT_ANIM: Record<string, string> = {
  */
 export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
   mob_fire_t2:  'spell_firebolt',       // Fire Arrow
-  mob_water_t2: 'spell_frost_arrow',    // Ice Arrow
+  mob_water_t1: 'spell_ice_drop',       // Ice Shard — single drop projectile
+  mob_water_t2: 'spell_frost_arrow',    // Ice Arrow — distinct frost-arrow shape
   mob_wind_t4:  'spell_lightning',       // Storm Cloud bolts
   mob_wind_t5:  'spell_ball_lightning',  // Ball Lightning
 };
