@@ -397,6 +397,7 @@ export class GameScene extends Phaser.Scene {
       if (!slot) return;
       slot.ability = data.spell;
       slot.cooldownRemaining = 0;
+      if (data.spell) this.sphere.abilityCooldowns[data.spell.id] = 0;
       // Сохраняем назначение в Сферу
       this.sphere.savedSlotIds[data.slotIndex] = data.spell?.id ?? null;
       this.persistState();
@@ -3158,6 +3159,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.currentMana -= spell.manaCost;
     }
     slot.cooldownRemaining = spell.cooldown;
+    this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
     // ── Рывок: бросок вперёд ──────────────────────────────────────────────
     // ── Weapon Enchant: toggle-аура ────────────────────────────────────────
@@ -3177,6 +3179,7 @@ export class GameScene extends Phaser.Scene {
       }
       // Не тратим ману и не запускаем кулдаун
       slot.cooldownRemaining = 0;
+      this.sphere.abilityCooldowns[spell.id] = 0;
       this.playerBody.currentMana += spell.manaCost;
       return;
     }
@@ -3234,6 +3237,7 @@ export class GameScene extends Phaser.Scene {
       // Проверка requiredWeapons — используем активное оружие, а не intrinsic body weapon
       if (spell.requiredWeapons && !spell.requiredWeapons.includes(this.playerBody.weapon.type)) {
         slot.cooldownRemaining = 0;
+        this.sphere.abilityCooldowns[spell.id] = 0;
         this.playerBody.currentMana += spell.manaCost;
         return;
       }
@@ -3303,12 +3307,14 @@ export class GameScene extends Phaser.Scene {
       // Пока волк жив — повторный призыв заблокирован
       if (this.creatures.some(c => c.isSummoned && !c.isDead)) {
         slot.cooldownRemaining = 0;
+        this.sphere.abilityCooldowns[spell.id] = 0;
         this.playerBody.currentMana += spell.manaCost;
         this.events.emit('log', { text: 'Волк ещё жив', color: '#aaaaaa' });
         return;
       }
       // КД не ставим сейчас — запустится когда волк умрёт
       slot.cooldownRemaining = 0;
+      this.sphere.abilityCooldowns[spell.id] = 0;
       this.spawnSummonedWolf(this.playerBody.x + 40, this.playerBody.y);
       this.events.emit('ability-used', spell.nameRu);
       return;
@@ -3331,6 +3337,7 @@ export class GameScene extends Phaser.Scene {
     if (!target) {
       // Нет цели — возвращаем кулдаун и ману
       slot.cooldownRemaining = 0;
+      this.sphere.abilityCooldowns[spell.id] = 0;
       this.playerBody.currentMana += spell.manaCost;
       return;
     }
@@ -3625,6 +3632,7 @@ export class GameScene extends Phaser.Scene {
     if (spell.effectType === 'reset_cooldown' && result.hit) {
       if (Math.random() < (spell.resetCooldownChance ?? 0)) {
         slot.cooldownRemaining = 0;
+        this.sphere.abilityCooldowns[spell.id] = 0;
       }
     }
 
@@ -3875,6 +3883,7 @@ export class GameScene extends Phaser.Scene {
 
     this.playerBody.currentMana -= spell.manaCost;
     slot.cooldownRemaining = spell.cooldown;
+    this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
     const intel = this.sphere.stats.intellect ?? 0;
     const healAmount = Math.round(spell.baseDamage * (1 + intel / 100));
@@ -3949,6 +3958,7 @@ export class GameScene extends Phaser.Scene {
 
     this.playerBody.currentMana -= spell.manaCost;
     slot.cooldownRemaining = spell.cooldown;
+    this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
     const radius = spell.aoeRadius ?? 60;
 

@@ -26,6 +26,9 @@ export class Sphere extends Phaser.GameObjects.Container {
   /** Сохранённые раскладки слотов 1-5 для каждого оружия: weaponItemId → [slot1..slot5 spell ids] */
   public weaponSlotConfigs: Record<string, (string | null)[]> = {};
 
+  /** Cooldown remaining per ability id (seconds) — persists across weapon swaps. */
+  public abilityCooldowns: Record<string, number> = {};
+
   // Инвентарь
   public inventory: InventoryItem[] = [];
   /** Кол-во убитых существ по типу (для ачивок и статистики) */

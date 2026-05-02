@@ -326,9 +326,25 @@ export class Body extends Phaser.GameObjects.Container {
       if (status.timer <= 0) this.statusEffects.delete(id);
     }
 
-    for (const slot of this.abilitySlots) {
-      if (slot.cooldownRemaining > 0) {
-        slot.cooldownRemaining = Math.max(0, slot.cooldownRemaining - dt);
+    // Cooldowns are stored per ability id on the Sphere so they persist across
+    // weapon swaps (slot index alone would lose the CD when the slot's ability
+    // changes). Slot.cooldownRemaining mirrors the map for the active ability.
+    const sphere = (this.scene as unknown as { sphere?: { abilityCooldowns?: Record<string, number> } }).sphere;
+    const cdMap = sphere?.abilityCooldowns;
+    if (cdMap) {
+      // Tick the entire map — same dt applied to slot.cooldownRemaining
+      for (const id in cdMap) {
+        if (cdMap[id] > 0) cdMap[id] = Math.max(0, cdMap[id] - dt);
+      }
+      // Mirror current slots from the map (also drives the visual CD swirl)
+      for (const slot of this.abilitySlots) {
+        slot.cooldownRemaining = slot.ability ? (cdMap[slot.ability.id] ?? 0) : 0;
+      }
+    } else {
+      for (const slot of this.abilitySlots) {
+        if (slot.cooldownRemaining > 0) {
+          slot.cooldownRemaining = Math.max(0, slot.cooldownRemaining - dt);
+        }
       }
     }
 
