@@ -15,7 +15,7 @@ import {
   CaptureProcess, CaptureState,
   startCapture, updateCapture, interruptCapture,
 } from '../systems/capture';
-import { addXP, isFirstCapReached } from '../systems/progression';
+import { distributeXP, isFirstCapReached } from '../systems/progression';
 import { Stats, StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
@@ -2733,13 +2733,11 @@ export class GameScene extends Phaser.Scene {
     const xpTotal = creature.definition.xpReward;
 
     if (this.playerBody) {
-      // 1. Stat XP — делится по капам тела
+      // 1. Stat XP — делится только между растущими (не на капе) cap-статами
       const caps = this.playerBody.definition.caps;
       const capStats = Object.keys(caps) as StatName[];
-      const xpEach = Math.floor(xpTotal / capStats.length);
-      for (const stat of capStats) {
-        const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
-        if (levelUp) this.events.emit('stat-up', levelUp);
+      for (const levelUp of distributeXP(this.sphere.stats, this.sphere.xpTracker, xpTotal, caps)) {
+        this.events.emit('stat-up', levelUp);
       }
 
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: xpTotal, stats: capStats });
@@ -3034,11 +3032,8 @@ export class GameScene extends Phaser.Scene {
     }
     if (bq.xpReward > 0 && this.playerBody) {
       const caps = this.playerBody.definition.caps;
-      const capStats = Object.keys(caps) as StatName[];
-      const xpEach = Math.floor(bq.xpReward / capStats.length);
-      for (const stat of capStats) {
-        const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
-        if (levelUp) this.events.emit('stat-up', levelUp);
+      for (const levelUp of distributeXP(this.sphere.stats, this.sphere.xpTracker, bq.xpReward, caps)) {
+        this.events.emit('stat-up', levelUp);
       }
     }
     this.events.emit('show-dialog', { messages: bq.completeMessages });
@@ -3091,13 +3086,8 @@ export class GameScene extends Phaser.Scene {
 
     if (this.playerBody && xpReward > 0) {
       const caps = this.playerBody.definition.caps;
-      const capStats = Object.keys(caps) as StatName[];
-      if (capStats.length > 0) {
-        const xpEach = Math.floor(xpReward / capStats.length);
-        for (const stat of capStats) {
-          const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
-          if (levelUp) this.events.emit('stat-up', levelUp);
-        }
+      for (const levelUp of distributeXP(this.sphere.stats, this.sphere.xpTracker, xpReward, caps)) {
+        this.events.emit('stat-up', levelUp);
       }
     }
 
