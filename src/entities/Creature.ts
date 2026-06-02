@@ -156,10 +156,17 @@ export class Creature extends Phaser.GameObjects.Container {
   get maxHP(): number { return maxHP(this.stats); }
   get isDead(): boolean { return this.currentHP <= 0; }
 
+  /** Анимация/визуал смерти проигран один раз. */
+  private deathHandled = false;
+
   update(_time: number, delta: number, playerX?: number, playerY?: number) {
     if (this.isDead) {
       this.aiState = 'dead';
-      this.setAlpha(0.3);
+      if (!this.deathHandled) {
+        this.deathHandled = true;
+        this.updateSpriteAnim(); // проигрываем _dying один раз
+      }
+      // Альфу каждый кадр не трогаем — ей управляет пульс-твин «доступно для захвата».
       return;
     }
 
