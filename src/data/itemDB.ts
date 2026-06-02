@@ -336,6 +336,34 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
 };
 
+/**
+ * Категорийные корзины лута — общий фолбэк, когда у моба нет личной LOOT_TABLES.
+ * Сейчас пустые (слоты на будущее): кидай сюда LootEntry — и вся категория
+ * начнёт ронять эти предметы. Личная LOOT_TABLES[id] всегда перекрывает корзину
+ * (так делаются уникальные фарм-цели). Монеты начисляются отдельно (currency.ts).
+ */
+export const LOOT_BASKETS: Record<string, LootEntry[]> = {
+  animal:    [],
+  humanoid:  [],
+  elemental: [],
+  veteran:   [],
+  boss:      [],
+  default:   [],
+};
+
+const ELEMENTAL_IDS = new Set(['spark', 'asher', 'splasher', 'fogger', 'pebble', 'mudder', 'gusty', 'whistler']);
+const ANIMAL_IDS = new Set(['hare', 'deer', 'fox', 'boar', 'grouse', 'wolf', 'bear', 'spirit_wolf']);
+const BOSS_IDS = new Set(['ignis', 'aquaris', 'terra', 'aeros']);
+
+/** Подбирает корзину лута по id существа (для фолбэка в rollLoot). */
+export function lootBasketFor(creatureId: string): string {
+  if (BOSS_IDS.has(creatureId)) return 'boss';
+  if (creatureId.endsWith('_veteran')) return 'veteran';
+  if (ELEMENTAL_IDS.has(creatureId)) return 'elemental';
+  if (ANIMAL_IDS.has(creatureId)) return 'animal';
+  return 'humanoid'; // goblin, orc, scout, shaman, monk, elder, bandits, guards, merchant
+}
+
 // ─── Recipes ─────────────────────────────────────────────────────────────────
 
 export const RECIPES: RecipeDef[] = [
@@ -504,8 +532,11 @@ export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
 
 /** Roll loot for a creature and return what dropped (may be empty). */
 export function rollLoot(creatureId: string): { itemId: string; qty: number }[] {
-  const table = LOOT_TABLES[creatureId];
-  if (!table) return [];
+  // Личная таблица моба в приоритете; иначе — корзина его категории.
+  const table = LOOT_TABLES[creatureId]
+    ?? LOOT_BASKETS[lootBasketFor(creatureId)]
+    ?? LOOT_BASKETS.default;
+  if (!table || table.length === 0) return [];
   const result: { itemId: string; qty: number }[] = [];
   for (const entry of table) {
     if (Math.random() < entry.chance) {
