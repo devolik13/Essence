@@ -134,6 +134,9 @@ export class UIScene extends Phaser.Scene {
   /** Vendor filter */
   private vendorFilter: string = 'all';
   private inventoryFilter: string = 'all';
+  /** Сигнатура данных открытого окна — пересобираем содержимое только при её
+   *  изменении, а не каждый кадр (иначе пересоздаём интерактивные GameObjects 60×/с). */
+  private lastWindowSignature = '';
   private vendorButtons: Phaser.GameObjects.Text[] = [];
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   private _contentScrollY: number = 0;
@@ -772,8 +775,14 @@ export class UIScene extends Phaser.Scene {
       }
     }
 
-    // ── Refresh open window ───────────────────────────────
-    if (this.currentWindow) this.buildWindowContent(data);
+    // ── Refresh open window (только при изменении данных, не каждый кадр) ──
+    if (this.currentWindow) {
+      const sig = this.windowSignature(data);
+      if (sig !== this.lastWindowSignature) {
+        this.lastWindowSignature = sig;
+        this.buildWindowContent(data);
+      }
+    }
 
     // ── Resources (always visible when in body) ──────────
     this.updateGoldWidget(data.sphere.copper ?? 0);
@@ -2197,6 +2206,7 @@ export class UIScene extends Phaser.Scene {
       hideBestiaryWindowDom();
     }
     this.currentWindow = null;
+    this.lastWindowSignature = '';
     this.windowContainer.setVisible(false);
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
@@ -2287,6 +2297,28 @@ export class UIScene extends Phaser.Scene {
         onClose: () => this.closeWindow(),
       },
     });
+  }
+
+  /** Сжатая сигнатура данных, которые отображает текущее окно (для гейта перестройки). */
+  private windowSignature(data: UIData): string {
+    const s = data.sphere;
+    switch (this.currentWindow) {
+      case 'stats':
+        return 'stats|' + JSON.stringify(s.stats) + '|' + JSON.stringify(s.xpTracker)
+          + '|' + JSON.stringify(s.equipment) + '|' + (s.copper ?? 0)
+          + '|' + s.learnedSpells.map(sp => sp.id).join(',')
+          + '|' + JSON.stringify(data.body?.definition.caps ?? {})
+          + '|' + Math.ceil(data.deathDebuff ?? 0);
+      case 'quests':
+        return 'quests|' + data.quests.map(q => `${q.def.id}:${q.completed ? 1 : 0}:${q.counts.join('.')}`).join('|')
+          + '|' + (data.trackedQuestIds ?? []).join(',');
+      case 'vendor':
+        return 'vendor|' + (s.copper ?? 0) + '|' + (s.learnedRecipes ?? []).join(',') + '|' + this.vendorFilter;
+      case 'crafting':
+        return 'crafting|' + JSON.stringify(data.inventory ?? []) + '|' + (s.learnedRecipes ?? []).join(',') + '|' + this.craftingWorkbenchType;
+      default:
+        return String(this.currentWindow);
+    }
   }
 
   private buildWindowContent(data: UIData) {
