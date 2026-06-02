@@ -199,6 +199,18 @@ export class Body extends Phaser.GameObjects.Container {
 
   get maxHP(): number { return maxHP(this.sphereStats); }
   get maxMana(): number { return maxMana(this.sphereStats); }
+
+  /**
+   * Пересчёт статов тела при смене экипировки.
+   * Принимает «экипировочные» статы (личные + бонусы предметов, БЕЗ статус-баффов).
+   * Текущие HP/мана не масштабируются — просто клампятся к новому максимуму
+   * (надел +ману → кап вырос, добиваешь регеном; снял → излишек срезается).
+   */
+  public refreshStats(newStats: Stats): void {
+    this.sphereStats = newStats;
+    this.currentHP = Math.min(this.currentHP, this.maxHP);
+    this.currentMana = Math.min(this.currentMana, this.maxMana);
+  }
   get isDead(): boolean { return this.currentHP <= 0; }
   get weapon() {
     // If the player has an equipped weapon item, use ITS weapon type so

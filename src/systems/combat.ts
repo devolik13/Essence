@@ -8,9 +8,10 @@ export function maxHP(stats: Stats): number {
 }
 
 export function maxMana(stats: Stats): number {
-  // 50 (старт) + стат Мана × 0.1 (до 50 от статов) + бонус брони (будущее, до 50)
-  // Жёсткий кап: 150
-  return Math.min(50 + stats[StatName.Mana] * 0.1, 150);
+  // 50 (старт) + стат Мана × 2.5 (личный стат, кап стата ~20 → до +50)
+  // + бонус маны от экипировки (manaBonus добавляется в стат Mana в getEquippedStats)
+  // Жёсткий кап 150: личный стат и экипировка вместе.
+  return Math.min(50 + stats[StatName.Mana] * 2.5, 150);
 }
 
 // ─── Регенерация (процентная) ──────────────────────────

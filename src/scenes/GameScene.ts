@@ -306,7 +306,7 @@ export class GameScene extends Phaser.Scene {
     if (autoBodyId) {
       const bodyDef = CREATURE_DB[autoBodyId] ?? lookupStarterBody(autoBodyId);
       if (bodyDef) {
-        this.playerBody = new Body(this, startX, startY, bodyDef, this.sphere.stats);
+        this.playerBody = new Body(this, startX, startY, bodyDef, this.getEquippedStats());
         this.playerBody.mapW = zoneW; this.playerBody.mapH = zoneH;
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
         this.playerBody.possess(this);
@@ -486,6 +486,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private persistState() {
+    // Пересчёт «постоянных» статов тела от текущей экипировки (maxHP/maxMana/база брони).
+    // persistState вызывается при любой смене снаряжения (equip/unequip/disassemble/use-item).
+    if (this.playerBody) this.playerBody.refreshStats(this.getEquippedStats());
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
@@ -1172,7 +1175,7 @@ export class GameScene extends Phaser.Scene {
     const sb = this.starterBodies[index];
     const pos = { x: sb.x, y: sb.y };
     this.spawnCaptureFlash(pos.x, pos.y, () => {
-      this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
+      this.playerBody = new Body(this, pos.x, pos.y, def, this.getEquippedStats());
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
@@ -2367,8 +2370,12 @@ export class GameScene extends Phaser.Scene {
     return this.getEffectiveStats();
   }
 
-  /** Полные статы = база + экипировка + статус-эффекты */
-  private getEffectiveStats(): Stats {
+  /**
+   * Статы = личные (база, растут навсегда) + бонусы экипировки.
+   * БЕЗ статус-эффектов — это «постоянные» статы тела (maxHP/maxMana/база брони).
+   * Пересчитываются при каждой смене экипировки (см. persistState → refreshStats).
+   */
+  private getEquippedStats(): Stats {
     const s = { ...this.sphere.stats };
 
     // Бонусы от экипировки
@@ -2396,7 +2403,14 @@ export class GameScene extends Phaser.Scene {
       if (def.manaBonus) s[StatName.Mana] += def.manaBonus;
     }
 
-    // Бонусы от статус-эффектов
+    return s;
+  }
+
+  /** Полные статы = база + экипировка + временные статус-эффекты (для боя) */
+  private getEffectiveStats(): Stats {
+    const s = this.getEquippedStats();
+
+    // Временные бонусы от статус-эффектов (баффы/дебаффы) — только для боевых формул
     if (this.playerBody) {
       s[StatName.Armor] += this.playerBody.armorBonus;
       s[StatName.Evasion] += this.playerBody.evasionBonus;
@@ -2829,7 +2843,7 @@ export class GameScene extends Phaser.Scene {
         this.playerBody = null;
       }
 
-      this.playerBody = new Body(this, cx, cy, def, this.sphere.stats);
+      this.playerBody = new Body(this, cx, cy, def, this.getEquippedStats());
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
