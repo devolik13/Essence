@@ -123,7 +123,7 @@ const WX = WALDMAR_X, WY = WALDMAR_Y;
 
 export const ZONE_VILLAGE: ZoneConfig = {
   id: 'village',
-  nameRu: 'Eshworth Region',
+  nameRu: 'Регион Эшворт',
   widthTiles: BIG_W,
   heightTiles: BIG_H,
   baseTile: 'tile_grass',
@@ -132,17 +132,17 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
   safeZones: [
     { x1: EX - 256, y1: EY - 224, x2: EX + 256, y2: EY + 224,
-      respawnPoint: { x: EX, y: EY }, nameRu: 'Eshworth' },
+      respawnPoint: { x: EX, y: EY }, nameRu: 'Эшворт' },
     { x1: WX - 256, y1: WY - 224, x2: WX + 256, y2: WY + 224,
-      respawnPoint: { x: WX, y: WY }, nameRu: 'Waldmar' },
+      respawnPoint: { x: WX, y: WY }, nameRu: 'Вальдмар' },
   ],
 
   biomes: [
-    { id: 'eshworth', nameRu: 'Eshworth Village',
+    { id: 'eshworth', nameRu: 'Деревня Эшворт',
       bounds: { x1: EX - 1600, y1: EY - 1400, x2: EX + 1600, y2: EY + 1400 } },
-    { id: 'trade_road', nameRu: 'Trade Road', tint: 0x77aa55,
+    { id: 'trade_road', nameRu: 'Торговый тракт', tint: 0x77aa55,
       bounds: { x1: EX + 1600, y1: EY - 800, x2: WX - 1600, y2: EY + 800 } },
-    { id: 'waldmar', nameRu: 'Waldmar', tint: 0x667755,
+    { id: 'waldmar', nameRu: 'Вальдмар', tint: 0x667755,
       bounds: { x1: WX - 1600, y1: WY - 1400, x2: WX + 1600, y2: WY + 1400 } },
   ],
 
@@ -566,8 +566,8 @@ export const ZONE_VILLAGE: ZoneConfig = {
     // Eshworth + Waldmar NPCs (Bert/Aldric/Mira/Pol/Stranger/Captain/Healer/Blacksmith)
     // temporarily removed — will return when each one has a proper sprite/role.
     // Vendors kept so the player can still buy/sell while testing.
-    { x: EX + 20,  y: EY + 40,  id: 'merchant', nameRu: 'Shop',    role: 'vendor' },
-    { x: WX + 80,  y: WY + 40,  id: 'arms_dealer',nameRu: 'Arms',   role: 'weapon_vendor' },
+    { x: EX + 20,  y: EY + 40,  id: 'merchant', nameRu: 'Лавка',    role: 'vendor' },
+    { x: WX + 80,  y: WY + 40,  id: 'arms_dealer',nameRu: 'Оружие',   role: 'weapon_vendor' },
   ],
 
   questObjects: [
@@ -579,7 +579,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
 export const ZONE_WATER: ZoneConfig = {
   id: 'water',
-  nameRu: 'Misty Lake',
+  nameRu: 'Туманное озеро',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -597,7 +597,7 @@ export const ZONE_WATER: ZoneConfig = {
 
 export const ZONE_FIRE: ZoneConfig = {
   id: 'fire',
-  nameRu: 'Ashen Grove',
+  nameRu: 'Пепельная роща',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -615,7 +615,7 @@ export const ZONE_FIRE: ZoneConfig = {
 
 export const ZONE_WIND: ZoneConfig = {
   id: 'wind',
-  nameRu: 'Wind Peaks',
+  nameRu: 'Вершины ветров',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -633,7 +633,7 @@ export const ZONE_WIND: ZoneConfig = {
 
 export const ZONE_EARTH: ZoneConfig = {
   id: 'earth',
-  nameRu: 'Stone Hills',
+  nameRu: 'Каменные холмы',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',

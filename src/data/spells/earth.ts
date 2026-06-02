@@ -4,7 +4,7 @@ import { AbilityDef } from '../../types/abilities';
 /** T1 — Камешек: одиночный выстрел */
 export const MOB_EARTH_T1: AbilityDef = {
   id: 'mob_pebble_shot',
-  nameRu: 'Pebble Shot',
+  nameRu: 'Каменный снаряд',
   school: 'earth',
   damageType: 'magic',
   cooldown: 2.0,
@@ -16,7 +16,7 @@ export const MOB_EARTH_T1: AbilityDef = {
 /** T2 — Каменный шип: удар + 4 шипа крестом, Пробитие брони (spell-specific: armor_break вместо школьного armor_reduce) */
 export const MOB_EARTH_T2: AbilityDef = {
   id: 'mob_stone_spike',
-  nameRu: 'Stone Spike',
+  nameRu: 'Каменный шип',
   school: 'earth',
   damageType: 'magic',
   effectType: 'cross_aoe',
@@ -34,7 +34,7 @@ export const MOB_EARTH_T2: AbilityDef = {
 /** T3 — Земляная стена: призыв стены с HP (оригинал Archimage) */
 export const MOB_EARTH_T3: AbilityDef = {
   id: 'mob_earth_wall',
-  nameRu: 'Earth Wall',
+  nameRu: 'Каменная стена',
   school: 'earth',
   damageType: 'magic',
   effectType: 'summon_wall',
@@ -56,7 +56,7 @@ export const MOB_EARTH_T3: AbilityDef = {
 /** T4 — Stone Grotto: armor aura (Archimage: пассивка +10-20% брони) */
 export const MOB_EARTH_T4: AbilityDef = {
   id: 'mob_stone_grotto',
-  nameRu: 'Stone Grotto', school: 'earth', damageType: 'magic',
+  nameRu: 'Каменный грот', school: 'earth', damageType: 'magic',
   effectType: 'self_buff', statusEffect: 'bark_armor',
   castTime: 1.5, cooldown: 20, manaCost: 15, range: 0, baseDamage: 0,
   isAoe: true, aoeRadius: 200,
@@ -65,7 +65,7 @@ export const MOB_EARTH_T4: AbilityDef = {
 /** T5 — Meteor Shower: AoE around caster (Archimage: 1-5 метеоритов, -50% брони) */
 export const MOB_EARTH_T5: AbilityDef = {
   id: 'mob_meteor_shower',
-  nameRu: 'Meteor Shower', school: 'earth', damageType: 'magic',
+  nameRu: 'Метеоритный дождь', school: 'earth', damageType: 'magic',
   isAoe: true, aoeRadius: 200,
   castTime: 3, cooldown: 30, manaCost: 15, range: 0, baseDamage: 30,
   statusEffect: 'armor_break', statusChance: 0.5,

@@ -4,7 +4,7 @@ import { AbilityDef } from '../../types/abilities';
 /** T1 — Призыв волка: призывает волка-союзника */
 export const MOB_NATURE_T1: AbilityDef = {
   id: 'mob_summon_wolf',
-  nameRu: 'Summon Wolf',
+  nameRu: 'Призыв волка',
   school: 'nature',
   damageType: 'magic',
   effectType: 'summon_wolf',
@@ -17,7 +17,7 @@ export const MOB_NATURE_T1: AbilityDef = {
 /** T2 — Древесная кора: самобафф +Стойкость на 8 сек */
 export const MOB_NATURE_T2: AbilityDef = {
   id: 'mob_bark_armor',
-  nameRu: 'Bark Armor',
+  nameRu: 'Древесная кора',
   school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',
@@ -32,7 +32,7 @@ export const MOB_NATURE_T2: AbilityDef = {
 /** T3 — Покров листвы: групповая аура регена HP (оригинал Archimage) */
 export const MOB_NATURE_T3: AbilityDef = {
   id: 'mob_leaf_canopy',
-  nameRu: 'Leaf Canopy',
+  nameRu: 'Покров листвы',
   school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',
@@ -53,7 +53,7 @@ export const MOB_NATURE_T3: AbilityDef = {
 /** T4 — Ent: protective structure (Archimage: защищает связанных магов) */
 export const MOB_NATURE_T4: AbilityDef = {
   id: 'mob_ent',
-  nameRu: 'Ent', school: 'nature', damageType: 'magic',
+  nameRu: 'Энт', school: 'nature', damageType: 'magic',
   effectType: 'summon_ent',
   aoeRadius: 100,       // protection radius
   barrierDuration: 20,  // max lifetime
@@ -63,7 +63,7 @@ export const MOB_NATURE_T4: AbilityDef = {
 /** T5 — Meteorokinesis: AoE debuff (Archimage: +5-15% стихийным) */
 export const MOB_NATURE_T5: AbilityDef = {
   id: 'mob_meteorokinesis',
-  nameRu: 'Meteorokinesis', school: 'nature', damageType: 'magic',
+  nameRu: 'Метеорокинез', school: 'nature', damageType: 'magic',
   isAoe: true, aoeRadius: 250,
   statusEffect: 'magic_vulnerability', statusChance: 1.0,
   castTime: 2, cooldown: 30, manaCost: 15, range: 0, baseDamage: 0,

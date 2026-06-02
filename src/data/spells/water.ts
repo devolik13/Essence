@@ -4,7 +4,7 @@ import { AbilityDef } from '../../types/abilities';
 /** T1 — Ледышка: одиночный выстрел */
 export const MOB_WATER_T1: AbilityDef = {
   id: 'mob_ice_shard',
-  nameRu: 'Ice Shard',
+  nameRu: 'Ледяной осколок',
   school: 'water',
   damageType: 'magic',
   cooldown: 2.0,
@@ -16,7 +16,7 @@ export const MOB_WATER_T1: AbilityDef = {
 /** T2 — Ледяная стрела: снаряд в цель + взрыв AoE 45px вокруг неё */
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_ice_arrow',
-  nameRu: 'Ice Arrow',
+  nameRu: 'Ледяная стрела',
   school: 'water',
   damageType: 'magic',
   effectType: 'projectile_aoe',
@@ -32,7 +32,7 @@ export const MOB_WATER_T2: AbilityDef = {
 /** T3 — Ледяной дождь: зона ледяного дождя, урон + школьный бонус охлаждения */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_ice_rain',
-  nameRu: 'Ice Rain',
+  nameRu: 'Ледяной дождь',
   school: 'water',
   damageType: 'magic',
   effectType: 'ground_zone',
@@ -51,7 +51,7 @@ export const MOB_WATER_T3: AbilityDef = {
 /** T4 — Blizzard: interrupt + slow zone (Archimage: прерывание 5-10%) */
 export const MOB_WATER_T4: AbilityDef = {
   id: 'mob_blizzard',
-  nameRu: 'Blizzard', school: 'water', damageType: 'magic',
+  nameRu: 'Метель', school: 'water', damageType: 'magic',
   effectType: 'ground_zone',
   castTime: 2, cooldown: 20, manaCost: 15, range: 250, baseDamage: 0,
   isAoe: true, aoeRadius: 120, zoneDuration: 4, zoneDps: 25,
@@ -61,7 +61,7 @@ export const MOB_WATER_T4: AbilityDef = {
 /** T5 — Absolute Zero: instant freeze nova (Archimage: пассивка урон + заморозка) */
 export const MOB_WATER_T5: AbilityDef = {
   id: 'mob_absolute_zero',
-  nameRu: 'Absolute Zero', school: 'water', damageType: 'magic',
+  nameRu: 'Абсолютный ноль', school: 'water', damageType: 'magic',
   isAoe: true, aoeRadius: 150,
   cooldown: 30, manaCost: 15, range: 0, baseDamage: 30,
   statusEffect: 'freeze', statusChance: 1.0,

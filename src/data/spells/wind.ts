@@ -4,7 +4,7 @@ import { AbilityDef } from '../../types/abilities';
 /** T1 — Порыв: одиночный выстрел */
 export const MOB_WIND_T1: AbilityDef = {
   id: 'mob_gust',
-  nameRu: 'Gust',
+  nameRu: 'Порыв ветра',
   school: 'wind',
   damageType: 'magic',
   cooldown: 2.0,
@@ -16,7 +16,7 @@ export const MOB_WIND_T1: AbilityDef = {
 /** T2 — Ветрорез: 3 смерча конусом 45°, дальность 160px */
 export const MOB_WIND_T2: AbilityDef = {
   id: 'mob_wind_blade',
-  nameRu: 'Wind Blade',
+  nameRu: 'Ветрорез',
   school: 'wind',
   damageType: 'magic',
   effectType: 'cone_projectiles',
@@ -32,7 +32,7 @@ export const MOB_WIND_T2: AbilityDef = {
 /** T3 — Ветряная стена: размещаемый барьер, снаряды теряют урон пролетая через (оригинал Archimage) */
 export const MOB_WIND_T3: AbilityDef = {
   id: 'mob_wind_barrier',
-  nameRu: 'Wind Barrier',
+  nameRu: 'Ветряной барьер',
   school: 'wind',
   damageType: 'magic',
   effectType: 'wind_barrier',
@@ -54,7 +54,7 @@ export const MOB_WIND_T3: AbilityDef = {
 /** T4 — Storm Cloud: multiple lightning (Archimage: 5-9 молний по 15-30) */
 export const MOB_WIND_T4: AbilityDef = {
   id: 'mob_storm_cloud',
-  nameRu: 'Storm Cloud', school: 'wind', damageType: 'magic',
+  nameRu: 'Грозовая туча', school: 'wind', damageType: 'magic',
   effectType: 'multi_projectile', projectileCount: 7, projectileRadius: 250,
   castTime: 2, cooldown: 18, manaCost: 15, range: 280, baseDamage: 20,
   doubleDamageChance: 0.2,
@@ -63,7 +63,7 @@ export const MOB_WIND_T4: AbilityDef = {
 /** T5 — Ball Lightning: chain lightning (Archimage: цепная 30-50, стан + крит) */
 export const MOB_WIND_T5: AbilityDef = {
   id: 'mob_ball_lightning',
-  nameRu: 'Ball Lightning', school: 'wind', damageType: 'magic',
+  nameRu: 'Шаровая молния', school: 'wind', damageType: 'magic',
   effectType: 'chain_lightning',
   chainRadius: 120,   // jump radius between targets
   chainCount: 5,      // number of jumps

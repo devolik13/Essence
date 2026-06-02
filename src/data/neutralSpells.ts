@@ -9,7 +9,7 @@ import { AbilityDef } from '../types/abilities';
 /** T1 — Ускорение: самобафф +50% скорости на 5 сек */
 export const MOB_NEUTRAL_T1: AbilityDef = {
   id: 'acceleration',
-  nameRu: 'Acceleration',
+  nameRu: 'Ускорение',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -25,7 +25,7 @@ export const MOB_NEUTRAL_T1: AbilityDef = {
 /** T2 — Лечение: исцеляет себя, зависит от Интеллекта */
 export const MOB_NEUTRAL_HEAL: AbilityDef = {
   id: 'neutral_heal',
-  nameRu: 'Heal',
+  nameRu: 'Лечение',
   school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
@@ -40,7 +40,7 @@ export const MOB_NEUTRAL_HEAL: AbilityDef = {
 /** T2 — Рывок: мгновенный бросок вперёд на 180px */
 export const MOB_NEUTRAL_T2: AbilityDef = {
   id: 'dash',
-  nameRu: 'Dash',
+  nameRu: 'Рывок',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'dash_forward',
@@ -55,7 +55,7 @@ export const MOB_NEUTRAL_T2: AbilityDef = {
 /** Отчаяние — удар с +10 урона за каждый дебафф на себе */
 export const ABILITY_DESPERATION: AbilityDef = {
   id: 'desperation',
-  nameRu: 'Desperation',
+  nameRu: 'Отчаяние',
   school: 'neutral',
   damageType: 'melee',
   cooldown: 8,
@@ -69,7 +69,7 @@ export const ABILITY_DESPERATION: AbilityDef = {
 /** Адаптация — следующий навык бесплатный */
 export const ABILITY_ADAPTATION: AbilityDef = {
   id: 'adaptation',
-  nameRu: 'Adaptation',
+  nameRu: 'Адаптация',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -84,7 +84,7 @@ export const ABILITY_ADAPTATION: AbilityDef = {
 /** Подпитка — реген HP за каждый бафф на себе */
 export const ABILITY_SUSTAIN: AbilityDef = {
   id: 'sustain',
-  nameRu: 'Sustain',
+  nameRu: 'Подпитка',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -100,7 +100,7 @@ export const ABILITY_SUSTAIN: AbilityDef = {
 /** Стойкость духа — реген HP за каждый дебафф на себе */
 export const ABILITY_SPIRIT_RESILIENCE: AbilityDef = {
   id: 'spirit_resilience',
-  nameRu: 'Spirit Resilience',
+  nameRu: 'Стойкость духа',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -116,7 +116,7 @@ export const ABILITY_SPIRIT_RESILIENCE: AbilityDef = {
 /** Очищение — лечение за каждый статус на себе */
 export const ABILITY_PURIFY: AbilityDef = {
   id: 'purify',
-  nameRu: 'Purify',
+  nameRu: 'Очищение',
   school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
@@ -132,7 +132,7 @@ export const ABILITY_PURIFY: AbilityDef = {
 /** Mana Flow — группа +20% реген маны */
 export const ABILITY_MANA_FLOW: AbilityDef = {
   id: 'mana_flow',
-  nameRu: 'Mana Flow',
+  nameRu: 'Поток маны',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -149,7 +149,7 @@ export const ABILITY_MANA_FLOW: AbilityDef = {
 /** Mana Link — toggle-аура, постоянная передача регена маны сопартийцу */
 export const ABILITY_MANA_LINK: AbilityDef = {
   id: 'mana_link',
-  nameRu: 'Mana Link',
+  nameRu: 'Связь маны',
   school: 'neutral',
   damageType: 'melee',
   effectType: 'self_buff',
@@ -165,7 +165,7 @@ export const ABILITY_MANA_LINK: AbilityDef = {
 /** Исцеление союзника — лечит выбранного союзника */
 export const ABILITY_ALLY_HEAL: AbilityDef = {
   id: 'ally_heal',
-  nameRu: 'Ally Heal',
+  nameRu: 'Исцеление союзника',
   school: 'neutral',
   damageType: 'magic',
   effectType: 'self_heal',
