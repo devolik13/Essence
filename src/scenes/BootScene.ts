@@ -1169,9 +1169,15 @@ export class BootScene extends Phaser.Scene {
 
     // Pre-extract every <symbol> from public/*.svg sheets into Phaser textures
     // so the canvas-rendered skill bar can show real icons.
-    loadAllSpriteSheets(this).then(() => {
-      this.scene.start('TitleScene');
-    });
+    loadAllSpriteSheets(this)
+      .catch((err) => {
+        // Сбой загрузки спрайтшита не должен вешать игру на чёрном BootScene —
+        // у контента есть процедурные плейсхолдеры, просто идём дальше.
+        console.error('[BootScene] sprite sheet load failed, continuing:', err);
+      })
+      .finally(() => {
+        this.scene.start('TitleScene');
+      });
   }
 
   /**
