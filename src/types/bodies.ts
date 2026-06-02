@@ -64,8 +64,9 @@ export interface BodyDefinition {
   lootTable?: LootEntry[];
   /** Заклинания которые моб использует в бою (тиры 1-3 своей школы) */
   npcSpells?: AbilityDef[];
-  /** Стихия моба — для слабостей и зонального спавна */
-  element?: 'fire' | 'water' | 'earth' | 'wind';
+  /** Школа моба — для слабостей/VFX/спавна. 4 стихии участвуют в Печати Стихий;
+   *  nature/neutral — школы вне Печати (частоту не дают). */
+  element?: 'fire' | 'water' | 'earth' | 'wind' | 'nature' | 'neutral';
   /** Босс Главы */
   isBoss?: boolean;
   /** true = в этом теле доступны все выученные заклинания. false/undefined = только базовая атака + своё умение */

@@ -183,7 +183,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   spirit_wolf: {
     id: 'spirit_wolf', name: 'Spirit Wolf', nameRu: 'Spirit Wolf',
-    type: BodyType.Combat, damageType: 'magic', element: 'nature' as any,
+    type: BodyType.Combat, damageType: 'magic', element: 'nature',
     caps: { [StatName.Intellect]: 20, [StatName.Health]: 16, [StatName.Mana]: 14 },
     xpReward: 75,
     npcStats: {
