@@ -31,7 +31,7 @@ export const BESTIARY_GROUPS: BestiaryGroup[] = [
     ids: ['bandit_archer', 'bandit_crossbow', 'bandit_spear', 'bandit_brute'] },
   { id: 'veterans',  titleRu: 'Ветераны',         titleEn: 'Veterans',
     ids: ['goblin_veteran', 'wolf_veteran', 'bear_veteran', 'orc_veteran', 'scout_veteran',
-          'bandit_archer_veteran', 'bandit_crossbow_veteran', 'bandit_spear_veteran', 'bandit_brute_veteran'] },
+          'bandit_archer_veteran', 'bandit_crossbow_veteran', 'bandit_brute_veteran'] },
   { id: 'guardians', titleRu: 'Стражи стихий',    titleEn: 'Element guardians',
     ids: ['ignis', 'aquaris', 'terra', 'aeros'] },
   { id: 'caravan',   titleRu: 'Караван',          titleEn: 'Caravan',

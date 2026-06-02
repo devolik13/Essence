@@ -526,20 +526,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_CROSSBOW_SNARE, spellXPThreshold: 100,
   },
 
-  bandit_spear_veteran: {
-    id: 'bandit_spear_veteran', name: 'Bandit Lancer', nameRu: 'Копейщик-ветеран',
-    type: BodyType.Combat, damageType: 'melee',
-    caps: { [StatName.Strength]: 30, [StatName.Accuracy]: 26, [StatName.Health]: 26 },
-    xpReward: 118,
-    npcStats: {
-      [StatName.Strength]: 17, [StatName.Accuracy]: 14, [StatName.Evasion]: 8,
-      [StatName.Health]: 20,   [StatName.Armor]: 8,     [StatName.Luck]: 2,
-    },
-    weapon: WeaponType.Spear, color: 0x223344, abilityName: 'Butt Strike',
-    npcSpells: [ABILITY_SPEAR_THRUST, ABILITY_SPEAR_BUTT],
-    signatureSpell: ABILITY_SPEAR_BUTT,    spellXPThreshold: 100,
-  },
-
   bandit_brute_veteran: {
     id: 'bandit_brute_veteran', name: 'Bandit Berserker', nameRu: 'Берсерк',
     type: BodyType.Combat, damageType: 'melee',

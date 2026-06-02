@@ -88,7 +88,6 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
   { key: 'mob_bandit_archer',           textureKey: 'mob_sheet_bandit_archer_front_idle'   },
   { key: 'mob_bandit_archer_veteran',   textureKey: 'mob_sheet_bandit_archer_front_idle'   },
   { key: 'mob_bandit_spear',            textureKey: 'mob_sheet_bandit_spear_front_idle'    },
-  { key: 'mob_bandit_spear_veteran',    textureKey: 'mob_sheet_bandit_spear_front_idle'    },
   // ── Скауты ───────────────────────────────────────────────────────────────
   { key: 'mob_scout',                   textureKey: 'mob_sheet_scout_front_idle'           },
   { key: 'mob_scout_veteran',           textureKey: 'mob_sheet_scout_front_idle'           },
@@ -594,7 +593,6 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   bandit_archer: BANDIT_ARCHER_SPRITES,
   bandit_archer_veteran: BANDIT_ARCHER_SPRITES,
   bandit_spear: BANDIT_SPEAR_SPRITES,
-  bandit_spear_veteran: BANDIT_SPEAR_SPRITES,
   bandit_brute: BANDIT_BRUTE_SPRITES,
   bandit_brute_veteran: BANDIT_BRUTE_SPRITES,
   bandit_crossbow: BANDIT_CROSSBOW_SPRITES,
@@ -721,7 +719,6 @@ const ANIMAL_ALIAS: Record<string, string> = {
 const MOB_ALIAS: Record<string, string> = {
   scout_veteran: 'scout',
   bandit_archer_veteran: 'bandit_archer',
-  bandit_spear_veteran: 'bandit_spear',
   bandit_brute_veteran: 'bandit_brute',
   bandit_crossbow_veteran: 'bandit_crossbow',
   goblin_veteran: 'goblin_veteran',

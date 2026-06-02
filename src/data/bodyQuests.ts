@@ -678,26 +678,6 @@ const QUEST_BANDIT_CROSSBOW_VET: BodyQuestDef = {
   prerequisiteBodyQuestId: 'bq_bandit_crossbow',
 };
 
-const QUEST_BANDIT_SPEAR_VET: BodyQuestDef = {
-  id: 'bq_bandit_spear_veteran', bodyId: 'bandit_spear_veteran', tier: 2,
-  nameRu: 'Сдержать натиск',
-  description: 'Удержи нескольких охранников тупым концом копья.',
-  introMessages: [
-    { speaker: '', text: 'Четверо охранников наступают с двух сторон.' },
-    { speaker: '', text: 'Острие убивает одного. Тупой конец держит четверых.' },
-    { speaker: '', text: 'Оттолкни прежде чем окружат.' },
-  ],
-  completeMessages: [
-    { speaker: '', text: 'Никто не подошёл достаточно близко. Задний конец копья — половина оружия.' },
-  ],
-  objectives: [
-    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Охранник', description: 'Оттолкни 4 охранников' },
-  ],
-  rewardSpellId: 'spear_butt',
-  xpReward: 100,
-  prerequisiteBodyQuestId: 'bq_bandit_spear',
-};
-
 const QUEST_BANDIT_BRUTE_VET: BodyQuestDef = {
   id: 'bq_bandit_brute_veteran', bodyId: 'bandit_brute_veteran', tier: 2,
   nameRu: 'Берсерк',
@@ -877,7 +857,7 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_MONK,
   QUEST_ELDER,
   QUEST_BANDIT_ARCHER_VET, QUEST_BANDIT_CROSSBOW_VET,
-  QUEST_BANDIT_SPEAR_VET, QUEST_BANDIT_BRUTE_VET,
+  QUEST_BANDIT_BRUTE_VET,
 ];
 
 export const CONFLICT_QUESTS: ConflictQuestDef[] = [
