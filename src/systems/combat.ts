@@ -43,26 +43,34 @@ export function magicBaseDamage(weaponBase: number, intellect: number): number {
 
 // ─── Защита ────────────────────────────────────────────
 
-/** Снижение физурона: Стойкость / (Стойкость + 125), макс 80% */
+/** Снижение физурона: Стойкость / (Стойкость + 125), макс 80%.
+ *  Броня клампится в ≥0: отрицательная (от armor_break) даёт 0 редукции,
+ *  а не сингулярность/усиление урона (за усиление отвечает статус vulnerability). */
 export function physicalReduction(armor: number): number {
-  return Math.min(armor / (armor + 125), 0.8);
+  const a = Math.max(0, armor);
+  return Math.min(a / (a + 125), 0.8);
 }
 
-/** Снижение магурона: Воля / (Воля + 125), макс 80% */
+/** Снижение магурона: Воля / (Воля + 125), макс 80%. Воля клампится в ≥0. */
 export function magicalReduction(will: number): number {
-  return Math.min(will / (will + 125), 0.8);
+  const w = Math.max(0, will);
+  return Math.min(w / (w + 125), 0.8);
 }
 
 // ─── Попадание и крит ──────────────────────────────────
 
-/** Шанс попасть: Точность / (Точность + Уклонение) */
+/** Шанс попасть: Точность / (Точность + Уклонение), в [0,1].
+ *  Нет ни точности, ни уклонения — атака просто попадает (нечем уклоняться). */
 export function hitChance(accuracy: number, evasion: number): number {
-  return accuracy / (accuracy + evasion);
+  const denom = accuracy + evasion;
+  if (denom <= 0) return 1;
+  return Math.min(1, Math.max(0, accuracy / denom));
 }
 
-/** Шанс крита: Удача / (Удача + 50) — при Удаче 50 = 50% */
+/** Шанс крита: Удача / (Удача + 50) — при Удаче 50 = 50%. Удача клампится в ≥0. */
 export function critChance(luck: number): number {
-  return luck / (luck + LUCK_CONSTANT);
+  const l = Math.max(0, luck);
+  return l / (l + LUCK_CONSTANT);
 }
 
 export const CRIT_MULTIPLIER = 1.5;
