@@ -3180,7 +3180,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Проверка маны
-    if (this.playerBody.currentMana < spell.manaCost) {
+    if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       return;
     }
@@ -3885,7 +3885,7 @@ export class GameScene extends Phaser.Scene {
 
     if (spell.isAoe && spell.range === 0) {
       // AoE на себе (Whirlwind и пр.) — без прицеливания
-      if (this.playerBody.currentMana < spell.manaCost) {
+      if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
         this.events.emit('no-mana');
         return;
       }
@@ -3916,12 +3916,16 @@ export class GameScene extends Phaser.Scene {
       this.showMessage('Out of range');
       return;
     }
-    if (this.playerBody.currentMana < spell.manaCost) {
+    if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       return;
     }
 
-    this.playerBody.currentMana -= spell.manaCost;
+    if (this.sphere.freeNextCast) {
+      this.sphere.freeNextCast = false;
+    } else {
+      this.playerBody.currentMana = Math.max(0, this.playerBody.currentMana - spell.manaCost);
+    }
     slot.cooldownRemaining = spell.cooldown;
     this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
@@ -3954,7 +3958,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    if (this.playerBody.currentMana < spell.manaCost) {
+    if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       this.exitAoeTargeting();
       return;
@@ -3996,7 +4000,11 @@ export class GameScene extends Phaser.Scene {
     const slot = this.playerBody.abilitySlots[slotIndex];
     if (!slot) return;
 
-    this.playerBody.currentMana -= spell.manaCost;
+    if (this.sphere.freeNextCast) {
+      this.sphere.freeNextCast = false;
+    } else {
+      this.playerBody.currentMana = Math.max(0, this.playerBody.currentMana - spell.manaCost);
+    }
     slot.cooldownRemaining = spell.cooldown;
     this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
