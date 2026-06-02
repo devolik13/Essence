@@ -76,9 +76,9 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 function computeBonuses(sphere: Sphere): Record<string, number> {
   const bonuses: Record<string, number> = {};
   for (const sn of Object.values(StatName)) bonuses[sn] = 0;
-  const equip = sphere.equipment;
+  const equip = sphere.equipment as Record<string, string | undefined>;
   for (const slotKey of Object.keys(equip)) {
-    const iid = (equip as any)[slotKey];
+    const iid = equip[slotKey];
     if (!iid) continue;
     const def = ITEMS[iid];
     if (!def) continue;
@@ -335,7 +335,7 @@ function renderEquipColumn(args: RenderArgs): HTMLElement {
   silh.appendChild(buildSphereSvg());
   layout.appendChild(silh);
 
-  const equip = sphere.equipment;
+  const equip = sphere.equipment as Record<string, string | undefined>;
   const activeWpn = sphere.activeWeaponSlot ?? 0;
 
   for (const slotDef of EQUIP_SLOTS) {
@@ -344,7 +344,7 @@ function renderEquipColumn(args: RenderArgs): HTMLElement {
         (slotDef.id === 'weapon2' && activeWpn === 0)) {
       wrap.style.opacity = '0.55';
     }
-    const itemId = (equip as any)[slotDef.id];
+    const itemId = equip[slotDef.id];
     const itemDef = itemId ? ITEMS[itemId] : null;
     const slot = buildSlot(itemDef, undefined, itemDef ? () => cb.onUnequip(slotDef.id) : null);
     wrap.appendChild(slot);

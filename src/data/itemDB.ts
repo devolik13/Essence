@@ -1,4 +1,41 @@
 import { ItemDef, LootEntry, RecipeDef } from '../types/items';
+import { StatName } from '../types/stats';
+
+// data/itemDB.ts ↔ имя поля статбонуса предмета → StatName
+const EQUIP_STAT_MAP: Record<string, StatName> = {
+  strength: StatName.Strength, agility: StatName.Agility,
+  accuracy: StatName.Accuracy, evasion: StatName.Evasion,
+  health: StatName.Health, armor: StatName.Armor,
+  intellect: StatName.Intellect, will: StatName.Will,
+  mana: StatName.Mana, luck: StatName.Luck,
+};
+
+/**
+ * Суммарные бонусы статов от надетой экипировки (statBonuses + armorBonus +
+ * manaBonus). Единый источник — раньше эта логика дублировалась в GameScene
+ * и UIScene.
+ */
+export function equipmentStatBonuses(
+  equipment: Record<string, string | undefined>,
+): Partial<Record<StatName, number>> {
+  const bonuses: Partial<Record<StatName, number>> = {};
+  const add = (s: StatName, v: number) => { bonuses[s] = (bonuses[s] ?? 0) + v; };
+  for (const slotKey of Object.keys(equipment)) {
+    const itemId = equipment[slotKey];
+    if (!itemId) continue;
+    const def = ITEMS[itemId];
+    if (!def) continue;
+    if (def.statBonuses) {
+      for (const [stat, val] of Object.entries(def.statBonuses)) {
+        const sn = EQUIP_STAT_MAP[stat];
+        if (sn && val) add(sn, val);
+      }
+    }
+    if (def.armorBonus) add(StatName.Armor, def.armorBonus);
+    if (def.manaBonus) add(StatName.Mana, def.manaBonus);
+  }
+  return bonuses;
+}
 
 // ─── Item definitions ─────────────────────────────────────────────────────────
 

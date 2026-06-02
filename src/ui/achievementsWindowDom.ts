@@ -147,6 +147,7 @@ function buildCategoryGroup(catId: string, achievements: AchievementDef[], spher
 
 export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): void {
   hideAchievementsWindowDom();
+  collapsedCategories.clear(); // не тащим свёрнутые категории между открытиями
 
   handle = openWindowShell('', 'ess-backdrop', onClose);
   handle.root.id = 'ess-achievements-root';

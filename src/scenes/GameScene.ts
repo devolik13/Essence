@@ -9,7 +9,7 @@ import { lookupStarterBody } from '../data/starterBodies';
 import { CREATURE_DB } from '../data/creatureDB';
 import { TILE_SIZE, CAPTURE_RANGE } from '../utils/constants';
 import { distance, clamp } from '../utils/math';
-import { calcMeleeDamage, calcRangedDamage, calcMagicDamage } from '../systems/combat';
+import { calcMeleeDamage, calcRangedDamage, calcMagicDamage, physicalReduction, magicalReduction } from '../systems/combat';
 import { WEAPONS } from '../data/weapons';
 import {
   CaptureProcess, CaptureState,
@@ -24,7 +24,7 @@ import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS, getSpellById } from '../data/allSpells';
 import { ALL_ZONES, ZoneConfig } from '../data/zones';
-import { rollLoot, ITEMS } from '../data/itemDB';
+import { rollLoot, ITEMS, equipmentStatBonuses } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
@@ -2433,11 +2433,6 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Статы игрока с учётом экипировки + статус-бонусов */
-  private getPlayerDefenseStats(): Stats {
-    return this.getEffectiveStats();
-  }
-
   /**
    * Статы = личные (база, растут навсегда) + бонусы экипировки.
    * БЕЗ статус-эффектов — это «постоянные» статы тела (maxHP/maxMana/база брони).
@@ -2445,32 +2440,10 @@ export class GameScene extends Phaser.Scene {
    */
   private getEquippedStats(): Stats {
     const s = { ...this.sphere.stats };
-
-    // Бонусы от экипировки
-    const equip = this.sphere.equipment as Record<string, string | undefined>;
-    const statMap: Record<string, StatName> = {
-      strength: StatName.Strength, agility: StatName.Agility,
-      accuracy: StatName.Accuracy, evasion: StatName.Evasion,
-      health: StatName.Health, armor: StatName.Armor,
-      intellect: StatName.Intellect, will: StatName.Will,
-      mana: StatName.Mana, luck: StatName.Luck,
-    };
-    for (const slotKey of Object.keys(equip)) {
-      const itemId = equip[slotKey];
-      if (!itemId) continue;
-      const def = ITEMS[itemId];
-      if (!def) continue;
-      // Stat bonuses
-      if (def.statBonuses) {
-        for (const [stat, val] of Object.entries(def.statBonuses)) {
-          const sn = statMap[stat];
-          if (sn && val) s[sn] += val;
-        }
-      }
-      if (def.armorBonus) s[StatName.Armor] += def.armorBonus;
-      if (def.manaBonus) s[StatName.Mana] += def.manaBonus;
+    const bonuses = equipmentStatBonuses(this.sphere.equipment as Record<string, string | undefined>);
+    for (const [stat, val] of Object.entries(bonuses)) {
+      s[stat as StatName] += val ?? 0;
     }
-
     return s;
   }
 
@@ -2632,7 +2605,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const defStats = this.getPlayerDefenseStats();
+    const defStats = this.getEffectiveStats();
     const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, defStats, cwb)
                  : cdt === 'ranged' ? calcRangedDamage(creature.stats, defStats, cwb)
                  :                    calcMeleeDamage(creature.stats, defStats, cwb);
@@ -3251,7 +3224,8 @@ export class GameScene extends Phaser.Scene {
         this.sphere.activeEnchant = spell;
         if (this.playerBody) this.playerBody.enchantRegenPenalty = spell.regenPenalty ?? 0.3;
         this.events.emit('enchant-toggled', spell);
-        this.events.emit('log', { text: `${spell.nameRu} — активировано! Реген маны −30%`, color: '#ffaa00' });
+        const penaltyPct = Math.round((spell.regenPenalty ?? 0.3) * 100);
+        this.events.emit('log', { text: `${spell.nameRu} — активировано! Реген маны −${penaltyPct}%`, color: '#ffaa00' });
       }
       // Не тратим ману и не запускаем кулдаун
       slot.cooldownRemaining = 0;
@@ -3448,8 +3422,8 @@ export class GameScene extends Phaser.Scene {
           const reducedDef = origDef * (1 - schoolBonus.penetrationPercent);
           const raw = result.raw;
           const reduction = spell.damageType === 'magic'
-            ? Math.min(reducedDef / (reducedDef + 125), 0.8)
-            : Math.min(reducedDef / (reducedDef + 125), 0.8);
+            ? magicalReduction(reducedDef)
+            : physicalReduction(reducedDef);
           const reduced = raw * (1 - reduction);
           const final_ = result.crit ? reduced * 1.5 : reduced;
           baseDmg = Math.round(final_);

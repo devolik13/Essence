@@ -33,7 +33,7 @@ export class DamageText extends Phaser.GameObjects.Text {
     const t = this.lifetime / this.duration;
 
     // Летит вверх и затухает
-    this.y -= 30 * (delta / 1000);
+    this.y -= 60 * (delta / 1000);
     this.setAlpha(1 - t);
 
     if (t >= 1) {

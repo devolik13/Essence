@@ -10,7 +10,7 @@ import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constan
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
-import { ITEMS, RECIPES } from '../data/itemDB';
+import { ITEMS, RECIPES, equipmentStatBonuses } from '../data/itemDB';
 import { WEAPONS } from '../data/weapons';
 import { formatCurrency } from '../systems/currency';
 import { AchievementDef } from '../data/achievementDB';
@@ -2339,30 +2339,10 @@ export class UIScene extends Phaser.Scene {
         const debuffStr = debuffSecs > 0 ? `  ⚠ Weakness: ${debuffSecs}s` : '';
         const lines: string[] = [`◉ Rank ${rank.toFixed(1)}${debuffStr}`, ''];
 
-        // Calculate equipment bonuses
-        const equipBonuses: Partial<Record<StatName, number>> = {};
-        const equip = sphere.equipment ?? {};
-        const statMap: Record<string, StatName> = {
-          strength: StatName.Strength, agility: StatName.Agility,
-          accuracy: StatName.Accuracy, evasion: StatName.Evasion,
-          health: StatName.Health, armor: StatName.Armor,
-          intellect: StatName.Intellect, will: StatName.Will,
-          mana: StatName.Mana, luck: StatName.Luck,
-        };
-        for (const slotKey of Object.keys(equip)) {
-          const itemId = (equip as any)[slotKey];
-          if (!itemId) continue;
-          const def = ITEMS[itemId];
-          if (!def) continue;
-          if (def.statBonuses) {
-            for (const [s, v] of Object.entries(def.statBonuses)) {
-              const sn = statMap[s];
-              if (sn && v) equipBonuses[sn] = (equipBonuses[sn] ?? 0) + v;
-            }
-          }
-          if (def.armorBonus) equipBonuses[StatName.Armor] = (equipBonuses[StatName.Armor] ?? 0) + def.armorBonus;
-          if (def.manaBonus) equipBonuses[StatName.Mana] = (equipBonuses[StatName.Mana] ?? 0) + def.manaBonus;
-        }
+        // Бонусы экипировки — общий хелпер (см. itemDB.equipmentStatBonuses)
+        const equipBonuses = equipmentStatBonuses(
+          (sphere.equipment ?? {}) as Record<string, string | undefined>,
+        );
 
         for (const stat of STAT_ORDER) {
           const base = sphere.stats[stat];
