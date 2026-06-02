@@ -23,13 +23,13 @@ export function formatCurrency(copper: number): string {
 /** Copper rewards per creature tier */
 export const MOB_COPPER_DROPS: Record<string, { min: number; max: number }> = {
   // Village T1
-  rabbit:  { min: 1, max: 3 },
+  hare:    { min: 1, max: 3 },
   goblin:  { min: 3, max: 8 },
   wolf:    { min: 5, max: 10 },
   bear:    { min: 8, max: 15 },
   orc:     { min: 8, max: 15 },
   scout:   { min: 5, max: 10 },
-  spirit:  { min: 10, max: 20 },
+  spirit_wolf: { min: 10, max: 20 },
   // Elementals T1
   spark:    { min: 5, max: 12 },
   asher:    { min: 8, max: 15 },

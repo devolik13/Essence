@@ -284,7 +284,7 @@ export const ITEMS: Record<string, ItemDef> = {
 // ─── Loot tables per creature ─────────────────────────────────────────────────
 
 export const LOOT_TABLES: Record<string, LootEntry[]> = {
-  rabbit: [
+  hare: [
     { itemId: 'rabbit_fur',    chance: 0.6, minQty: 1, maxQty: 2 },
     { itemId: 'health_potion', chance: 0.1, minQty: 1, maxQty: 1 },
   ],
@@ -312,7 +312,7 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
     { itemId: 'shaman_totem',  chance: 0.55, minQty: 1, maxQty: 1 },
     { itemId: 'mana_potion',   chance: 0.4,  minQty: 1, maxQty: 2 },
   ],
-  forest_spirit: [
+  spirit_wolf: [
     { itemId: 'spirit_essence', chance: 0.5, minQty: 1, maxQty: 1 },
     { itemId: 'mana_potion',    chance: 0.3, minQty: 1, maxQty: 1 },
   ],
