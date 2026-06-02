@@ -168,6 +168,9 @@ export class GameScene extends Phaser.Scene {
    */
   private teardownFns: Array<() => void> = [];
 
+  /** Текущая цель слежения камеры — чтобы не дёргать startFollow каждый кадр. */
+  private cameraFollowTarget?: Phaser.GameObjects.GameObject;
+
   // New game flow
   private isNewGame = false;
   private newGameBodyId?: string;
@@ -215,6 +218,7 @@ export class GameScene extends Phaser.Scene {
     this.bodyQuestObjects = [];
     this.bodyQuestTracker.clear();
     this.teardownFns = [];
+    this.cameraFollowTarget = undefined;
   }
 
   /**
@@ -225,6 +229,13 @@ export class GameScene extends Phaser.Scene {
   private trackEvent(event: string, handler: (...args: any[]) => void): void {
     this.events.on(event, handler);
     this.teardownFns.push(() => this.events.off(event, handler));
+  }
+
+  /** Переключает слежение камеры только при реальной смене цели (не каждый кадр). */
+  private followCamera(target: Phaser.GameObjects.GameObject): void {
+    if (this.cameraFollowTarget === target) return;
+    this.cameraFollowTarget = target;
+    this.cameras.main.startFollow(target, true, 0.1, 0.1);
   }
 
   create() {
@@ -363,7 +374,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Камера ──────────────────────────────────────
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
-    this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
+    this.followCamera(this.sphere);
 
     // Show prologue on first game start (village only)
     if (this.currentZone.id === 'village') {
@@ -535,7 +546,7 @@ export class GameScene extends Phaser.Scene {
     if (this.playerBody) {
       this.playerBody.update(time, delta);
       // Камера следит за телом
-      this.cameras.main.startFollow(this.playerBody, true, 0.1, 0.1);
+      this.followCamera(this.playerBody);
 
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
@@ -572,7 +583,7 @@ export class GameScene extends Phaser.Scene {
         if (this.allyTargeting) this.exitAllyTargeting();
       }
     } else {
-      this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
+      this.followCamera(this.sphere);
 
       // В астрале: [E] — NPC, захват стартового тела, или мёртвого существа
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
