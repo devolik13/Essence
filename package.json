@@ -1,0 +1,23 @@
+{
+  "name": "essence",
+  "version": "1.0.0",
+  "description": "**PvP MMORPG** — концепт-документ, версия: рыба",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:36675/git/devolik13/Essence"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.90.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3"
+  }
+}
