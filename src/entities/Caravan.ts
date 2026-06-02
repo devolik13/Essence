@@ -101,6 +101,12 @@ export class Caravan {
     return this.guards.filter(g => !g.isDead);
   }
 
+  /** Живой эскорт каравана (merchant + охрана) — для деспавна сценой. */
+  getEscorts(): Creature[] {
+    const all = this.merchant ? [this.merchant, ...this.guards] : [...this.guards];
+    return all.filter(c => !c.isDead);
+  }
+
   update(_time: number, delta: number) {
     if (this.destroyed || this.arrived) return;
     const dt = delta / 1000;
@@ -213,5 +219,13 @@ export class Caravan {
     this.destroyed = true;
     this.sprite.destroy();
     this.hpBar?.destroy();
+    // Деспавн живого эскорта. Используется при смене зоны (init), где массив
+    // существ сцены уже сброшен — здесь чистим только спрайты существ.
+    // В игровом цикле эскорт убирает сцена (см. GameScene.update) — она владеет
+    // массивом creatures и переприсваивает его, поэтому ссылка в караване может
+    // устареть.
+    for (const esc of this.getEscorts()) esc.destroy();
+    this.guards = [];
+    this.merchant = null;
   }
 }

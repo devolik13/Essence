@@ -597,6 +597,15 @@ export class GameScene extends Phaser.Scene {
     // Делаем это ПЕРЕД обновлением мобов, чтобы каждый кадр их позиции
     // были выставлены к слотам формации до AI-логики мобов.
     for (const caravan of this.caravans) caravan.update(time, delta);
+    // Завершённый караван (дошёл/уничтожен) → деспавним его живой эскорт, иначе
+    // существа-сопровождение остаются «фантомами» в this.creatures и на экране.
+    for (const caravan of this.caravans) {
+      if (!caravan.destroyed && !caravan.arrived) continue;
+      for (const esc of caravan.getEscorts()) {
+        esc.destroy();
+        this.creatures = this.creatures.filter(c => c !== esc);
+      }
+    }
     this.caravans = this.caravans.filter(c => !c.destroyed && !c.arrived);
 
     // Обновляем мобов
