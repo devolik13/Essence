@@ -3,6 +3,7 @@
  * Renders above the Phaser canvas using absolute-positioned HTML.
  */
 import './inventory.css';
+import { t } from '../i18n';
 import { ITEMS } from '../data/itemDB';
 import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
@@ -234,9 +235,9 @@ function showTooltip(target: HTMLElement, itemDef: ItemDef) {
   }
 
   const foot = el('div', 'tt-foot');
-  if (itemDef.type === 'equipment')  foot.textContent = 'ЛКМ · Надеть';
-  else if (itemDef.type === 'consumable') foot.textContent = 'ЛКМ · Использовать';
-  else foot.textContent = 'Материал';
+  if (itemDef.type === 'equipment')  foot.textContent = t('inv.foot_equip');
+  else if (itemDef.type === 'consumable') foot.textContent = t('inv.foot_use');
+  else foot.textContent = t('inv.foot_material');
   tt.appendChild(foot);
 
   (root ?? document.body).appendChild(tt);
@@ -278,14 +279,14 @@ function renderHeader(args: RenderArgs): HTMLElement {
   if (body) {
     const chip = el('div', 'ess-body-chip');
     chip.appendChild(el('span', 'pulse'));
-    chip.appendChild(el('span', 'label', 'BODY'));
+    chip.appendChild(el('span', 'label', t('win.body')));
     chip.appendChild(el('span', 'name', body.definition.nameRu));
     left.appendChild(chip);
   }
 
   const title = el('div', 'ess-title');
-  title.textContent = 'Inventory';
-  title.appendChild(el('span', 'sub', 'ESSENCE · CH.I'));
+  title.textContent = t('win.inventory');
+  title.appendChild(el('span', 'sub', t('inv.subtitle')));
 
   const right = el('div', 'ess-header-right');
   right.appendChild(buildCurrency(sphere.copper ?? 0));
@@ -323,8 +324,8 @@ function renderEquipColumn(args: RenderArgs): HTMLElement {
   const section = el('section', 'ess-figure-col');
 
   const head = el('div', 'ess-section-head');
-  head.appendChild(el('span', 't', 'Equipment'));
-  head.appendChild(el('span', 's', 'Sphere Vessel'));
+  head.appendChild(el('span', 't', t('win.equipment')));
+  head.appendChild(el('span', 's', t('win.sphere_vessel')));
   section.appendChild(head);
 
   const stage = el('div', 'ess-figure-stage');
@@ -395,7 +396,7 @@ function renderBagColumn(args: RenderArgs): HTMLElement {
   const section = el('section', 'ess-bag-col');
 
   const head = el('div', 'ess-section-head');
-  head.appendChild(el('span', 't', 'Bag'));
+  head.appendChild(el('span', 't', t('win.bag')));
   head.appendChild(el('span', 's', `${sphere.inventory.length} / 64`));
   section.appendChild(head);
 
@@ -409,10 +410,10 @@ function renderBagColumn(args: RenderArgs): HTMLElement {
 
   const chips = el('div', 'ess-filter-chips');
   const chipDefs: { id: FilterKind; label: string }[] = [
-    { id: 'all', label: 'All' },
-    { id: 'equipment', label: 'Equipment' },
-    { id: 'material', label: 'Materials' },
-    { id: 'consumable', label: 'Consumables' },
+    { id: 'all', label: t('inv.filter.all') },
+    { id: 'equipment', label: t('win.equipment') },
+    { id: 'material', label: t('inv.filter.material') },
+    { id: 'consumable', label: t('inv.filter.consumable') },
   ];
   for (const c of chipDefs) {
     const btn = el('button', `ess-chip${currentFilter === c.id ? ' active' : ''}`);
