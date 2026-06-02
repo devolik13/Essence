@@ -16,6 +16,7 @@ import {
   startCapture, updateCapture, interruptCapture,
 } from '../systems/capture';
 import { distributeXP, isFirstCapReached } from '../systems/progression';
+import { SpatialGrid } from '../systems/spatialGrid';
 import { Stats, StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
@@ -50,6 +51,10 @@ export class GameScene extends Phaser.Scene {
   private playerBody: Body | null = null;
   private creatures: Creature[] = [];
   private caravans: Caravan[] = [];
+  /** Пространственная сетка живых существ, перестраивается каждый кадр. */
+  private creatureGrid = new SpatialGrid<Creature>(300);
+  /** Кэш статичных точек NPC для миникарты (NPC не двигаются). */
+  private cachedNpcDots: { x: number; y: number }[] | null = null;
   private damageTexts: DamageText[] = [];
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
@@ -219,6 +224,8 @@ export class GameScene extends Phaser.Scene {
     this.bodyQuestTracker.clear();
     this.teardownFns = [];
     this.cameraFollowTarget = undefined;
+    this.cachedNpcDots = null;
+    this.creatureGrid.clear();
   }
 
   /**
@@ -542,6 +549,15 @@ export class GameScene extends Phaser.Scene {
     // Обновляем сферу
     this.sphere.update(time, delta);
 
+    // Пространственная сетка живых существ — строится раз в кадр (позиции с
+    // конца прошлого кадра) и обслуживает соседние запросы (фракции, бой,
+    // ближайший враг волка) за O(соседей) вместо O(всех). Должна быть готова
+    // до игрового ввода ниже (tryCaptureDead читает isInCombat).
+    this.creatureGrid.clear();
+    for (const c of this.creatures) {
+      if (!c.isDead) this.creatureGrid.insert(c);
+    }
+
     // Обновляем тело игрока
     if (this.playerBody) {
       this.playerBody.update(time, delta);
@@ -634,11 +650,11 @@ export class GameScene extends Phaser.Scene {
         // 2. Иначе ближайший враг в радиусе 300px
         if (!wolfTarget) {
           let nearestDist = 300;
-          for (const c of this.creatures) {
-            if (c === creature || c.isDead || c.isSummoned) continue;
+          this.creatureGrid.forEachNear(creature.x, creature.y, 300, (c) => {
+            if (c === creature || c.isDead || c.isSummoned) return;
             const d = distance(creature.x, creature.y, c.x, c.y);
             if (d < nearestDist) { nearestDist = d; wolfTarget = c; }
-          }
+          });
         }
 
         // 3. Если игрок далеко (>250px) — бежим к нему, бросаем цель
@@ -845,7 +861,7 @@ export class GameScene extends Phaser.Scene {
           : null,
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
-      mapDotNpcs: this.worldNPCs.map(n => ({ x: n.x, y: n.y })),
+      mapDotNpcs: (this.cachedNpcDots ??= this.worldNPCs.map(n => ({ x: n.x, y: n.y }))),
       mapDotNodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
       creatures: this.creatures.map(c => ({
         x: c.x, y: c.y,
@@ -2024,12 +2040,15 @@ export class GameScene extends Phaser.Scene {
   private get isInCombat(): boolean {
     if (!this.playerBody) return false;
     const px = this.playerBody.x, py = this.playerBody.y;
-    return this.creatures.some(c =>
-      !c.isDead &&
-      (c.aiState === 'chase' || c.aiState === 'attack') &&
-      !c.factionTarget &&
-      distance(c.x, c.y, px, py) < 400
-    );
+    let inCombat = false;
+    this.creatureGrid.forEachNear(px, py, 400, (c) => {
+      if (inCombat || c.isDead) return;
+      if ((c.aiState === 'chase' || c.aiState === 'attack') &&
+          !c.factionTarget && distance(c.x, c.y, px, py) < 400) {
+        inCombat = true;
+      }
+    });
+    return inCombat;
   }
 
   private selectTarget(creature: Creature) {
@@ -4633,13 +4652,13 @@ export class GameScene extends Phaser.Scene {
     if (creature.definition.type !== BodyType.Combat) return null;
     let best: Creature | null = null;
     let bestDist = GameScene.FACTION_SIGHT;
-    for (const other of this.creatures) {
-      if (other === creature || other.isDead || other.isSummoned) continue;
+    this.creatureGrid.forEachNear(creature.x, creature.y, GameScene.FACTION_SIGHT, (other) => {
+      if (other === creature || other.isDead || other.isSummoned) return;
       const otherFaction = other.definition.faction;
-      if (!otherFaction || otherFaction === selfFaction) continue;
+      if (!otherFaction || otherFaction === selfFaction) return;
       const d = distance(creature.x, creature.y, other.x, other.y);
       if (d < bestDist) { bestDist = d; best = other; }
-    }
+    });
     return best;
   }
 
