@@ -44,8 +44,13 @@ export function checkAchievements(sphere: Sphere): AchievementDef[] {
   if (caps >= 5) tryUnlock('capture_5');
 
   // ── Spells ─────────────────────────────────────────────────────────────
-  if (sphere.learnedSpells.some(s => s.id === 'spell_spark'))    tryUnlock('spell_spark');
-  if (sphere.learnedSpells.some(s => s.id === 'spell_fireball')) tryUnlock('spell_fireball');
+  // id ачивки ≠ id заклинания, поэтому сверяемся с requiredSpellId.
+  for (const def of ACHIEVEMENTS) {
+    if (def.category === 'spell' && def.requiredSpellId &&
+        sphere.learnedSpells.some(s => s.id === def.requiredSpellId)) {
+      tryUnlock(def.id);
+    }
+  }
 
   return newly;
 }

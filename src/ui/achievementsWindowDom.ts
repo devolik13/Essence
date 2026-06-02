@@ -53,9 +53,9 @@ function getProgress(def: AchievementDef, sphere: Sphere): AchProgress {
     return { current, target };
   }
 
-  if (def.id.startsWith('spell_')) {
-    const spellId = def.id;
-    const has = sphere.learnedSpells.some(s => s.id === spellId) ? 1 : 0;
+  if (def.category === 'spell') {
+    const has = def.requiredSpellId &&
+      sphere.learnedSpells.some(s => s.id === def.requiredSpellId) ? 1 : 0;
     return { current: has, target: 1 };
   }
 
