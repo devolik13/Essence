@@ -3185,8 +3185,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Бесплатный каст (от Рассечения)
-    if (this.sphere.freeNextCast) {
+    // Бесплатный каст (от Рассечения). Запоминаем факт, чтобы «отменяющие»
+    // ветки (toggle-выкл, неверное оружие, волк уже жив) могли вернуть РОВНО
+    // то, что списали, и восстановить заряд бесплатного каста — иначе мана
+    // бралась бы из ниоткуда, а бесплатный каст тратился впустую.
+    const usedFreeCast = this.sphere.freeNextCast;
+    if (usedFreeCast) {
       this.sphere.freeNextCast = false;
     } else {
       this.playerBody.currentMana -= spell.manaCost;
@@ -3213,7 +3217,8 @@ export class GameScene extends Phaser.Scene {
       // Не тратим ману и не запускаем кулдаун
       slot.cooldownRemaining = 0;
       this.sphere.abilityCooldowns[spell.id] = 0;
-      this.playerBody.currentMana += spell.manaCost;
+      if (usedFreeCast) this.sphere.freeNextCast = true;
+      else this.playerBody.currentMana += spell.manaCost;
       return;
     }
 
@@ -3271,7 +3276,8 @@ export class GameScene extends Phaser.Scene {
       if (spell.requiredWeapons && !spell.requiredWeapons.includes(this.playerBody.weapon.type)) {
         slot.cooldownRemaining = 0;
         this.sphere.abilityCooldowns[spell.id] = 0;
-        this.playerBody.currentMana += spell.manaCost;
+        if (usedFreeCast) this.sphere.freeNextCast = true;
+        else this.playerBody.currentMana += spell.manaCost;
         return;
       }
       if (spell.statusEffect) {
@@ -3341,7 +3347,8 @@ export class GameScene extends Phaser.Scene {
       if (this.creatures.some(c => c.isSummoned && !c.isDead)) {
         slot.cooldownRemaining = 0;
         this.sphere.abilityCooldowns[spell.id] = 0;
-        this.playerBody.currentMana += spell.manaCost;
+        if (usedFreeCast) this.sphere.freeNextCast = true;
+        else this.playerBody.currentMana += spell.manaCost;
         this.events.emit('log', { text: 'Волк ещё жив', color: '#aaaaaa' });
         return;
       }
