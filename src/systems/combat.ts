@@ -122,16 +122,5 @@ export function calcMagicDamage(attacker: Stats, defender: Stats, weaponBase: nu
   return { raw, reduced, hit: true, crit, final: Math.round(final_) };
 }
 
-// ─── Ранг Сущности ────────────────────────────────────
-
-export function sphereRank(stats: Stats): number {
-  const sum = Object.values(stats).reduce((a, b) => a + b, 0);
-  return sum / 10;
-}
-
-// ─── Прогрессия XP ────────────────────────────────────
-
-/** XP для повышения параметра с current до current+1 */
-export function xpToNextLevel(current: number): number {
-  return current * 10;
-}
+// Ранг Сущности и XP-прогрессия живут в systems/progression.ts (calcRank,
+// xpToNextLevel) — единый источник истины. Дубли отсюда удалены.
