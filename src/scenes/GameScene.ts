@@ -159,6 +159,15 @@ export class GameScene extends Phaser.Scene {
   private spawnX?: number;
   private spawnY?: number;
 
+  /**
+   * Снятие слушателей/хендлеров, добавленных в create().
+   * scene.restart() (смена зоны) переиспользует this.events и не чистит его,
+   * поэтому без явного снятия собственные слушатели GameScene дублировались бы
+   * с каждым рестартом (множит persist/клики). Заполняется через trackEvent(),
+   * прогоняется в SHUTDOWN.
+   */
+  private teardownFns: Array<() => void> = [];
+
   // New game flow
   private isNewGame = false;
   private newGameBodyId?: string;
@@ -205,9 +214,26 @@ export class GameScene extends Phaser.Scene {
     this.questObjects = [];
     this.bodyQuestObjects = [];
     this.bodyQuestTracker.clear();
+    this.teardownFns = [];
+  }
+
+  /**
+   * Регистрирует слушатель на this.events и запоминает его снятие для SHUTDOWN.
+   * Снимаем именно по ссылке (а не events.off(event)), чтобы не задеть
+   * слушателей UIScene на тех же событиях (напр. 'spell-learned').
+   */
+  private trackEvent(event: string, handler: (...args: any[]) => void): void {
+    this.events.on(event, handler);
+    this.teardownFns.push(() => this.events.off(event, handler));
   }
 
   create() {
+    // Снимаем все слушатели/хендлеры этой сцены при выгрузке. scene.restart()
+    // на смене зоны переиспользует эмиттер — без этого хендлеры накапливаются.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      for (const fn of this.teardownFns) fn();
+      this.teardownFns = [];
+    });
     // ─── Квесты ──────────────────────────────────────
     this.questTracker = new QuestTracker(QUESTS);
 
@@ -227,9 +253,7 @@ export class GameScene extends Phaser.Scene {
         }
       };
       window.addEventListener('keydown', domHandler);
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-        window.removeEventListener('keydown', domHandler);
-      });
+      this.teardownFns.push(() => window.removeEventListener('keydown', domHandler));
     }
 
     // ─── Сфера ───────────────────────────────────────
@@ -263,7 +287,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // UI scenes (e.g. inventory equip/unequip) request a save via this event.
-    this.events.on('persist', () => this.persistState());
+    this.trackEvent('persist', () => this.persistState());
 
     // ─── Debug / cheat commands (DevTools console) ──────────────────────────
     // Usage: cheatWeapons() — adds 1 of every starter weapon to inventory
@@ -300,6 +324,11 @@ export class GameScene extends Phaser.Scene {
       (window as unknown as { cheatWeapons: () => void }).cheatWeapons();
       (window as unknown as { cheatSpells: () => void }).cheatSpells();
     };
+    // Снимаем чит-функции при выгрузке сцены (C4) — не оставляем висеть на window.
+    this.teardownFns.push(() => {
+      const w = window as unknown as Record<string, unknown>;
+      delete w.cheatWeapons; delete w.cheatSpells; delete w.cheatAll;
+    });
 
     // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
     const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
@@ -367,7 +396,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // При изучении заклинания — обновляем слоты и квесты
-    this.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
+    this.trackEvent('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       if (this.playerBody) this.fillBodySlots(this.playerBody);
       const spellCompleted = this.questTracker.onSpellLearned(spell.id);
       for (const q of spellCompleted) this.onQuestComplete(q);
@@ -379,7 +408,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Переключение отслеживания квеста
-    this.events.on('track-quest', (questId: string) => {
+    this.trackEvent('track-quest', (questId: string) => {
       const ids = this.sphere.trackedQuestIds;
       const idx = ids.indexOf(questId);
       if (idx >= 0) {
@@ -391,7 +420,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Назначение заклинания в слот из spell picker (из UIScene)
-    this.events.on('assign-spell', (data: { slotIndex: number; spell: import('../types/abilities').AbilityDef | null }) => {
+    this.trackEvent('assign-spell', (data: { slotIndex: number; spell: import('../types/abilities').AbilityDef | null }) => {
       if (!this.playerBody) return;
       const slot = this.playerBody.abilitySlots[data.slotIndex];
       if (!slot) return;
@@ -403,12 +432,12 @@ export class GameScene extends Phaser.Scene {
       this.persistState();
     });
 
-    this.events.on('activate-spell-slot', (slotIndex: number) => {
+    this.trackEvent('activate-spell-slot', (slotIndex: number) => {
       if (slotIndex === 0) this.handleAttack();
       else this.activateSpellSlot(slotIndex);
     });
 
-    this.events.on('use-item', (itemId: string) => {
+    this.trackEvent('use-item', (itemId: string) => {
       const def = ITEMS[itemId];
       if (!def || def.type !== 'consumable') return;
       if (!this.sphere.useItem(itemId)) return;
