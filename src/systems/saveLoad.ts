@@ -15,8 +15,18 @@ const OLD_SAVE_KEY = 'essence_sphere_v1';
  * (не только при добавлении — добавление additive-полей миграции не требует).
  * Миграции идут ТОЛЬКО вперёд (см. migrateSaveData): отката версии нет.
  *  v1 — первая версионированная схема. Сейвы без поля version = legacy (v0).
+ *  v2 — стихийные/природные спеллы переименованы с mob_<школа>_t1..t5 на имена.
  */
-const CURRENT_SAVE_VERSION = 1;
+const CURRENT_SAVE_VERSION = 2;
+
+/** Ремап id стихийных/природных спеллов v1→v2 (нумерация тиров → имена). */
+const SPELL_ID_RENAMES_V2: Record<string, string> = {
+  mob_fire_t1: 'mob_fire_spark', mob_fire_t2: 'mob_fire_arrow', mob_fire_t3: 'mob_fire_wall', mob_fire_t4: 'mob_fireball', mob_fire_t5: 'mob_fire_tsunami',
+  mob_water_t1: 'mob_ice_shard', mob_water_t2: 'mob_ice_arrow', mob_water_t3: 'mob_ice_rain', mob_water_t4: 'mob_blizzard', mob_water_t5: 'mob_absolute_zero',
+  mob_earth_t1: 'mob_pebble_shot', mob_earth_t2: 'mob_stone_spike', mob_earth_t3: 'mob_earth_wall', mob_earth_t4: 'mob_stone_grotto', mob_earth_t5: 'mob_meteor_shower',
+  mob_wind_t1: 'mob_gust', mob_wind_t2: 'mob_wind_blade', mob_wind_t3: 'mob_wind_barrier', mob_wind_t4: 'mob_storm_cloud', mob_wind_t5: 'mob_ball_lightning',
+  mob_nature_t1: 'mob_summon_wolf', mob_nature_t2: 'mob_bark_armor', mob_nature_t3: 'mob_leaf_canopy', mob_nature_t4: 'mob_ent', mob_nature_t5: 'mob_meteorokinesis',
+};
 
 let activeSlotIndex = 0;
 
@@ -188,8 +198,24 @@ function migrateSaveData(parsed: unknown): SaveData {
   // просто проставляем версию.
   if (v < 1) v = 1;
 
-  // Будущие ступени:
-  // if (v < 2) { /* трансформация полей */ v = 2; }
+  // v1 → v2: переименование id стихийных/природных спеллов на имена.
+  if (v < 2) {
+    const remap = (id: string) => SPELL_ID_RENAMES_V2[id] ?? id;
+    if (Array.isArray(data.learnedSpellIds)) {
+      data.learnedSpellIds = data.learnedSpellIds.map(remap);
+    }
+    if (data.spellProgress) {
+      const np: Record<string, number> = {};
+      for (const [k, val] of Object.entries(data.spellProgress)) np[remap(k)] = val;
+      data.spellProgress = np;
+    }
+    if (data.weaponSlotConfigs) {
+      for (const wkey of Object.keys(data.weaponSlotConfigs)) {
+        data.weaponSlotConfigs[wkey] = data.weaponSlotConfigs[wkey].map(s => (s ? remap(s) : s));
+      }
+    }
+    v = 2;
+  }
 
   data.version = v;
   return data;

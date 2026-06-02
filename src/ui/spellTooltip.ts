@@ -28,9 +28,9 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 
 function buildSpellTooltipDom(spell: AbilityDef): HTMLElement {
   const tt = el('div', 'ess-tooltip');
-  // Map tier from manaCost: T1=5, T2=10, T3=15
-  const tier = spell.manaCost >= 15 ? 'T3' : spell.manaCost >= 10 ? 'T2' : 'T1';
-  const rarity = tier === 'T3' ? 'epic' : tier === 'T2' ? 'rare' : 'uncommon';
+  // Визуальная редкость рамки по стоимости маны (без ярлыка «тира» — умения
+  // не пронумерованы и не упорядочены, школа показана ниже).
+  const rarity = spell.manaCost >= 15 ? 'epic' : spell.manaCost >= 10 ? 'rare' : 'uncommon';
   tt.setAttribute('data-rarity', rarity);
 
   const head = el('div', 'tt-head');
@@ -38,7 +38,7 @@ function buildSpellTooltipDom(spell: AbilityDef): HTMLElement {
   const school = spell.school ?? 'neutral';
   nameSpan.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
   head.appendChild(nameSpan);
-  head.appendChild(el('span', 'tt-rarity', tier));
+  head.appendChild(el('span', 'tt-rarity', SCHOOL_ICONS[school] ?? ''));
   tt.appendChild(head);
 
   const typeLine = el('div', 'tt-type');

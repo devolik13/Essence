@@ -47,10 +47,6 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   return e;
 }
 
-function tier(sp: AbilityDef): string {
-  return sp.manaCost >= 15 ? 'T3' : sp.manaCost >= 10 ? 'T2' : 'T1';
-}
-
 function buildSpellCard(spell: AbilityDef, learned: boolean): HTMLElement {
   const card = el('div', `ess-spell-card${learned ? '' : ' locked'}`);
   const school = spell.school ?? 'neutral';

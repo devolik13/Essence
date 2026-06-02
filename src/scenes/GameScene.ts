@@ -2236,7 +2236,7 @@ export class GameScene extends Phaser.Scene {
             const r = calcMagicDamage(t.casterStats, c.stats, t.baseDamage);
             c.takeDamage(r.final);
             this.aggroCreature(c);
-            spawnSpellImpact(this, c.x, c.y, 'mob_fire_t1'); // spark explosion
+            spawnSpellImpact(this, c.x, c.y, 'mob_fire_spark'); // spark explosion
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, r.crit, false));
             if (c.isDead) this.onCreatureKilled(c);
           }
@@ -3063,8 +3063,8 @@ export class GameScene extends Phaser.Scene {
 
       // Boss reward: auto-learn T2 spell of the Guardian's school
       const rewardSpellIds: Record<string, string> = {
-        fire: 'mob_fire_t2', water: 'mob_water_t2',
-        earth: 'mob_earth_t2', wind: 'mob_wind_t2',
+        fire: 'mob_fire_arrow', water: 'mob_ice_arrow',
+        earth: 'mob_stone_spike', wind: 'mob_wind_blade',
       };
       const rewardId = rewardSpellIds[def.element];
       if (rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {

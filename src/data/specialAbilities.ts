@@ -36,7 +36,6 @@ export const ABILITY_SWORD_STRIKE: AbilityDef = {
 /** Бросок кинжала — дистанционный удар от Ловкости + гарантированный яд */
 export const ABILITY_KNIFE_THROW: AbilityDef = {
   id: 'knife_throw',
-  prerequisiteId: 'sting',
   nameRu: 'Knife Throw',
   damageType: 'ranged',
   cooldown: 2,
@@ -68,7 +67,6 @@ export const ABILITY_MACE_STRIKE: AbilityDef = {
 /** Двойной удар — 2 удара, полный урон, замедление на каждый */
 export const ABILITY_DOUBLE_STRIKE: AbilityDef = {
   id: 'double_strike',
-  prerequisiteId: 'sword_strike',
   nameRu: 'Double Strike',
   damageType: 'melee',
   effectType: 'multi_hit',
@@ -181,7 +179,6 @@ export const ABILITY_HAMMER_STRIKE: AbilityDef = {
 /** Сильный удар — одиночный мощный удар, 20% шанс Пробития брони */
 export const ABILITY_HAMMER_SMASH: AbilityDef = {
   id: 'hammer_smash',
-  prerequisiteId: 'hammer_strike',
   nameRu: 'Heavy Smash',
   damageType: 'melee',
   cooldown: 2,
@@ -200,7 +197,6 @@ export const ABILITY_HAMMER_SMASH: AbilityDef = {
 /** Стойкий удар — урон + временные HP (щит) */
 export const ABILITY_MACE_BASH: AbilityDef = {
   id: 'mace_bash',
-  prerequisiteId: 'mace_strike',
   nameRu: 'Sturdy Strike',
   damageType: 'melee',
   cooldown: 2,
@@ -219,7 +215,6 @@ export const ABILITY_MACE_BASH: AbilityDef = {
 /** Размах — конус AoE 80px 90°, 20% шанс Кровотечения на каждую цель */
 export const ABILITY_SLASH_SWEEP: AbilityDef = {
   id: 'slash_sweep',
-  prerequisiteId: 'slash',
   nameRu: 'Sweep',
   damageType: 'melee',
   effectType: 'cone_aoe',
@@ -238,7 +233,6 @@ export const ABILITY_SLASH_SWEEP: AbilityDef = {
 /** Удар древком — ближний удар, 100% Отбрасывание */
 export const ABILITY_SPEAR_BUTT: AbilityDef = {
   id: 'spear_butt',
-  prerequisiteId: 'spear_thrust',
   nameRu: 'Butt Strike',
   damageType: 'melee',
   cooldown: 2,
@@ -257,7 +251,6 @@ export const ABILITY_SPEAR_BUTT: AbilityDef = {
 /** Выстрел с отскоком — выстрел + бросок назад 180px, 20% Уязвимость */
 export const ABILITY_BOW_BACKSHOT: AbilityDef = {
   id: 'bow_backshot',
-  prerequisiteId: 'bow_shot',
   nameRu: 'Backshot',
   damageType: 'ranged',
   effectType: 'dash_backward',
@@ -276,7 +269,6 @@ export const ABILITY_BOW_BACKSHOT: AbilityDef = {
 /** Дождь стрел — AoE, 20% шанс сброса кулдауна */
 export const ABILITY_ARROW_RAIN: AbilityDef = {
   id: 'arrow_rain',
-  prerequisiteId: 'longbow_shot',
   nameRu: 'Arrow Rain',
   damageType: 'ranged',
   effectType: 'reset_cooldown',
@@ -297,7 +289,6 @@ export const ABILITY_ARROW_RAIN: AbilityDef = {
 /** Удерживающий болт — одиночный выстрел, корни (свой эффект) */
 export const ABILITY_CROSSBOW_SNARE: AbilityDef = {
   id: 'crossbow_snare',
-  prerequisiteId: 'crossbow_bolt',
   nameRu: 'Snare Bolt',
   damageType: 'ranged',
   cooldown: 2,
@@ -329,7 +320,6 @@ export const ABILITY_HOOK: AbilityDef = {
 /** Сбивающий удар — одиночный + понижение точности + ошеломление */
 export const ABILITY_FIST_STRIKE: AbilityDef = {
   id: 'fist_strike',
-  prerequisiteId: 'hook',
   nameRu: 'Disorienting Blow',
   damageType: 'melee',
   cooldown: 2,
@@ -349,7 +339,7 @@ export const ABILITY_FIST_STRIKE: AbilityDef = {
 
 /** T3 Меч — Рассечение: если цель замедлена → +50% урона + следующий T1/T2 бесплатен */
 export const ABILITY_SWORD_REND: AbilityDef = {
-  id: 'sword_rend', prerequisiteId: 'double_strike',
+  id: 'sword_rend',
   nameRu: 'Rend', damageType: 'melee',
   cooldown: 12, castTime: 1, manaCost: 15, range: 52, baseDamage: 28,
   conditionalBonusDmg: 1.5, conditionalOnStatus: 'slow', grantFreeNextCast: true,
@@ -359,7 +349,7 @@ export const ABILITY_SWORD_REND: AbilityDef = {
 
 /** T3 Булава — Сотрясение: следующий навык врага +10 сек КД */
 export const ABILITY_MACE_CONCUSS: AbilityDef = {
-  id: 'mace_concuss', prerequisiteId: 'mace_bash',
+  id: 'mace_concuss',
   nameRu: 'Concussion', damageType: 'melee',
   cooldown: 15, castTime: 1, manaCost: 15, range: 48, baseDamage: 24,
   statusEffect: 'concussion', statusChance: 1.0,
@@ -369,7 +359,7 @@ export const ABILITY_MACE_CONCUSS: AbilityDef = {
 
 /** T3 Двуручник — Кровавый размах: кровотечение −75% хила + лечение 30% от урона */
 export const ABILITY_BLOODY_SWEEP: AbilityDef = {
-  id: 'bloody_sweep', prerequisiteId: 'slash_sweep',
+  id: 'bloody_sweep',
   nameRu: 'Bloody Sweep', damageType: 'melee',
   effectType: 'cone_aoe', coneAngle: 90,
   cooldown: 12, castTime: 1.5, manaCost: 15, range: 80, baseDamage: 32,
@@ -381,7 +371,7 @@ export const ABILITY_BLOODY_SWEEP: AbilityDef = {
 
 /** T3 Копьё — Бросок копья: отбрасывание 300px + доп урон при иммунитете */
 export const ABILITY_SPEAR_THROW: AbilityDef = {
-  id: 'spear_throw', prerequisiteId: 'spear_butt',
+  id: 'spear_throw',
   nameRu: 'Spear Throw', damageType: 'ranged',
   cooldown: 12, castTime: 1, manaCost: 15, range: 200, baseDamage: 30,
   requiredWeapons: [WeaponType.Spear],
@@ -390,7 +380,7 @@ export const ABILITY_SPEAR_THROW: AbilityDef = {
 
 /** T3 Молот — Землетрясение: прыжок 200px, AoE, замедление 2 сек + оружейное сокрушение брони */
 export const ABILITY_EARTHQUAKE: AbilityDef = {
-  id: 'earthquake', prerequisiteId: 'hammer_smash',
+  id: 'earthquake',
   nameRu: 'Earthquake', damageType: 'melee',
   isAoe: true, aoeRadius: 80,
   leapDistance: 200,
@@ -403,7 +393,7 @@ export const ABILITY_EARTHQUAKE: AbilityDef = {
 
 /** T3 Кинжал — Смертельная доза: яд 10/сек + если 5 стаков → мгновенный урон 50 */
 export const ABILITY_LETHAL_DOSE: AbilityDef = {
-  id: 'lethal_dose', prerequisiteId: 'knife_throw',
+  id: 'lethal_dose',
   nameRu: 'Lethal Dose', damageType: 'melee',
   cooldown: 12, castTime: 0.5, manaCost: 15, range: 44, baseDamage: 22,
   statusEffect: 'poison', statusChance: 1.0,
@@ -414,7 +404,7 @@ export const ABILITY_LETHAL_DOSE: AbilityDef = {
 
 /** T3 Кастеты — Очищающий удар: урон + снимает 1 случайный дебафф + 2 сек иммунитет */
 export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
-  id: 'cleansing_strike', prerequisiteId: 'fist_strike',
+  id: 'cleansing_strike',
   nameRu: 'Cleansing Strike', damageType: 'melee',
   cooldown: 12, castTime: 0.5, manaCost: 15, range: 36, baseDamage: 18,
   cleanseCount: 1, debuffImmunityDuration: 2,
@@ -426,7 +416,7 @@ export const ABILITY_CLEANSING_STRIKE: AbilityDef = {
 
 /** T3 Кор. лук — Ловушка: ставит ловушку, при наступлении −80% скорости 5 сек + уязвимость 40% */
 export const ABILITY_TRAP: AbilityDef = {
-  id: 'trap', prerequisiteId: 'bow_backshot',
+  id: 'trap',
   nameRu: 'Trap', damageType: 'ranged',
   cooldown: 15, castTime: 1.5, manaCost: 15, range: 60, baseDamage: 0,
   isAoe: true, aoeRadius: 60,
@@ -437,7 +427,7 @@ export const ABILITY_TRAP: AbilityDef = {
 
 /** T3 Дл. лук — Мощный выстрел: игнорирует броню + сброс КД */
 export const ABILITY_POWER_SHOT: AbilityDef = {
-  id: 'power_shot', prerequisiteId: 'arrow_rain',
+  id: 'power_shot',
   nameRu: 'Power Shot', damageType: 'ranged',
   effectType: 'reset_cooldown', resetCooldownChance: 0.2,
   ignoreArmor: true,
@@ -448,7 +438,7 @@ export const ABILITY_POWER_SHOT: AbilityDef = {
 
 /** T3 Арбалет — Болт адреналина: ускорение КД умений от Ловкости союзников на 20% (6 сек) */
 export const ABILITY_SUPPORT_BOLT: AbilityDef = {
-  id: 'support_bolt', prerequisiteId: 'crossbow_snare',
+  id: 'support_bolt',
   nameRu: 'Adrenaline Bolt', damageType: 'ranged',
   cooldown: 15, castTime: 1, manaCost: 15, range: 200, baseDamage: 0,
   isAoe: true, aoeRadius: 200,

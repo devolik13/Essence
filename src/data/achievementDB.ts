@@ -7,7 +7,7 @@ export interface AchievementDef {
   /** Category for grouping */
   category: 'kill' | 'capture' | 'spell' | 'explore';
   /** Для category:'spell' — реальный id заклинания, которое нужно выучить
-   *  (id ачивки и id спелла различаются: spell_spark vs mob_fire_t1). */
+   *  (id ачивки и id спелла различаются: spell_spark vs mob_fire_spark). */
   requiredSpellId?: string;
 }
 
@@ -140,7 +140,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     descRu: 'Выучить заклинание Искра',
     icon: '⚡',
     category: 'spell',
-    requiredSpellId: 'mob_fire_t1',
+    requiredSpellId: 'mob_fire_spark',
   },
   {
     id: 'spell_fireball',
@@ -148,7 +148,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     descRu: 'Выучить заклинание Огненный шар',
     icon: '🔥',
     category: 'spell',
-    requiredSpellId: 'mob_fire_t4',
+    requiredSpellId: 'mob_fireball',
   },
 ];
 

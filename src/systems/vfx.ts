@@ -9,15 +9,15 @@ import Phaser from 'phaser';
 
 /** Impact animations (play once at target position). */
 export const SPELL_IMPACT_ANIM: Record<string, string> = {
-  mob_fire_t1:  'spell_spark',            // Spark — small explosion_sheet
-  mob_fire_t4:  'spell_fireball',         // Fireball — big explosion (fireball_sheet is the impact)
-  mob_water_t1: 'spell_ice_explosion',    // Ice Shard → ice explosion
-  mob_water_t2: 'spell_frost_explosion',  // Ice Arrow splash → frost explosion
-  mob_water_t5: 'spell_absolute_zero',    // Absolute Zero
-  mob_earth_t2: 'spell_spike',            // Stone Spike
-  mob_earth_t5: 'spell_meteor',           // Meteor Shower (per hit)
-  mob_wind_t1:  'spell_gust',             // Gust
-  mob_wind_t2:  'spell_wind_blade',       // Wind Blade (per cone)
+  mob_fire_spark:  'spell_spark',            // Spark — small explosion_sheet
+  mob_fireball:  'spell_fireball',         // Fireball — big explosion (fireball_sheet is the impact)
+  mob_ice_shard: 'spell_ice_explosion',    // Ice Shard → ice explosion
+  mob_ice_arrow: 'spell_frost_explosion',  // Ice Arrow splash → frost explosion
+  mob_absolute_zero: 'spell_absolute_zero',    // Absolute Zero
+  mob_stone_spike: 'spell_spike',            // Stone Spike
+  mob_meteor_shower: 'spell_meteor',           // Meteor Shower (per hit)
+  mob_gust:  'spell_gust',             // Gust
+  mob_wind_blade:  'spell_wind_blade',       // Wind Blade (per cone)
 };
 
 /** Projectile animations (fly from caster to target, loop).
@@ -25,20 +25,20 @@ export const SPELL_IMPACT_ANIM: Record<string, string> = {
  * its spritesheet is used as the impact explosion instead.
  */
 export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
-  mob_fire_t2:  'spell_firebolt',       // Fire Arrow
-  mob_water_t1: 'spell_ice_drop',       // Ice Shard — single drop projectile
-  mob_water_t2: 'spell_frost_arrow',    // Ice Arrow — distinct frost-arrow shape
-  mob_wind_t4:  'spell_lightning',       // Storm Cloud bolts
-  mob_wind_t5:  'spell_ball_lightning',  // Ball Lightning
+  mob_fire_arrow:  'spell_firebolt',       // Fire Arrow
+  mob_ice_shard: 'spell_ice_drop',       // Ice Shard — single drop projectile
+  mob_ice_arrow: 'spell_frost_arrow',    // Ice Arrow — distinct frost-arrow shape
+  mob_storm_cloud:  'spell_lightning',       // Storm Cloud bolts
+  mob_ball_lightning:  'spell_ball_lightning',  // Ball Lightning
 };
 
 /** Ground zone animations (loop at zone position) */
 export const SPELL_ZONE_ANIM: Record<string, string> = {
-  mob_fire_t3:  'spell_fire_wall',      // Fire Wall
-  mob_fire_t5:  'spell_fire_tsunami',   // Fire Tsunami
-  mob_water_t3: 'spell_ice_drop',       // Ice Rain → ice drops falling
-  mob_water_t4: 'spell_blizzard',       // Blizzard
-  mob_earth_t3: 'spell_earth_wall',     // Earth Wall
+  mob_fire_wall:  'spell_fire_wall',      // Fire Wall
+  mob_fire_tsunami:  'spell_fire_tsunami',   // Fire Tsunami
+  mob_ice_rain: 'spell_ice_drop',       // Ice Rain → ice drops falling
+  mob_blizzard: 'spell_blizzard',       // Blizzard
+  mob_earth_wall: 'spell_earth_wall',     // Earth Wall
 };
 
 /** Spawn animated impact sprite at position */
@@ -67,10 +67,10 @@ export function spawnSpellProjectile(
   const dist = Math.sqrt(dx * dx + dy * dy);
   const dur = Math.min(600, (dist / 420) * 1000);
 
-  const projSize = spellId === 'mob_fire_t4' ? 80 : size; // Fireball — bigger projectile
+  const projSize = spellId === 'mob_fireball' ? 80 : size; // Fireball — bigger projectile
   const sprite = scene.add.sprite(fromX, fromY, animKey).setDepth(53);
   sprite.setDisplaySize(projSize, projSize);
-  if (spellId !== 'mob_fire_t4') sprite.setRotation(angle); // fireball doesn't rotate
+  if (spellId !== 'mob_fireball') sprite.setRotation(angle); // fireball doesn't rotate
   sprite.play(animKey);
 
   scene.tweens.add({

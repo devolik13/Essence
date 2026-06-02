@@ -3,7 +3,7 @@ import { AbilityDef } from '../../types/abilities';
 // ─── WIND SCHOOL ───────────────────────────────────────────────────────────────
 /** T1 — Порыв: одиночный выстрел */
 export const MOB_WIND_T1: AbilityDef = {
-  id: 'mob_wind_t1',
+  id: 'mob_gust',
   nameRu: 'Gust',
   school: 'wind',
   damageType: 'magic',
@@ -15,8 +15,7 @@ export const MOB_WIND_T1: AbilityDef = {
 };
 /** T2 — Ветрорез: 3 смерча конусом 45°, дальность 160px */
 export const MOB_WIND_T2: AbilityDef = {
-  id: 'mob_wind_t2',
-  prerequisiteId: 'mob_wind_t1',
+  id: 'mob_wind_blade',
   nameRu: 'Wind Blade',
   school: 'wind',
   damageType: 'magic',
@@ -32,7 +31,7 @@ export const MOB_WIND_T2: AbilityDef = {
 };
 /** T3 — Ветряная стена: размещаемый барьер, снаряды теряют урон пролетая через (оригинал Archimage) */
 export const MOB_WIND_T3: AbilityDef = {
-  id: 'mob_wind_t3',
+  id: 'mob_wind_barrier',
   nameRu: 'Wind Barrier',
   school: 'wind',
   damageType: 'magic',
@@ -54,7 +53,7 @@ export const MOB_WIND_T3: AbilityDef = {
 // ─── WIND T4/T5 ──────────────────────────────────────────────────────────────
 /** T4 — Storm Cloud: multiple lightning (Archimage: 5-9 молний по 15-30) */
 export const MOB_WIND_T4: AbilityDef = {
-  id: 'mob_wind_t4', prerequisiteId: 'mob_wind_t3',
+  id: 'mob_storm_cloud',
   nameRu: 'Storm Cloud', school: 'wind', damageType: 'magic',
   effectType: 'multi_projectile', projectileCount: 7, projectileRadius: 250,
   castTime: 2, cooldown: 18, manaCost: 15, range: 280, baseDamage: 20,
@@ -63,7 +62,7 @@ export const MOB_WIND_T4: AbilityDef = {
 };
 /** T5 — Ball Lightning: chain lightning (Archimage: цепная 30-50, стан + крит) */
 export const MOB_WIND_T5: AbilityDef = {
-  id: 'mob_wind_t5', prerequisiteId: 'mob_wind_t4',
+  id: 'mob_ball_lightning',
   nameRu: 'Ball Lightning', school: 'wind', damageType: 'magic',
   effectType: 'chain_lightning',
   chainRadius: 120,   // jump radius between targets

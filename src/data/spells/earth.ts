@@ -3,7 +3,7 @@ import { AbilityDef } from '../../types/abilities';
 // ─── EARTH SCHOOL ──────────────────────────────────────────────────────────────
 /** T1 — Камешек: одиночный выстрел */
 export const MOB_EARTH_T1: AbilityDef = {
-  id: 'mob_earth_t1',
+  id: 'mob_pebble_shot',
   nameRu: 'Pebble Shot',
   school: 'earth',
   damageType: 'magic',
@@ -15,8 +15,7 @@ export const MOB_EARTH_T1: AbilityDef = {
 };
 /** T2 — Каменный шип: удар + 4 шипа крестом, Пробитие брони (spell-specific: armor_break вместо школьного armor_reduce) */
 export const MOB_EARTH_T2: AbilityDef = {
-  id: 'mob_earth_t2',
-  prerequisiteId: 'mob_earth_t1',
+  id: 'mob_stone_spike',
   nameRu: 'Stone Spike',
   school: 'earth',
   damageType: 'magic',
@@ -34,7 +33,7 @@ export const MOB_EARTH_T2: AbilityDef = {
 };
 /** T3 — Земляная стена: призыв стены с HP (оригинал Archimage) */
 export const MOB_EARTH_T3: AbilityDef = {
-  id: 'mob_earth_t3',
+  id: 'mob_earth_wall',
   nameRu: 'Earth Wall',
   school: 'earth',
   damageType: 'magic',
@@ -56,7 +55,7 @@ export const MOB_EARTH_T3: AbilityDef = {
 // ─── EARTH T4/T5 ─────────────────────────────────────────────────────────────
 /** T4 — Stone Grotto: armor aura (Archimage: пассивка +10-20% брони) */
 export const MOB_EARTH_T4: AbilityDef = {
-  id: 'mob_earth_t4', prerequisiteId: 'mob_earth_t3',
+  id: 'mob_stone_grotto',
   nameRu: 'Stone Grotto', school: 'earth', damageType: 'magic',
   effectType: 'self_buff', statusEffect: 'bark_armor',
   castTime: 1.5, cooldown: 20, manaCost: 15, range: 0, baseDamage: 0,
@@ -65,7 +64,7 @@ export const MOB_EARTH_T4: AbilityDef = {
 };
 /** T5 — Meteor Shower: AoE around caster (Archimage: 1-5 метеоритов, -50% брони) */
 export const MOB_EARTH_T5: AbilityDef = {
-  id: 'mob_earth_t5', prerequisiteId: 'mob_earth_t4',
+  id: 'mob_meteor_shower',
   nameRu: 'Meteor Shower', school: 'earth', damageType: 'magic',
   isAoe: true, aoeRadius: 200,
   castTime: 3, cooldown: 30, manaCost: 15, range: 0, baseDamage: 30,

@@ -3,7 +3,7 @@ import { AbilityDef } from '../../types/abilities';
 // ─── FIRE SCHOOL ───────────────────────────────────────────────────────────────
 /** T1 — Искра: одиночный выстрел */
 export const MOB_FIRE_T1: AbilityDef = {
-  id: 'mob_fire_t1',
+  id: 'mob_fire_spark',
   nameRu: 'Spark',
   school: 'fire',
   damageType: 'magic',
@@ -15,8 +15,7 @@ export const MOB_FIRE_T1: AbilityDef = {
 };
 /** T2 — Огненная стрела: 5 снарядов в случайные цели в радиусе 150px */
 export const MOB_FIRE_T2: AbilityDef = {
-  id: 'mob_fire_t2',
-  prerequisiteId: 'mob_fire_t1',
+  id: 'mob_fire_arrow',
   nameRu: 'Fire Arrow',
   school: 'fire',
   damageType: 'magic',
@@ -32,7 +31,7 @@ export const MOB_FIRE_T2: AbilityDef = {
 };
 /** T3 — Огненная стена: зона на земле, урон стоящим в ней (оригинал Archimage) */
 export const MOB_FIRE_T3: AbilityDef = {
-  id: 'mob_fire_t3',
+  id: 'mob_fire_wall',
   nameRu: 'Fire Wall',
   school: 'fire',
   damageType: 'magic',
@@ -54,7 +53,7 @@ export const MOB_FIRE_T3: AbilityDef = {
 // ─── FIRE T4/T5 ──────────────────────────────────────────────────────────────
 /** T4 — Fireball: AoE explosion (Archimage: взрыв 3×3) */
 export const MOB_FIRE_T4: AbilityDef = {
-  id: 'mob_fire_t4', prerequisiteId: 'mob_fire_t3',
+  id: 'mob_fireball',
   nameRu: 'Fireball', school: 'fire', damageType: 'magic',
   isAoe: true, aoeRadius: 160,
   castTime: 2, cooldown: 15, manaCost: 15, range: 280, baseDamage: 35,
@@ -62,7 +61,7 @@ export const MOB_FIRE_T4: AbilityDef = {
 };
 /** T5 — Fire Tsunami: wave sweeps toward caster, leaves burning ground */
 export const MOB_FIRE_T5: AbilityDef = {
-  id: 'mob_fire_t5', prerequisiteId: 'mob_fire_t4',
+  id: 'mob_fire_tsunami',
   nameRu: 'Fire Tsunami', school: 'fire', damageType: 'magic',
   effectType: 'fire_tsunami',
   wallWidth: 200,       // width of the wave

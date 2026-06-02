@@ -132,7 +132,7 @@ const QUEST_SHAMAN: BodyQuestDef = {
     objectId: 'spirit_clearing', nameRu: 'Духовная поляна', icon: '🌀', color: 0x8866ff,
     type: 'waypoint', count: 1, radius: 450,
   }],
-  rewardSpellId: 'mob_nature_t1',
+  rewardSpellId: 'mob_summon_wolf',
   xpReward: 50,
 };
 
@@ -159,7 +159,7 @@ const QUEST_SPARK: BodyQuestDef = {
     objectId: 'dry_tree', nameRu: 'Сухое дерево', icon: '🪵', color: 0x886633,
     type: 'destructible', count: 12, radius: 400,
   }],
-  rewardSpellId: 'mob_fire_t1',
+  rewardSpellId: 'mob_fire_spark',
   xpReward: 50,
 };
 
@@ -182,7 +182,7 @@ const QUEST_SPLASHER: BodyQuestDef = {
     objectId: 'burning_tree', nameRu: 'Горящее дерево', icon: '🔥', color: 0xff7733,
     type: 'destructible', count: 7, radius: 400,
   }],
-  rewardSpellId: 'mob_water_t1',
+  rewardSpellId: 'mob_ice_shard',
   xpReward: 50,
 };
 
@@ -205,7 +205,7 @@ const QUEST_PEBBLE: BodyQuestDef = {
     objectId: 'cave_breach', nameRu: 'Пробоина в стене', icon: '🪨', color: 0x886633,
     type: 'waypoint', count: 1, radius: 600,
   }],
-  rewardSpellId: 'mob_earth_t1',
+  rewardSpellId: 'mob_pebble_shot',
   xpReward: 50,
 };
 
@@ -225,7 +225,7 @@ const QUEST_GUSTY: BodyQuestDef = {
     // targetId undefined = matches any kill (any elemental in the zone will do)
     { type: 'kill', count: 1, description: 'Уничтожь любого элементаля' },
   ],
-  rewardSpellId: 'mob_wind_t1',
+  rewardSpellId: 'mob_gust',
   xpReward: 50,
 };
 
@@ -367,7 +367,7 @@ const QUEST_ASHER: BodyQuestDef = {
     objectId: 'border_mark', nameRu: 'Пограничная метка', icon: '🔥', color: 0xff6633,
     type: 'waypoint', count: 3, radius: 500,
   }],
-  rewardSpellId: 'mob_fire_t2',
+  rewardSpellId: 'mob_fire_arrow',
   xpReward: 100,
 };
 
@@ -390,7 +390,7 @@ const QUEST_FOGGER: BodyQuestDef = {
     objectId: 'fog_node', nameRu: 'Узел тумана', icon: '🌫️', color: 0x6699cc,
     type: 'waypoint', count: 4, radius: 550,
   }],
-  rewardSpellId: 'mob_water_t2',
+  rewardSpellId: 'mob_ice_arrow',
   xpReward: 100,
 };
 
@@ -414,7 +414,7 @@ const QUEST_MUDDER: BodyQuestDef = {
     { objectId: 'rock_wall', nameRu: 'Слой породы', icon: '🪨', color: 0x886644, type: 'destructible', count: 3, radius: 400 },
     { objectId: 'water_source', nameRu: 'Подземный источник', icon: '💧', color: 0x4499dd, type: 'waypoint', count: 1, radius: 600 },
   ],
-  rewardSpellId: 'mob_earth_t2',
+  rewardSpellId: 'mob_stone_spike',
   xpReward: 100,
 };
 
@@ -438,7 +438,7 @@ const QUEST_WHISTLER: BodyQuestDef = {
     { objectId: 'wind_blocker', nameRu: 'Источник помехи', icon: '💨', color: 0x88aacc, type: 'waypoint', count: 1, radius: 500 },
     { objectId: 'wind_blocker', nameRu: 'Помеха', icon: '🔩', color: 0x888888, type: 'destructible', count: 1, radius: 500 },
   ],
-  rewardSpellId: 'mob_wind_t2',
+  rewardSpellId: 'mob_wind_blade',
   xpReward: 100,
 };
 
@@ -459,7 +459,7 @@ const QUEST_SPIRIT_WOLF: BodyQuestDef = {
     { type: 'protect', count: 30, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его 30 сек', zoneRadius: 240 },
   ],
   friendlyCreatureIds: ['wounded_human'],
-  rewardSpellId: 'mob_nature_t2',
+  rewardSpellId: 'mob_bark_armor',
   xpReward: 100,
 };
 

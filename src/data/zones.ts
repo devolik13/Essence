@@ -309,7 +309,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 4500,  y: 6300, creatureId: 'spark', count: 1 },
     { x: 7600,  y: 6900, creatureId: 'spark', count: 1 },
 
-    // Splashers — 30 (water T1, learns Ice Drop / mob_water_t1)
+    // Splashers — 30 (water T1, learns Ice Drop / mob_ice_shard)
     { x: 1100,  y: 1700, creatureId: 'splasher', count: 1 },
     { x: 2900,  y: 900,  creatureId: 'splasher', count: 1 },
     { x: 4900,  y: 1700, creatureId: 'splasher', count: 1 },
@@ -341,7 +341,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 7800,  y: 6700, creatureId: 'splasher', count: 1 },
     { x: 10100, y: 6900, creatureId: 'splasher', count: 1 },
 
-    // Pebbles — 30 (earth T1, learns Pebble / mob_earth_t1)
+    // Pebbles — 30 (earth T1, learns Pebble / mob_pebble_shot)
     { x: 700,   y: 800,  creatureId: 'pebble', count: 1 },
     { x: 2300,  y: 1100, creatureId: 'pebble', count: 1 },
     { x: 4300,  y: 1700, creatureId: 'pebble', count: 1 },
@@ -373,7 +373,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 6900,  y: 6500, creatureId: 'pebble', count: 1 },
     { x: 9700,  y: 6700, creatureId: 'pebble', count: 1 },
 
-    // Gusties — 30 (wind T1, learns Gust / mob_wind_t1)
+    // Gusties — 30 (wind T1, learns Gust / mob_gust)
     { x: 1500,  y: 700,  creatureId: 'gusty', count: 1 },
     { x: 3500,  y: 1300, creatureId: 'gusty', count: 1 },
     { x: 5500,  y: 900,  creatureId: 'gusty', count: 1 },

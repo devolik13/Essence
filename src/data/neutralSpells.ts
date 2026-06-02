@@ -40,7 +40,6 @@ export const MOB_NEUTRAL_HEAL: AbilityDef = {
 /** T2 — Рывок: мгновенный бросок вперёд на 180px */
 export const MOB_NEUTRAL_T2: AbilityDef = {
   id: 'dash',
-  prerequisiteId: 'acceleration',
   nameRu: 'Dash',
   school: 'neutral',
   damageType: 'melee',
