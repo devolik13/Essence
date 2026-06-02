@@ -10,6 +10,14 @@ import { resolveSpellIds } from '../data/allSpells';
 const CHARACTERS_KEY = 'essence_characters';
 const OLD_SAVE_KEY = 'essence_sphere_v1';
 
+/**
+ * Версия схемы сейва. Поднимать при ЛЮБОМ изменении семантики полей
+ * (не только при добавлении — добавление additive-полей миграции не требует).
+ * Миграции идут ТОЛЬКО вперёд (см. migrateSaveData): отката версии нет.
+ *  v1 — первая версионированная схема. Сейвы без поля version = legacy (v0).
+ */
+const CURRENT_SAVE_VERSION = 1;
+
 let activeSlotIndex = 0;
 
 function getSaveKey(slot: number): string {
@@ -76,11 +84,24 @@ export function migrateOldSave(): void {
   if (!old) return;
   localStorage.setItem(getSaveKey(0), old);
   localStorage.removeItem(OLD_SAVE_KEY);
+
+  // Восстанавливаем реальные метаданные из старого сейва, а не хардкодим
+  // воина/ранг 1 (иначе портим имя/тело/ранг любому не-воину).
+  let name = 'Character';
+  let bodyId = 'human_warrior';
+  let rank = 1;
+  try {
+    const data = JSON.parse(old) as Partial<SaveData>;
+    if (data.characterName) name = data.characterName;
+    if (data.lastBodyId) bodyId = data.lastBodyId;
+    if (data.stats) rank = calcRank({ ...createDefaultStats(), ...data.stats });
+  } catch { /* битый старый сейв — оставляем дефолты */ }
+
   saveCharacterMeta({
     slotIndex: 0,
-    name: 'Character',
-    bodyId: 'human_warrior',
-    rank: 1,
+    name,
+    bodyId,
+    rank,
     lastPlayed: Date.now(),
   });
 }
@@ -88,6 +109,7 @@ export function migrateOldSave(): void {
 // ── Save data ───────────────────────────────────────────
 
 interface SaveData {
+  version: number;
   stats: Partial<Stats>;
   xpTracker: Partial<Record<StatName, number>>;
   spellProgress: Record<string, number>;
@@ -118,6 +140,7 @@ export function saveSphere(sphere: Sphere, _knownSpells?: AbilityDef[], quests?:
   }
 
   const data: SaveData = {
+    version: CURRENT_SAVE_VERSION,
     stats: { ...sphere.stats },
     xpTracker: { ...sphere.xpTracker },
     spellProgress: { ...sphere.spellProgress },
@@ -151,12 +174,35 @@ export function saveSphere(sphere: Sphere, _knownSpells?: AbilityDef[], quests?:
   });
 }
 
+/**
+ * Прогоняет распарсенный сейв через цепочку forward-миграций до текущей версии.
+ * Сейв без поля version считается legacy (v0). Добавляйте ступени по мере
+ * изменения семантики полей; каждая ступень поднимает version на 1.
+ */
+function migrateSaveData(parsed: unknown): SaveData {
+  const data = (parsed ?? {}) as SaveData & { version?: number };
+  let v = data.version ?? 0;
+
+  // v0 → v1: первая версионированная схема. Поля additive/optional и читаются
+  // загрузчиком через undefined-проверки, поэтому структурных правок нет —
+  // просто проставляем версию.
+  if (v < 1) v = 1;
+
+  // Будущие ступени:
+  // if (v < 2) { /* трансформация полей */ v = 2; }
+
+  data.version = v;
+  return data;
+}
+
 export function loadSphere(sphere: Sphere, _allSpells?: AbilityDef[], quests?: QuestTracker): boolean {
   try {
     const raw = localStorage.getItem(getSaveKey(activeSlotIndex));
     if (!raw) return false;
 
-    const data: SaveData = JSON.parse(raw);
+    // Миграции идут только вперёд; сейв новее кода (version > CURRENT, при
+    // откате игры) грузим best-effort — неизвестные поля просто игнорируются.
+    const data: SaveData = migrateSaveData(JSON.parse(raw));
 
     const defaults = createDefaultStats();
     for (const [k, v] of Object.entries(data.stats ?? {})) {
