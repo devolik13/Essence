@@ -32,7 +32,7 @@ import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
-import { STATUS_DEFS, StatusEffectId } from '../types/statuses';
+import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
@@ -3460,23 +3460,13 @@ export class GameScene extends Phaser.Scene {
 
     // ── Отчаяние: +10 урона за дебафф на себе ────────────────────────────
     if (spell.bonusDamagePerSelfDebuff && this.playerBody) {
-      const debuffCount = [...this.playerBody.statusEffects.keys()].filter(id => {
-        return !['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
-                 'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
-                 'mana_regen_boost', 'stun_immune', 'knockback_immune',
-                 'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'focus', 'damage_boost'].includes(id);
-      }).length;
+      const debuffCount = [...this.playerBody.statusEffects.keys()].filter(id => !isBuffStatus(id)).length;
       dmg += spell.bonusDamagePerSelfDebuff * debuffCount;
     }
 
     // ── Разоблачение: +10% урона за бафф на враге ────────────────────────
     if (spell.bonusDamagePercentPerTargetBuff) {
-      const buffCount = [...target.statusEffects.keys()].filter(id => {
-        return ['fortify', 'evasion_boost', 'block_next', 'shield_stance',
-                'hp_regen_boost', 'mana_regen_boost', 'stun_immune', 'knockback_immune',
-                'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'acceleration',
-                'inspiration', 'bark_armor', 'leaf_regen', 'focus', 'damage_boost'].includes(id);
-      }).length;
+      const buffCount = [...target.statusEffects.keys()].filter(id => isBuffStatus(id)).length;
       dmg = Math.round(dmg * (1 + spell.bonusDamagePercentPerTargetBuff * buffCount));
     }
 
@@ -3543,14 +3533,8 @@ export class GameScene extends Phaser.Scene {
 
     // ── Очищение дебаффов (Очищающий удар) ───────────────────────────────
     if ((spell.cleanseCount || spell.cleanseSelf) && this.playerBody) {
-      const debuffIds = [...this.playerBody.statusEffects.keys()].filter(id => {
-        const def = STATUS_DEFS[id];
-        // Дебаффы — всё кроме баффов (acceleration, inspiration, bark_armor, etc.)
-        return !['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
-                 'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
-                 'mana_regen_boost', 'stun_immune', 'knockback_immune',
-                 'regen_per_buff', 'regen_per_debuff', 'ranged_resist'].includes(id);
-      });
+      // Очищаем только дебаффы — всё, что не бафф (единый список в statuses.ts).
+      const debuffIds = [...this.playerBody.statusEffects.keys()].filter(id => !isBuffStatus(id));
       if (spell.cleanseCount) {
         // Снимаем N случайных дебаффов
         for (let i = 0; i < spell.cleanseCount && debuffIds.length > 0; i++) {

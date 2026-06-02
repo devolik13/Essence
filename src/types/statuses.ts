@@ -437,3 +437,22 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     castTimeIncrease: -0.3, // отрицательное = ускорение каста (-30% время каста)
   },
 };
+
+/**
+ * Единый источник истины: какие статусы — баффы (положительные/нейтральные
+ * эффекты на себя/союзников). Всё, чего здесь НЕТ, считается дебаффом.
+ * Используется для подсчёта баффов/дебаффов и для очищения (cleanse не снимает
+ * баффы). Раньше эти списки были захардкожены в 3 местах и расходились.
+ */
+export const BUFF_STATUS_IDS: ReadonlySet<StatusEffectId> = new Set<StatusEffectId>([
+  'acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
+  'evasion_boost', 'block_next', 'shield_stance', 'stun_immune', 'knockback_immune',
+  'ranged_resist', 'regen_per_buff', 'regen_per_debuff', 'armor_group_buff',
+  'luck_group_buff', 'mana_flow', 'mana_link_self', 'mana_link_target',
+  'focus', 'damage_boost', 'mana_regen_boost', 'hp_regen_boost',
+]);
+
+/** true если статус — бафф; всё остальное считается дебаффом. */
+export function isBuffStatus(id: StatusEffectId): boolean {
+  return BUFF_STATUS_IDS.has(id);
+}
