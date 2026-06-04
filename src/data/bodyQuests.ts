@@ -749,7 +749,7 @@ const QUEST_HARE: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'carrot', nameRu: 'Морковка', icon: '🥕', color: 0xff8833,
-    type: 'collectible', count: 6, radius: 300,
+    type: 'collectible', count: 7, radius: 300,
   }],
   rewardSpellId: 'acceleration',
   xpReward: 40,
