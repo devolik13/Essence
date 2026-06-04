@@ -565,14 +565,16 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
   caravans: [
     // Looping caravan event: departs Waldmar (A) → Eshworth (B), past the
-    // raider camp (~5550,2350, hardcoded in Caravan.ts). Full roster (1 merchant
-    // + 5 guards escort; 3 spear + 2 archer + 1 brute + 1 crossbow raiders)
-    // respawns every cycle. WAIT_START=120s at A, WAIT_END=30s at B.
+    // raider camp (~5550,2350, hardcoded in Caravan.ts). Roster respawns every
+    // cycle. WAIT_START=120s at A, WAIT_END=30s at B.
+    // guardCount=15 balances the escort (15 guards + merchant-healer + scout_vet)
+    // against the raid (7 base + 3 veterans). Sim puts the tossup around 15-18
+    // guards — tune after playtest.
     {
       start: { x: WX, y: WY },   // Waldmar — departure (not player start)
       end:   { x: EX, y: EY },   // Eshworth — destination
       speed: 36,
-      guardCount: 5,
+      guardCount: 15,
     },
   ],
 
