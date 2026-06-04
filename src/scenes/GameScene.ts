@@ -2994,6 +2994,9 @@ export class GameScene extends Phaser.Scene {
     const mapH = this.currentZone.heightTiles * TILE_SIZE;
 
     for (const so of bq.spawnObjects) {
+      // Центр спавна: якорь (фикс. точка, напр. лагерь) или вокруг игрока.
+      const ax = so.anchor?.x ?? cx;
+      const ay = so.anchor?.y ?? cy;
       // Minimum spacing between same-batch objects so they don't clump.
       // Scales with available area: ~half the avg cell size for `count` items
       // packed into the (0.4–1.0)·radius annulus.
@@ -3004,8 +3007,8 @@ export class GameScene extends Phaser.Scene {
         for (let attempt = 0; attempt < 30; attempt++) {
           const angle = Math.random() * Math.PI * 2;
           const dist = so.radius * 0.4 + Math.random() * so.radius * 0.6;
-          ox = Math.max(40, Math.min(mapW - 40, cx + Math.cos(angle) * dist));
-          oy = Math.max(40, Math.min(mapH - 40, cy + Math.sin(angle) * dist));
+          ox = Math.max(40, Math.min(mapW - 40, ax + Math.cos(angle) * dist));
+          oy = Math.max(40, Math.min(mapH - 40, ay + Math.sin(angle) * dist));
           const tooClose = placed.some(p => Math.hypot(p.x - ox, p.y - oy) < minSpacing);
           if (!tooClose) break;
         }

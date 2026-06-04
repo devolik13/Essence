@@ -24,6 +24,8 @@ export interface BodyQuestSpawnObject {
   type: 'collectible' | 'waypoint' | 'destructible';
   count: number;
   radius: number;
+  /** Фиксированная точка спавна (напр. орочий лагерь). Если нет — вокруг игрока. */
+  anchor?: { x: number; y: number };
 }
 
 export interface BodyQuestDef {

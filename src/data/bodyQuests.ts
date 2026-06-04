@@ -487,7 +487,8 @@ const QUEST_GOBLIN_VETERAN: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'orc_loot', nameRu: 'Орочья добыча', icon: '💰', color: 0xddaa33,
-    type: 'collectible', count: 4, radius: 300,
+    type: 'collectible', count: 7, radius: 250,
+    anchor: { x: 1518, y: 253 }, // орочий лагерь (вождь в центре) — добыча с разбросом
   }],
   rewardSpellId: 'knife_throw',
   xpReward: 100,
