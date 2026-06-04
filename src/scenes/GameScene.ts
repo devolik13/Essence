@@ -1395,6 +1395,25 @@ export class GameScene extends Phaser.Scene {
     // Спавним мобов текущей зоны (из конфига)
     spawnGroup(this.currentZone.spawnGroups);
 
+    // Разброс: существа рандомно по всей карте, мимо сейф-зон (ветераны и т.п.)
+    {
+      const mapW = this.currentZone.widthTiles * TILE_SIZE;
+      const mapH = this.currentZone.heightTiles * TILE_SIZE;
+      for (const sc of this.currentZone.scatterSpawns ?? []) {
+        const def = CREATURE_DB[sc.creatureId];
+        if (!def) continue;
+        for (let i = 0; i < sc.count; i++) {
+          let x = 0, y = 0;
+          for (let attempt = 0; attempt < 20; attempt++) {
+            x = 80 + Math.random() * (mapW - 160);
+            y = 80 + Math.random() * (mapH - 160);
+            if (!this.isInSafeZone(x, y)) break;
+          }
+          this.creatures.push(new Creature(this, x, y, def));
+        }
+      }
+    }
+
     // Спавним мобов из редактора карт (mob_* объекты)
     if (this.mapEditor) {
       for (const ms of this.mapEditor.getMobSpawns()) {

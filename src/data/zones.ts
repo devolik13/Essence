@@ -80,6 +80,8 @@ export interface ZoneConfig {
   biomes?: BiomeRegion[];
   respawnPoint: { x: number; y: number };
   spawnGroups: SpawnGroup[];
+  /** Существа, разбросанные рандомно по всей карте (мимо сейф-зон). */
+  scatterSpawns?: { creatureId: string; count: number }[];
   exits: ZoneExit[];
   /** Resource gathering nodes */
   resourceNodes?: ResourceNodeSpawn[];
@@ -544,6 +546,15 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 8500,  y: 6700, creatureId: 'grouse', count: 1 },
     { x: 9900,  y: 6900, creatureId: 'grouse', count: 1 },
     { x: 11200, y: 6700, creatureId: 'grouse', count: 1 },
+  ],
+
+  // Не-каравановые ветераны — рандомный разброс по карте (по 30 каждого).
+  // orc_veteran НЕ здесь — он один (Вождь в орочьем лагере, через village.json).
+  // Каравановые (scout/bandit_*_veteran) спавнятся у обоза/лагеря, не здесь.
+  scatterSpawns: [
+    { creatureId: 'goblin_veteran', count: 30 },
+    { creatureId: 'wolf_veteran',   count: 30 },
+    { creatureId: 'bear_veteran',   count: 30 },
   ],
 
   exits: [
