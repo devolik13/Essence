@@ -42,6 +42,9 @@ export interface BodyQuestDef {
   prerequisiteBodyQuestId?: string;
   conflictQuestId?: string;
   spawnObjects?: BodyQuestSpawnObject[];
+  /** Враги, спавнящиеся при старте квеста и агрящиеся на игрока (напр. гоблины
+   *  набегают на орка-вождя). Без anchor — вокруг игрока. */
+  spawnEnemies?: { creatureId: string; count: number; radius?: number; anchor?: { x: number; y: number } }[];
   friendlyCreatureIds?: string[];
 }
 

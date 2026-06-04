@@ -2978,6 +2978,7 @@ export class GameScene extends Phaser.Scene {
       if (hasObjectives) {
         this.bodyQuestTracker.start(bq);
         this.spawnBodyQuestObjects(bq);
+        this.spawnBodyQuestEnemies(bq);
         this.showMessage(`Quest started: ${bq.nameRu}`);
       } else {
         this.grantBodyQuestReward(bq);
@@ -3025,6 +3026,30 @@ export class GameScene extends Phaser.Scene {
         const obj = { x: ox, y: oy, objectId: so.objectId, nameRu: so.nameRu, objType: so.type, gfx: container, used: false };
         this.questObjects.push(obj);
         this.bodyQuestObjects.push(obj);
+      }
+    }
+  }
+
+  /** Спавн врагов при старте квеста тела — сразу агрятся на игрока. */
+  private spawnBodyQuestEnemies(bq: import('../types/bodyQuests').BodyQuestDef): void {
+    if (!bq.spawnEnemies || !this.playerBody) return;
+    const cx = this.playerBody.x, cy = this.playerBody.y;
+    const mapW = this.currentZone.widthTiles * TILE_SIZE;
+    const mapH = this.currentZone.heightTiles * TILE_SIZE;
+    for (const se of bq.spawnEnemies) {
+      const def = CREATURE_DB[se.creatureId];
+      if (!def) continue;
+      const ax = se.anchor?.x ?? cx;
+      const ay = se.anchor?.y ?? cy;
+      const radius = se.radius ?? 150;
+      for (let i = 0; i < se.count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = radius * 0.5 + Math.random() * radius * 0.5;
+        const x = Math.max(40, Math.min(mapW - 40, ax + Math.cos(angle) * dist));
+        const y = Math.max(40, Math.min(mapH - 40, ay + Math.sin(angle) * dist));
+        const c = new Creature(this, x, y, def);
+        c.aiState = 'chase'; // сразу бегут на игрока
+        this.creatures.push(c);
       }
     }
   }

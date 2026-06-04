@@ -507,8 +507,9 @@ const QUEST_ORC_VETERAN: BodyQuestDef = {
     { speaker: '', text: 'Лагерь чист. Широкая дуга — твоя.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'goblin', targetNameRu: 'Гоблин-вор', description: 'Убей 3 гоблинов-воров' },
+    { type: 'kill', count: 3, targetId: 'goblin_veteran', targetNameRu: 'Гоблин-вор', description: 'Убей 3 гоблинов-воров' },
   ],
+  spawnEnemies: [{ creatureId: 'goblin_veteran', count: 3, radius: 180 }],
   rewardSpellId: 'slash_sweep',
   xpReward: 100,
   prerequisiteBodyQuestId: 'bq_orc',
