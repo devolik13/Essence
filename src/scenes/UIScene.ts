@@ -94,6 +94,7 @@ export class UIScene extends Phaser.Scene {
   private hintText!:    Phaser.GameObjects.Text;
   private logText!:     Phaser.GameObjects.Text;
   private captureBar!:  Phaser.GameObjects.Rectangle;
+  private captureLabel!: Phaser.GameObjects.Text;
 
   // ── Tracked quest HUD (top-left) ──────────────────────
   private trackedQuestText!: Phaser.GameObjects.Text;
@@ -252,9 +253,9 @@ export class UIScene extends Phaser.Scene {
       .setStrokeStyle(1, THEME.brass0, 0.6);
     this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, THEME.ether2)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Capturing...', {
+    this.captureLabel = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Capturing...', {
       fontSize: '11px', fontFamily: '"Special Elite", monospace', color: TC.ether3,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
     const castY = GAME_HEIGHT - 72;
     this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, THEME.ink2)
@@ -822,10 +823,12 @@ export class UIScene extends Phaser.Scene {
       const p = capture.elapsed / capture.duration;
       this.captureBarBg.setVisible(true);
       this.captureBar.setVisible(true);
+      this.captureLabel.setVisible(true);
       this.captureBar.width = 140 * p;
     } else {
       this.captureBarBg.setVisible(false);
       this.captureBar.setVisible(false);
+      this.captureLabel.setVisible(false);
     }
 
     // ── Skill bar ─────────────────────────────────────────
