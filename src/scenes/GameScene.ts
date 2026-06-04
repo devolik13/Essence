@@ -612,17 +612,11 @@ export class GameScene extends Phaser.Scene {
     // Обновляем караваны (двигают телегу + строят охрану в формацию)
     // Делаем это ПЕРЕД обновлением мобов, чтобы каждый кадр их позиции
     // были выставлены к слотам формации до AI-логики мобов.
+    // Караван — самоуправляемый цикл (A→B→ожидание→полный респаун в A). Он сам
+    // добавляет/удаляет эскорт и рейдеров через колбэки на this.creatures, так
+    // что здесь фильтровать массив не нужно. Деспавн происходит только при смене
+    // зоны / teardown через caravan.destroy() (см. init/clear).
     for (const caravan of this.caravans) caravan.update(time, delta);
-    // Завершённый караван (дошёл/уничтожен) → деспавним его живой эскорт, иначе
-    // существа-сопровождение остаются «фантомами» в this.creatures и на экране.
-    for (const caravan of this.caravans) {
-      if (!caravan.destroyed && !caravan.arrived) continue;
-      for (const esc of caravan.getEscorts()) {
-        esc.destroy();
-        this.creatures = this.creatures.filter(c => c !== esc);
-      }
-    }
-    this.caravans = this.caravans.filter(c => !c.destroyed && !c.arrived);
 
     // Обновляем мобов
     const px = this.playerBody?.x ?? -9999;
@@ -639,7 +633,12 @@ export class GameScene extends Phaser.Scene {
     for (const creature of this.creatures) {
       creature.skipAggro = playerInSafe ||
         (!!friendlyIds && friendlyIds.includes(creature.definition.id)) ||
-        (!!playerSpecies && creature.definition.id.replace(/_veteran$/, '') === playerSpecies);
+        (!!playerSpecies && creature.definition.id.replace(/_veteran$/, '') === playerSpecies) ||
+        // Фракционные существа (рейдеры + эскорт каравана) воюют через
+        // faction-war AI + ретализацию, а не по близости игрока. Они не агрятся
+        // на игрока по дистанции — чтобы можно было подойти и вселиться. При
+        // атаке игроком ретализация всё равно работает (aggroCreature игнорит skipAggro).
+        !!creature.definition.faction;
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
         if (creature.isDead) continue;
@@ -1428,7 +1427,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Караваны (живые группы: телега + охранники + мерчант, едут по маршруту)
+    // Караваны (живые группы: телега + охранники + мерчант + рейдеры, цикл A→B).
+    // Передаём колбэки на ТЕКУЩИЙ this.creatures (он переприсваивается фильтром
+    // в нескольких местах), чтобы караван надёжно добавлял/удалял своих существ.
     for (const cs of this.currentZone.caravans ?? []) {
       this.caravans.push(new Caravan(
         this,
@@ -1436,7 +1437,8 @@ export class GameScene extends Phaser.Scene {
         cs.end.x,   cs.end.y,
         cs.speed ?? 36,
         cs.guardCount ?? 2,
-        this.creatures,
+        (c) => { this.creatures.push(c); },
+        (c) => { this.creatures = this.creatures.filter(x => x !== c); },
       ));
     }
 

@@ -2,24 +2,58 @@ import Phaser from 'phaser';
 import { Creature } from './Creature';
 import { CREATURE_DB } from '../data/creatureDB';
 
+/** Caravan lifecycle phases. */
+type CaravanPhase = 'WAIT_START' | 'TRAVEL' | 'WAIT_END';
+
+// ── Cycle timings (seconds) ─────────────────────────────────────────────────
+const WAIT_START_SEC = 120; // idle at A (departure window for the player)
+const WAIT_END_SEC = 30;    // idle at B before full respawn back at A
+
+// ── Raider camp + roster ────────────────────────────────────────────────────
+const RAIDER_CAMP_X = 5550;
+const RAIDER_CAMP_Y = 2350;
+/** Full raider roster spawned at the camp every cycle. */
+const RAIDER_ROSTER: string[] = [
+  'bandit_spear', 'bandit_spear', 'bandit_spear',
+  'bandit_archer', 'bandit_archer',
+  'bandit_brute',
+  'bandit_crossbow',
+];
+
+// ── Cart-vs-raider damage (once all escort dead) ────────────────────────────
+const CART_DAMAGE_RADIUS = 50;   // raider must be within this of cart to damage it
+const CART_DAMAGE_RATE = 12;     // hp/sec dealt by each adjacent raider
+
 /**
- * A traveling caravan: animated cart + escort creatures (guards + merchant).
+ * A looping caravan event: animated cart + escort (merchant + guards) that
+ * travels from A (Waldmar) to B (Eshworth) past a raider camp, then waits and
+ * respawns the entire roster, forever.
  *
- * The cart moves linearly from `start` to `end` along the road. Escort
- * creatures (regular Creature instances stored in scene.creatures) are kept
- * in formation around the cart whenever they have no aggro/faction target.
- * When ambushers in 'raider' faction enter the FACTION_SIGHT range, the
- * escort engages naturally via the existing faction combat logic, the cart
- * pauses while any escort is in chase/attack, then resumes once the road is
- * clear.
+ * State machine:
+ *   WAIT_START — cart idle at A for {@link WAIT_START_SEC}s. Player may possess
+ *                an escort/raider body during this window.
+ *   TRAVEL     — cart moves A→B. Escort follows in formation; movement pauses
+ *                while any escort is fighting (faction war with raiders). The
+ *                raider camp ambushes naturally via faction-sight as the cart
+ *                passes. The cart is invulnerable until ALL escort are dead;
+ *                after that, adjacent raiders chip the cart down.
+ *   WAIT_END   — reached B (or cart destroyed) → idle {@link WAIT_END_SEC}s,
+ *                then despawn ALL escort + raiders, reset cart to A at full HP,
+ *                spawn a fresh full roster, and loop back to WAIT_START.
+ *
+ * The player's body is a separate `Body`, never one of these Creatures, so
+ * despawning escort/raiders never removes the player ("only the player stays").
  */
 export class Caravan {
   public x: number;
   public y: number;
   public hp = 200;
   public readonly maxHp = 200;
+  /** Permanently destroyed (zone change / scene teardown). Not used by the loop. */
   public destroyed = false;
-  public arrived = false;
+
+  private phase: CaravanPhase = 'WAIT_START';
+  private phaseTimer = 0; // seconds elapsed in current timed phase
 
   private sprite: Phaser.GameObjects.Sprite;
   private hpBar?: Phaser.GameObjects.Graphics;
@@ -27,9 +61,9 @@ export class Caravan {
   private dirY = 0;
   private facing: 'down' | 'up' | 'right' | 'left' = 'right';
 
-  /** Current creatures escorting this caravan (filtered alive each frame). */
   private guards: Creature[] = [];
   private merchant: Creature | null = null;
+  private raiders: Creature[] = [];
 
   constructor(
     private scene: Phaser.Scene,
@@ -38,8 +72,11 @@ export class Caravan {
     public readonly endX: number,
     public readonly endY: number,
     public readonly speed: number,
-    guardCount: number,
-    private allCreatures: Creature[],
+    private readonly guardCount: number,
+    /** Adds a creature to the scene's CURRENT creatures array. */
+    private addCreature: (c: Creature) => void,
+    /** Removes a creature from the scene's CURRENT creatures array. */
+    private removeCreature: (c: Creature) => void,
   ) {
     this.x = startX;
     this.y = startY;
@@ -50,33 +87,60 @@ export class Caravan {
     this.sprite.setDisplaySize(72, 72);
     this.sprite.setDepth(this.y);
 
-    // Spawn merchant (1) and guards (guardCount), add them to scene's creature list
+    this.spawnRoster();
+  }
+
+  /** Spawn the full escort (at A) + raiders (at the camp). */
+  private spawnRoster() {
     const merchantDef = CREATURE_DB['caravan_merchant'];
     if (merchantDef) {
-      this.merchant = new Creature(scene, this.x - 30, this.y, merchantDef);
-      allCreatures.push(this.merchant);
+      this.merchant = new Creature(this.scene, this.x - 30, this.y, merchantDef);
+      this.addCreature(this.merchant);
     }
     const guardDef = CREATURE_DB['caravan_guard'];
     if (guardDef) {
-      for (let i = 0; i < guardCount; i++) {
-        const slot = this.guardOffset(i, guardCount);
-        const g = new Creature(scene, this.x + slot.x, this.y + slot.y, guardDef);
-        allCreatures.push(g);
+      for (let i = 0; i < this.guardCount; i++) {
+        const slot = this.guardOffset(i, this.guardCount);
+        const g = new Creature(this.scene, this.x + slot.x, this.y + slot.y, guardDef);
+        this.addCreature(g);
         this.guards.push(g);
       }
     }
+    // Raiders at the camp. They leash to their spawn (camp) via LEASH_RANGE and
+    // engage the escort by faction-sight as the cart passes.
+    for (let i = 0; i < RAIDER_ROSTER.length; i++) {
+      const def = CREATURE_DB[RAIDER_ROSTER[i]];
+      if (!def) continue;
+      const angle = (i / RAIDER_ROSTER.length) * Math.PI * 2;
+      const rx = RAIDER_CAMP_X + Math.cos(angle) * 40;
+      const ry = RAIDER_CAMP_Y + Math.sin(angle) * 30;
+      const r = new Creature(this.scene, rx, ry, def);
+      this.addCreature(r);
+      this.raiders.push(r);
+    }
+  }
+
+  /** Remove all escort + raiders from the scene and clear local tracking. */
+  private despawnRoster() {
+    for (const c of [this.merchant, ...this.guards, ...this.raiders]) {
+      if (!c) continue;
+      c.destroy();
+      this.removeCreature(c);
+    }
+    this.merchant = null;
+    this.guards = [];
+    this.raiders = [];
   }
 
   /** Formation offset from cart center for each guard slot. */
   private guardOffset(idx: number, total: number): { x: number; y: number } {
-    if (total === 1) return { x: 40, y: 0 };
+    if (total <= 1) return { x: 40, y: 0 };
     if (total === 2) return idx === 0 ? { x: 50, y: -25 } : { x: -50, y: 25 };
     if (total === 3) {
       if (idx === 0) return { x: 50, y: 0 };
       if (idx === 1) return { x: -50, y: -25 };
       return { x: -50, y: 25 };
     }
-    // 4+: ring around cart
     const angle = (idx / total) * Math.PI * 2;
     return { x: Math.cos(angle) * 50, y: Math.sin(angle) * 30 };
   }
@@ -87,7 +151,7 @@ export class Caravan {
     return dy > 0 ? 'down' : 'up';
   }
 
-  /** True when any guard/merchant is fighting (has faction target or is in chase/attack). */
+  /** True when any guard/merchant is fighting (has faction target or chasing/attacking). */
   private isUnderAttack(): boolean {
     const fighting = (c: Creature | null) =>
       c != null && !c.isDead && (c.factionTarget != null ||
@@ -96,35 +160,81 @@ export class Caravan {
     return this.guards.some(g => fighting(g));
   }
 
-  /** Returns alive escorts for formation following. */
   private aliveGuards(): Creature[] {
     return this.guards.filter(g => !g.isDead);
   }
 
-  /** Живой эскорт каравана (merchant + охрана) — для деспавна сценой. */
+  /** True while any escort (merchant or guard) is still alive. */
+  private escortAlive(): boolean {
+    if (this.merchant && !this.merchant.isDead) return true;
+    return this.guards.some(g => !g.isDead);
+  }
+
+  /** Live escort (merchant + guards) — used by the scene/destroy cleanup. */
   getEscorts(): Creature[] {
     const all = this.merchant ? [this.merchant, ...this.guards] : [...this.guards];
     return all.filter(c => !c.isDead);
   }
 
   update(_time: number, delta: number) {
-    if (this.destroyed || this.arrived) return;
+    if (this.destroyed) return;
     const dt = delta / 1000;
 
-    // 1. Move cart toward destination (only when no combat)
+    switch (this.phase) {
+      case 'WAIT_START':
+        this.phaseTimer += dt;
+        this.drawHpBar();
+        if (this.phaseTimer >= WAIT_START_SEC) {
+          this.phase = 'TRAVEL';
+          this.phaseTimer = 0;
+        }
+        return;
+
+      case 'WAIT_END':
+        this.phaseTimer += dt;
+        if (this.phaseTimer >= WAIT_END_SEC) this.respawnCycle();
+        return;
+
+      case 'TRAVEL':
+        this.updateTravel(dt);
+        return;
+    }
+  }
+
+  /** Reset cart to A, full HP, fresh full roster, back to WAIT_START. */
+  private respawnCycle() {
+    this.despawnRoster();
+    this.x = this.startX;
+    this.y = this.startY;
+    this.hp = this.maxHp;
+    this.dirX = 1;
+    this.dirY = 0;
+    this.facing = 'right';
+    if (!this.sprite.active) {
+      // Cart sprite was destroyed when the cart was wrecked — recreate it.
+      this.sprite = this.scene.add.sprite(this.x, this.y, 'cart_move_right');
+      if (this.scene.anims.exists('cart_move_right')) this.sprite.play('cart_move_right');
+      this.sprite.setDisplaySize(72, 72);
+    }
+    this.sprite.setPosition(this.x, this.y);
+    this.sprite.setAlpha(1);
+    this.sprite.setFlipX(false);
+    this.sprite.setDepth(this.y);
+    this.hpBar?.clear();
+    this.spawnRoster();
+    this.phase = 'WAIT_START';
+    this.phaseTimer = 0;
+  }
+
+  private updateTravel(dt: number) {
+    // 1. Move cart toward destination (only when not fighting).
     const dx = this.endX - this.x;
     const dy = this.endY - this.y;
     const distLeft = Math.hypot(dx, dy);
 
-    if (distLeft < 8) {
-      this.arrived = true;
-      // On arrival, fade out cart + remove escorts gracefully
-      this.scene.tweens.add({
-        targets: this.sprite,
-        alpha: 0,
-        duration: 1000,
-        onComplete: () => this.sprite.destroy(),
-      });
+    // Arrived OR cart wrecked → wait at B, then respawn.
+    if (distLeft < 8 || this.hp <= 0) {
+      this.enterWaitEnd();
       return;
     }
 
@@ -137,7 +247,7 @@ export class Caravan {
       moved = true;
     }
 
-    // 2. Update sprite direction + animation
+    // 2. Sprite direction + animation.
     const newFacing = this.dirFromVec(this.dirX, this.dirY);
     if (newFacing !== this.facing) {
       this.facing = newFacing;
@@ -155,8 +265,7 @@ export class Caravan {
     this.sprite.setPosition(this.x, this.y);
     this.sprite.setDepth(this.y);
 
-    // 3. Pull idle escorts toward formation slot. Combat-engaged escorts
-    //    are left to their existing AI (chase/attack/return).
+    // 3. Pull idle escort toward formation slots.
     const guardsAlive = this.aliveGuards();
     guardsAlive.forEach((g, i) => {
       const slot = this.guardOffset(i, guardsAlive.length);
@@ -167,12 +276,9 @@ export class Caravan {
       if (!isBusy && moved) {
         const gd = Math.hypot(tx - g.x, ty - g.y);
         if (gd > 6) {
-          const sgnX = (tx - g.x) / gd;
-          const sgnY = (ty - g.y) / gd;
-          // Use a fraction of cart speed so they don't outrun cart
           const followSpeed = this.speed * 1.2;
-          g.x += sgnX * followSpeed * dt;
-          g.y += sgnY * followSpeed * dt;
+          g.x += ((tx - g.x) / gd) * followSpeed * dt;
+          g.y += ((ty - g.y) / gd) * followSpeed * dt;
         }
       }
     });
@@ -191,41 +297,65 @@ export class Caravan {
       }
     }
 
-    // 4. HP bar above cart (only if damaged)
-    if (this.hp < this.maxHp) {
-      if (!this.hpBar) this.hpBar = this.scene.add.graphics();
-      this.hpBar.clear();
-      const barW = 40;
-      const ratio = Math.max(0, this.hp / this.maxHp);
-      this.hpBar.fillStyle(0x000000, 0.6);
-      this.hpBar.fillRect(this.x - barW / 2 - 1, this.y - 38, barW + 2, 5);
-      this.hpBar.fillStyle(0xff4444, 1);
-      this.hpBar.fillRect(this.x - barW / 2, this.y - 37, barW * ratio, 3);
-      this.hpBar.setDepth(this.y + 1);
+    // 4. Once all escort are dead, adjacent raiders chip the cart down.
+    if (!this.escortAlive() && this.hp > 0) {
+      for (const r of this.raiders) {
+        if (r.isDead) continue;
+        if (Math.hypot(r.x - this.x, r.y - this.y) <= CART_DAMAGE_RADIUS) {
+          this.takeDamage(CART_DAMAGE_RATE * dt);
+        }
+      }
     }
+
+    // 5. HP bar.
+    this.drawHpBar();
   }
 
+  private enterWaitEnd() {
+    this.phase = 'WAIT_END';
+    this.phaseTimer = 0;
+    // Fade out the cart sprite; it is recreated/reset on respawn.
+    if (this.sprite.active) {
+      this.scene.tweens.add({
+        targets: this.sprite,
+        alpha: 0,
+        duration: 1000,
+      });
+    }
+    this.hpBar?.clear();
+  }
+
+  private drawHpBar() {
+    if (this.hp >= this.maxHp) { this.hpBar?.clear(); return; }
+    if (!this.hpBar) this.hpBar = this.scene.add.graphics();
+    this.hpBar.clear();
+    const barW = 40;
+    const ratio = Math.max(0, this.hp / this.maxHp);
+    this.hpBar.fillStyle(0x000000, 0.6);
+    this.hpBar.fillRect(this.x - barW / 2 - 1, this.y - 38, barW + 2, 5);
+    this.hpBar.fillStyle(0xff4444, 1);
+    this.hpBar.fillRect(this.x - barW / 2, this.y - 37, barW * ratio, 3);
+    this.hpBar.setDepth(this.y + 1);
+  }
+
+  /** The cart is invulnerable until ALL escort are dead. */
   takeDamage(amount: number) {
-    if (this.destroyed) return;
+    if (this.destroyed || this.hp <= 0) return;
+    if (this.escortAlive()) return; // escort-first rule
     this.hp = Math.max(0, this.hp - amount);
-    if (this.hp <= 0) {
-      this.destroyed = true;
+    if (this.hp <= 0 && this.sprite.active) {
       this.sprite.destroy();
       this.hpBar?.destroy();
+      this.hpBar = undefined;
     }
   }
 
+  /** Permanent teardown (zone change / scene init). Stops the loop. */
   destroy() {
     this.destroyed = true;
-    this.sprite.destroy();
+    if (this.sprite.active) this.sprite.destroy();
     this.hpBar?.destroy();
-    // Деспавн живого эскорта. Используется при смене зоны (init), где массив
-    // существ сцены уже сброшен — здесь чистим только спрайты существ.
-    // В игровом цикле эскорт убирает сцена (см. GameScene.update) — она владеет
-    // массивом creatures и переприсваивает его, поэтому ссылка в караване может
-    // устареть.
-    for (const esc of this.getEscorts()) esc.destroy();
-    this.guards = [];
-    this.merchant = null;
+    this.hpBar = undefined;
+    this.despawnRoster();
   }
 }

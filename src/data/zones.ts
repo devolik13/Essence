@@ -564,9 +564,16 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   caravans: [
-    // Cleared along with all other map mobs. Will be re-added under the
-    // "skills first" design pass once caravan_guard / caravan_merchant
-    // teach distinct, undisputed abilities.
+    // Looping caravan event: departs Waldmar (A) → Eshworth (B), past the
+    // raider camp (~5550,2350, hardcoded in Caravan.ts). Full roster (1 merchant
+    // + 5 guards escort; 3 spear + 2 archer + 1 brute + 1 crossbow raiders)
+    // respawns every cycle. WAIT_START=120s at A, WAIT_END=30s at B.
+    {
+      start: { x: WX, y: WY },   // Waldmar — departure (not player start)
+      end:   { x: EX, y: EY },   // Eshworth — destination
+      speed: 36,
+      guardCount: 5,
+    },
   ],
 
   resourceNodes: [],
