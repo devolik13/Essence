@@ -18,6 +18,10 @@ const RAIDER_ROSTER: string[] = [
   'bandit_archer', 'bandit_archer',
   'bandit_brute',
   'bandit_crossbow',
+  // По одному ветерану-рейдеру (чтобы их квесты были достижимы в событии).
+  'bandit_archer_veteran',
+  'bandit_brute_veteran',
+  'bandit_crossbow_veteran',
 ];
 
 // ── Cart-vs-raider damage (once all escort dead) ────────────────────────────
@@ -105,6 +109,13 @@ export class Caravan {
         this.addCreature(g);
         this.guards.push(g);
       }
+    }
+    // Один ветеран-разведчик в эскорте (его квест «Контрмера» достижим в событии).
+    const scoutVetDef = CREATURE_DB['scout_veteran'];
+    if (scoutVetDef) {
+      const sv = new Creature(this.scene, this.x + 60, this.y - 30, scoutVetDef);
+      this.addCreature(sv);
+      this.guards.push(sv); // считается частью эскорта (формация, escort-first, isUnderAttack)
     }
     // Raiders at the camp. They leash to their spawn (camp) via LEASH_RANGE and
     // engage the escort by faction-sight as the cart passes.

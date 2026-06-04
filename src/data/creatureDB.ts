@@ -365,6 +365,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_archer: {
     id: 'bandit_archer', name: 'Bandit Archer', nameRu: 'Разбойник-лучник',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
     caps: { [StatName.Accuracy]: 24, [StatName.Agility]: 22, [StatName.Evasion]: 14 },
     xpReward: 45,
@@ -379,6 +380,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_crossbow: {
     id: 'bandit_crossbow', name: 'Bandit Crossbowman', nameRu: 'Арбалетчик',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
     caps: { [StatName.Accuracy]: 26, [StatName.Strength]: 16, [StatName.Health]: 16 },
     xpReward: 50,
@@ -393,6 +395,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_spear: {
     id: 'bandit_spear', name: 'Bandit Spearman', nameRu: 'Копейщик',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'melee',
     caps: { [StatName.Strength]: 20, [StatName.Accuracy]: 18, [StatName.Health]: 18 },
     xpReward: 48,
@@ -407,6 +410,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_brute: {
     id: 'bandit_brute', name: 'Bandit Brute', nameRu: 'Громила',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'melee',
     caps: { [StatName.Strength]: 28, [StatName.Health]: 26, [StatName.Armor]: 18 },
     xpReward: 65,
@@ -486,6 +490,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   scout_veteran: {
     id: 'scout_veteran', name: 'Scout Captain', nameRu: 'Капитан разведчиков',
+    faction: 'caravan',
     type: BodyType.Combat, damageType: 'ranged',
     caps: { [StatName.Agility]: 36, [StatName.Accuracy]: 28, [StatName.Evasion]: 18 },
     xpReward: 100,
@@ -500,6 +505,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_archer_veteran: {
     id: 'bandit_archer_veteran', name: 'Bandit Sniper', nameRu: 'Разбойник-снайпер',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
     caps: { [StatName.Accuracy]: 36, [StatName.Agility]: 30, [StatName.Evasion]: 20 },
     xpReward: 115,
@@ -514,6 +520,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_crossbow_veteran: {
     id: 'bandit_crossbow_veteran', name: 'Bandit Marksman', nameRu: 'Стрелок',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
     caps: { [StatName.Accuracy]: 38, [StatName.Strength]: 24, [StatName.Health]: 24 },
     xpReward: 120,
@@ -528,6 +535,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
 
   bandit_brute_veteran: {
     id: 'bandit_brute_veteran', name: 'Bandit Berserker', nameRu: 'Берсерк',
+    faction: 'raider',
     type: BodyType.Combat, damageType: 'melee',
     caps: { [StatName.Strength]: 40, [StatName.Health]: 38, [StatName.Armor]: 26 },
     xpReward: 145,
