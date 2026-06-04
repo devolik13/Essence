@@ -2819,8 +2819,9 @@ export class GameScene extends Phaser.Scene {
 
   private onPlayerDeath() {
     sfxDeath();
-    this.bodyQuestTracker.clear();
-    this.clearBodyQuestObjects();
+    // Прогресс квеста тела НЕ сбрасываем: тело остаётся тем же (телепорт к камню),
+    // поэтому собранное/прогресс сохраняются — продолжаешь с того же места.
+    // (Сброс остаётся при добровольном выходе [Q] и захвате другого тела.)
     // ── Штраф за смерть ──────────────────────────────────
     let totalXpLost = 0;
     if (this.playerBody) {

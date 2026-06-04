@@ -437,7 +437,7 @@ export class UIScene extends Phaser.Scene {
 
     // Window shortcuts: I=inventory, Q=quests, C=stats(char), K=spells, B=bestiary, J=achievements
     this.input.keyboard?.on('keydown-I', () => this.toggleWindow('inventory'));
-    this.input.keyboard?.on('keydown-Q', () => this.toggleWindow('quests'));
+    this.input.keyboard?.on('keydown-L', () => this.toggleWindow('quests'));
     this.input.keyboard?.on('keydown-C', () => this.toggleWindow('stats'));
     this.input.keyboard?.on('keydown-K', () => this.toggleWindow('spells'));
     this.input.keyboard?.on('keydown-B', () => this.toggleWindow('bestiary'));
