@@ -632,9 +632,14 @@ export class GameScene extends Phaser.Scene {
     // suppressed — chasing mobs return to spawn. NPC faction wars continue
     // (creature.factionTarget is unaffected by skipAggro).
     const playerInSafe = !!(this.playerBody && this.isInSafeZone(this.playerBody.x, this.playerBody.y));
+    // Вид игрока: id тела без суффикса _veteran (orc/orc_veteran → 'orc').
+    // Свои (тот же вид) не агрятся на вселённое тело (орки уважают вождя).
+    // Ретализация при атаке всё равно срабатывает (aggroCreature игнорит skipAggro).
+    const playerSpecies = this.playerBody ? this.playerBody.definition.id.replace(/_veteran$/, '') : '';
     for (const creature of this.creatures) {
       creature.skipAggro = playerInSafe ||
-        (!!friendlyIds && friendlyIds.includes(creature.definition.id));
+        (!!friendlyIds && friendlyIds.includes(creature.definition.id)) ||
+        (!!playerSpecies && creature.definition.id.replace(/_veteran$/, '') === playerSpecies);
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
         if (creature.isDead) continue;
