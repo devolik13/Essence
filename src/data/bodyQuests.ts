@@ -530,7 +530,7 @@ const QUEST_WOLF_VETERAN: BodyQuestDef = {
     { speaker: '', text: 'Никто не оспорил второй удар. Стая сыта.' },
   ],
   objectives: [
-    { type: 'kill', count: 1, targetId: 'wolf', targetNameRu: 'Претендент', description: 'Победи претендента' },
+    { type: 'kill', count: 1, targetId: 'wolf_veteran', targetNameRu: 'Претендент', description: 'Победи претендента (волка-ветерана)' },
     { type: 'kill', count: 2, targetId: 'deer', targetNameRu: 'Олень', description: 'Возглавь охоту: добудь 2 оленей' },
   ],
   rewardSpellId: 'double_strike',
@@ -544,14 +544,14 @@ const QUEST_BEAR_VETERAN: BodyQuestDef = {
   description: 'Отгони стаю волков от своей территории.',
   introMessages: [
     { speaker: '', text: 'Старые кости. Старые шрамы.' },
-    { speaker: '', text: 'Четыре волка кружат. Чуют возраст.' },
+    { speaker: '', text: 'Стая кружит. Чуют возраст.' },
     { speaker: '', text: 'Думают — возраст значит медленный. Покажи иначе.' },
   ],
   completeMessages: [
     { speaker: '', text: 'Стая рассеялась. Старый не значит слабый.' },
   ],
   objectives: [
-    { type: 'kill', count: 4, targetId: 'wolf', targetNameRu: 'Волк', description: 'Отгони 4 волков' },
+    { type: 'kill', count: 10, targetId: 'wolf', targetNameRu: 'Волк', description: 'Отгони 10 волков' },
   ],
   rewardSpellId: 'mace_bash',
   xpReward: 100,
