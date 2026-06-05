@@ -62,9 +62,8 @@ export const MOB_COPPER_DROPS: Record<string, { min: number; max: number }> = {
   bandit_archer_veteran:   { min: 25, max: 45 },
   bandit_crossbow_veteran: { min: 25, max: 45 },
   bandit_brute_veteran:    { min: 30, max: 50 },
-  // Guards / ambushers
+  // Guards
   caravan_guard: { min: 10, max: 20 },
-  ambusher:      { min: 10, max: 20 },
   fort_guard:    { min: 10, max: 20 },
   // Bosses
   ignis:   { min: 200, max: 300 },

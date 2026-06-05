@@ -35,7 +35,7 @@ export const BESTIARY_GROUPS: BestiaryGroup[] = [
   { id: 'guardians', titleRu: 'Стражи стихий',    titleEn: 'Element guardians',
     ids: ['ignis', 'aquaris', 'terra', 'aeros'] },
   { id: 'caravan',   titleRu: 'Караван',          titleEn: 'Caravan',
-    ids: ['caravan_guard', 'ambusher', 'caravan_merchant'] },
+    ids: ['caravan_guard', 'caravan_merchant'] },
 ];
 
 /** Total creature count across all groups. */

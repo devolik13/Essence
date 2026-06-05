@@ -718,21 +718,6 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     faction: 'caravan',
   },
 
-  ambusher: {
-    id: 'ambusher', name: 'Ambusher', nameRu: 'Засадчик',
-    type: BodyType.Combat, damageType: 'melee',
-    caps: { [StatName.Strength]: 32, [StatName.Health]: 18, [StatName.Armor]: 10 },
-    xpReward: 55,
-    npcStats: {
-      [StatName.Strength]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 3,
-      [StatName.Health]: 16,   [StatName.Armor]: 6,    [StatName.Luck]: 4,
-    },
-    weapon: WeaponType.Greatsword, color: 0x6b4a2b, abilityName: 'Slash',
-    npcSpells: [ABILITY_SLASH],
-    signatureSpell: ABILITY_SLASH,
-    faction: 'raider',
-  },
-
   // Тяжёлый страж форта с булавой — цель квеста bq_bandit_crossbow.
   fort_guard: {
     id: 'fort_guard', name: 'Fort Guard', nameRu: 'Охранник форта',
