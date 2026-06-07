@@ -10,7 +10,7 @@ import { CREATURE_DB } from '../data/creatureDB';
 import { TILE_SIZE, CAPTURE_RANGE } from '../utils/constants';
 import { distance, clamp } from '../utils/math';
 import { calcMeleeDamage, calcRangedDamage, calcMagicDamage, physicalReduction, magicalReduction } from '../systems/combat';
-import { WEAPONS } from '../data/weapons';
+import { WEAPONS, weaponDamageType } from '../data/weapons';
 import {
   CaptureProcess, CaptureState,
   startCapture, updateCapture, interruptCapture,
@@ -2570,8 +2570,9 @@ export class GameScene extends Phaser.Scene {
 
     if (!closestCreature) return;
 
-    // Расчёт урона по damageType тела
-    const dt = this.playerBody.definition.damageType;
+    // Тип урона следует за ОРУЖИЕМ в руках, а не за врождённым телом
+    // (воин с посохом бьёт магией по Интеллекту, с луком — дальним по Ловкости).
+    const dt = weaponDamageType(weapon.type);
     const wb = weapon.baseDamage;
     const hasFocus = this.playerBody.hasStatus('focus');
 

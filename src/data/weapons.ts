@@ -61,6 +61,18 @@ export const WEAPONS: Record<WeaponType, WeaponDef> = {
  * Map item id (e.g. "starter_sword", "fine_longbow") to its WeaponType.
  * Returns undefined for non-weapon items or unknown patterns.
  */
+/** Тип урона оружия по его группе: STR→melee, AGI→ranged, INT(посохи)→magic.
+ *  Базовая атака следует за оружием в руках, а не за врождённым типом тела
+ *  (воин с посохом бьёт магией по Интеллекту). */
+export function weaponDamageType(wt: WeaponType): 'melee' | 'ranged' | 'magic' {
+  if (INTELLECT_WEAPONS.includes(wt)) return 'magic';
+  if (AGILITY_WEAPONS.includes(wt)) {
+    // Кинжал/кастеты — ближний (по Ловкости), луки/арбалет — дальний.
+    return (wt === WeaponType.Dagger || wt === WeaponType.Fists) ? 'melee' : 'ranged';
+  }
+  return 'melee';
+}
+
 export function getItemWeaponType(itemId: string): WeaponType | undefined {
   // Strip rarity/tier prefix like "starter_", "basic_", "fine_", "master_"
   const base = itemId.replace(/^(starter|basic|fine|master|legendary)_/, "");

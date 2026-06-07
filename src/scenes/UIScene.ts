@@ -11,7 +11,7 @@ import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
 import { ITEMS, RECIPES, equipmentStatBonuses } from '../data/itemDB';
-import { WEAPONS } from '../data/weapons';
+import { WEAPONS, getItemWeaponType, weaponDamageType } from '../data/weapons';
 import { formatCurrency } from '../systems/currency';
 import { AchievementDef } from '../data/achievementDB';
 import { STATUS_DEFS } from '../types/statuses';
@@ -1841,14 +1841,16 @@ export class UIScene extends Phaser.Scene {
     if (!activeId) return;
     const item = ITEMS[activeId];
     if (!item) return;
-    const weapon = WEAPONS[data.body.definition.weapon];
-    const str = data.sphere.stats?.strength ?? 0;
-    const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
+    // Тип оружия берём по надетому предмету (не врождённое оружие тела).
+    const wt = getItemWeaponType(activeId) ?? data.body.definition.weapon;
+    const weapon = WEAPONS[wt];
+    const atk = this.weaponAttackStat(wt, data.sphere);
+    const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
     const inactiveId = data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon;
     const lines = [
       item.nameRu,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
-      `Damage (STR ${str}): ${dmg}`,
+      `Damage (${atk.label} ${atk.value}): ${dmg}`,
       weapon.weaponEffect ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
       inactiveId ? `[Tab] swap → ${ITEMS[inactiveId]?.nameRu ?? inactiveId}` : '',
     ].filter(Boolean);
@@ -1877,12 +1879,32 @@ export class UIScene extends Phaser.Scene {
       return;
     }
     const item = ITEMS[activeId];
-    const weapon = WEAPONS[data.body.definition.weapon];
-    // Body itself doesn't store stats — they live on the Sphere.
-    const str = data.sphere.stats?.strength ?? 0;
-    const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
+    // Тип оружия — по надетому предмету (Tab меняет посох/лук/меч).
+    const wt = getItemWeaponType(activeId) ?? data.body.definition.weapon;
+    const weapon = WEAPONS[wt];
+    const atk = this.weaponAttackStat(wt, data.sphere);
+    const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
     this.weaponBlockIcon.setText(item?.icon ?? '⚔');
     this.weaponBlockDmg.setText(String(dmg));
+  }
+
+  /** Атакующий стат оружия (STR/AGI/INT) + его эффективное значение (база + активная экипировка). */
+  private weaponAttackStat(
+    wt: import('../types/bodies').WeaponType,
+    sphere: UIData['sphere'],
+  ): { label: string; stat: StatName; value: number } {
+    // Стат совпадает с боевой формулой: тип урона следует за оружием.
+    const dmgType = weaponDamageType(wt);
+    const stat = dmgType === 'magic' ? StatName.Intellect
+      : dmgType === 'ranged' ? StatName.Agility
+      : StatName.Strength;
+    const label = stat === StatName.Intellect ? 'INT' : stat === StatName.Agility ? 'AGI' : 'STR';
+    const bonuses = equipmentStatBonuses(
+      (sphere.equipment ?? {}) as Record<string, string | undefined>,
+      sphere.activeWeaponSlot ?? 0,
+    );
+    const value = (sphere.stats?.[stat] ?? 0) + (bonuses[stat] ?? 0);
+    return { label, stat, value };
   }
 
   // ── Menu buttons ─────────────────────────────────────
