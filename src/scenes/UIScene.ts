@@ -27,9 +27,14 @@ import { syncPlayerStatusDom, clearPlayerStatusDom, StatusEntry } from '../ui/pl
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
+const WINDOW_LAYOUT_KEY = 'essence_window_layout_v1';
 const HEADER_H = 20;
 const WIN_W = 310;
 const WIN_TITLE_H = 22;
+const WIN_MIN_W = 220;
+const WIN_MIN_H = 160;
+/** Типы плавающего (Phaser) окна — остальные рендерятся через DOM. */
+const FLOATING_TYPES: WindowType[] = ['stats', 'quests', 'vendor', 'crafting'];
 
 type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
 const SKILL_SLOT_SIZE = 48;
@@ -130,6 +135,9 @@ export class UIScene extends Phaser.Scene {
   private winBg!: Phaser.GameObjects.Rectangle;
   private winTitleBg!: Phaser.GameObjects.Rectangle;
   private winCloseBtn!: Phaser.GameObjects.Text;
+  private winResizeGrip!: Phaser.GameObjects.Rectangle;
+  /** Сохранённые позиция/размер плавающего окна по типу (persist в localStorage). */
+  private windowLayouts: Partial<Record<WindowType, { x: number; y: number; w: number; h: number }>> = {};
   private cachedUIData: UIData | null = null;
   /** Тип верстака для окна крафта */
   private craftingWorkbenchType: string = '';
@@ -224,6 +232,7 @@ export class UIScene extends Phaser.Scene {
     this.scene.bringToTop();
     // Load saved layout before creating anything
     this.loadUILayout();
+    this.loadWindowLayouts();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       clearPlayerStatusDom();
@@ -679,6 +688,45 @@ export class UIScene extends Phaser.Scene {
         }
       }
     } catch { /* corrupt save */ }
+  }
+
+  // ── Floating window layout persistence (per type) ─────
+
+  private loadWindowLayouts() {
+    try {
+      const raw = localStorage.getItem(WINDOW_LAYOUT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Record<string, { x: number; y: number; w: number; h: number }>;
+      for (const [k, v] of Object.entries(saved)) {
+        if (!FLOATING_TYPES.includes(k as WindowType)) continue;
+        this.windowLayouts[k as WindowType] = {
+          x: Math.max(0, Math.min(GAME_WIDTH  - 40, v.x ?? 0)),
+          y: Math.max(0, Math.min(GAME_HEIGHT - 40, v.y ?? 0)),
+          w: Math.max(WIN_MIN_W, v.w ?? WIN_MIN_W),
+          h: Math.max(WIN_MIN_H, v.h ?? WIN_MIN_H),
+        };
+      }
+    } catch { /* corrupt save */ }
+  }
+
+  /** Persist current window's position+size under its type. */
+  private saveWindowLayout(type: WindowType | null) {
+    if (!type || !FLOATING_TYPES.includes(type)) return;
+    this.windowLayouts[type] = {
+      x: this.windowX, y: this.windowY, w: this.windowW, h: this.windowH,
+    };
+    try {
+      localStorage.setItem(WINDOW_LAYOUT_KEY, JSON.stringify(this.windowLayouts));
+    } catch { /* localStorage unavailable */ }
+  }
+
+  /** Position the resize grip at the window's bottom-right corner. */
+  private positionWindowGrip() {
+    if (!this.winResizeGrip) return;
+    this.winResizeGrip.setPosition(
+      this.windowX + this.windowW - 6,
+      this.windowY + WIN_TITLE_H + this.windowH - 6,
+    );
   }
 
   // ── Grip positioning helper ───────────────────────────
@@ -1953,8 +2001,29 @@ export class UIScene extends Phaser.Scene {
         this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, ptr.y - dragOffY));
         this.windowContainer.setPosition(this.windowX, this.windowY);
         this.updateContentMask();
-      });
+        this.positionWindowGrip();
+      })
+      .on('dragend', () => this.saveWindowLayout(this.currentWindow));
     this.input.setDraggable(this.winTitleBg);
+
+    // Resize grip (bottom-right corner) — scene-level so it sits above the
+    // container; repositioned on move/resize. Hidden until a window is shown.
+    this.winResizeGrip = this.add.rectangle(0, 0, 12, 12, THEME.brass0, 0.75)
+      .setScrollFactor(0).setDepth(1019).setVisible(false)
+      .setStrokeStyle(1, THEME.brass2, 0.6)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => { this.winResizeGrip.setFillStyle(THEME.brass1, 0.9); this.input.setDefaultCursor('se-resize'); })
+      .on('pointerout',  () => { this.winResizeGrip.setFillStyle(THEME.brass0, 0.75); this.input.setDefaultCursor('default'); })
+      .on('drag', (ptr: Phaser.Input.Pointer) => {
+        const w = Math.max(WIN_MIN_W, Math.min(GAME_WIDTH - this.windowX, Math.round(ptr.x - this.windowX)));
+        const h = Math.max(WIN_MIN_H, Math.min(GAME_HEIGHT - this.windowY - WIN_TITLE_H, Math.round(ptr.y - this.windowY - WIN_TITLE_H)));
+        this.resizeWindow(w, h);
+        this._contentScrollY = 0;
+        this.windowContentText.setY(WIN_TITLE_H + 8);
+        if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      })
+      .on('dragend', () => { this.saveWindowLayout(this.currentWindow); this.input.setDefaultCursor('default'); });
+    this.input.setDraggable(this.winResizeGrip);
 
     // Container holds everything — position is (windowX, windowY)
     this.windowContainer = this.add.container(this.windowX, this.windowY, [
@@ -1998,6 +2067,7 @@ export class UIScene extends Phaser.Scene {
     );
     this.winCloseBtn.setX(w - 6);
     this.updateContentMask();
+    this.positionWindowGrip();
   }
 
   private updateContentMask() {
@@ -2072,18 +2142,19 @@ export class UIScene extends Phaser.Scene {
       return;
     }
 
-    if (type === 'vendor' || type === 'crafting') {
-      this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
-      this.windowY = 30;
-      this.resizeWindow(400, 420);
-    } else {
-      this.windowX = Math.floor((GAME_WIDTH - 320) / 2);
-      this.windowY = 30;
-      this.resizeWindow(320, 400);
-    }
+    // Default size/position per type, overridden by any saved layout.
+    const def = (type === 'vendor' || type === 'crafting')
+      ? { w: 400, h: 420, x: Math.floor((GAME_WIDTH - 400) / 2), y: 30 }
+      : { w: 320, h: 400, x: Math.floor((GAME_WIDTH - 320) / 2), y: 30 };
+    const saved = this.windowLayouts[type];
+    this.windowX = saved?.x ?? def.x;
+    this.windowY = saved?.y ?? def.y;
+    this.resizeWindow(saved?.w ?? def.w, saved?.h ?? def.h);
 
     this.windowContainer.setPosition(this.windowX, this.windowY);
     this.windowContainer.setVisible(true);
+    this.winResizeGrip.setVisible(true);
+    this.positionWindowGrip();
 
     // Create vendor filter/buy buttons (outside container for clickability)
     this.destroyVendorButtons();
@@ -2224,6 +2295,7 @@ export class UIScene extends Phaser.Scene {
     this.currentWindow = null;
     this.lastWindowSignature = '';
     this.windowContainer.setVisible(false);
+    this.winResizeGrip?.setVisible(false);
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
     this.destroyVendorButtons();
