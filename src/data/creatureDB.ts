@@ -742,7 +742,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Intellect]: 8,  
       [StatName.Health]: 10,   [StatName.Armor]: 2,    [StatName.Luck]: 2,
     },
-    weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Ally Heal',
+    weapon: WeaponType.StaffNature, color: 0xddbb77, abilityName: 'Ally Heal',
     npcSpells: [ABILITY_ALLY_HEAL],
     signatureSpell: ABILITY_ALLY_HEAL,
     faction: 'caravan',
