@@ -17,10 +17,16 @@ const EQUIP_STAT_MAP: Record<string, StatName> = {
  */
 export function equipmentStatBonuses(
   equipment: Record<string, string | undefined>,
+  /** Активный оружейный слот (0 = weapon, 1 = weapon2). Неактивное оружие
+   *  не даёт статов — учитывается только то, что сейчас в руках. */
+  activeWeaponSlot: number = 0,
 ): Partial<Record<StatName, number>> {
   const bonuses: Partial<Record<StatName, number>> = {};
   const add = (s: StatName, v: number) => { bonuses[s] = (bonuses[s] ?? 0) + v; };
+  // Слот неактивного оружия пропускаем (бонусы только от активного).
+  const inactiveWeaponSlot = activeWeaponSlot === 0 ? 'weapon2' : 'weapon';
   for (const slotKey of Object.keys(equipment)) {
+    if (slotKey === inactiveWeaponSlot) continue;
     const itemId = equipment[slotKey];
     if (!itemId) continue;
     const def = ITEMS[itemId];

@@ -77,7 +77,10 @@ function computeBonuses(sphere: Sphere): Record<string, number> {
   const bonuses: Record<string, number> = {};
   for (const sn of Object.values(StatName)) bonuses[sn] = 0;
   const equip = sphere.equipment as Record<string, string | undefined>;
+  // Неактивное оружие не даёт статов — учитываем только то, что в руках.
+  const inactiveWeaponSlot = (sphere.activeWeaponSlot ?? 0) === 0 ? 'weapon2' : 'weapon';
   for (const slotKey of Object.keys(equip)) {
+    if (slotKey === inactiveWeaponSlot) continue;
     const iid = equip[slotKey];
     if (!iid) continue;
     const def = ITEMS[iid];

@@ -2430,6 +2430,7 @@ export class UIScene extends Phaser.Scene {
         // Бонусы экипировки — общий хелпер (см. itemDB.equipmentStatBonuses)
         const equipBonuses = equipmentStatBonuses(
           (sphere.equipment ?? {}) as Record<string, string | undefined>,
+          sphere.activeWeaponSlot ?? 0,
         );
 
         for (const stat of STAT_ORDER) {

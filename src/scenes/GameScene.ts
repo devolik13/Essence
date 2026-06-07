@@ -1942,6 +1942,9 @@ export class GameScene extends Phaser.Scene {
     // Load saved config for new weapon
     this.fillBodySlots(this.playerBody);
 
+    // Пересчёт статов: активно только новое оружие (мгновенно, клампит HP/ману).
+    this.playerBody.refreshStats(this.getEquippedStats());
+
     this.showMessage(`Switched to ${ITEMS[newWeaponId!]?.nameRu ?? 'weapon'}`);
     sfxBuff();
   }
@@ -2512,7 +2515,10 @@ export class GameScene extends Phaser.Scene {
    */
   private getEquippedStats(): Stats {
     const s = { ...this.sphere.stats };
-    const bonuses = equipmentStatBonuses(this.sphere.equipment as Record<string, string | undefined>);
+    const bonuses = equipmentStatBonuses(
+      this.sphere.equipment as Record<string, string | undefined>,
+      this.sphere.activeWeaponSlot ?? 0,
+    );
     for (const [stat, val] of Object.entries(bonuses)) {
       s[stat as StatName] += val ?? 0;
     }
