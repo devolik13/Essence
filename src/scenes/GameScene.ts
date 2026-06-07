@@ -46,6 +46,10 @@ import {
 } from './gameSceneTypes';
 export { DEATH_DEBUFF_MULT } from './gameSceneTypes';
 
+/** Радиус очистки стартовой зоны от агрессивных существ вокруг камня
+ *  возрождения Эшворта (px). Дефолтные спавны внутри удаляются. */
+const START_CLEAR_RADIUS = 1400;
+
 export class GameScene extends Phaser.Scene {
   private sphere!: Sphere;
   private playerBody: Body | null = null;
@@ -1436,7 +1440,26 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Спавним мобов из редактора карт (mob_* объекты)
+    // Очистка стартовой зоны (только village/Эшворт): рядом со стартовой
+    // точкой возрождения не должно быть этих существ, чтобы новичок не попадал
+    // сразу в замес. Они остаются дальше по карте (для квестов/контента).
+    // ВАЖНО: фильтр идёт ДО спавна мобов из редактора — ручные правки игрока
+    // (mob_* объекты) не удаляются, можно добавить кого угодно у старта.
+    if (this.currentZone.id === 'village') {
+      const start = this.currentZone.respawnPoint;
+      const isCleared = (id: string) =>
+        id === 'fox' || id === 'orc' || id === 'shaman' ||
+        id === 'goblin_veteran' || id === 'pebble' || id.startsWith('wolf');
+      this.creatures = this.creatures.filter((c) => {
+        if (!isCleared(c.definition.id)) return true;
+        const inRadius = Math.hypot(c.x - start.x, c.y - start.y) < START_CLEAR_RADIUS;
+        if (inRadius) { c.destroy(); return false; }
+        return true;
+      });
+    }
+
+    // Спавним мобов из редактора карт (mob_* объекты) — после очистки, чтобы
+    // ручные размещения игрока всегда сохранялись.
     if (this.mapEditor) {
       for (const ms of this.mapEditor.getMobSpawns()) {
         const def = CREATURE_DB[ms.creatureId];
