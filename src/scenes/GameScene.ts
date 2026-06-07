@@ -2578,6 +2578,20 @@ export class GameScene extends Phaser.Scene {
     // Временные бонусы от статус-эффектов (баффы/дебаффы) — только для боевых формул
     if (this.playerBody) {
       s[StatName.Armor] += this.playerBody.armorBonus;
+
+      // В теле зверя/элементаля (не гуманоид) оружие не выбирается, поэтому
+      // атака масштабируется от НАИБОЛЬШЕГО боевого стата игрока (Сила/Ловкость/
+      // Интеллект) — вложение в любой стат всегда работает в любом теле.
+      // Затрагивает только исходящий урон: защита считается от Брони/Уклонения/
+      // Воли, а они не трогаются.
+      if (!this.playerBody.definition.canUseAllSpells) {
+        const maxOff = Math.max(
+          s[StatName.Strength], s[StatName.Agility], s[StatName.Intellect],
+        );
+        s[StatName.Strength] = maxOff;
+        s[StatName.Agility] = maxOff;
+        s[StatName.Intellect] = maxOff;
+      }
     }
 
     return s;

@@ -1844,7 +1844,7 @@ export class UIScene extends Phaser.Scene {
     const item = isHumanoid ? ITEMS[activeId ?? ''] : undefined;
     const wt = (isHumanoid ? getItemWeaponType(activeId ?? '') : undefined) ?? data.body.definition.weapon;
     const weapon = WEAPONS[wt];
-    const atk = this.weaponAttackStat(wt, data.sphere);
+    const atk = this.weaponAttackStat(wt, data.sphere, !isHumanoid);
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
     const inactiveId = isHumanoid ? (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon) : undefined;
     const lines = [
@@ -1883,30 +1883,46 @@ export class UIScene extends Phaser.Scene {
     const item = isHumanoid ? ITEMS[activeId ?? ''] : undefined;
     const wt = (isHumanoid ? getItemWeaponType(activeId ?? '') : undefined) ?? data.body.definition.weapon;
     const weapon = WEAPONS[wt];
-    const atk = this.weaponAttackStat(wt, data.sphere);
+    const atk = this.weaponAttackStat(wt, data.sphere, !isHumanoid);
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
     // Гуманоид без оружия → ⚔; животное/элементаль → 🐾 (природная атака).
     this.weaponBlockIcon.setText(item?.icon ?? (isHumanoid ? '⚔' : '🐾'));
     this.weaponBlockDmg.setText(String(dmg));
   }
 
-  /** Атакующий стат оружия (STR/AGI/INT) + его эффективное значение (база + активная экипировка). */
+  /** Атакующий стат оружия (STR/AGI/INT) + его эффективное значение (база + активная экипировка).
+   *  Для зверей/элементалей (isNatural) атака идёт от НАИБОЛЬШЕГО боевого стата. */
   private weaponAttackStat(
     wt: import('../types/bodies').WeaponType,
     sphere: UIData['sphere'],
+    isNatural = false,
   ): { label: string; stat: StatName; value: number } {
-    // Стат совпадает с боевой формулой: тип урона следует за оружием.
+    const bonuses = equipmentStatBonuses(
+      (sphere.equipment ?? {}) as Record<string, string | undefined>,
+      sphere.activeWeaponSlot ?? 0,
+    );
+    const eff = (st: StatName) => (sphere.stats?.[st] ?? 0) + (bonuses[st] ?? 0);
+
+    if (isNatural) {
+      // Тело зверя/элементаля: урон от максимума Сила/Ловкость/Интеллект.
+      const trio: [StatName, string][] = [
+        [StatName.Strength, 'STR'], [StatName.Agility, 'AGI'], [StatName.Intellect, 'INT'],
+      ];
+      let best = trio[0]; let bestVal = eff(trio[0][0]);
+      for (const pair of trio) {
+        const v = eff(pair[0]);
+        if (v > bestVal) { bestVal = v; best = pair; }
+      }
+      return { label: best[1], stat: best[0], value: bestVal };
+    }
+
+    // Гуманоид: стат совпадает с типом урона оружия.
     const dmgType = weaponDamageType(wt);
     const stat = dmgType === 'magic' ? StatName.Intellect
       : dmgType === 'ranged' ? StatName.Agility
       : StatName.Strength;
     const label = stat === StatName.Intellect ? 'INT' : stat === StatName.Agility ? 'AGI' : 'STR';
-    const bonuses = equipmentStatBonuses(
-      (sphere.equipment ?? {}) as Record<string, string | undefined>,
-      sphere.activeWeaponSlot ?? 0,
-    );
-    const value = (sphere.stats?.[stat] ?? 0) + (bonuses[stat] ?? 0);
-    return { label, stat, value };
+    return { label, stat, value: eff(stat) };
   }
 
   // ── Menu buttons ─────────────────────────────────────
