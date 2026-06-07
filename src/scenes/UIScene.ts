@@ -910,10 +910,14 @@ export class UIScene extends Phaser.Scene {
       if (body) {
         this.setHeaderLabel('body', `Body · ${body.definition.nameRu}`);
         if (!s.collapsed) {
+          // Гуманоид — реальное оружие; зверь/элементаль — природная атака
+          // (Когти/Стихия), без понятия «оружие», чтобы не путать.
+          const weaponLine = body.definition.canUseAllSpells
+            ? `${t('body.weapon')}: ${body.weapon.nameRu}  ${t('body.cd')}: ${body.weapon.cooldown}s`
+            : `${this.naturalAttackName(body)}  ${t('body.cd')}: ${body.weapon.cooldown}s`;
           this.bodyInfoText.setFixedSize(s.w, 0)
             .setPosition(s.x, s.y + HEADER_H).setText(
-              `── ${body.definition.nameRu} ──\n` +
-              `${t('body.weapon')}: ${body.weapon.nameRu}  ${t('body.cd')}: ${body.weapon.cooldown}s`
+              `── ${body.definition.nameRu} ──\n` + weaponLine
             ).setVisible(true);
           this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
         } else {
@@ -1848,7 +1852,7 @@ export class UIScene extends Phaser.Scene {
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
     const inactiveId = isHumanoid ? (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon) : undefined;
     const lines = [
-      item ? item.nameRu : `${data.body.definition.nameRu} — природная атака`,
+      item ? item.nameRu : `${data.body.definition.nameRu} — ${this.naturalAttackName(data.body)}`,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
       `Damage (${atk.label} ${atk.value}): ${dmg}`,
       // Эффект оружия показываем только гуманоидам: у зверей «оружие» — заглушка
@@ -1890,6 +1894,11 @@ export class UIScene extends Phaser.Scene {
     // Гуманоид без оружия → ⚔; животное/элементаль → 🐾 (природная атака).
     this.weaponBlockIcon.setText(item?.icon ?? (isHumanoid ? '⚔' : '🐾'));
     this.weaponBlockDmg.setText(String(dmg));
+  }
+
+  /** Имя природной атаки тела (зверь → Когти, элементаль → Стихия). */
+  private naturalAttackName(body: NonNullable<UIData['body']>): string {
+    return weaponDamageType(body.weapon.type) === 'magic' ? t('body.element') : t('body.claws');
   }
 
   /** Атакующий стат оружия (STR/AGI/INT) + его эффективное значение (база + активная экипировка).

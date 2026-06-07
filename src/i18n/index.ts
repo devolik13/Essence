@@ -112,6 +112,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'body.weapon': 'Weapon',
     'body.cd': 'CD',
     'body.ability': 'Ability',
+    'body.claws': 'Claws',
+    'body.element': 'Element',
     'body.cap': 'cap',
     'body.teaches': 'Teaches',
 
@@ -341,6 +343,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'body.weapon': 'Оружие',
     'body.cd': 'КД',
     'body.ability': 'Умение',
+    'body.claws': 'Когти',
+    'body.element': 'Стихия',
     'body.cap': 'кап',
     'body.teaches': 'Обучает',
 

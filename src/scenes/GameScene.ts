@@ -1284,7 +1284,10 @@ export class GameScene extends Phaser.Scene {
   private basicAttackDef(body: Body): import('../types/abilities').AbilityDef {
     const w = body.weapon; // следует за активным/природным оружием
     const dt = weaponDamageType(w.type);
-    const nameRu = dt === 'magic' ? 'Staff Strike' : dt === 'ranged' ? 'Shot' : 'Strike';
+    // Зверь/элементаль — природная атака (Когти/Стихия); гуманоид — по оружию.
+    const nameRu = body.definition.canUseAllSpells
+      ? (dt === 'magic' ? 'Staff Strike' : dt === 'ranged' ? 'Shot' : 'Strike')
+      : (dt === 'magic' ? t('body.element') : t('body.claws'));
     const description = dt === 'magic' ? 'Магическая атака'
       : dt === 'ranged' ? 'Дальняя атака' : 'Ближняя атака';
     return {
