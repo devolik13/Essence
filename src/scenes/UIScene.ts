@@ -1851,7 +1851,9 @@ export class UIScene extends Phaser.Scene {
       item ? item.nameRu : `${data.body.definition.nameRu} — природная атака`,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
       `Damage (${atk.label} ${atk.value}): ${dmg}`,
-      weapon.weaponEffect ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
+      // Эффект оружия показываем только гуманоидам: у зверей «оружие» — заглушка
+      // (заяц не машет ядовитым кинжалом), и базовая атака эффект не накладывает.
+      (isHumanoid && weapon.weaponEffect) ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
       inactiveId ? `[Tab] swap → ${ITEMS[inactiveId]?.nameRu ?? inactiveId}` : '',
     ].filter(Boolean);
     this.hideWeaponTooltip();
