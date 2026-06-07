@@ -141,6 +141,8 @@ export class GameScene extends Phaser.Scene {
   private protectZoneGfx!: Phaser.GameObjects.Graphics;
   /** Слабый круг дальности активного оружия вокруг игрока. */
   private weaponRangeGfx!: Phaser.GameObjects.Graphics;
+  /** Экранная стрелка-указатель на ближайшую квест-цель (когда она за экраном). */
+  private questArrow!: Phaser.GameObjects.Text;
 
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
@@ -398,6 +400,8 @@ export class GameScene extends Phaser.Scene {
     this.aoeIndicator = this.add.graphics().setDepth(60).setVisible(false);
     this.protectZoneGfx = this.add.graphics().setDepth(2).setVisible(false);
     this.weaponRangeGfx = this.add.graphics().setDepth(1).setVisible(false);
+    this.questArrow = this.add.text(0, 0, '➤', { fontSize: '22px', color: '#55ff66', stroke: '#000', strokeThickness: 3 })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(900).setVisible(false);
 
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
@@ -572,6 +576,9 @@ export class GameScene extends Phaser.Scene {
         .lineStyle(1, 0xffffff, 0.14)
         .strokeCircle(this.playerBody.x, this.playerBody.y, this.playerBody.weapon.range);
 
+      // Стрелка-указатель на квест-цель (если она за экраном)
+      this.updateQuestArrow();
+
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
@@ -609,6 +616,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.followCamera(this.sphere);
       this.weaponRangeGfx.setVisible(false); // в астрале оружия нет
+      this.questArrow.setVisible(false);
 
       // В астрале: [E] — NPC, захват стартового тела, или мёртвого существа
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
@@ -876,6 +884,7 @@ export class GameScene extends Phaser.Scene {
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
       mapDotNpcs: (this.cachedNpcDots ??= this.worldNPCs.map(n => ({ x: n.x, y: n.y }))),
       mapDotNodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
+      mapDotQuests: this.questObjects.filter(q => !q.used).map(q => ({ x: q.x, y: q.y })),
       creatures: this.creatures.map(c => ({
         x: c.x, y: c.y,
         isDead: c.isDead,
@@ -1734,6 +1743,34 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Show/hide exit arrows based on player distance to edge */
+  /** Стрелка у края экрана, указывающая на ближайшую активную квест-цель,
+   *  когда та за пределами видимой области. На экране — стрелка скрыта. */
+  private updateQuestArrow() {
+    if (!this.playerBody) { this.questArrow.setVisible(false); return; }
+    let target: { x: number; y: number } | null = null;
+    let best = Infinity;
+    for (const q of this.questObjects) {
+      if (q.used) continue;
+      const d = distance(this.playerBody.x, this.playerBody.y, q.x, q.y);
+      if (d < best) { best = d; target = q; }
+    }
+    if (!target) { this.questArrow.setVisible(false); return; }
+
+    const cam = this.cameras.main;
+    if (cam.worldView.contains(target.x, target.y)) {
+      this.questArrow.setVisible(false); // цель на экране — стрелка не нужна
+      return;
+    }
+    const ang = Math.atan2(target.y - this.playerBody.y, target.x - this.playerBody.x);
+    const W = cam.width, H = cam.height, m = 44;
+    const cx = W / 2, cy = H / 2;
+    const dx = Math.cos(ang), dy = Math.sin(ang);
+    const tx = dx !== 0 ? (dx > 0 ? W - m - cx : m - cx) / dx : Infinity;
+    const ty = dy !== 0 ? (dy > 0 ? H - m - cy : m - cy) / dy : Infinity;
+    const t = Math.min(Math.abs(tx), Math.abs(ty));
+    this.questArrow.setPosition(cx + dx * t, cy + dy * t).setRotation(ang).setVisible(true);
+  }
+
   private updateExitArrows() {
     const entity = this.playerBody ?? this.sphere;
     if (!entity) return;

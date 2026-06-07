@@ -56,6 +56,7 @@ interface UIData {
   playerPos: { x: number; y: number } | null;
   mapDotNpcs: { x: number; y: number }[];
   mapDotNodes: { x: number; y: number; depleted: boolean }[];
+  mapDotQuests?: { x: number; y: number }[];
   inventory: InventoryItem[];
   unlockedAchievements: string[];
   trackedQuestIds: string[];
@@ -1207,6 +1208,13 @@ export class UIScene extends Phaser.Scene {
       if (!inBounds(n.x, n.y)) continue;
       g.fillStyle(0xffdd55, 0.9);
       drawDot(n.x, n.y, dotSize);
+    }
+
+    // Цели квестов — крупнее и ярче (зелёный, как вейпоинт)
+    for (const q of data.mapDotQuests ?? []) {
+      if (!inBounds(q.x, q.y)) continue;
+      g.fillStyle(0x55ff66, 1);
+      drawDot(q.x, q.y, dotSize + 1.5);
     }
 
     for (const c of data.creatures) {
