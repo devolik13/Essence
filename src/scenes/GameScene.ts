@@ -139,6 +139,8 @@ export class GameScene extends Phaser.Scene {
   } | null = null;
   private aoeIndicator!: Phaser.GameObjects.Graphics;
   private protectZoneGfx!: Phaser.GameObjects.Graphics;
+  /** Слабый круг дальности активного оружия вокруг игрока. */
+  private weaponRangeGfx!: Phaser.GameObjects.Graphics;
 
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
@@ -395,6 +397,7 @@ export class GameScene extends Phaser.Scene {
     // ─── AoE индикатор (следует за мышью) ─────────────
     this.aoeIndicator = this.add.graphics().setDepth(60).setVisible(false);
     this.protectZoneGfx = this.add.graphics().setDepth(2).setVisible(false);
+    this.weaponRangeGfx = this.add.graphics().setDepth(1).setVisible(false);
 
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
@@ -564,6 +567,11 @@ export class GameScene extends Phaser.Scene {
       // Камера следит за телом
       this.followCamera(this.playerBody);
 
+      // Слабый круг дальности активного оружия (следует за телом)
+      this.weaponRangeGfx.clear().setVisible(true)
+        .lineStyle(1, 0xffffff, 0.14)
+        .strokeCircle(this.playerBody.x, this.playerBody.y, this.playerBody.weapon.range);
+
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
@@ -600,6 +608,7 @@ export class GameScene extends Phaser.Scene {
       }
     } else {
       this.followCamera(this.sphere);
+      this.weaponRangeGfx.setVisible(false); // в астрале оружия нет
 
       // В астрале: [E] — NPC, захват стартового тела, или мёртвого существа
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {

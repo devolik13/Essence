@@ -358,7 +358,8 @@ export class UIScene extends Phaser.Scene {
     }).setScrollFactor(0).setDepth(1000);
 
     this.logText = this.add.text(0, 0, '', {
-      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text2, lineSpacing: 3,
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: '#ffffff', lineSpacing: 3,
+      stroke: '#000000', strokeThickness: 2,
     }).setScrollFactor(0).setDepth(1000);
 
     // Achievement unlock notification (top-center, fades out)
@@ -577,7 +578,9 @@ export class UIScene extends Phaser.Scene {
       })
       .on('pointerup', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
-        if (!dragMoved) {
+        // Клик (а не перетаскивание) → сворачиваем. Считаем по дистанции
+        // от нажатия, чтобы микро-сдвиг мыши не ломал тоггл.
+        if (ptr.getDistance() < 6) {
           state.collapsed = !state.collapsed;
           (arrow as Phaser.GameObjects.Text).setText(state.collapsed ? '▶' : '▼');
           this.saveUILayout();
@@ -1120,7 +1123,9 @@ export class UIScene extends Phaser.Scene {
       .on('dragend', () => { if (dragMoved) this.saveUILayout(); this.input.setDefaultCursor('default'); })
       .on('pointerup', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
-        if (!dragMoved) {
+        // Клик (а не перетаскивание) → сворачиваем. Считаем по дистанции
+        // от нажатия, чтобы микро-сдвиг мыши не ломал тоггл.
+        if (ptr.getDistance() < 6) {
           state.collapsed = !state.collapsed;
           (arrow as Phaser.GameObjects.Text).setText(state.collapsed ? '▶' : '▼');
           this.saveUILayout();
