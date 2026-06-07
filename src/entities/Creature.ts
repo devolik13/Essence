@@ -250,9 +250,10 @@ export class Creature extends Phaser.GameObjects.Container {
           this.aiState = 'chase';
         }
         // Убегающие (Fleeing) — всегда убегают, никогда не дерутся.
-        // Скорость 1.2× даёт хищнику (BODY_SPEED 120) реальный шанс догнать.
+        // Скорость по умолчанию 1.2×; per-creature через fleeSpeedMult
+        // (олень 1.56× — быстрее игрока, чтобы не догнать луком/посохом).
         if (dist < AGGRO_RANGE * 0.7 && this.definition.type === BodyType.Fleeing) {
-          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 1.2, dt);
+          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * (this.definition.fleeSpeedMult ?? 1.2), dt);
         }
       }
     }

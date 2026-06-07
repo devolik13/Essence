@@ -75,6 +75,9 @@ export interface BodyDefinition {
   faction?: string;
   /** Multiplier on the rendered display size (1.0 = default, 1.5 = +50%, 2.0 = +100%). */
   displaySizeMultiplier?: number;
+  /** Множитель скорости бегства для Fleeing-тел (× CREATURE_SPEED). По умолчанию 1.2.
+   *  Олень = 1.56 (~+30%), чтобы игрок не догонял его луком/посохом. */
+  fleeSpeedMult?: number;
 }
 
 // ─── Стартовые тела ────────────────────────────────────

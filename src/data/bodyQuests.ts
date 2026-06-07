@@ -774,7 +774,7 @@ const QUEST_DEER: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'safe_clearing', nameRu: 'Безопасная поляна', icon: '🌿', color: 0x44dd44,
-    type: 'waypoint', count: 1, radius: 700,
+    type: 'waypoint', count: 1, radius: 2800,
   }],
   rewardSpellId: 'dash',
   xpReward: 40,

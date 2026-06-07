@@ -67,6 +67,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 5, [StatName.Armor]: 1, [StatName.Luck]: 5,
     },
     weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Dash',
+    fleeSpeedMult: 1.56,
     npcSpells: [MOB_NEUTRAL_T1, MOB_NEUTRAL_T2],
     signatureSpell: MOB_NEUTRAL_T2,
   },
