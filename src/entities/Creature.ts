@@ -39,6 +39,9 @@ export class Creature extends Phaser.GameObjects.Container {
   public stats: Stats;
   public currentHP: number;
   public aiState: CreatureAIState = 'idle';
+  /** Огрызается на атаковавшего: перебивает skipAggro (свои/safe), пока не уйдёт
+   *  за поводок. Иначе моб одного вида с игроком убегал бы и лечился на спавне. */
+  public retaliating: boolean = false;
   public attackCooldown: number = 0;
   /** Кулдауны заклинаний моба (индекс соответствует npcSpells[i]) */
   public spellCooldowns: number[] = [];
@@ -217,16 +220,18 @@ export class Creature extends Phaser.GameObjects.Container {
       const preferredDist = weapon.isMelee ? 0 : weapon.range * 0.6; // дистанция удержания для ranged
 
       if (this.aiState === 'chase' || this.aiState === 'attack') {
-        if (this.skipAggro && !this.factionTarget) {
+        if (this.skipAggro && !this.factionTarget && !this.retaliating) {
           this.aiState = 'return';
         } else if (distFromSpawn > LEASH_RANGE) {
           this.aiState = 'return';
+          this.retaliating = false; // ушёл за поводок — перестаёт огрызаться
         } else if (dist <= attackRange) {
           this.aiState = 'attack';
         } else {
           this.aiState = 'chase';
         }
       } else if (this.aiState === 'return') {
+        this.retaliating = false;
         if (distFromSpawn < 20) {
           this.aiState = 'idle';
           this.currentHP = this.maxHP; // восстановление при возврате
@@ -456,9 +461,14 @@ export class Creature extends Phaser.GameObjects.Container {
     this.currentHP -= actual;
     // Сон снимается при получении урона
     if (actual > 0) this.statusEffects.delete('sleep');
-    // Пассивные (type 1) дерутся в ответ при получении урона
-    if (actual > 0 && this.definition.type === BodyType.Passive && (this.aiState === 'idle' || this.aiState === 'wander')) {
-      this.aiState = 'chase';
+    // Пассивные (type 1) и боевые (type 2) дерутся в ответ при получении урона.
+    // retaliating перебивает skipAggro (свои-одного-вида / safe-зона), иначе
+    // моб того же вида, что и игрок, убегал бы к спавну и лечился.
+    if (actual > 0 && this.definition.type !== BodyType.Fleeing && this.aiState !== 'dead') {
+      this.retaliating = true;
+      if (this.aiState === 'idle' || this.aiState === 'wander' || this.aiState === 'return') {
+        this.aiState = 'chase';
+      }
     }
     // Убегающие (type 3) НЕ дерутся, только убегают быстрее
     // (их aiState остаётся idle/wander → они просто убегают в update)
