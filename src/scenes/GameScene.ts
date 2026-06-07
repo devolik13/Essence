@@ -10,7 +10,7 @@ import { CREATURE_DB } from '../data/creatureDB';
 import { TILE_SIZE, CAPTURE_RANGE } from '../utils/constants';
 import { distance, clamp } from '../utils/math';
 import { calcMeleeDamage, calcRangedDamage, calcMagicDamage, physicalReduction, magicalReduction } from '../systems/combat';
-import { WEAPONS, weaponDamageType } from '../data/weapons';
+import { WEAPONS, weaponDamageType, getItemWeaponType } from '../data/weapons';
 import {
   CaptureProcess, CaptureState,
   startCapture, updateCapture, interruptCapture,
@@ -1277,10 +1277,26 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Базовая атака слота 0 — динамически по оружию в руках (тултип должен
+   *  совпадать с реальным ударом: кастеты → Strike/melee, лук → Shot/ranged,
+   *  посох → Staff Strike/magic). Слот 0 всегда вызывает handleAttack, так что
+   *  этот AbilityDef — только подпись/иконка. */
+  private basicAttackDef(body: Body): import('../types/abilities').AbilityDef {
+    const w = body.weapon; // следует за активным/природным оружием
+    const dt = weaponDamageType(w.type);
+    const nameRu = dt === 'magic' ? 'Staff Strike' : dt === 'ranged' ? 'Shot' : 'Strike';
+    const description = dt === 'magic' ? 'Магическая атака'
+      : dt === 'ranged' ? 'Дальняя атака' : 'Ближняя атака';
+    return {
+      id: 'basic_attack', nameRu, damageType: dt,
+      cooldown: w.cooldown, manaCost: 0, range: w.range, baseDamage: 0, description,
+    };
+  }
+
   /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — заклинания */
   private fillBodySlots(body: Body) {
-    // Слот 0 — всегда базовая атака тела
-    body.abilitySlots[0].ability = BASIC_ATTACKS[body.definition.id] ?? BASIC_ATTACKS['default'];
+    // Слот 0 — базовая атака по оружию в руках (динамически)
+    body.abilitySlots[0].ability = this.basicAttackDef(body);
 
     // Очищаем остальные слоты
     for (let i = 1; i < 8; i++) body.abilitySlots[i].ability = null;
@@ -1298,15 +1314,22 @@ export class GameScene extends Phaser.Scene {
     // Гуманоиды: слоты 0-4 = оружейные, слоты 5-7 = нейтральные
     const equip = this.sphere.equipment;
     const activeWeaponId = this.sphere.activeWeaponSlot === 0 ? equip.weapon : equip.weapon2;
+    const activeWeaponType = activeWeaponId ? getItemWeaponType(activeWeaponId) : undefined;
+    // Умение подходит активному оружию, если у него нет requiredWeapons
+    // (нейтральное/универсальное) ИЛИ текущее оружие входит в список.
+    const fitsWeapon = (sp: import('../types/abilities').AbilityDef | null) =>
+      !sp || !sp.requiredWeapons || (activeWeaponType !== undefined && sp.requiredWeapons.includes(activeWeaponType));
 
     // Слоты 0-4: загружаем сохранённую конфигурацию для текущего оружия
     if (activeWeaponId && this.sphere.weaponSlotConfigs[activeWeaponId]) {
       const config = this.sphere.weaponSlotConfigs[activeWeaponId];
       for (let i = 0; i < 5; i++) {
         const spellId = config[i];
-        body.abilitySlots[i].ability = spellId
+        const resolved = spellId
           ? (this.sphere.learnedSpells.find(s => s.id === spellId) ?? BASIC_ATTACKS[body.definition.id] ?? null)
           : null;
+        // Чужие оружейные умения в слот не пускаем (Hook на луке и т.п.).
+        body.abilitySlots[i].ability = fitsWeapon(resolved) ? resolved : null;
       }
     } else {
       // Автозаполнение слотов 0-4: базовая атака + T1/T2/T3 оружия
