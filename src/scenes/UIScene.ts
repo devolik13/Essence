@@ -1837,18 +1837,18 @@ export class UIScene extends Phaser.Scene {
     const data = this.lastUIData;
     if (!data?.body || !data?.sphere) return;
     const eq = data.sphere.equipment;
+    // Надетое оружие — только для гуманоидов. Животные/элементали бьют
+    // природным оружием тела (лиса когтями, а не луком Сферы).
+    const isHumanoid = !!data.body.definition.canUseAllSpells;
     const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
-    if (!activeId) return;
-    const item = ITEMS[activeId];
-    if (!item) return;
-    // Тип оружия берём по надетому предмету (не врождённое оружие тела).
-    const wt = getItemWeaponType(activeId) ?? data.body.definition.weapon;
+    const item = isHumanoid ? ITEMS[activeId ?? ''] : undefined;
+    const wt = (isHumanoid ? getItemWeaponType(activeId ?? '') : undefined) ?? data.body.definition.weapon;
     const weapon = WEAPONS[wt];
     const atk = this.weaponAttackStat(wt, data.sphere);
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
-    const inactiveId = data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon;
+    const inactiveId = isHumanoid ? (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon) : undefined;
     const lines = [
-      item.nameRu,
+      item ? item.nameRu : `${data.body.definition.nameRu} — природная атака`,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
       `Damage (${atk.label} ${atk.value}): ${dmg}`,
       weapon.weaponEffect ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
@@ -1871,20 +1871,22 @@ export class UIScene extends Phaser.Scene {
 
   private updateWeaponBlock(data: UIData) {
     if (!this.weaponBlockIcon || !this.weaponBlockDmg) return;
-    const eq = data.sphere.equipment;
-    const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
-    if (!activeId || !data.body) {
+    if (!data.body) {
       this.weaponBlockIcon.setText('—');
       this.weaponBlockDmg.setText('');
       return;
     }
-    const item = ITEMS[activeId];
-    // Тип оружия — по надетому предмету (Tab меняет посох/лук/меч).
-    const wt = getItemWeaponType(activeId) ?? data.body.definition.weapon;
+    // Надетое оружие — только для гуманоидов; животные/элементали бьют природным.
+    const isHumanoid = !!data.body.definition.canUseAllSpells;
+    const eq = data.sphere.equipment;
+    const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
+    const item = isHumanoid ? ITEMS[activeId ?? ''] : undefined;
+    const wt = (isHumanoid ? getItemWeaponType(activeId ?? '') : undefined) ?? data.body.definition.weapon;
     const weapon = WEAPONS[wt];
     const atk = this.weaponAttackStat(wt, data.sphere);
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
-    this.weaponBlockIcon.setText(item?.icon ?? '⚔');
+    // Гуманоид без оружия → ⚔; животное/элементаль → 🐾 (природная атака).
+    this.weaponBlockIcon.setText(item?.icon ?? (isHumanoid ? '⚔' : '🐾'));
     this.weaponBlockDmg.setText(String(dmg));
   }
 

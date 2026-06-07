@@ -206,13 +206,18 @@ export class Body extends Phaser.GameObjects.Container {
     // If the player has an equipped weapon item, use ITS weapon type so
     // basic attacks follow the equipped slot (Tab swap → bow combat etc.).
     // Falls back to body's intrinsic weapon when no item is equipped.
-    const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
-    if (sphere?.equipment) {
-      const slot = sphere.activeWeaponSlot ?? 0;
-      const id = slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
-      if (id) {
-        const wt = getItemWeaponType(id);
-        if (wt) return WEAPONS[wt];
+    // ВАЖНО: надетое оружие применяется ТОЛЬКО к гуманоидам (canUseAllSpells).
+    // Животные/элементали бьют своим природным оружием (лиса — когтями/кастетами,
+    // а не луком Сферы) — иначе атака игнорировала бы тело.
+    if (this.definition.canUseAllSpells) {
+      const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
+      if (sphere?.equipment) {
+        const slot = sphere.activeWeaponSlot ?? 0;
+        const id = slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
+        if (id) {
+          const wt = getItemWeaponType(id);
+          if (wt) return WEAPONS[wt];
+        }
       }
     }
     return WEAPONS[this.definition.weapon];
