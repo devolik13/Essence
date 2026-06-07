@@ -57,8 +57,6 @@ const EQUIP_SLOTS: { id: keyof import('../types/items').Equipment; cls: string; 
 const STAT_ORDER: { id: StatName; short: string }[] = [
   { id: StatName.Strength,  short: 'STR' },
   { id: StatName.Agility,   short: 'AGI' },
-  { id: StatName.Accuracy,  short: 'ACC' },
-  { id: StatName.Evasion,   short: 'EVA' },
   { id: StatName.Health,    short: 'HP'  },
   { id: StatName.Armor,     short: 'ARM' },
   { id: StatName.Intellect, short: 'INT' },

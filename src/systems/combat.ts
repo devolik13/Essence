@@ -57,15 +57,7 @@ export function magicalReduction(will: number): number {
   return Math.min(w / (w + 125), 0.8);
 }
 
-// ─── Попадание и крит ──────────────────────────────────
-
-/** Шанс попасть: Точность / (Точность + Уклонение), в [0,1].
- *  Нет ни точности, ни уклонения — атака просто попадает (нечем уклоняться). */
-export function hitChance(accuracy: number, evasion: number): number {
-  const denom = accuracy + evasion;
-  if (denom <= 0) return 1;
-  return Math.min(1, Math.max(0, accuracy / denom));
-}
+// ─── Крит ──────────────────────────────────────────────
 
 /** Шанс крита: Удача / (Удача + 50) — при Удаче 50 = 50%. Удача клампится в ≥0. */
 export function critChance(luck: number): number {
@@ -86,9 +78,7 @@ export interface DamageResult {
 }
 
 export function calcMeleeDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
-  const hit = Math.random() < hitChance(attacker[StatName.Accuracy], defender[StatName.Evasion]);
-  if (!hit) return { raw: 0, reduced: 0, hit: false, crit: false, final: 0 };
-
+  // Ближний бой всегда попадает (точность/уклонение удалены)
   const raw = meleeBaseDamage(weaponBase, attacker[StatName.Strength]);
   const reduction = physicalReduction(defender[StatName.Armor]);
   const reduced = raw * (1 - reduction);
@@ -99,9 +89,7 @@ export function calcMeleeDamage(attacker: Stats, defender: Stats, weaponBase: nu
 }
 
 export function calcRangedDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
-  const hit = Math.random() < hitChance(attacker[StatName.Accuracy], defender[StatName.Evasion]);
-  if (!hit) return { raw: 0, reduced: 0, hit: false, crit: false, final: 0 };
-
+  // Дальний бой всегда попадает (точность/уклонение удалены)
   const raw = rangedBaseDamage(weaponBase, attacker[StatName.Agility]);
   const reduction = physicalReduction(defender[StatName.Armor]);
   const reduced = raw * (1 - reduction);

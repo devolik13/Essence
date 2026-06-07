@@ -180,16 +180,6 @@ export class Body extends Phaser.GameObjects.Container {
     return Math.round(baseArmor * percentBonus) + flatBonus;
   }
 
-  /** Бонус к Evasion от статусов (evasion_boost) */
-  get evasionBonus(): number {
-    let bonus = 0;
-    for (const [id, status] of this.statusEffects) {
-      const def = STATUS_DEFS[id];
-      if (def.evasionBonus) bonus += def.evasionBonus * status.stacks;
-    }
-    return bonus;
-  }
-
   /** Временные HP (щит от Стойкого удара) */
   public tempHP: number = 0;
   public tempHPTimer: number = 0;

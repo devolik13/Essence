@@ -2526,7 +2526,6 @@ export class GameScene extends Phaser.Scene {
     // Временные бонусы от статус-эффектов (баффы/дебаффы) — только для боевых формул
     if (this.playerBody) {
       s[StatName.Armor] += this.playerBody.armorBonus;
-      s[StatName.Evasion] += this.playerBody.evasionBonus;
     }
 
     return s;

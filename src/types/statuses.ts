@@ -120,10 +120,6 @@ export interface StatusEffectDef {
   strengthReduction?: number;
   /** Снижение ловкости (0.2 = −20%) */
   agilityReduction?: number;
-  /** Снижение точности (0.2 = −20%) */
-  accuracyReduction?: number;
-  /** Шанс промаха в ближнем бою (0.5 = 50%) */
-  meleeMissChance?: number;
   /** Снижение максимальной маны (0.5 = −50%) */
   maxManaReduction?: number;
   /** Снижение получаемого лечения/регена HP (0.5 = −50%) */
@@ -142,8 +138,6 @@ export interface StatusEffectDef {
   armorBonusPercent?: number;
   /** Бонус к Удаче в процентах (0.2 = +20%) */
   luckBonusPercent?: number;
-  /** Бонус к Уклонению (абсолютное значение, напр. 10 = +10 Evasion) */
-  evasionBonus?: number;
   /** Блокирует следующую 1 атаку полностью (снимается при попадании) */
   blockNextAttack?: boolean;
   /** Иммунитет к оглушению */
@@ -279,10 +273,10 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     agilityReduction: 0.2,
   },
+  // Инертный плейсхолдер: acc/eva удалены, переработать в dodge-скилл позже
   blind: {
     id: 'blind', nameRu: 'Blind',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
-    meleeMissChance: 0.5,
   },
   vulnerability: {
     id: 'vulnerability', nameRu: 'Vulnerability',
@@ -331,10 +325,10 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     castTimeIncrease: 0.3, // +30% время каста
   },
+  // Инертный плейсхолдер: acc/eva удалены, переработать в dodge-скилл позже
   accuracy_reduce: {
     id: 'accuracy_reduce', nameRu: 'Accuracy Down',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
-    accuracyReduction: 0.3, // −30% точность
   },
   fortify: {
     id: 'fortify', nameRu: 'Fortify',
@@ -346,10 +340,10 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     addCooldownToNextAbility: 10, // следующая абилка +10 сек КД
   },
+  // Инертный плейсхолдер: acc/eva удалены, переработать в dodge-скилл позже
   evasion_boost: {
     id: 'evasion_boost', nameRu: 'Maneuver',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
-    evasionBonus: 10, // +10 Evasion
   },
   block_next: {
     id: 'block_next', nameRu: 'Cover',

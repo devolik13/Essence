@@ -20,7 +20,7 @@ export function getStarterBodyForWeapon(wt: WeaponType): BodyDefinition {
     color = 0xcc3333;
   } else if (AGILITY_WEAPONS.includes(wt)) {
     damageType = w.isMelee ? 'melee' : 'ranged';
-    caps = { [StatName.Agility]: 30, [StatName.Accuracy]: 15, [StatName.Evasion]: 5 };
+    caps = { [StatName.Agility]: 30 };
     color = 0x33cc33;
   } else {
     damageType = 'magic';

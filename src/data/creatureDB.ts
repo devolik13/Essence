@@ -37,7 +37,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     ...GOBLIN,
     damageType: 'melee',
     npcStats: {
-      [StatName.Strength]: 4, [StatName.Accuracy]: 5, [StatName.Evasion]: 6,
+      [StatName.Strength]: 4,  
       [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 3,
     },
     signatureSpell: ABILITY_STING,
@@ -47,10 +47,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   hare: {
     id: 'hare', name: 'Hare', nameRu: 'Заяц',
     type: BodyType.Passive, damageType: 'melee',
-    caps: { [StatName.Evasion]: 10, [StatName.Agility]: 8 },
+    caps: {  [StatName.Agility]: 8 },
     xpReward: 8,
     npcStats: {
-      [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 1,
+      [StatName.Strength]: 1,  
       [StatName.Health]: 1, [StatName.Armor]: 1, [StatName.Luck]: 1,
     },
     weapon: WeaponType.Dagger, color: 0xbb9966, abilityName: 'Acceleration',
@@ -60,10 +60,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   deer: {
     id: 'deer', name: 'Deer', nameRu: 'Олень',
     type: BodyType.Fleeing, damageType: 'melee',
-    caps: { [StatName.Agility]: 18, [StatName.Evasion]: 14, [StatName.Luck]: 6 },
+    caps: { [StatName.Agility]: 18,  [StatName.Luck]: 6 },
     xpReward: 25,
     npcStats: {
-      [StatName.Agility]: 8, [StatName.Accuracy]: 4, [StatName.Evasion]: 8,
+      [StatName.Agility]: 8,  
       [StatName.Health]: 5, [StatName.Armor]: 1, [StatName.Luck]: 5,
     },
     weapon: WeaponType.Dagger, color: 0xaa7744, abilityName: 'Dash',
@@ -74,10 +74,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   fox: {
     id: 'fox', name: 'Fox', nameRu: 'Лиса',
     type: BodyType.Combat, damageType: 'melee',
-    caps: { [StatName.Agility]: 15, [StatName.Evasion]: 12 },
+    caps: { [StatName.Agility]: 15, },
     xpReward: 15,
     npcStats: {
-      [StatName.Strength]: 3, [StatName.Accuracy]: 4, [StatName.Evasion]: 6,
+      [StatName.Strength]: 3,  
       [StatName.Health]: 4, [StatName.Armor]: 1, [StatName.Luck]: 4,
     },
     weapon: WeaponType.Fists, color: 0xdd6622, abilityName: 'Hook',
@@ -91,7 +91,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 15, [StatName.Health]: 10 },
     xpReward: 30,
     npcStats: {
-      [StatName.Strength]: 6, [StatName.Accuracy]: 4, [StatName.Evasion]: 3,
+      [StatName.Strength]: 6,  
       [StatName.Health]: 8, [StatName.Armor]: 3, [StatName.Luck]: 2,
     },
     weapon: WeaponType.Spear, color: 0x774422, abilityName: 'Ram',
@@ -102,10 +102,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   grouse: {
     id: 'grouse', name: 'Grouse', nameRu: 'Тетерев',
     type: BodyType.Passive, damageType: 'melee',
-    caps: { [StatName.Evasion]: 12, [StatName.Agility]: 10 },
+    caps: {  [StatName.Agility]: 10 },
     xpReward: 6,
     npcStats: {
-      [StatName.Strength]: 1, [StatName.Accuracy]: 1, [StatName.Evasion]: 6,
+      [StatName.Strength]: 1,  
       [StatName.Health]: 2, [StatName.Armor]: 0, [StatName.Luck]: 4,
     },
     weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Heal',
@@ -118,7 +118,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Agility]: 20, [StatName.Strength]: 12, [StatName.Health]: 8 },
     xpReward: 40,
     npcStats: {
-      [StatName.Strength]: 8, [StatName.Accuracy]: 7, [StatName.Evasion]: 8,
+      [StatName.Strength]: 8,  
       [StatName.Health]: 8,   [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Sword Strike',
@@ -132,7 +132,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 35, [StatName.Health]: 24, [StatName.Armor]: 16 },
     xpReward: 80,
     npcStats: {
-      [StatName.Strength]: 18, [StatName.Accuracy]: 6, [StatName.Evasion]: 3,
+      [StatName.Strength]: 18,  
       [StatName.Health]: 24,   [StatName.Armor]: 10,   [StatName.Luck]: 2,
     },
     weapon: WeaponType.Mace, color: 0x664422, abilityName: 'Crushing Blow',
@@ -146,7 +146,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 40, [StatName.Health]: 20, [StatName.Armor]: 12 },
     xpReward: 70,
     npcStats: {
-      [StatName.Strength]: 15, [StatName.Accuracy]: 8, [StatName.Evasion]: 4,
+      [StatName.Strength]: 15,  
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Greatsword, color: 0x446633, abilityName: 'Slash',
@@ -163,7 +163,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 25, [StatName.Mana]: 20, [StatName.Will]: 10 },
     xpReward: 60,
     npcStats: {
-      [StatName.Intellect]: 12, [StatName.Accuracy]: 7, [StatName.Evasion]: 4,
+      [StatName.Intellect]: 12,  
       [StatName.Health]: 12,    [StatName.Will]: 8,     [StatName.Mana]: 15, [StatName.Luck]: 2,
     },
     weapon: WeaponType.StaffNature, color: 0x9944aa, abilityName: 'Summon Wolf',
@@ -187,7 +187,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 20, [StatName.Health]: 16, [StatName.Mana]: 14 },
     xpReward: 75,
     npcStats: {
-      [StatName.Intellect]: 10, [StatName.Accuracy]: 8, [StatName.Evasion]: 6,
+      [StatName.Intellect]: 10,  
       [StatName.Health]: 14,    [StatName.Will]: 6,     [StatName.Mana]: 12, [StatName.Luck]: 2,
     },
     weapon: WeaponType.StaffNature, color: 0x88cc88, abilityName: 'Bark Armor',
@@ -198,10 +198,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   scout: {
     id: 'scout', name: 'Scout', nameRu: 'Разведчик',
     type: BodyType.Combat, damageType: 'ranged',
-    caps: { [StatName.Agility]: 25, [StatName.Accuracy]: 20, [StatName.Evasion]: 12 },
+    caps: { [StatName.Agility]: 25,  },
     xpReward: 35,
     npcStats: {
-      [StatName.Agility]: 8, [StatName.Accuracy]: 10, [StatName.Evasion]: 6,
+      [StatName.Agility]: 8,  
       [StatName.Health]: 7,  [StatName.Armor]: 2,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.ShortBow, color: 0x88aa55, abilityName: 'Aimed Shot',
@@ -214,10 +214,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   monk: {
     id: 'monk', name: 'Monk', nameRu: 'Монах',
     type: BodyType.Combat, damageType: 'melee',
-    caps: { [StatName.Agility]: 18, [StatName.Evasion]: 14, [StatName.Will]: 8 },
+    caps: { [StatName.Agility]: 18,  [StatName.Will]: 8 },
     xpReward: 35,
     npcStats: {
-      [StatName.Strength]: 5, [StatName.Accuracy]: 8, [StatName.Evasion]: 10,
+      [StatName.Strength]: 5,  
       [StatName.Health]: 8, [StatName.Armor]: 2, [StatName.Will]: 5, [StatName.Luck]: 3,
     },
     weapon: WeaponType.Fists, color: 0xddccaa, abilityName: 'Fist Strike',
@@ -233,7 +233,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Health]: 12, [StatName.Will]: 12, [StatName.Armor]: 5 },
     xpReward: 40,
     npcStats: {
-      [StatName.Strength]: 4, [StatName.Accuracy]: 6, [StatName.Evasion]: 5,
+      [StatName.Strength]: 4,  
       [StatName.Health]: 12, [StatName.Armor]: 4, [StatName.Will]: 8, [StatName.Luck]: 3,
     },
     weapon: WeaponType.Fists, color: 0xc8b896, abilityName: 'Spirit Resilience',
@@ -249,7 +249,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 8, [StatName.Agility]: 12 },
     xpReward: 12,
     npcStats: {
-      [StatName.Intellect]: 3, [StatName.Accuracy]: 5, [StatName.Evasion]: 8,
+      [StatName.Intellect]: 3,  
       [StatName.Health]: 3,    [StatName.Mana]: 5,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.StaffFire, color: 0xff6600, abilityName: 'Spark',
@@ -263,7 +263,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 14, [StatName.Health]: 10, [StatName.Armor]: 4 },
     xpReward: 28,
     npcStats: {
-      [StatName.Intellect]: 7, [StatName.Accuracy]: 6, [StatName.Evasion]: 3,
+      [StatName.Intellect]: 7,  
       [StatName.Health]: 10,   [StatName.Armor]: 3,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.StaffFire, color: 0xaa4400, abilityName: 'Fire Arrow',
@@ -276,10 +276,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   splasher: {
     id: 'splasher', name: 'Splasher', nameRu: 'Брызгун',
     type: BodyType.Combat, damageType: 'magic', element: 'water',
-    caps: { [StatName.Intellect]: 10, [StatName.Agility]: 10, [StatName.Evasion]: 8 },
+    caps: { [StatName.Intellect]: 10, [StatName.Agility]: 10, },
     xpReward: 20,
     npcStats: {
-      [StatName.Intellect]: 5, [StatName.Accuracy]: 6, [StatName.Evasion]: 5,
+      [StatName.Intellect]: 5,  
       [StatName.Health]: 6,    [StatName.Mana]: 6,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.StaffWater, color: 0x44aaff, abilityName: 'Ice Shard',
@@ -293,7 +293,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 12, [StatName.Will]: 8, [StatName.Mana]: 12 },
     xpReward: 25,
     npcStats: {
-      [StatName.Intellect]: 6, [StatName.Accuracy]: 5, [StatName.Evasion]: 4,
+      [StatName.Intellect]: 6,  
       [StatName.Health]: 8,    [StatName.Will]: 5,     [StatName.Mana]: 10, [StatName.Luck]: 1,
     },
     weapon: WeaponType.StaffWater, color: 0x88ccee, abilityName: 'Ice Arrow',
@@ -309,7 +309,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Health]: 20, [StatName.Armor]: 14, [StatName.Strength]: 10 },
     xpReward: 35,
     npcStats: {
-      [StatName.Intellect]: 5, [StatName.Accuracy]: 5, [StatName.Evasion]: 1,
+      [StatName.Intellect]: 5,  
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 1,
     },
     weapon: WeaponType.StaffEarth, color: 0x887755, abilityName: 'Pebble Shot',
@@ -323,7 +323,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Health]: 16, [StatName.Armor]: 8, [StatName.Intellect]: 10 },
     xpReward: 30,
     npcStats: {
-      [StatName.Intellect]: 6, [StatName.Accuracy]: 4, [StatName.Evasion]: 2,
+      [StatName.Intellect]: 6,  
       [StatName.Health]: 14,   [StatName.Armor]: 5,    [StatName.Luck]: 1,
     },
     weapon: WeaponType.StaffEarth, color: 0x665533, abilityName: 'Stone Spike',
@@ -336,10 +336,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   gusty: {
     id: 'gusty', name: 'Gusty', nameRu: 'Вихревик',
     type: BodyType.Combat, damageType: 'magic', element: 'wind',
-    caps: { [StatName.Agility]: 20, [StatName.Evasion]: 14, [StatName.Accuracy]: 10 },
+    caps: { [StatName.Agility]: 20,  },
     xpReward: 15,
     npcStats: {
-      [StatName.Intellect]: 3, [StatName.Accuracy]: 7, [StatName.Evasion]: 10,
+      [StatName.Intellect]: 3,  
       [StatName.Health]: 4,    [StatName.Agility]: 12, [StatName.Luck]: 3,
     },
     weapon: WeaponType.StaffWind, color: 0xcceeaa, abilityName: 'Gust',
@@ -350,10 +350,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   whistler: {
     id: 'whistler', name: 'Whistler', nameRu: 'Свистун',
     type: BodyType.Combat, damageType: 'magic', element: 'wind',
-    caps: { [StatName.Agility]: 14, [StatName.Accuracy]: 16, [StatName.Intellect]: 12 },
+    caps: { [StatName.Agility]: 14,  [StatName.Intellect]: 12 },
     xpReward: 22,
     npcStats: {
-      [StatName.Intellect]: 6, [StatName.Accuracy]: 9, [StatName.Evasion]: 7,
+      [StatName.Intellect]: 6,  
       [StatName.Health]: 7,    [StatName.Agility]: 8,  [StatName.Luck]: 3,
     },
     weapon: WeaponType.StaffWind, color: 0x99ddcc, abilityName: 'Wind Blade',
@@ -367,10 +367,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'bandit_archer', name: 'Bandit Archer', nameRu: 'Разбойник-лучник',
     faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
-    caps: { [StatName.Accuracy]: 24, [StatName.Agility]: 22, [StatName.Evasion]: 14 },
+    caps: {  [StatName.Agility]: 22, },
     xpReward: 45,
     npcStats: {
-      [StatName.Agility]: 10,  [StatName.Accuracy]: 12, [StatName.Evasion]: 7,
+      [StatName.Agility]: 10,   
       [StatName.Health]: 9,    [StatName.Armor]: 2,     [StatName.Luck]: 4,
     },
     weapon: WeaponType.LongBow, color: 0x556633, abilityName: 'Backshot',
@@ -382,10 +382,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'bandit_crossbow', name: 'Bandit Crossbowman', nameRu: 'Арбалетчик',
     faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
-    caps: { [StatName.Accuracy]: 26, [StatName.Strength]: 16, [StatName.Health]: 16 },
+    caps: {  [StatName.Strength]: 16, [StatName.Health]: 16 },
     xpReward: 50,
     npcStats: {
-      [StatName.Strength]: 8,  [StatName.Accuracy]: 15, [StatName.Evasion]: 3,
+      [StatName.Strength]: 8,   
       [StatName.Health]: 11,   [StatName.Armor]: 4,     [StatName.Luck]: 3,
     },
     weapon: WeaponType.Crossbow, color: 0x664433, abilityName: 'Snare Bolt',
@@ -397,10 +397,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'bandit_spear', name: 'Bandit Spearman', nameRu: 'Копейщик',
     faction: 'raider',
     type: BodyType.Combat, damageType: 'melee',
-    caps: { [StatName.Strength]: 20, [StatName.Accuracy]: 18, [StatName.Health]: 18 },
+    caps: { [StatName.Strength]: 20,  [StatName.Health]: 18 },
     xpReward: 48,
     npcStats: {
-      [StatName.Strength]: 11, [StatName.Accuracy]: 9,  [StatName.Evasion]: 6,
+      [StatName.Strength]: 11,   
       [StatName.Health]: 12,   [StatName.Armor]: 5,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.Spear, color: 0x445566, abilityName: 'Butt Strike',
@@ -415,7 +415,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 28, [StatName.Health]: 26, [StatName.Armor]: 18 },
     xpReward: 65,
     npcStats: {
-      [StatName.Strength]: 15, [StatName.Accuracy]: 6,  [StatName.Evasion]: 2,
+      [StatName.Strength]: 15,   
       [StatName.Health]: 18,   [StatName.Armor]: 8,     [StatName.Luck]: 2,
     },
     weapon: WeaponType.Hammer, color: 0x664444, abilityName: 'Heavy Smash',
@@ -429,10 +429,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     ...GOBLIN,
     id: 'goblin_veteran', name: 'Goblin Veteran', nameRu: 'Гоблин-ветеран',
     damageType: 'melee',
-    caps: { [StatName.Agility]: 18, [StatName.Evasion]: 14, [StatName.Accuracy]: 12 },
+    caps: { [StatName.Agility]: 18,  },
     xpReward: 90,
     npcStats: {
-      [StatName.Strength]: 7,  [StatName.Accuracy]: 9,  [StatName.Evasion]: 10,
+      [StatName.Strength]: 7,    
       [StatName.Health]: 11,   [StatName.Armor]: 3,     [StatName.Luck]: 5,
     },
     weapon: WeaponType.Dagger, color: 0xaa5500, abilityName: 'Knife Throw',
@@ -446,7 +446,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Agility]: 28, [StatName.Strength]: 18, [StatName.Health]: 14 },
     xpReward: 110,
     npcStats: {
-      [StatName.Strength]: 13, [StatName.Accuracy]: 11, [StatName.Evasion]: 12,
+      [StatName.Strength]: 13,  
       [StatName.Health]: 14,   [StatName.Armor]: 4,     [StatName.Luck]: 4,
     },
     weapon: WeaponType.Sword, color: 0x555555, abilityName: 'Double Strike',
@@ -460,7 +460,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 50, [StatName.Health]: 36, [StatName.Armor]: 24 },
     xpReward: 150,
     npcStats: {
-      [StatName.Strength]: 26, [StatName.Accuracy]: 8,  [StatName.Evasion]: 2,
+      [StatName.Strength]: 26,   
       [StatName.Health]: 36,   [StatName.Armor]: 16,    [StatName.Luck]: 1,
     },
     weapon: WeaponType.Mace, color: 0x442200, abilityName: 'Sturdy Strike',
@@ -479,7 +479,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 40, [StatName.Health]: 20, [StatName.Armor]: 12 },
     xpReward: 70,
     npcStats: {
-      [StatName.Strength]: 15, [StatName.Accuracy]: 8, [StatName.Evasion]: 4,
+      [StatName.Strength]: 15,  
       [StatName.Health]: 20,   [StatName.Armor]: 8,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Greatsword, color: 0x224411, abilityName: 'Slash',
@@ -492,10 +492,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'scout_veteran', name: 'Scout Captain', nameRu: 'Капитан разведчиков',
     faction: 'caravan',
     type: BodyType.Combat, damageType: 'ranged',
-    caps: { [StatName.Agility]: 36, [StatName.Accuracy]: 28, [StatName.Evasion]: 18 },
+    caps: { [StatName.Agility]: 36,  },
     xpReward: 100,
     npcStats: {
-      [StatName.Agility]: 14, [StatName.Accuracy]: 16, [StatName.Evasion]: 10,
+      [StatName.Agility]: 14,  
       [StatName.Health]: 12,  [StatName.Armor]: 3,     [StatName.Luck]: 5,
     },
     weapon: WeaponType.ShortBow, color: 0x557722, abilityName: 'Backshot',
@@ -507,10 +507,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'bandit_archer_veteran', name: 'Bandit Sniper', nameRu: 'Разбойник-снайпер',
     faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
-    caps: { [StatName.Accuracy]: 36, [StatName.Agility]: 30, [StatName.Evasion]: 20 },
+    caps: {  [StatName.Agility]: 30, },
     xpReward: 115,
     npcStats: {
-      [StatName.Agility]: 15, [StatName.Accuracy]: 18, [StatName.Evasion]: 10,
+      [StatName.Agility]: 15,  
       [StatName.Health]: 13,  [StatName.Armor]: 3,     [StatName.Luck]: 5,
     },
     weapon: WeaponType.LongBow, color: 0x334422, abilityName: 'Arrow Rain',
@@ -522,10 +522,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'bandit_crossbow_veteran', name: 'Bandit Marksman', nameRu: 'Стрелок',
     faction: 'raider',
     type: BodyType.Combat, damageType: 'ranged',
-    caps: { [StatName.Accuracy]: 38, [StatName.Strength]: 24, [StatName.Health]: 24 },
+    caps: {  [StatName.Strength]: 24, [StatName.Health]: 24 },
     xpReward: 120,
     npcStats: {
-      [StatName.Strength]: 13, [StatName.Accuracy]: 22, [StatName.Evasion]: 4,
+      [StatName.Strength]: 13,  
       [StatName.Health]: 18,   [StatName.Armor]: 7,     [StatName.Luck]: 3,
     },
     weapon: WeaponType.Crossbow, color: 0x442211, abilityName: 'Snare Bolt',
@@ -540,7 +540,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 40, [StatName.Health]: 38, [StatName.Armor]: 26 },
     xpReward: 145,
     npcStats: {
-      [StatName.Strength]: 22, [StatName.Accuracy]: 8,  [StatName.Evasion]: 3,
+      [StatName.Strength]: 22,   
       [StatName.Health]: 28,   [StatName.Armor]: 12,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Hammer, color: 0x441111, abilityName: 'Heavy Smash',
@@ -556,7 +556,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
     xpReward: 200,
     npcStats: {
-      [StatName.Intellect]: 35, [StatName.Accuracy]: 10, [StatName.Evasion]: 5,
+      [StatName.Intellect]: 35,  
       [StatName.Health]: 30,    [StatName.Armor]: 8,     [StatName.Will]: 15,
       [StatName.Mana]: 40,      [StatName.Luck]: 5,
     },
@@ -572,7 +572,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
     xpReward: 200,
     npcStats: {
-      [StatName.Intellect]: 35, [StatName.Accuracy]: 10, [StatName.Evasion]: 8,
+      [StatName.Intellect]: 35,  
       [StatName.Health]: 28,    [StatName.Armor]: 6,     [StatName.Will]: 18,
       [StatName.Mana]: 40,      [StatName.Luck]: 5,
     },
@@ -588,7 +588,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
     xpReward: 200,
     npcStats: {
-      [StatName.Intellect]: 30, [StatName.Accuracy]: 10, [StatName.Evasion]: 3,
+      [StatName.Intellect]: 30,  
       [StatName.Health]: 35,    [StatName.Armor]: 15,    [StatName.Will]: 12,
       [StatName.Mana]: 40,      [StatName.Luck]: 5,
     },
@@ -604,7 +604,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Intellect]: 50, [StatName.Mana]: 40, [StatName.Health]: 30 },
     xpReward: 200,
     npcStats: {
-      [StatName.Intellect]: 32, [StatName.Accuracy]: 10, [StatName.Evasion]: 12,
+      [StatName.Intellect]: 32,  
       [StatName.Health]: 25,    [StatName.Armor]: 5,     [StatName.Will]: 14,
       [StatName.Mana]: 40,      [StatName.Luck]: 8,
     },
@@ -638,7 +638,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_xp', name: 'XP Dummy', nameRu: 'Тренировочный манекен',
     type: BodyType.Passive, damageType: 'melee',
     caps: { [StatName.Health]: 1 },
-    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, },
     xpReward: 50, weapon: WeaponType.Dagger, color: 0x888888, abilityName: 'none',
   },
 
@@ -647,7 +647,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_fire_t1', name: 'T.Spark', nameRu: 'Искра',
     type: BodyType.Passive, damageType: 'magic',
     caps: { [StatName.Intellect]: 5 },
-    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.StaffFire, color: 0xff6600, abilityName: 'Spark',
     signatureSpell: MOB_FIRE_T1, spellXPThreshold: 1,
   },
@@ -655,7 +655,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_arrow_rain', name: 'T.ArrowRain', nameRu: 'Дождь стрел',
     type: BodyType.Passive, damageType: 'ranged',
     caps: { [StatName.Agility]: 5 },
-    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.LongBow, color: 0x88aa44, abilityName: 'Arrow Rain',
     signatureSpell: ABILITY_ARROW_RAIN, spellXPThreshold: 1,
   },
@@ -663,7 +663,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_fire_arrow', name: 'T.FireArrow', nameRu: 'Огненная стрела',
     type: BodyType.Passive, damageType: 'magic',
     caps: { [StatName.Intellect]: 5 },
-    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.StaffFire, color: 0xff4400, abilityName: 'Fire Arrow',
     signatureSpell: MOB_FIRE_T2, spellXPThreshold: 1,
   },
@@ -671,7 +671,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_fire_wall', name: 'T.FireWall', nameRu: 'Огненная стена',
     type: BodyType.Passive, damageType: 'magic',
     caps: { [StatName.Intellect]: 5 },
-    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.StaffFire, color: 0xaa2200, abilityName: 'Fire Wall',
     signatureSpell: MOB_FIRE_T3, spellXPThreshold: 1,
   },
@@ -679,7 +679,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_fireball', name: 'T.Fireball', nameRu: 'Огненный шар',
     type: BodyType.Passive, damageType: 'magic',
     caps: { [StatName.Intellect]: 5 },
-    npcStats: { [StatName.Health]: 1, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 1, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.StaffFire, color: 0xff2200, abilityName: 'Fireball',
     signatureSpell: MOB_FIRE_T4, spellXPThreshold: 1,
   },
@@ -687,7 +687,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_bark', name: 'T.BarkArmor', nameRu: 'Древесная кора',
     type: BodyType.Passive, damageType: 'magic',
     caps: { [StatName.Intellect]: 5 },
-    npcStats: { [StatName.Health]: 1, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 1, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.StaffNature, color: 0x448833, abilityName: 'Bark Armor',
     signatureSpell: MOB_NATURE_T2, spellXPThreshold: 1,
   },
@@ -695,7 +695,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     id: 'dummy_sweep', name: 'T.Sweep', nameRu: 'Размах',
     type: BodyType.Passive, damageType: 'melee',
     caps: { [StatName.Strength]: 5 },
-    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, [StatName.Evasion]: 0 },
+    npcStats: { [StatName.Health]: 0, [StatName.Armor]: 0, },
     xpReward: 5, weapon: WeaponType.Greatsword, color: 0xaa4444, abilityName: 'Sweep',
     signatureSpell: ABILITY_SLASH_SWEEP, spellXPThreshold: 1,
   },
@@ -709,7 +709,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 20, [StatName.Health]: 15, [StatName.Armor]: 8 },
     xpReward: 45,
     npcStats: {
-      [StatName.Strength]: 9, [StatName.Accuracy]: 8, [StatName.Evasion]: 5,
+      [StatName.Strength]: 9,  
       [StatName.Health]: 14,  [StatName.Armor]: 6,    [StatName.Luck]: 3,
     },
     weapon: WeaponType.Spear, color: 0xc4a874, abilityName: 'Thrust',
@@ -725,7 +725,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     caps: { [StatName.Strength]: 22, [StatName.Health]: 18, [StatName.Armor]: 14 },
     xpReward: 55,
     npcStats: {
-      [StatName.Strength]: 10, [StatName.Accuracy]: 8, [StatName.Evasion]: 3,
+      [StatName.Strength]: 10,  
       [StatName.Health]: 16,   [StatName.Armor]: 9,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Mace, color: 0x6677aa, abilityName: 'Concussion',
@@ -735,10 +735,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
   caravan_merchant: {
     id: 'caravan_merchant', name: 'Merchant', nameRu: 'Торговец',
     type: BodyType.Fleeing, damageType: 'magic',
-    caps: { [StatName.Intellect]: 12, [StatName.Health]: 10, [StatName.Evasion]: 6 },
+    caps: { [StatName.Intellect]: 12, [StatName.Health]: 10, },
     xpReward: 15,
     npcStats: {
-      [StatName.Intellect]: 8, [StatName.Accuracy]: 3, [StatName.Evasion]: 4,
+      [StatName.Intellect]: 8,  
       [StatName.Health]: 10,   [StatName.Armor]: 2,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.Dagger, color: 0xddbb77, abilityName: 'Ally Heal',

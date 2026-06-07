@@ -98,8 +98,8 @@ export function isFirstCapReached(stats: Stats, caps: StatCaps): StatName | null
   return null;
 }
 
-/** Ранг Сущности = сумма всех 10 параметров / 10 */
+/** Ранг Сущности = среднее всех параметров */
 export function calcRank(stats: Stats): number {
   const sum = Object.values(stats).reduce((a, b) => a + b, 0);
-  return +(sum / 10).toFixed(1);
+  return +(sum / Object.keys(stats).length).toFixed(1);
 }
