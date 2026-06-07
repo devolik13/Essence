@@ -888,7 +888,8 @@ export class GameScene extends Phaser.Scene {
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
       mapDotNpcs: (this.cachedNpcDots ??= this.worldNPCs.map(n => ({ x: n.x, y: n.y }))),
       mapDotNodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
-      mapDotQuests: this.questObjects.filter(q => !q.used).map(q => ({ x: q.x, y: q.y })),
+      mapDotQuests: [...this.questObjects, ...this.bodyQuestObjects]
+        .filter(q => !q.used).map(q => ({ x: q.x, y: q.y })),
       creatures: this.creatures.map(c => ({
         x: c.x, y: c.y,
         isDead: c.isDead,
@@ -1798,7 +1799,9 @@ export class GameScene extends Phaser.Scene {
     if (!this.playerBody) { this.questArrow.setVisible(false); return; }
     let target: { x: number; y: number } | null = null;
     let best = Infinity;
-    for (const q of this.questObjects) {
+    // Цели: объекты основной линии + объекты активного квеста тела (поляна оленя
+    // и т.п.) — иначе в теле зверя непонятно, куда бежать.
+    for (const q of [...this.questObjects, ...this.bodyQuestObjects]) {
       if (q.used) continue;
       const d = distance(this.playerBody.x, this.playerBody.y, q.x, q.y);
       if (d < best) { best = d; target = q; }

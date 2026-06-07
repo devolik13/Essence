@@ -219,6 +219,14 @@ export class Creature extends Phaser.GameObjects.Container {
       const attackRange = weapon.isMelee ? weapon.range : weapon.range * 0.85;
       const preferredDist = weapon.isMelee ? 0 : weapon.range * 0.6; // дистанция удержания для ranged
 
+      // Убегающие (олень и т.п.) НИКОГДА не преследуют и не дерутся — даже
+      // если их перевели в chase ударом игрока/aggroCreature. Сбрасываем в idle,
+      // чтобы ниже сработала логика бегства (moveAwayFrom).
+      if (this.definition.type === BodyType.Fleeing &&
+          (this.aiState === 'chase' || this.aiState === 'attack')) {
+        this.aiState = 'idle';
+      }
+
       if (this.aiState === 'chase' || this.aiState === 'attack') {
         if (this.skipAggro && !this.factionTarget && !this.retaliating) {
           this.aiState = 'return';
