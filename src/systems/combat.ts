@@ -89,9 +89,10 @@ export function calcMeleeDamage(attacker: Stats, defender: Stats, weaponBase: nu
 }
 
 export function calcRangedDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
-  // Дальний бой всегда попадает (точность/уклонение удалены)
+  // Дальний бой всегда попадает; урон режется Уклонением цели (та же формула,
+  // что у брони — снижение, а не промах).
   const raw = rangedBaseDamage(weaponBase, attacker[StatName.Agility]);
-  const reduction = physicalReduction(defender[StatName.Armor]);
+  const reduction = physicalReduction(defender[StatName.Evasion]);
   const reduced = raw * (1 - reduction);
   const crit = Math.random() < critChance(attacker[StatName.Luck]);
   const final_ = crit ? reduced * CRIT_MULTIPLIER : reduced;

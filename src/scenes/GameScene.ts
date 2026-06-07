@@ -2577,7 +2577,7 @@ export class GameScene extends Phaser.Scene {
       const raw = dt === 'magic' ? wb * (1 + (this.sphere.stats[StatName.Intellect] ?? 1) / 100)
                 : dt === 'ranged' ? wb * (1 + (this.sphere.stats[StatName.Agility] ?? 1) / 100)
                 :                   wb * (1 + (this.sphere.stats[StatName.Strength] ?? 1) / 100);
-      const stat = dt === 'magic' ? StatName.Will : StatName.Armor;
+      const stat = dt === 'magic' ? StatName.Will : dt === 'ranged' ? StatName.Evasion : StatName.Armor;
       const defVal = closestCreature.stats[stat];
       const reduction = Math.min(defVal / (defVal + 125), 0.8);
       const reduced = raw * (1 - reduction);
@@ -3517,7 +3517,7 @@ export class GameScene extends Phaser.Scene {
       if (schoolBonus?.penetrationChance && schoolBonus?.penetrationPercent) {
         if (Math.random() < schoolBonus.penetrationChance) {
           // Пересчитываем урон с пониженной защитой
-          const stat = spell.damageType === 'magic' ? StatName.Will : StatName.Armor;
+          const stat = spell.damageType === 'magic' ? StatName.Will : spell.damageType === 'ranged' ? StatName.Evasion : StatName.Armor;
           const origDef = target.stats[stat];
           const reducedDef = origDef * (1 - schoolBonus.penetrationPercent);
           const raw = result.raw;

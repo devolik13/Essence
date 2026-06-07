@@ -59,6 +59,7 @@ const STAT_ORDER: { id: StatName; short: string }[] = [
   { id: StatName.Agility,   short: 'AGI' },
   { id: StatName.Health,    short: 'HP'  },
   { id: StatName.Armor,     short: 'ARM' },
+  { id: StatName.Evasion,   short: 'EVA' },
   { id: StatName.Intellect, short: 'INT' },
   { id: StatName.Will,      short: 'WIL' },
   { id: StatName.Mana,      short: 'MNA' },

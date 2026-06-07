@@ -5,6 +5,7 @@ export const STAT_NAMES_SHORT: Record<StatName, string> = {
   [StatName.Agility]:   'Agility',
   [StatName.Health]:    'Health',
   [StatName.Armor]:     'Armor',
+  [StatName.Evasion]:   'Evasion',
   [StatName.Intellect]: 'Intellect',
   [StatName.Will]:      'Will',
   [StatName.Mana]:      'Mana',

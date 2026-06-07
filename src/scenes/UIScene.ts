@@ -2618,6 +2618,6 @@ function buildXPBar(current: number, needed: number, width: number): string {
 
 const STAT_ORDER: StatName[] = [
   StatName.Strength, StatName.Agility,
-  StatName.Health, StatName.Armor, StatName.Intellect, StatName.Will,
+  StatName.Health, StatName.Armor, StatName.Evasion, StatName.Intellect, StatName.Will,
   StatName.Mana, StatName.Luck,
 ];

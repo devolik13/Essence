@@ -5,6 +5,7 @@ import { StatName } from '../types/stats';
 const EQUIP_STAT_MAP: Record<string, StatName> = {
   strength: StatName.Strength, agility: StatName.Agility,
   health: StatName.Health, armor: StatName.Armor,
+  evasion: StatName.Evasion,
   intellect: StatName.Intellect, will: StatName.Will,
   mana: StatName.Mana, luck: StatName.Luck,
 };
