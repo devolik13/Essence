@@ -28,6 +28,12 @@ const RAIDER_ROSTER: string[] = [
 const CART_DAMAGE_RADIUS = 50;   // raider must be within this of cart to damage it
 const CART_DAMAGE_RATE = 12;     // hp/sec dealt by each adjacent raider
 
+// ── Merchant tether ─────────────────────────────────────────────────────────
+// Торговец (Fleeing) сам по себе убегает от угрозы без оглядки на обоз. Чтобы он
+// всегда оставался при телеге (паникует рядом, а не удирает за карту), его
+// позиция жёстко клампится в этот радиус от повозки во ВСЕХ фазах.
+const MERCHANT_LEASH = 55;
+
 /**
  * A looping caravan event: animated cart + escort (merchant + guards) that
  * travels from A (Waldmar) to B (Eshworth) past a raider camp, then waits and
@@ -191,6 +197,10 @@ export class Caravan {
     if (this.destroyed) return;
     const dt = delta / 1000;
 
+    // Торговец всегда жмётся к телеге — поводок действует в любой фазе,
+    // включая стоянки и бой (его собственный flee-AI оттаскивал его прочь).
+    this.tetherMerchant();
+
     switch (this.phase) {
       case 'WAIT_START':
         this.phaseTimer += dt;
@@ -209,6 +219,18 @@ export class Caravan {
       case 'TRAVEL':
         this.updateTravel(dt);
         return;
+    }
+  }
+
+  /** Hard-clamp the merchant within {@link MERCHANT_LEASH} of the cart anchor. */
+  private tetherMerchant() {
+    if (!this.merchant || this.merchant.isDead) return;
+    const anchorX = this.x - 38;
+    const anchorY = this.y + 6;
+    const d = Math.hypot(this.merchant.x - anchorX, this.merchant.y - anchorY);
+    if (d > MERCHANT_LEASH) {
+      this.merchant.x = anchorX + ((this.merchant.x - anchorX) / d) * MERCHANT_LEASH;
+      this.merchant.y = anchorY + ((this.merchant.y - anchorY) / d) * MERCHANT_LEASH;
     }
   }
 
