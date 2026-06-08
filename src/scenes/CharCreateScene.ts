@@ -114,7 +114,9 @@ export class CharCreateScene extends Phaser.Scene {
     });
 
     // ── Info panel (right side) ───────────────────────
-    this.infoPanel = this.add.container(560, 155);
+    // Сетка оружий доходит до x≈584; панель ставим правее (в пустую зону до
+    // GAME_WIDTH=1280), чтобы не налезала на последний столбец.
+    this.infoPanel = this.add.container(660, 155);
     this.buildInfoPanelEmpty();
 
     // ── Buttons ───────────────────────────────────────
