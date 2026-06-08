@@ -30,6 +30,18 @@ const CREATURE_SPRITE_MAP: Record<string, string> = {
 const SLIME_IDS = new Set(['slime_fire', 'slime_water', 'slime_earth', 'slime_air']);
 const BEAR_IDS  = new Set(['bear', 'bear_veteran']);
 
+/** Спрайт-id существа (с учётом маппинга элементалей на слаймы). */
+export function creatureSpriteId(id: string): string {
+  return CREATURE_SPRITE_MAP[id] ?? id;
+}
+/** Базовый размер спрайта (px) по типу: слайм 40, медведь 41, зверь 30, иначе 34. */
+export function creatureBaseSize(spriteId: string, sheetKey: string): number {
+  const isSlime = SLIME_IDS.has(spriteId);
+  const isBear = BEAR_IDS.has(spriteId);
+  const isAnimal = sheetKey.startsWith('animal_');
+  return isSlime ? 40 : isBear ? 41 : isAnimal ? 30 : 34;
+}
+
 /**
  * Существо (NPC/моб) — враг или пассивное существо в мире.
  * Имеет свой набор статов (на основе капов тела).

@@ -8,6 +8,7 @@ import { BODY_SPEED } from '../utils/constants';
 import { WEAPONS, STRENGTH_WEAPONS, AGILITY_WEAPONS, getItemWeaponType } from '../data/weapons';
 import { clamp } from '../utils/math';
 import { pushOutOfColliders } from '../systems/mapColliders';
+import { creatureSpriteId, creatureBaseSize } from './Creature';
 import { WeaponType } from '../types/bodies';
 
 type AnimType = 'idle' | 'walk' | 'atk';
@@ -111,9 +112,14 @@ export class Body extends Phaser.GameObjects.Container {
     let animCfg = getAnimConfig(definition);
 
     if (!animCfg) {
-      const id = definition.id;
-      if (scene.anims.exists(makeAnimKey(id, 'idle', 'down'))) {
-        animCfg = makeAnimCfg(scene, id, 30);
+      // Тот же резолв спрайта и размер, что и у NPC-существа (Creature), плюс
+      // displaySizeMultiplier — иначе медведь «уменьшался» при захвате (30 vs 41).
+      const spriteId = creatureSpriteId(definition.id);
+      const idleKey = makeAnimKey(spriteId, 'idle', 'down');
+      if (scene.anims.exists(idleKey)) {
+        const sheetKey = scene.anims.get(idleKey).frames[0]?.textureKey ?? '';
+        const size = creatureBaseSize(spriteId, sheetKey) * (definition.displaySizeMultiplier ?? 1);
+        animCfg = makeAnimCfg(scene, spriteId, size);
       }
     }
     this.resolvedAnim = animCfg ?? null;
