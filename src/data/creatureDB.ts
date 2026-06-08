@@ -758,6 +758,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 10,   [StatName.Armor]: 2,    [StatName.Luck]: 2,
     },
     weapon: WeaponType.StaffNature, color: 0xddbb77, abilityName: 'Ally Heal',
+    canUseAllSpells: true, // гуманоид; Ally Heal — нейтральное заклинание
     npcSpells: [ABILITY_ALLY_HEAL],
     signatureSpell: ABILITY_ALLY_HEAL,
     faction: 'caravan',
