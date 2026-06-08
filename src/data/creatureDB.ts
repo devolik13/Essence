@@ -462,6 +462,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Sword, color: 0x555555, abilityName: 'Double Strike',
     npcSpells: [ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE],
     signatureSpell: ABILITY_DOUBLE_STRIKE, spellXPThreshold: 100,
+    displaySizeMultiplier: 1.75,
   },
 
   bear_veteran: {
