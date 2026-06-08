@@ -1305,13 +1305,17 @@ export class GameScene extends Phaser.Scene {
     // Очищаем остальные слоты
     for (let i = 1; i < 8; i++) body.abilitySlots[i].ability = null;
 
-    // Не-гуманоиды: только своё умение (слот 1), остальное заблокировано
+    // Не-гуманоиды (звери/элементали): из оружейного — только базовая атака
+    // (слот 0, Когти/Стихия) + родной скил (слот 1). Оружейные слоты 2-4
+    // заблокированы. НО нейтральные скилы (5-7) — любые, что знает Сфера
+    // (Ускорение кролика и т.п. работают в любом теле).
     if (!body.definition.canUseAllSpells) {
       const sig = body.definition.signatureSpell;
       if (sig) {
         const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
         if (learned) body.abilitySlots[1].ability = learned;
       }
+      this.fillNeutralSlots(body);
       return;
     }
 
@@ -1345,7 +1349,12 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Слоты 5-7: нейтральные (сохранённые или автозаполнение)
+    this.fillNeutralSlots(body);
+  }
+
+  /** Слоты 5-7 — нейтральные (не оружейные) скилы Сферы. Доступны в ЛЮБОМ теле,
+   *  включая зверей/элементалей: Ускорение/Рывок/Лечение и т.п. */
+  private fillNeutralSlots(body: Body) {
     const neutralSlotIds = this.sphere.savedSlotIds.slice(5);
     for (let i = 0; i < 3; i++) {
       const savedId = neutralSlotIds[i];

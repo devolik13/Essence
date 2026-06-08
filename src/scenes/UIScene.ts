@@ -1406,7 +1406,10 @@ export class UIScene extends Phaser.Scene {
       bg.setInteractive({ useHandCursor: true })
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
-          if (i === 0 || this.skillBarLocked) {
+          // Зверь/элементаль: оружейные слоты 0-4 (Когти + родной скил) не
+          // редактируются — только каст. Редактируются лишь нейтральные 5-7.
+          const beastWeaponSlot = !this.cachedBody?.definition.canUseAllSpells && i < 5;
+          if (i === 0 || this.skillBarLocked || beastWeaponSlot) {
             this.scene.get('GameScene').events.emit('activate-spell-slot', i);
             return;
           }

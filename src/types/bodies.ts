@@ -137,4 +137,5 @@ export const GOBLIN: BodyDefinition = {
   weapon: WeaponType.Dagger,
   color: 0x66aa44,
   abilityName: 'Sting',
+  canUseAllSpells: true, // гуманоид — полный набор оружия/спеллов Сферы
 };
