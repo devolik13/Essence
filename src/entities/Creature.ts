@@ -42,6 +42,9 @@ export class Creature extends Phaser.GameObjects.Container {
   /** Огрызается на атаковавшего: перебивает skipAggro (свои/safe), пока не уйдёт
    *  за поводок. Иначе моб одного вида с игроком убегал бы и лечился на спавне. */
   public retaliating: boolean = false;
+  /** Убегающий «напуган» (получил урон) — удирает независимо от дистанции до
+   *  игрока, пока таймер > 0. Иначе при выстреле издалека олень не реагировал. */
+  public spookedTimer: number = 0;
   public attackCooldown: number = 0;
   /** Кулдауны заклинаний моба (индекс соответствует npcSpells[i]) */
   public spellCooldowns: number[] = [];
@@ -179,6 +182,7 @@ export class Creature extends Phaser.GameObjects.Container {
     if (this.attackCooldown > 0) {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
+    if (this.spookedTimer > 0) this.spookedTimer = Math.max(0, this.spookedTimer - dt);
     for (let i = 0; i < this.spellCooldowns.length; i++) {
       if (this.spellCooldowns[i] > 0) this.spellCooldowns[i] = Math.max(0, this.spellCooldowns[i] - dt);
     }
@@ -250,9 +254,11 @@ export class Creature extends Phaser.GameObjects.Container {
           this.aiState = 'chase';
         }
         // Убегающие (Fleeing) — всегда убегают, никогда не дерутся.
+        // Бегут если игрок в зоне опасности ИЛИ их недавно ранили (spooked).
         // Скорость по умолчанию 1.2×; per-creature через fleeSpeedMult
         // (олень 1.56× — быстрее игрока, чтобы не догнать луком/посохом).
-        if (dist < AGGRO_RANGE * 0.7 && this.definition.type === BodyType.Fleeing) {
+        if (this.definition.type === BodyType.Fleeing &&
+            (dist < AGGRO_RANGE * 0.7 || this.spookedTimer > 0)) {
           this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * (this.definition.fleeSpeedMult ?? 1.2), dt);
         }
       }
@@ -479,8 +485,11 @@ export class Creature extends Phaser.GameObjects.Container {
         this.aiState = 'chase';
       }
     }
-    // Убегающие (type 3) НЕ дерутся, только убегают быстрее
-    // (их aiState остаётся idle/wander → они просто убегают в update)
+    // Убегающие (type 3) НЕ дерутся — но при получении урона пугаются и удирают
+    // независимо от дистанции (выстрел из лука издалека тоже спугивает).
+    if (actual > 0 && this.definition.type === BodyType.Fleeing && this.aiState !== 'dead') {
+      this.spookedTimer = 5;
+    }
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);
