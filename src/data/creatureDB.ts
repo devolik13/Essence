@@ -125,6 +125,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Sword Strike',
     npcSpells: [ABILITY_SWORD_STRIKE],
     signatureSpell: ABILITY_SWORD_STRIKE,
+    displaySizeMultiplier: 1.5,
   },
 
   bear: {
