@@ -134,6 +134,8 @@ interface SaveData {
   lastBodyId?: string | null;
   copper?: number;
   weaponSlotConfigs?: Record<string, (string | null)[]>;
+  equipment?: import('../types/items').Equipment;
+  activeWeaponSlot?: number;
   characterName?: string;
   sealFrequencies?: Record<string, boolean>;
   triggeredBodyQuests?: string[];
@@ -165,6 +167,8 @@ export function saveSphere(sphere: Sphere, _knownSpells?: AbilityDef[], quests?:
     lastBodyId: sphere.lastBodyId ?? null,
     copper: sphere.copper,
     weaponSlotConfigs: { ...sphere.weaponSlotConfigs },
+    equipment: { ...sphere.equipment },
+    activeWeaponSlot: sphere.activeWeaponSlot,
     characterName: sphere.characterName,
     sealFrequencies: { ...sphere.sealFrequencies },
     triggeredBodyQuests: [...sphere.triggeredBodyQuests],
@@ -269,6 +273,12 @@ export function loadSphere(sphere: Sphere, _allSpells?: AbilityDef[], quests?: Q
     }
     if (data.weaponSlotConfigs) {
       sphere.weaponSlotConfigs = { ...data.weaponSlotConfigs };
+    }
+    if (data.equipment) {
+      sphere.equipment = { ...data.equipment };
+    }
+    if (data.activeWeaponSlot !== undefined) {
+      sphere.activeWeaponSlot = data.activeWeaponSlot;
     }
     if (data.characterName) {
       sphere.characterName = data.characterName;

@@ -1285,8 +1285,9 @@ export class GameScene extends Phaser.Scene {
   private basicAttackDef(body: Body): import('../types/abilities').AbilityDef {
     const w = body.weapon; // следует за активным/природным оружием
     const dt = weaponDamageType(w.type);
-    // Зверь/элементаль — природная атака (Когти/Стихия); гуманоид — по оружию.
-    const nameRu = body.definition.canUseAllSpells
+    // Когти (зверь/элементаль ИЛИ безоружный гуманоид) — Когти/Стихия;
+    // иначе по оружию в руках.
+    const nameRu = !body.usesInnateAttack
       ? (dt === 'magic' ? 'Staff Strike' : dt === 'ranged' ? 'Shot' : 'Strike')
       : (dt === 'magic' ? t('body.element') : t('body.claws'));
     const description = dt === 'magic' ? 'Магическая атака'
@@ -2594,12 +2595,11 @@ export class GameScene extends Phaser.Scene {
     if (this.playerBody) {
       s[StatName.Armor] += this.playerBody.armorBonus;
 
-      // В теле зверя/элементаля (не гуманоид) оружие не выбирается, поэтому
-      // атака масштабируется от НАИБОЛЬШЕГО боевого стата игрока (Сила/Ловкость/
-      // Интеллект) — вложение в любой стат всегда работает в любом теле.
-      // Затрагивает только исходящий урон: защита считается от Брони/Уклонения/
-      // Воли, а они не трогаются.
-      if (!this.playerBody.definition.canUseAllSpells) {
+      // Когти (зверь/элементаль ИЛИ безоружный гуманоид): оружие не выбрано,
+      // поэтому атака масштабируется от НАИБОЛЬШЕГО боевого стата (Сила/Ловкость/
+      // Интеллект) — вложение в любой стат всегда работает. Затрагивает только
+      // исходящий урон: защита от Брони/Уклонения/Воли не трогается.
+      if (this.playerBody.usesInnateAttack) {
         const maxOff = Math.max(
           s[StatName.Strength], s[StatName.Agility], s[StatName.Intellect],
         );

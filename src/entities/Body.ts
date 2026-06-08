@@ -203,24 +203,33 @@ export class Body extends Phaser.GameObjects.Container {
   }
   get isDead(): boolean { return this.currentHP <= 0; }
   get weapon() {
-    // If the player has an equipped weapon item, use ITS weapon type so
-    // basic attacks follow the equipped slot (Tab swap → bow combat etc.).
-    // Falls back to body's intrinsic weapon when no item is equipped.
-    // ВАЖНО: надетое оружие применяется ТОЛЬКО к гуманоидам (canUseAllSpells).
-    // Животные/элементали бьют своим природным оружием (лиса — когтями/кастетами,
-    // а не луком Сферы) — иначе атака игнорировала бы тело.
+    // Гуманоид: оружие из активного слота Сферы. Если оружия НЕТ — кулаки/когти
+    // (Fists, ближний, урон от макс-стата), а НЕ врождённое оружие тела (иначе
+    // безоружная лучница «стреляла» бы луком). Зверь/элементаль — природное.
     if (this.definition.canUseAllSpells) {
-      const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
-      if (sphere?.equipment) {
-        const slot = sphere.activeWeaponSlot ?? 0;
-        const id = slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
-        if (id) {
-          const wt = getItemWeaponType(id);
-          if (wt) return WEAPONS[wt];
-        }
+      const id = this.equippedWeaponId();
+      if (id) {
+        const wt = getItemWeaponType(id);
+        if (wt) return WEAPONS[wt];
       }
+      return WEAPONS[WeaponType.Fists]; // безоружный гуманоид — когти/кулаки
     }
     return WEAPONS[this.definition.weapon];
+  }
+
+  /** id оружия в активном слоте Сферы (или undefined, если не надето). */
+  private equippedWeaponId(): string | undefined {
+    const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
+    if (!sphere?.equipment) return undefined;
+    const slot = sphere.activeWeaponSlot ?? 0;
+    return slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
+  }
+
+  /** Бьёт «когтями» (нет выбранного оружия): зверь/элементаль ИЛИ безоружный
+   *  гуманоид. В обоих случаях урон масштабируется от макс-стата. */
+  get usesInnateAttack(): boolean {
+    if (!this.definition.canUseAllSpells) return true;
+    return !this.equippedWeaponId();
   }
 
   possess(scene: Phaser.Scene) {

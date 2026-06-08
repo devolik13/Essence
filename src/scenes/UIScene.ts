@@ -1844,23 +1844,23 @@ export class UIScene extends Phaser.Scene {
     const data = this.lastUIData;
     if (!data?.body || !data?.sphere) return;
     const eq = data.sphere.equipment;
-    // Надетое оружие — только для гуманоидов. Животные/элементали бьют
-    // природным оружием тела (лиса когтями, а не луком Сферы).
-    const isHumanoid = !!data.body.definition.canUseAllSpells;
+    // Когти (зверь/элементаль ИЛИ безоружный гуманоид) → природная атака,
+    // иначе надетое оружие. wt всегда из body.weapon (для безоружного — Fists).
+    const innate = data.body.usesInnateAttack;
     const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
-    const item = isHumanoid ? ITEMS[activeId ?? ''] : undefined;
-    const wt = (isHumanoid ? getItemWeaponType(activeId ?? '') : undefined) ?? data.body.definition.weapon;
+    const item = innate ? undefined : ITEMS[activeId ?? ''];
+    const wt = data.body.weapon.type;
     const weapon = WEAPONS[wt];
-    const atk = this.weaponAttackStat(wt, data.sphere, !isHumanoid);
+    const atk = this.weaponAttackStat(wt, data.sphere, innate);
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
-    const inactiveId = isHumanoid ? (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon) : undefined;
+    const inactiveId = innate ? undefined : (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon);
     const lines = [
       item ? item.nameRu : `${data.body.definition.nameRu} — ${this.naturalAttackName(data.body)}`,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
       `Damage (${atk.label} ${atk.value}): ${dmg}`,
       // Эффект оружия показываем только гуманоидам: у зверей «оружие» — заглушка
       // (заяц не машет ядовитым кинжалом), и базовая атака эффект не накладывает.
-      (isHumanoid && weapon.weaponEffect) ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
+      (!innate && weapon.weaponEffect) ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
       inactiveId ? `[Tab] swap → ${ITEMS[inactiveId]?.nameRu ?? inactiveId}` : '',
     ].filter(Boolean);
     this.hideWeaponTooltip();
@@ -1885,17 +1885,16 @@ export class UIScene extends Phaser.Scene {
       this.weaponBlockDmg.setText('');
       return;
     }
-    // Надетое оружие — только для гуманоидов; животные/элементали бьют природным.
-    const isHumanoid = !!data.body.definition.canUseAllSpells;
+    // Когти (зверь/элементаль ИЛИ безоружный гуманоид) → 🐾; иначе иконка оружия.
+    const innate = data.body.usesInnateAttack;
     const eq = data.sphere.equipment;
     const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
-    const item = isHumanoid ? ITEMS[activeId ?? ''] : undefined;
-    const wt = (isHumanoid ? getItemWeaponType(activeId ?? '') : undefined) ?? data.body.definition.weapon;
+    const item = innate ? undefined : ITEMS[activeId ?? ''];
+    const wt = data.body.weapon.type;
     const weapon = WEAPONS[wt];
-    const atk = this.weaponAttackStat(wt, data.sphere, !isHumanoid);
+    const atk = this.weaponAttackStat(wt, data.sphere, innate);
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
-    // Гуманоид без оружия → ⚔; животное/элементаль → 🐾 (природная атака).
-    this.weaponBlockIcon.setText(item?.icon ?? (isHumanoid ? '⚔' : '🐾'));
+    this.weaponBlockIcon.setText(item?.icon ?? '🐾');
     this.weaponBlockDmg.setText(String(dmg));
   }
 
