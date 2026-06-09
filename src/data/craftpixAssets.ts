@@ -131,6 +131,11 @@ export const EDITOR_NODE_ENTRIES: Array<{ key: string }> = [
   { key: 'node_willow_tree' },
   { key: 'node_hide_pile' },
   { key: 'node_fiber_bush' },
+  { key: 'node_fern_patch' },
+  { key: 'node_cactus_plant' },
+  { key: 'node_oak_tree' },
+  { key: 'node_broken_tree' },
+  { key: 'node_burned_tree' },
 ];
 
 /**

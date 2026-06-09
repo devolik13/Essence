@@ -1540,10 +1540,18 @@ export class GameScene extends Phaser.Scene {
       const def = RESOURCE_NODES[nodeId];
       if (!def) return;
       const container = this.add.container(x, y).setDepth(3);
-      const circle = this.add.circle(0, 0, 12, def.color, 0.7);
+      // Тело ноды: PNG-спрайт (куст/дерево) если задан и загружен, иначе кружок.
+      let body: Phaser.GameObjects.GameObject;
+      if (def.sprite && this.textures.exists(def.sprite)) {
+        const img = this.add.image(0, 0, def.sprite).setOrigin(0.5, 0.9);
+        img.setScale((40 / img.height));
+        body = img;
+      } else {
+        body = this.add.circle(0, 0, 12, def.color, 0.7);
+      }
       const label = this.add.text(0, -20, def.nameRu, { fontSize: '8px', color: '#dddddd', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
-      container.add([circle, label, eKey]);
+      container.add([body, label, eKey]);
       this.resourceNodes.push({ x, y, def, gfx: container, cooldown: 0, depleted: false });
     };
 

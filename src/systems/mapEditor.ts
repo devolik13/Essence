@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CP_ASSETS, EDITOR_MOB_ENTRIES, EDITOR_NODE_ENTRIES, EDITOR_WORKBENCH_ENTRIES } from '../data/craftpixAssets';
+import { RESOURCE_NODES } from '../data/itemDB';
 import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects, resetToBundled, hasUnsavedChanges } from './mapObjectStore';
 import { addMapCollider, clearMapColliders } from './mapColliders';
@@ -220,17 +221,30 @@ export class MapEditor {
       ? (EDITOR_MOB_ENTRIES.find(e => e.key === obj.key)?.textureKey ?? obj.key)
       : obj.key;
     if (!this.scene.textures.exists(textureKey)) return;
+    // Нода с PNG-спрайтом (куст/дерево) — высокая, неквадратная: масштабируем по
+    // высоте с сохранением пропорций, а не давим в квадрат.
+    const nodeDef = isFixture && obj.key.startsWith('node_')
+      ? RESOURCE_NODES[obj.key.replace('node_', '')]
+      : undefined;
+    const isPlantNode = !!nodeDef?.sprite;
     const img = isMob
       ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
       : this.scene.add.image(obj.x, obj.y, textureKey);
-    img.setOrigin(0.5, centered ? 0.5 : 0.9);
-    if (centered) {
-      // Мобы и фикстуры рендерятся в своём игровом размере (~28-32px) вне
-      // зависимости от размера исходного кадра.
-      const sz = (isFixture ? 28 : 32) * obj.scale;
-      img.setDisplaySize(sz, sz);
+    if (isPlantNode) {
+      // Растительные ноды — origin снизу (как декорация), высота ~40px.
+      img.setOrigin(0.5, 0.85);
+      const targetH = 40 * obj.scale;
+      img.setScale(targetH / img.height);
     } else {
-      img.setScale(obj.scale);
+      img.setOrigin(0.5, centered ? 0.5 : 0.9);
+      if (centered) {
+        // Мобы и фикстуры рендерятся в своём игровом размере (~28-32px) вне
+        // зависимости от размера исходного кадра.
+        const sz = (isFixture ? 28 : 32) * obj.scale;
+        img.setDisplaySize(sz, sz);
+      } else {
+        img.setScale(obj.scale);
+      }
     }
     img.setAngle(obj.angle ?? 0);
     img.setDepth(obj.y);

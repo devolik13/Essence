@@ -110,6 +110,7 @@ export class BootScene extends Phaser.Scene {
     // Ресурсные ноды — кружок цвета ноды с тёмной окантовкой (28×28)
     for (const id of Object.keys(RESOURCE_NODES)) {
       const def = RESOURCE_NODES[id];
+      if (def.sprite) continue; // ноды с PNG-спрайтом используют загруженную текстуру
       g.clear();
       g.fillStyle(def.color, 1);
       g.fillCircle(14, 14, 12);
@@ -1073,6 +1074,14 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('spell_ent',           'assets/spells/nature/ent_sheet.webp',            { frameWidth: 256, frameHeight: 256 }); // 3×3=9
     this.load.spritesheet('spell_wolf_idle',     'assets/spells/nature/wolf_idle_sheet.webp',      { frameWidth: 102, frameHeight: 102 }); // 5×5=25 (512/5=102)
     this.load.spritesheet('spell_wolf_attack',   'assets/spells/nature/wolf-attack-v2.webp',       { frameWidth: 102, frameHeight: 102 }); // 5×5=25
+
+    // PLANT NODES — спрайты ресурсных нод (ключ === node-sprite key из RESOURCE_NODES)
+    this.load.image('node_fiber_bush',   'assets/deco/plants/Bush_pink_flowers1.png');
+    this.load.image('node_fern_patch',   'assets/deco/plants/Fern1_1.png');
+    this.load.image('node_cactus_plant', 'assets/deco/plants/Cactus2_1.png');
+    this.load.image('node_oak_tree',     'assets/deco/plants/Autumn_tree1.png');
+    this.load.image('node_broken_tree',  'assets/deco/plants/Broken_tree7.png');
+    this.load.image('node_burned_tree',  'assets/deco/plants/Burned_tree1.png');
   }
 
   create() {

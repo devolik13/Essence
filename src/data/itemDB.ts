@@ -181,6 +181,11 @@ export const ITEMS: Record<string, ItemDef> = {
     id: 'rivets', nameRu: 'Заклёпки', rarity: 'common', type: 'material',
     descRu: 'Металлические заклёпки. Только у торговца.', icon: '🔩',
   },
+  // Брёвна с деревьев — древесина для оружия и древков.
+  wood_log: {
+    id: 'wood_log', nameRu: 'Древесина', rarity: 'common', type: 'material',
+    descRu: 'Брёвна с деревьев. Для оружия и древков.', icon: '🪵',
+  },
 
 // ── Craftable Weapons T1-T3 ──────────────────────────────────────────────
   sword_t1: { id: 'sword_t1', nameRu: 'Стальной меч', rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 13. +1 Strength', icon: '⚔', statBonuses: {"strength":1} },
@@ -591,6 +596,7 @@ export interface ResourceNodeDef {
   respawnTime: number; // seconds
   color: number;
   icon: string;
+  sprite?: string; // texture key для рендера вместо процедурного кружка
 }
 
 export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
@@ -613,7 +619,37 @@ export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
   fiber_bush: {
     id: 'fiber_bush', nameRu: 'Куст (волокно)', profession: 'woodcutting',
     itemId: 'plant_fiber', gatherTime: 2, minQty: 1, maxQty: 3,
-    respawnTime: 30, color: 0x66aa44, icon: '🌾',
+    respawnTime: 30, color: 0x66aa44, icon: '🌾', sprite: 'node_fiber_bush',
+  },
+  // Папоротник — источник plant_fiber.
+  fern_patch: {
+    id: 'fern_patch', nameRu: 'Папоротник', profession: 'woodcutting',
+    itemId: 'plant_fiber', gatherTime: 2, minQty: 1, maxQty: 2,
+    respawnTime: 30, color: 0x5a9944, icon: '🌿', sprite: 'node_fern_patch',
+  },
+  // Кактус — источник plant_fiber.
+  cactus_plant: {
+    id: 'cactus_plant', nameRu: 'Кактус', profession: 'woodcutting',
+    itemId: 'plant_fiber', gatherTime: 2, minQty: 1, maxQty: 2,
+    respawnTime: 30, color: 0x77aa55, icon: '🌵', sprite: 'node_cactus_plant',
+  },
+  // Дерево — источник древесины (wood_log).
+  oak_tree: {
+    id: 'oak_tree', nameRu: 'Дерево', profession: 'woodcutting',
+    itemId: 'wood_log', gatherTime: 2, minQty: 1, maxQty: 3,
+    respawnTime: 30, color: 0x7a5a33, icon: '🌳', sprite: 'node_oak_tree',
+  },
+  // Сломанное дерево — источник древесины.
+  broken_tree: {
+    id: 'broken_tree', nameRu: 'Сломанное дерево', profession: 'woodcutting',
+    itemId: 'wood_log', gatherTime: 2, minQty: 1, maxQty: 2,
+    respawnTime: 30, color: 0x6a4a28, icon: '🪵', sprite: 'node_broken_tree',
+  },
+  // Обгоревшее дерево — источник древесины.
+  burned_tree: {
+    id: 'burned_tree', nameRu: 'Обгоревшее дерево', profession: 'woodcutting',
+    itemId: 'wood_log', gatherTime: 2, minQty: 1, maxQty: 2,
+    respawnTime: 30, color: 0x444038, icon: '🪵', sprite: 'node_burned_tree',
   },
 };
 
