@@ -439,6 +439,12 @@ export function lootBasketFor(creatureId: string): string {
   return 'humanoid'; // goblin, orc, scout, shaman, monk, elder, bandits, guards, merchant
 }
 
+/** Сырьё, продаваемое торговцем (только здесь — нитки/заклёпки для крафта). */
+export const VENDOR_MATERIALS: { itemId: string; price: number; qty: number }[] = [
+  { itemId: 'thread', price: 5, qty: 5 },
+  { itemId: 'rivets', price: 5, qty: 5 },
+];
+
 // ─── Recipes ─────────────────────────────────────────────────────────────────
 
 export const RECIPES: RecipeDef[] = [

@@ -10,7 +10,7 @@ import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constan
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
-import { ITEMS, RECIPES, equipmentStatBonuses } from '../data/itemDB';
+import { ITEMS, RECIPES, VENDOR_MATERIALS, equipmentStatBonuses } from '../data/itemDB';
 import { WEAPONS, getItemWeaponType, weaponDamageType } from '../data/weapons';
 import { formatCurrency } from '../systems/currency';
 import { AchievementDef } from '../data/achievementDB';
@@ -2255,7 +2255,7 @@ export class UIScene extends Phaser.Scene {
 
   private createVendorButtons(data: UIData | null) {
     if (!data) return;
-    const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3'];
+    const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3', 'Mat'];
 
     // Filter tabs
     let fx = this.windowX + 8;
@@ -2276,6 +2276,34 @@ export class UIScene extends Phaser.Scene {
       });
       this.vendorButtons.push(btn);
       fx += btn.width + 4;
+    }
+
+    // Вкладка Mat — кнопки покупки сырья (по одной на материал), без рецептов.
+    if (this.vendorFilter === 'Mat') {
+      let my = this.windowY + WIN_TITLE_H + 28;
+      for (const m of VENDOR_MATERIALS) {
+        const it = ITEMS[m.itemId];
+        const afford = (data.sphere?.copper ?? 0) >= m.price;
+        const btn = this.add.text(this.windowX + 8, my,
+          `[ Купить ${it?.nameRu ?? m.itemId} ×${m.qty} — ${formatCurrency(m.price)} ]`, {
+            fontSize: '10px', fontFamily: '"Special Elite", monospace',
+            color: afford ? '#6d9a5a' : TC.text3, backgroundColor: '#1d1811', padding: { x: 6, y: 3 },
+          }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
+        if (afford) {
+          btn.on('pointerdown', () => {
+            const gs = this.scene.get('GameScene');
+            (gs as any).buyMaterial?.(m.itemId, m.qty, m.price);
+            this.time.delayedCall(150, () => {
+              this.destroyVendorButtons();
+              this.createVendorButtons(this.cachedUIData);
+              this.refreshWindow();
+            });
+          });
+        }
+        this.vendorButtons.push(btn);
+        my += 22;
+      }
+      return;
     }
 
     // Buy All button
@@ -2588,6 +2616,19 @@ export class UIScene extends Phaser.Scene {
         const coins = data.sphere?.copper ?? 0;
         const learned = data.sphere?.learnedRecipes ?? [];
         const filter = this.vendorFilter;
+
+        // Вкладка Mat — продажа сырья (нитки/заклёпки), а не рецептов.
+        if (filter === 'Mat') {
+          const mlines: string[] = ['', 'Сырьё для крафта:', ''];
+          for (const m of VENDOR_MATERIALS) {
+            const it = ITEMS[m.itemId];
+            const afford = coins >= m.price;
+            mlines.push(`${afford ? '●' : '○'} ${it?.icon ?? '?'} ${it?.nameRu ?? m.itemId} ×${m.qty}  ${formatCurrency(m.price)}`);
+          }
+          this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
+          this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(mlines.join('\n'));
+          break;
+        }
 
         // Filter recipes
         let filtered = RECIPES;

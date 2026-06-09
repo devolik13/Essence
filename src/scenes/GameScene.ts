@@ -2192,6 +2192,19 @@ export class GameScene extends Phaser.Scene {
     this.persistState();
   }
 
+  /** Купить сырьё у торговца (нитки/заклёпки). */
+  public buyMaterial(itemId: string, qty: number, price: number) {
+    if (this.sphere.copper < price) {
+      this.showMessage(`Not enough coins! Need ${formatCurrency(price)}`);
+      return;
+    }
+    this.sphere.copper -= price;
+    this.sphere.addItem(itemId, qty);
+    this.showMessage(`+${qty}× ${ITEMS[itemId]?.nameRu ?? itemId}  -${formatCurrency(price)}`);
+    sfxBuff();
+    this.persistState();
+  }
+
   // ─── Атака ────────────────────────────────────────────
 
   private get isInCombat(): boolean {
