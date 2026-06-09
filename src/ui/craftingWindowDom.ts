@@ -46,6 +46,12 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
     const mat = el('span', 'cv-mat');
     mat.appendChild(el('span', 'cv-mat-icon', ITEMS[matId]?.icon ?? '?'));
     mat.appendChild(el('span', `cv-mat-count ${ok ? 'ok' : 'short'}`, `${have}/${need}`));
+    // Hover the ingredient to see its name / есть-нужно (emoji alone is unclear).
+    const mdef = ITEMS[matId];
+    if (mdef) {
+      mat.title = `${mdef.nameRu}: ${have}/${need}`;
+      wireItemTooltip(mat, mdef);
+    }
     mats.appendChild(mat);
     if (i < entries.length - 1) mats.appendChild(el('span', 'cv-mat-sep', '·'));
   });
@@ -58,6 +64,10 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
   top.appendChild(el('span', 'cv-recipe-icon', ITEMS[recipe.resultId]?.icon ?? '?'));
   top.appendChild(el('span', 'cv-recipe-name', recipe.nameRu));
   top.appendChild(el('span', 'cv-recipe-time', `${recipe.craftTime}s`));
+  // Result tooltip lives on the result line (not the whole row) so it doesn't
+  // override the per-ingredient tooltips below.
+  const result = ITEMS[recipe.resultId];
+  if (result) wireItemTooltip(top, result);
   row.appendChild(top);
 
   const bottom = el('div', 'cv-recipe-bottom');
@@ -76,10 +86,6 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
   }
   bottom.appendChild(btn);
   row.appendChild(bottom);
-
-  // Hover tooltip describing the crafted result (name + stat bonuses).
-  const result = ITEMS[recipe.resultId];
-  if (result) wireItemTooltip(row, result);
 
   return row;
 }
