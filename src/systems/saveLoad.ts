@@ -139,6 +139,7 @@ interface SaveData {
   characterName?: string;
   sealFrequencies?: Record<string, boolean>;
   triggeredBodyQuests?: string[];
+  learnedRecipes?: string[];
 }
 
 export function saveSphere(sphere: Sphere, _knownSpells?: AbilityDef[], quests?: QuestTracker): void {
@@ -172,6 +173,7 @@ export function saveSphere(sphere: Sphere, _knownSpells?: AbilityDef[], quests?:
     characterName: sphere.characterName,
     sealFrequencies: { ...sphere.sealFrequencies },
     triggeredBodyQuests: [...sphere.triggeredBodyQuests],
+    learnedRecipes: [...sphere.learnedRecipes],
   };
   try {
     localStorage.setItem(getSaveKey(activeSlotIndex), JSON.stringify(data));
@@ -288,6 +290,9 @@ export function loadSphere(sphere: Sphere, _allSpells?: AbilityDef[], quests?: Q
     }
     if (data.triggeredBodyQuests) {
       sphere.triggeredBodyQuests = [...data.triggeredBodyQuests];
+    }
+    if (data.learnedRecipes) {
+      sphere.learnedRecipes = [...data.learnedRecipes];
     }
 
     return true;
