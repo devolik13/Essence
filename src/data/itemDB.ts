@@ -603,7 +603,18 @@ export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
   copper_vein: {
     id: 'copper_vein', nameRu: 'Медная жила', profession: 'mining',
     itemId: 'copper_ore', gatherTime: 2, minQty: 1, maxQty: 3,
-    respawnTime: 30, color: 0xcc8844, icon: '⛏',
+    respawnTime: 30, color: 0xcc8844, icon: '⛏', sprite: 'node_copper_vein',
+  },
+  // Варианты камней-жил (тот же copper_ore, разный вид) — для разнообразия.
+  copper_vein_2: {
+    id: 'copper_vein_2', nameRu: 'Рудный камень', profession: 'mining',
+    itemId: 'copper_ore', gatherTime: 2, minQty: 1, maxQty: 3,
+    respawnTime: 30, color: 0xbb8866, icon: '⛏', sprite: 'node_copper_vein_2',
+  },
+  copper_vein_3: {
+    id: 'copper_vein_3', nameRu: 'Валун с рудой', profession: 'mining',
+    itemId: 'copper_ore', gatherTime: 2, minQty: 1, maxQty: 3,
+    respawnTime: 30, color: 0x998877, icon: '⛏', sprite: 'node_copper_vein_3',
   },
   willow_tree: {
     id: 'willow_tree', nameRu: 'Ива', profession: 'woodcutting',

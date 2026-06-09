@@ -128,6 +128,8 @@ export const MOB_ASSETS: Array<[string, string, number, number]> = [];
  */
 export const EDITOR_NODE_ENTRIES: Array<{ key: string }> = [
   { key: 'node_copper_vein' },
+  { key: 'node_copper_vein_2' },
+  { key: 'node_copper_vein_3' },
   { key: 'node_willow_tree' },
   { key: 'node_hide_pile' },
   { key: 'node_fiber_bush' },

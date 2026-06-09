@@ -1083,6 +1083,10 @@ export class BootScene extends Phaser.Scene {
     this.load.image('node_oak_tree',     'assets/deco/plants/Autumn_tree1.png');
     this.load.image('node_broken_tree',  'assets/deco/plants/Broken_tree7.png');
     this.load.image('node_burned_tree',  'assets/deco/plants/Burned_tree1.png');
+    // Камни-жилы (mining)
+    this.load.image('node_copper_vein',   'assets/deco/Rocks/Rock1_1.webp');
+    this.load.image('node_copper_vein_2', 'assets/deco/Rocks/Rock2_1.webp');
+    this.load.image('node_copper_vein_3', 'assets/deco/Rocks/Rock6_1.webp');
   }
 
   create() {
