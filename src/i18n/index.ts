@@ -261,6 +261,14 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'inv.filter.all': 'All',
     'inv.filter.material': 'Materials',
     'inv.filter.consumable': 'Consumables',
+
+    // Settings
+    'menu.settings': 'Settings',
+    'settings.title': 'Settings',
+    'settings.language': 'Language',
+    'settings.lang.en': 'English',
+    'settings.lang.ru': 'Русский',
+    'settings.lang.hint': 'Interface language. Applies immediately.',
   },
 
   ru: {
@@ -494,5 +502,13 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     'inv.filter.all': 'Все',
     'inv.filter.material': 'Материалы',
     'inv.filter.consumable': 'Расходники',
+
+    // Settings
+    'menu.settings': 'Настройки',
+    'settings.title': 'Настройки',
+    'settings.language': 'Язык',
+    'settings.lang.en': 'English',
+    'settings.lang.ru': 'Русский',
+    'settings.lang.hint': 'Язык интерфейса. Применяется сразу.',
   },
 };

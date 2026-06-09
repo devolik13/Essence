@@ -3,7 +3,7 @@ import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
 import { StatName } from '../types/stats';
-import { t, getLang, setLang, initLang } from '../i18n';
+import { t, initLang } from '../i18n';
 import { CaptureProcess, CaptureState } from '../systems/capture';
 import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
@@ -21,6 +21,7 @@ import { showBagDom, hideBagDom, refreshBagDom, isBagDomOpen } from '../ui/bagWi
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
 import { showQuestsDom, hideQuestsDom, isQuestsDomOpen } from '../ui/questsWindowDom';
+import { showSettingsDom, hideSettingsDom, isSettingsDomOpen } from '../ui/settingsWindowDom';
 import { spriteForSpell } from '../ui/weaponIcon';
 import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
@@ -40,7 +41,7 @@ const WIN_MIN_H = 160;
 /** Типы плавающего (Phaser) окна — остальные рендерятся через DOM. */
 const FLOATING_TYPES: WindowType[] = ['stats', 'quests', 'vendor', 'crafting'];
 
-type WindowType = 'stats' | 'equipment' | 'bag' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
+type WindowType = 'stats' | 'equipment' | 'bag' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary' | 'settings';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -118,7 +119,7 @@ export class UIScene extends Phaser.Scene {
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
   private menuBtnIcons: Phaser.GameObjects.Text[]      = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
-  private readonly menuBtnTypes: WindowType[] = ['stats', 'equipment', 'bag', 'quests', 'achievements', 'spells', 'bestiary'];
+  private readonly menuBtnTypes: WindowType[] = ['stats', 'equipment', 'bag', 'quests', 'achievements', 'spells', 'bestiary', 'settings'];
 
   // Weapon block (active equipped weapon: icon + damage)
   private weaponBlockBg?: Phaser.GameObjects.Rectangle;
@@ -225,6 +226,9 @@ export class UIScene extends Phaser.Scene {
   /** Кэш последней отрисовки точек минимапы (skip redraw, см. drawMinimap). */
   private lastMinimapCreatures: UIData['creatures'] | null = null;
   private minimapDotsKey = '';
+  /** Лейблы групп скилл-бара — обновляются при смене языка. */
+  private skillBarWeaponLabel: Phaser.GameObjects.Text | null = null;
+  private skillBarNeutralLabel: Phaser.GameObjects.Text | null = null;
 
   // ── Maxi-map overlay ──────────────────────────────────
   private maximapOpen: boolean = false;
@@ -417,16 +421,8 @@ export class UIScene extends Phaser.Scene {
       callbackScope: this,
     });
 
-    // ── Language toggle button ─────────────────────────────
+    // Язык переключается в окне настроек (⚙), здесь только инициализация
     initLang();
-    const langBtn = this.add.text(GAME_WIDTH - 40, GAME_HEIGHT - 16, getLang().toUpperCase(), {
-      fontSize: '10px', fontFamily: '"Special Elite", monospace', color: TC.text2, backgroundColor: '#14110c', padding: { x: 4, y: 2 },
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(2000).setInteractive({ useHandCursor: true });
-    langBtn.on('pointerdown', () => {
-      const next = getLang() === 'en' ? 'ru' : 'en';
-      setLang(next);
-      langBtn.setText(next.toUpperCase());
-    });
 
     // ── Skill bar ─────────────────────────────────────────
     this.buildSkillBar();
@@ -463,6 +459,7 @@ export class UIScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-K', () => this.toggleWindow('spells'));
     this.input.keyboard?.on('keydown-B', () => this.toggleWindow('bestiary'));
     this.input.keyboard?.on('keydown-J', () => this.toggleWindow('achievements'));
+    this.input.keyboard?.on('keydown-O', () => this.toggleWindow('settings'));
     // DOM windows close themselves on Escape (openWindowShell key handler).
     // Here we only need to close the Phaser stats window.
     this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow === 'stats') this.closeSingleWindow('stats'); });
@@ -1335,12 +1332,12 @@ export class UIScene extends Phaser.Scene {
     drawBrassLineV(this, divX, y - SKILL_SLOT_SIZE / 2 - 2, SKILL_SLOT_SIZE + 4)
       .setScrollFactor(0).setDepth(1000);
 
-    // Group labels (small-caps mechanical)
+    // Group labels (small-caps mechanical) — ссылки хранятся для смены языка
     const labelY = y - SKILL_SLOT_SIZE / 2 - 11;
-    this.add.text(startX + 2.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.weapon_tab').toUpperCase(), {
+    this.skillBarWeaponLabel = this.add.text(startX + 2.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.weapon_tab').toUpperCase(), {
       fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.text3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
-    this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.neutral').toUpperCase(), {
+    this.skillBarNeutralLabel = this.add.text(divX + 1.5 * (SKILL_SLOT_SIZE + SKILL_SLOT_GAP), labelY, t('skill.neutral').toUpperCase(), {
       fontSize: '9px', fontFamily: '"Special Elite", monospace', color: TC.text3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
 
@@ -1953,9 +1950,14 @@ export class UIScene extends Phaser.Scene {
 
   // ── Menu buttons ─────────────────────────────────────
 
+  /** Лейблы кнопок меню на текущем языке (порядок = menuBtnTypes). */
+  private menuBtnLabels(): string[] {
+    return [t('menu.stats'), t('menu.equipment'), t('menu.bag'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary'), t('menu.settings')];
+  }
+
   private buildMenuButtons() {
-    const labels = [t('menu.stats'), t('menu.equipment'), t('menu.bag'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary')];
-    const icons  = ['✦', '⬡', '🎒', '❖', '★', '⚡', '⌬'];
+    const labels = this.menuBtnLabels();
+    const icons  = ['✦', '⬡', '🎒', '❖', '★', '⚡', '⌬', '⚙'];
     const btnSz = SKILL_SLOT_SIZE;
     const gap = SKILL_SLOT_GAP;
 
@@ -2155,6 +2157,7 @@ export class UIScene extends Phaser.Scene {
       case 'vendor':       return isVendorDomOpen();
       case 'crafting':     return isCraftingDomOpen();
       case 'stats':        return this.currentWindow === 'stats';
+      case 'settings':     return isSettingsDomOpen();
     }
   }
 
@@ -2204,8 +2207,28 @@ export class UIScene extends Phaser.Scene {
       case 'stats':
         this.openStatsWindow();
         break;
+      case 'settings':
+        showSettingsDom({
+          onClose: () => this.closeSingleWindow('settings'),
+          onLangChange: () => this.refreshLanguageTexts(),
+        });
+        break;
     }
     this.refreshMenuHighlight(type);
+  }
+
+  /**
+   * Смена языка на лету: обновляет статичные тексты HUD, созданные через t()
+   * на этапе create(). Остальные тексты (лог, подсказки, DOM-окна) берут
+   * перевод при следующем рендере сами.
+   */
+  private refreshLanguageTexts() {
+    const labels = this.menuBtnLabels();
+    for (let i = 0; i < this.menuBtnTexts.length && i < labels.length; i++) {
+      this.menuBtnTexts[i].setText(labels[i]);
+    }
+    this.skillBarWeaponLabel?.setText(t('skill.weapon_tab').toUpperCase());
+    this.skillBarNeutralLabel?.setText(t('skill.neutral').toUpperCase());
   }
 
   /** Open the Phaser-rendered floating stats window. */
@@ -2240,6 +2263,7 @@ export class UIScene extends Phaser.Scene {
       case 'vendor':       if (isVendorDomOpen()) hideVendorDom(); break;
       case 'crafting':     if (isCraftingDomOpen()) hideCraftingDom(); break;
       case 'stats':        this.closeStatsWindow(); break;
+      case 'settings':     if (isSettingsDomOpen()) hideSettingsDom(); break;
     }
     this.refreshMenuHighlight(type);
   }
