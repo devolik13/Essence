@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CP_ASSETS, EDITOR_MOB_ENTRIES } from '../data/craftpixAssets';
+import { CP_ASSETS, EDITOR_MOB_ENTRIES, EDITOR_NODE_ENTRIES, EDITOR_WORKBENCH_ENTRIES } from '../data/craftpixAssets';
 import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects, resetToBundled, hasUnsavedChanges } from './mapObjectStore';
 import { addMapCollider, clearMapColliders } from './mapColliders';
@@ -110,7 +110,10 @@ export class MapEditor {
   /** Рендерит все сохранённые объекты на карте. Вызывается один раз при создании зоны. */
   spawnAll(): void {
     for (const obj of this.objects) {
+      // Мобы спавнятся через GameScene.spawnCreatures, ноды/верстаки — через
+      // GameScene.spawnWorldObjects (как интерактивные контейнеры).
       if (obj.key.startsWith('mob_')) continue;
+      if (obj.key.startsWith('node_') || obj.key.startsWith('wb_')) continue;
       this.renderObject(obj);
     }
     this.rebuildColliders();
@@ -121,6 +124,20 @@ export class MapEditor {
     return this.objects
       .filter(o => o.key.startsWith('mob_'))
       .map(o => ({ x: o.x, y: o.y, creatureId: o.key.replace('mob_', '') }));
+  }
+
+  /** Возвращает ресурсные ноды из карты (node_copper_vein → 'copper_vein'). */
+  getResourceNodeSpawns(): Array<{ x: number; y: number; nodeId: string }> {
+    return this.objects
+      .filter(o => o.key.startsWith('node_'))
+      .map(o => ({ x: o.x, y: o.y, nodeId: o.key.replace('node_', '') }));
+  }
+
+  /** Возвращает верстаки из карты (wb_armorer → 'armorer'). */
+  getWorkbenchSpawns(): Array<{ x: number; y: number; type: string }> {
+    return this.objects
+      .filter(o => o.key.startsWith('wb_'))
+      .map(o => ({ x: o.x, y: o.y, type: o.key.replace('wb_', '') }));
   }
 
   /** Твёрдый ли объект (явный флаг → иначе по префиксу key). */
@@ -192,8 +209,13 @@ export class MapEditor {
 
   private renderObject(obj: PlacedMapObject): void {
     const isMob = obj.key.startsWith('mob_');
+    // Ноды и верстаки — фикстуры: рендерятся как мобы (по центру, фикс. размер),
+    // а не как декорации (origin 0.9 + setScale).
+    const isFixture = obj.key.startsWith('node_') || obj.key.startsWith('wb_');
+    const centered = isMob || isFixture;
     // For mobs, the placement key (e.g. 'mob_wolf') is not a real texture —
     // map it to the actual loaded sheet via EDITOR_MOB_ENTRIES.
+    // For fixtures the texture key === obj.key (generated in BootScene).
     const textureKey = isMob
       ? (EDITOR_MOB_ENTRIES.find(e => e.key === obj.key)?.textureKey ?? obj.key)
       : obj.key;
@@ -201,11 +223,11 @@ export class MapEditor {
     const img = isMob
       ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
       : this.scene.add.image(obj.x, obj.y, textureKey);
-    img.setOrigin(0.5, isMob ? 0.5 : 0.9);
-    if (isMob) {
-      // Mobs render at their in-game display size (~32px) regardless of
-      // sheet frame dimensions (which can be 128/256/etc per source).
-      const sz = 32 * obj.scale;
+    img.setOrigin(0.5, centered ? 0.5 : 0.9);
+    if (centered) {
+      // Мобы и фикстуры рендерятся в своём игровом размере (~28-32px) вне
+      // зависимости от размера исходного кадра.
+      const sz = (isFixture ? 28 : 32) * obj.scale;
       img.setDisplaySize(sz, sz);
     } else {
       img.setScale(obj.scale);

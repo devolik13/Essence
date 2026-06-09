@@ -33,6 +33,7 @@ import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
+import { WORKBENCH_NAMES_RU } from '../data/craftpixAssets';
 import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
@@ -1534,27 +1535,46 @@ export class GameScene extends Phaser.Scene {
   private spawnWorldObjects() {
     const zone = this.currentZone;
 
-    // Resource nodes
-    for (const ns of zone.resourceNodes ?? []) {
-      const def = RESOURCE_NODES[ns.nodeId];
-      if (!def) continue;
-      const container = this.add.container(ns.x, ns.y).setDepth(3);
+    // ── Локальные хелперы рендера (общие для zone-массивов и editor-placed) ──
+    const addResourceNode = (x: number, y: number, nodeId: string) => {
+      const def = RESOURCE_NODES[nodeId];
+      if (!def) return;
+      const container = this.add.container(x, y).setDepth(3);
       const circle = this.add.circle(0, 0, 12, def.color, 0.7);
       const label = this.add.text(0, -20, def.nameRu, { fontSize: '8px', color: '#dddddd', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       container.add([circle, label, eKey]);
-      this.resourceNodes.push({ x: ns.x, y: ns.y, def, gfx: container, cooldown: 0, depleted: false });
-    }
+      this.resourceNodes.push({ x, y, def, gfx: container, cooldown: 0, depleted: false });
+    };
 
-    // Workbenches
-    for (const wb of zone.workbenches ?? []) {
-      const container = this.add.container(wb.x, wb.y).setDepth(5);
+    const addWorkbench = (x: number, y: number, type: string, nameRu: string) => {
+      const container = this.add.container(x, y).setDepth(5);
       const rect = this.add.rectangle(0, 0, 28, 20, 0x664422, 0.8).setStrokeStyle(2, 0x996633);
-      const label = this.add.text(0, -18, wb.nameRu, { fontSize: '8px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+      const label = this.add.text(0, -18, nameRu, { fontSize: '8px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const icon = this.add.text(0, 0, '⚒', { fontSize: '14px' }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       container.add([rect, label, icon, eKey]);
-      this.workbenches.push({ x: wb.x, y: wb.y, type: wb.type, nameRu: wb.nameRu, gfx: container });
+      this.workbenches.push({ x, y, type, nameRu, gfx: container });
+    };
+
+    // Resource nodes (из конфига зоны)
+    for (const ns of zone.resourceNodes ?? []) {
+      addResourceNode(ns.x, ns.y, ns.nodeId);
+    }
+
+    // Workbenches (из конфига зоны)
+    for (const wb of zone.workbenches ?? []) {
+      addWorkbench(wb.x, wb.y, wb.type, wb.nameRu);
+    }
+
+    // Ноды и верстаки, расставленные в редакторе карт (node_* / wb_* объекты).
+    if (this.mapEditor) {
+      for (const ns of this.mapEditor.getResourceNodeSpawns()) {
+        addResourceNode(ns.x, ns.y, ns.nodeId);
+      }
+      for (const wb of this.mapEditor.getWorkbenchSpawns()) {
+        addWorkbench(wb.x, wb.y, wb.type, WORKBENCH_NAMES_RU[wb.type] ?? wb.type);
+      }
     }
 
     // NPCs

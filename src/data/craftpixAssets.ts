@@ -121,6 +121,37 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
 /** @deprecated use EDITOR_MOB_ENTRIES — kept only to avoid import errors during migration */
 export const MOB_ASSETS: Array<[string, string, number, number]> = [];
 
+/**
+ * Ресурсные ноды для редактора карт.
+ * key = node_{nodeId} (getResourceNodeSpawns strips node_ prefix).
+ * Текстура с тем же key генерируется процедурно в BootScene.
+ */
+export const EDITOR_NODE_ENTRIES: Array<{ key: string }> = [
+  { key: 'node_copper_vein' },
+  { key: 'node_willow_tree' },
+  { key: 'node_hide_pile' },
+];
+
+/**
+ * Крафтовые верстаки для редактора карт.
+ * key = wb_{type} (getWorkbenchSpawns strips wb_ prefix).
+ * Текстура с тем же key генерируется процедурно в BootScene.
+ */
+export const EDITOR_WORKBENCH_ENTRIES: Array<{ key: string }> = [
+  { key: 'wb_armorer' },
+  { key: 'wb_weaponsmith' },
+  { key: 'wb_jeweler' },
+  { key: 'wb_runemaster' },
+];
+
+/** Названия верстаков на русском (для отрисовки in-game у editor-placed). */
+export const WORKBENCH_NAMES_RU: Record<string, string> = {
+  armorer: 'Бронник',
+  weaponsmith: 'Оружейник',
+  jeweler: 'Ювелир',
+  runemaster: 'Рунный мастер',
+};
+
 export interface MobSpriteSet {
   folder: string;
   frameW: number;

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
 import { CP_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
+import { RESOURCE_NODES } from '../data/itemDB';
 import { loadAllSpriteSheets } from '../systems/spriteSheetLoader';
 
 /**
@@ -85,6 +86,9 @@ export class BootScene extends Phaser.Scene {
     // ── Персонажи (28×28) ─────────────────────────────────
     this.genCharTextures(gfx);
 
+    // ── Ресурсные ноды / верстаки для редактора (плейсхолдеры) ─
+    this.genFixtureTextures(gfx);
+
     // ── VFX текстуры частиц ──────────────────────────────
     this.genParticleTextures(gfx);
 
@@ -95,6 +99,37 @@ export class BootScene extends Phaser.Scene {
     this.generateDecorationAtlas();
 
     gfx.destroy();
+  }
+
+  /**
+   * Плейсхолдер-текстуры для ресурсных нод и верстаков.
+   * Ключ текстуры === editor-ключ (node_* / wb_*), чтобы редактор и in-game
+   * рендер находили её напрямую.
+   */
+  private genFixtureTextures(g: Phaser.GameObjects.Graphics) {
+    // Ресурсные ноды — кружок цвета ноды с тёмной окантовкой (28×28)
+    for (const id of Object.keys(RESOURCE_NODES)) {
+      const def = RESOURCE_NODES[id];
+      g.clear();
+      g.fillStyle(def.color, 1);
+      g.fillCircle(14, 14, 12);
+      // тонкая тёмная окантовка
+      g.lineStyle(2, 0x222222, 0.8);
+      g.strokeCircle(14, 14, 12);
+      g.generateTexture('node_' + id, 28, 28);
+    }
+    g.clear();
+
+    // Верстаки — коричневый скруглённый прямоугольник (28×24)
+    for (const type of ['armorer', 'weaponsmith', 'jeweler', 'runemaster']) {
+      g.clear();
+      g.fillStyle(0x664422, 1);
+      g.fillRoundedRect(0, 2, 28, 20, 4);
+      g.lineStyle(2, 0x996633, 1);
+      g.strokeRoundedRect(0, 2, 28, 20, 4);
+      g.generateTexture('wb_' + type, 28, 24);
+    }
+    g.clear();
   }
 
   private genParticleTextures(g: Phaser.GameObjects.Graphics) {
