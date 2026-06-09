@@ -47,11 +47,9 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
     mat.appendChild(el('span', 'cv-mat-icon', ITEMS[matId]?.icon ?? '?'));
     mat.appendChild(el('span', `cv-mat-count ${ok ? 'ok' : 'short'}`, `${have}/${need}`));
     // Hover the ingredient to see its name / есть-нужно (emoji alone is unclear).
+    // Тематический тултип окна (не нативный белый title).
     const mdef = ITEMS[matId];
-    if (mdef) {
-      mat.title = `${mdef.nameRu}: ${have}/${need}`;
-      wireItemTooltip(mat, mdef);
-    }
+    if (mdef) wireItemTooltip(mat, mdef, `Есть ${have} / нужно ${need}`);
     mats.appendChild(mat);
     if (i < entries.length - 1) mats.appendChild(el('span', 'cv-mat-sep', '·'));
   });

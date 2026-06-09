@@ -69,7 +69,6 @@ function buildCell(item: InventoryItem | undefined): HTMLElement {
   cell.appendChild(el('span', `eb-cell-rarity ${def.rarity}`));
   setIcon(cell, def);
   if (item.quantity > 1) cell.appendChild(el('span', 'eb-cell-count', '×' + item.quantity));
-  cell.title = def.nameRu;
   wireItemTooltip(cell, def);
 
   const sphere = data!.sphere;

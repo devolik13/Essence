@@ -79,7 +79,6 @@ function buildSlot(def: SlotDef, dimmed: boolean): HTMLElement {
 
   if (item) {
     setIcon(slot, item);
-    slot.title = item.nameRu;
     wireItemTooltip(slot, item);
     slot.addEventListener('click', () => cb!.onUnequip(def.id as string));
   } else {

@@ -24,11 +24,12 @@ function statLabel(key: string): string {
   return STAT_LABELS[key] ?? key.toUpperCase();
 }
 
-function buildTooltip(item: ItemDef): HTMLElement {
+function buildTooltip(item: ItemDef, note?: string): HTMLElement {
   const t = el('div', 'eb-tooltip');
   t.appendChild(el('div', 'eb-tt-name', item.nameRu));
   t.appendChild(el('div', 'eb-tt-type',
     item.type.toUpperCase() + (item.equipSlot ? ` · ${item.equipSlot}` : '')));
+  if (note) t.appendChild(el('div', 'eb-tt-note', note));
 
   const entries: [string, string][] = [];
   if (item.armorBonus)  entries.push(['ARM',  '+' + item.armorBonus]);
@@ -77,11 +78,12 @@ export function hideItemTooltip() {
   if (tip) { tip.remove(); tip = null; }
 }
 
-/** Attach hover tooltip behaviour to a target element for the given item. */
-export function wireItemTooltip(target: HTMLElement, item: ItemDef) {
+/** Attach hover tooltip behaviour to a target element for the given item.
+ *  `note` — необязательная строка (напр. «Нужно: 0/3» для ингредиентов крафта). */
+export function wireItemTooltip(target: HTMLElement, item: ItemDef, note?: string) {
   target.addEventListener('mouseenter', () => {
     hideItemTooltip();
-    tip = buildTooltip(item);
+    tip = buildTooltip(item, note);
     document.body.appendChild(tip);
     const r = target.getBoundingClientRect();
     position(r.left + r.width / 2, r.top);
