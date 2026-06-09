@@ -8,6 +8,9 @@ export interface BodyQuestObjective {
   type: BodyObjectiveType;
   targetId?: string;
   targetNameRu?: string;
+  /** Для 'kill': категория цели (напр. 'elemental'). Убийство засчитывается только
+   *  если у убитого совпадает категория. Без targetId и targetCategory — любое убийство. */
+  targetCategory?: string;
   count: number;
   description: string;
   /** For 'protect': max distance (px) the player can stray from the target. Reset on exit. */

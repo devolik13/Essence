@@ -38,18 +38,29 @@ function recipePrice(recipe: RecipeDef): number {
   return tier === 3 ? 200 : tier === 2 ? 50 : 0;
 }
 
-/** Section definitions: vendor sections keyed by workbench + special materials. */
+/** Классифицирует оружейный рецепт по типу результата. */
+function weaponCategory(resultId: string): 'melee' | 'staff' | 'ranged' {
+  if (resultId.startsWith('staff_')) return 'staff';
+  if (/^(shortbow|longbow|crossbow)_/.test(resultId)) return 'ranged';
+  return 'melee';
+}
+
+/** Section definitions: vendor sections keyed by workbench + special materials.
+ *  `match` переопределяет фильтр рецептов (для разбивки оружейника на 3 отдела). */
 interface SectionDef {
   key: string;
   name: string;
   expanded: boolean;
+  match?: (r: RecipeDef) => boolean;
 }
 const SECTIONS: SectionDef[] = [
-  { key: 'armorer',     name: 'Броня',      expanded: true  },
-  { key: 'weaponsmith', name: 'Оружие',     expanded: true  },
-  { key: 'jeweler',     name: 'Украшения',  expanded: false },
-  { key: 'runemaster',  name: 'Руны',       expanded: false },
-  { key: 'materials',   name: 'Материалы',  expanded: true  },
+  { key: 'armorer',       name: 'Броня',       expanded: true  },
+  { key: 'weapon_melee',  name: 'Ближний бой', expanded: true,  match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'melee'  },
+  { key: 'weapon_staff',  name: 'Посохи',      expanded: false, match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'staff'  },
+  { key: 'weapon_ranged', name: 'Дальний бой', expanded: false, match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'ranged' },
+  { key: 'jeweler',       name: 'Украшения',   expanded: false },
+  { key: 'runemaster',    name: 'Руны',        expanded: false },
+  { key: 'materials',     name: 'Материалы',   expanded: true  },
 ];
 
 function buildBalance(copper: number): HTMLElement {
@@ -123,7 +134,9 @@ function buildSection(def: SectionDef, data: VendorData, cb: VendorCallbacks): H
   if (def.key === 'materials') {
     for (const mat of VENDOR_MATERIALS) { body.appendChild(buildMaterialRow(mat, data, cb)); count++; }
   } else {
-    const recipes = RECIPES.filter(r => r.workbench === def.key);
+    const recipes = def.match
+      ? RECIPES.filter(def.match)
+      : RECIPES.filter(r => r.workbench === def.key);
     for (const r of recipes) { body.appendChild(buildRecipeRow(r, data, cb)); count++; }
   }
   if (count === 0) return null;

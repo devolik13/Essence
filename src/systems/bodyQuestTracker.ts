@@ -150,8 +150,8 @@ export class BodyQuestTracker {
     return Math.max(0, this.active.meditateTimers[index]);
   }
 
-  onKill(creatureId: string): boolean {
-    return this.advance('kill', creatureId);
+  onKill(creatureId: string, category?: string): boolean {
+    return this.advance('kill', creatureId, category);
   }
 
   onReach(targetId: string): boolean {
@@ -183,13 +183,14 @@ export class BodyQuestTracker {
     return Math.max(0, this.active.surviveTimers[index]);
   }
 
-  private advance(type: BodyObjectiveType, targetId?: string): boolean {
+  private advance(type: BodyObjectiveType, targetId?: string, category?: string): boolean {
     if (!this.active || this.active.completed) return false;
     let changed = false;
     for (let i = 0; i < this.active.def.objectives.length; i++) {
       const obj = this.active.def.objectives[i];
       if (obj.type !== type) continue;
       if (obj.targetId !== undefined && obj.targetId !== targetId) continue;
+      if (obj.targetCategory !== undefined && obj.targetCategory !== category) continue;
       if (this.active.counts[i] < obj.count) {
         this.active.counts[i]++;
         changed = true;

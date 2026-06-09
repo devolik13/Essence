@@ -3183,10 +3183,13 @@ export class GameScene extends Phaser.Scene {
     const completed = this.questTracker.onKill(creatureId);
     for (const q of completed) this.onQuestComplete(q);
 
-    // Body quest kill tracking
+    // Body quest kill tracking — категория цели (для квестов «убей любого элементаля»).
     if (this.bodyQuestTracker.getActive() && !this.bodyQuestTracker.isComplete()) {
+      const def = CREATURE_DB[creatureId];
+      const category = def?.element && ['fire', 'water', 'earth', 'wind'].includes(def.element)
+        ? 'elemental' : undefined;
       const wasComplete = this.bodyQuestTracker.isComplete();
-      this.bodyQuestTracker.onKill(creatureId);
+      this.bodyQuestTracker.onKill(creatureId, category);
       if (!wasComplete && this.bodyQuestTracker.isComplete()) {
         this.onBodyQuestComplete();
       }

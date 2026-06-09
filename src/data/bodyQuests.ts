@@ -222,8 +222,9 @@ const QUEST_GUSTY: BodyQuestDef = {
     { speaker: '', text: 'Исчез. Вершины твои. Порыв — теперь твой.' },
   ],
   objectives: [
-    // targetId undefined = matches any kill (any elemental in the zone will do)
-    { type: 'kill', count: 1, description: 'Уничтожь любого элементаля' },
+    // targetCategory 'elemental' = засчитывается убийство любого стихийного существа
+    // (а не любого моба вообще).
+    { type: 'kill', count: 1, targetCategory: 'elemental', description: 'Уничтожь любого элементаля' },
   ],
   rewardSpellId: 'mob_gust',
   xpReward: 50,
