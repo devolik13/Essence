@@ -2391,7 +2391,7 @@ export class UIScene extends Phaser.Scene {
     const data = this.cachedUIData;
     if (!data) return;
     showQuestsDom(
-      { quests: data.quests, trackedQuestIds: data.trackedQuestIds ?? [] },
+      { quests: data.quests, trackedQuestIds: data.trackedQuestIds ?? [], bodyQuest: data.bodyQuest },
       {
         onClose: () => this.closeSingleWindow('quests'),
         onTrackToggle: (id) => {

@@ -3,12 +3,15 @@
  * Two collapsible sections: Активные (with objectives + track checkbox) и Завершённые (names).
  */
 import { QuestProgress } from '../types/quests';
+import { BodyQuestProgress } from '../systems/bodyQuestTracker';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 import { t } from '../i18n';
 
 interface QuestsData {
   quests: QuestProgress[];
   trackedQuestIds: string[];
+  /** Активный квест тела (★) — показывается в «Активные», если есть. */
+  bodyQuest?: BodyQuestProgress | null;
 }
 
 interface QuestsCallbacks {
@@ -60,6 +63,44 @@ function buildActiveQuest(q: QuestProgress, tracked: boolean, cb: QuestsCallback
     line.appendChild(el('span', 'cv-mat-icon', objectiveVerb(obj.type)));
     line.appendChild(document.createTextNode(` ${obj.targetNameRu ?? obj.targetId ?? ''} `));
     line.appendChild(el('span', `cv-mat-count ${done ? 'ok' : 'short'}`, done ? '✓' : `${cur}/${obj.count}`));
+    objs.appendChild(line);
+  }
+  card.appendChild(objs);
+  return card;
+}
+
+/** Активный квест тела (★) — собственная карточка (не отслеживается чекбоксом). */
+function buildBodyQuest(bq: BodyQuestProgress): HTMLElement {
+  const card = el('div', 'cv-quest');
+
+  const head = el('div', 'cv-item-row');
+  head.appendChild(el('span', 'cv-item-icon', '★'));
+  head.appendChild(el('span', 'cv-item-name', bq.def.nameRu));
+  head.appendChild(el('span', 'cv-item-price', `+${bq.def.xpReward} XP`));
+  card.appendChild(head);
+
+  const objs = el('div', 'cv-quest-objs');
+  for (let i = 0; i < bq.def.objectives.length; i++) {
+    const obj = bq.def.objectives[i];
+    const cur = bq.counts[i] ?? 0;
+    const done = cur >= obj.count;
+    const label = obj.description || obj.targetNameRu || obj.targetId || '';
+    const line = el('span', 'cv-mat');
+
+    let counter: string;
+    if ((obj.type === 'survive' || obj.type === 'protect') && !done) {
+      const secs = Math.ceil(obj.type === 'protect' ? bq.protectTimers[i] : bq.surviveTimers[i]);
+      const reachDone = obj.type !== 'protect' || bq.def.objectives.some(
+        (o, j) => o.type === 'reach' && o.targetId === obj.targetId && (bq.counts[j] ?? 0) >= o.count,
+      );
+      counter = reachDone ? `${secs}s` : '–';
+    } else {
+      counter = done ? '✓' : `${cur}/${obj.count}`;
+    }
+
+    line.appendChild(el('span', 'cv-mat-icon', '•'));
+    line.appendChild(document.createTextNode(` ${label} `));
+    line.appendChild(el('span', `cv-mat-count ${done ? 'ok' : 'short'}`, counter));
     objs.appendChild(line);
   }
   card.appendChild(objs);
@@ -126,9 +167,15 @@ export function showQuestsDom(data: QuestsData, cb: QuestsCallbacks): void {
   // Body
   const body = el('div', 'cv-body');
 
-  const activeRows = active.map(q => buildActiveQuest(q, data.trackedQuestIds.includes(q.def.id), cb));
+  const activeRows: HTMLElement[] = [];
+  // Активный квест тела (★) — первым, если есть и не завершён.
+  const bq = data.bodyQuest;
+  if (bq && !bq.completed) activeRows.push(buildBodyQuest(bq));
+  for (const q of active) activeRows.push(buildActiveQuest(q, data.trackedQuestIds.includes(q.def.id), cb));
+
+  const activeCount = active.length + (bq && !bq.completed ? 1 : 0);
   if (activeRows.length === 0) activeRows.push(el('div', 'cv-quest-empty', 'Все квесты выполнены!'));
-  body.appendChild(buildSection('Активные', true, active.length, activeRows));
+  body.appendChild(buildSection('Активные', true, activeCount, activeRows));
 
   const doneRows = done.map(q => {
     const row = el('div', 'cv-item-row is-learned');
