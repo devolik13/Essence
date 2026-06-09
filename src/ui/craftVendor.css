@@ -441,3 +441,22 @@
   box-shadow: 0 0 10px rgba(201,162,39,0.45);
   border-radius: 999px;
 }
+
+/* ---------------- Quests window (reuses cv-* base) ---------------- */
+.cv-quest {
+  padding: 2px 0 6px;
+}
+.cv-quest + .cv-quest { border-top: 1px solid rgba(201,162,39,0.08); }
+.cv-quest-objs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 4px 8px 2px 48px;
+}
+.cv-quest-empty {
+  padding: 10px 12px;
+  font-family: var(--cv-serif);
+  font-size: 14px;
+  color: var(--cv-text-mute);
+  text-align: center;
+}

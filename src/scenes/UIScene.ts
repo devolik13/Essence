@@ -19,6 +19,7 @@ import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
 import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
+import { showQuestsDom, hideQuestsDom, isQuestsDomOpen } from '../ui/questsWindowDom';
 import { spriteForSpell } from '../ui/weaponIcon';
 import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
@@ -2171,6 +2172,19 @@ export class UIScene extends Phaser.Scene {
       return;
     }
 
+    // DOM-based quests window (collapsible Активные / Завершённые)
+    if (type === 'quests') {
+      this.windowContainer.setVisible(false);
+      this.openQuestsDom();
+      for (let i = 0; i < this.menuBtnTypes.length; i++) {
+        const active = this.menuBtnTypes[i] === type;
+        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
+      }
+      return;
+    }
+
     // DOM-based achievements
     if (type === 'achievements') {
       this.windowContainer.setVisible(false);
@@ -2366,6 +2380,21 @@ export class UIScene extends Phaser.Scene {
   }
 
   /** Open (or re-render) the DOM vendor window with fresh sphere data. */
+  private openQuestsDom() {
+    const data = this.cachedUIData;
+    if (!data) return;
+    showQuestsDom(
+      { quests: data.quests, trackedQuestIds: data.trackedQuestIds ?? [] },
+      {
+        onClose: () => this.closeWindow(),
+        onTrackToggle: (id) => {
+          this.scene.get('GameScene').events.emit('track-quest', id);
+          this.openQuestsDom(); // re-render with updated tracked state
+        },
+      },
+    );
+  }
+
   private openVendorDom() {
     const sphere = this.cachedUIData?.sphere;
     if (!sphere) return;
@@ -2419,6 +2448,7 @@ export class UIScene extends Phaser.Scene {
     }
     if (isVendorDomOpen()) hideVendorDom();
     if (isCraftingDomOpen()) hideCraftingDom();
+    if (isQuestsDomOpen()) hideQuestsDom();
     this.currentWindow = null;
     this.lastWindowSignature = '';
     this.windowContainer.setVisible(false);
@@ -2542,6 +2572,7 @@ export class UIScene extends Phaser.Scene {
     if (this.currentWindow === 'spells') return;    // handled by DOM overlay
     if (this.currentWindow === 'vendor') return;    // handled by DOM overlay
     if (this.currentWindow === 'crafting') return;  // handled by DOM overlay
+    if (this.currentWindow === 'quests') return;    // handled by DOM overlay
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
 
@@ -2600,61 +2631,6 @@ export class UIScene extends Phaser.Scene {
 
         this.windowTitleText.setText(t('stats.title'));
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-        break;
-      }
-      case 'quests': {
-        const completedIds = data.quests.filter(q => q.completed).map(q => q.def.id);
-        // Only show quests where prerequisites are met
-        const active = data.quests.filter(q => {
-          if (q.completed) return false;
-          const prereqs = q.def.prerequisiteIds;
-          if (!prereqs || prereqs.length === 0) return true;
-          return prereqs.every(pid => completedIds.includes(pid));
-        });
-        const done = data.quests.filter(q => q.completed);
-        const tracked = data.trackedQuestIds ?? [];
-        const lines: string[] = [];
-        let relY = WIN_TITLE_H + 8;
-        const lineH = 15;
-
-        if (active.length === 0) {
-          lines.push('  All quests complete!');
-        } else {
-          for (const q of active) {
-            const isTracked = tracked.includes(q.def.id);
-            // Checkbox — inside container with relative coords
-            const btn = this.add.text(
-              this.windowW - 28, relY,
-              isTracked ? '☑' : '☐',
-              { fontSize: '14px', color: isTracked ? TC.ether2 : TC.text3,
-                padding: { x: 4, y: 2 } },
-            ).setInteractive({ useHandCursor: true })
-              .on('pointerover', () => btn.setColor(TC.ether3))
-              .on('pointerout',  () => btn.setColor(isTracked ? TC.ether2 : TC.text3))
-              .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-                ptr.event.stopPropagation();
-                this.scene.get('GameScene').events.emit('track-quest', q.def.id);
-                if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
-              });
-            this.windowContainer.add(btn);
-            this.windowInteractables.push(btn);
-
-            lines.push(`▸ ${q.def.nameRu}  +${q.def.xpReward} XP`);
-            relY += lineH;
-            for (let i = 0; i < q.def.objectives.length; i++) {
-              const obj = q.def.objectives[i];
-              const cur = q.counts[i];
-              const d = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-              const verb = obj.type === 'kill' ? t('quest.kill') : obj.type === 'capture' ? t('quest.capture') : obj.type === 'talk' ? t('quest.talk') : obj.type === 'craft_t3' ? t('quest.craft') : obj.type === 'kill_boss' ? t('quest.defeat') : t('quest.learn');
-              lines.push(`   ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${d}`);
-              relY += lineH;
-            }
-            relY += 4;
-          }
-        }
-        if (done.length > 0) lines.push('', `✓ Completed: ${done.length} quests`);
-        this.windowTitleText.setText(`▸ Quests  (${active.length} active)`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 30, true).setText(lines.join('\n'));
         break;
       }
       case 'achievements':
