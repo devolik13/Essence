@@ -64,6 +64,10 @@ export class Body extends Phaser.GameObjects.Container {
   /** Полная блокировка перемещения (напр. во время ковки). */
   public movementLocked: boolean = false;
   public attackCooldown: number = 0;
+  /** Колбэк всплывающего числа от DoT (огонь/яд/горение маны). */
+  public onDotTick?: (x: number, y: number, amount: number, kind: 'fire' | 'poison' | 'mana') => void;
+  private dotAccum: { fire: number; poison: number; mana: number } = { fire: 0, poison: 0, mana: 0 };
+  private dotTickTimer: number = 0;
   /** Активные статус-эффекты игрока */
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
   /** Штраф регена маны от зачарования (0.3 = −30%) */
@@ -336,20 +340,38 @@ export class Body extends Phaser.GameObjects.Container {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
 
-    // Статус-эффекты: тики и таймеры
+    // Статус-эффекты: тики и таймеры (накапливаем DoT для всплывающих чисел)
     for (const [id, status] of this.statusEffects) {
       const def = STATUS_DEFS[id];
       if (id === 'poison' && def.dotDpsPerStack) {
-        this.currentHP = Math.max(0, this.currentHP - def.dotDpsPerStack * status.stacks * dt);
+        const d = def.dotDpsPerStack * status.stacks * dt;
+        this.currentHP = Math.max(0, this.currentHP - d);
+        this.dotAccum.poison += d;
       } else if (id === 'burn' && def.dotPercentPerSec) {
         const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        this.currentHP = Math.max(0, this.currentHP - dps * dt);
+        const d = dps * dt;
+        this.currentHP = Math.max(0, this.currentHP - d);
+        this.dotAccum.fire += d;
       } else if (id === 'burn_mana' && def.dotPercentPerSec) {
         const dps = Math.min(this.maxMana * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        this.currentMana = Math.max(0, this.currentMana - dps * dt);
+        const d = dps * dt;
+        this.currentMana = Math.max(0, this.currentMana - d);
+        this.dotAccum.mana += d;
       }
       status.timer -= dt;
       if (status.timer <= 0) this.statusEffects.delete(id);
+    }
+    // Раз в ~0.5с показываем накопленный DoT отдельными цветными числами.
+    this.dotTickTimer += dt;
+    if (this.dotTickTimer >= 0.5) {
+      this.dotTickTimer = 0;
+      const kinds: ('fire' | 'poison' | 'mana')[] = ['fire', 'poison', 'mana'];
+      let offset = 0;
+      for (const k of kinds) {
+        const amt = Math.round(this.dotAccum[k]);
+        if (amt >= 1 && this.onDotTick) { this.onDotTick(this.x + offset, this.y - 6, amt, k); offset += 10; }
+        this.dotAccum[k] = 0;
+      }
     }
 
     // Cooldowns are stored per ability id on the Sphere so they persist across

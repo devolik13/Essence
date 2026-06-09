@@ -567,6 +567,12 @@ export class GameScene extends Phaser.Scene {
 
     // Обновляем тело игрока
     if (this.playerBody) {
+      // Цветные числа DoT над игроком (огонь — красный, яд — фиолетовый, мана — синий).
+      if (!this.playerBody.onDotTick) {
+        this.playerBody.onDotTick = (x, y, amount, kind) => {
+          this.damageTexts.push(new DamageText(this, x, y, amount, false, false, undefined, kind));
+        };
+      }
       this.playerBody.update(time, delta);
       // Камера следит за телом
       this.followCamera(this.playerBody);
@@ -746,6 +752,12 @@ export class GameScene extends Phaser.Scene {
         const spell = creature.consumeCastingSpell();
         if (spell) this.creatureCastSpell(creature, spell);
       }
+    }
+
+    // Смерть от DoT (яд/горение в собственном update) — засчитать убийство
+    // (XP/лут), иначе существо просто зависает мёртвым. killProcessed дедуплицирует.
+    for (const c of [...this.creatures]) {
+      if (c.isDead && !c.killProcessed) this.onCreatureKilled(c);
     }
 
     // Столкновения: тело игрока ↔ мобы
@@ -1542,6 +1554,10 @@ export class GameScene extends Phaser.Scene {
   private applyCreatureEnv(c: Creature) {
     c.wallCheckFn = (x: number, y: number) => this.isBlockedByWall(x, y, false);
     c.safeBoundsArr = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
+    // Цветные всплывающие числа от DoT (огонь — красный, яд — фиолетовый, кровь — алый).
+    c.onDotTick = (x, y, amount, kind) => {
+      this.damageTexts.push(new DamageText(this, x, y, amount, false, false, undefined, kind));
+    };
   }
 
   // ─── Ресурсные ноды, верстаки, NPC ────────────────────
@@ -1705,8 +1721,12 @@ export class GameScene extends Phaser.Scene {
       this.showMessage('Колодец: здоровье и мана уже полны');
       return;
     }
+    const hpHealed = Math.round(b.maxHP - b.currentHP);
+    const manaHealed = Math.round(b.maxMana - b.currentMana);
     b.currentHP = b.maxHP;
     b.currentMana = b.maxMana;
+    if (hpHealed > 0) this.damageTexts.push(new DamageText(this, b.x, b.y - 10, hpHealed, false, false, `+${hpHealed} HP`, 'heal'));
+    if (manaHealed > 0) this.damageTexts.push(new DamageText(this, b.x, b.y - 24, manaHealed, false, false, `+${manaHealed} MP`, 'mana'));
     sfxHeal();
     this.spawnAoeFlash(b.x, b.y, 50);
     this.showMessage('Колодец восстановил здоровье и ману');
@@ -2967,6 +2987,10 @@ export class GameScene extends Phaser.Scene {
   // onCreatureKilled, onPlayerDeath, completeCaptureCreature
 
   private onCreatureKilled(creature: Creature) {
+    // Идемпотентность: смерть может прийти из нескольких путей (прямой удар, AoE,
+    // DoT-тик в update) — награду выдаём один раз.
+    if (creature.killProcessed) return;
+    creature.killProcessed = true;
     sfxDeath();
     // Призванный союзник: убрать из мира, без XP, без захвата, без респауна
     if (creature.isSummoned) {
@@ -3602,7 +3626,7 @@ export class GameScene extends Phaser.Scene {
         }
         if (allyTarget && healAmount > 0) {
           allyTarget.currentHP = Math.min(allyTarget.currentHP + healAmount, allyTarget.maxHP);
-          this.damageTexts.push(new DamageText(this, allyTarget.x, allyTarget.y - 10, healAmount, false, false));
+          this.damageTexts.push(new DamageText(this, allyTarget.x, allyTarget.y - 10, healAmount, false, false, `+${healAmount}`, 'heal'));
           spawnHealVFX(this, allyTarget.x, allyTarget.y);
         }
       } else if (healAmount > 0) {
@@ -3610,6 +3634,7 @@ export class GameScene extends Phaser.Scene {
           this.playerBody.currentHP + healAmount,
           this.playerBody.maxHP,
         );
+        this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, healAmount, false, false, `+${healAmount}`, 'heal'));
         spawnHealVFX(this, this.playerBody.x, this.playerBody.y);
         sfxHeal();
       }
