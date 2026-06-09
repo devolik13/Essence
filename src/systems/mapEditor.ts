@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { CP_ASSETS, EDITOR_MOB_ENTRIES } from '../data/craftpixAssets';
+import { CP_ASSETS, EDITOR_MOB_ENTRIES, EDITOR_NODE_ENTRIES, EDITOR_WORKBENCH_ENTRIES } from '../data/craftpixAssets';
+import { RESOURCE_NODES } from '../data/itemDB';
 import { PlacedMapObject, TINT_PALETTE, isKeyDefaultSolid } from '../types/mapObjects';
 import { loadMapObjects, saveMapObjects, exportMapObjects, resetToBundled, hasUnsavedChanges } from './mapObjectStore';
 import { addMapCollider, clearMapColliders } from './mapColliders';
@@ -38,6 +39,8 @@ export class MapEditor {
   private panelBg?: Phaser.GameObjects.Rectangle;
   private thumbs: Phaser.GameObjects.Image[] = [];
   private thumbLabels: Phaser.GameObjects.Text[] = [];
+  /** Свёрнутые секции палитры (Mobs/Nodes/Workbenches/Decorations). */
+  private collapsedSections = new Set<string>();
   private searchText?: Phaser.GameObjects.Text;
   private selectedKeyText?: Phaser.GameObjects.Text;
   private hintText?: Phaser.GameObjects.Text;
@@ -73,8 +76,10 @@ export class MapEditor {
   private redoStack: string[] = [];
   private readonly MAX_UNDO = 50;
 
-  // Поиск ассетов по имени
-  private searchInput?: HTMLInputElement;
+  // Поиск ассетов по имени — нативный Phaser-инпут внутри панели.
+  private searchBg?: Phaser.GameObjects.Rectangle;
+  private searchTextObj?: Phaser.GameObjects.Text;
+  private searchFocused = false;
   private filterText = '';
 
   // Камера до входа в редактор (для восстановления)
@@ -110,7 +115,10 @@ export class MapEditor {
   /** Рендерит все сохранённые объекты на карте. Вызывается один раз при создании зоны. */
   spawnAll(): void {
     for (const obj of this.objects) {
+      // Мобы спавнятся через GameScene.spawnCreatures, ноды/верстаки — через
+      // GameScene.spawnWorldObjects (как интерактивные контейнеры).
       if (obj.key.startsWith('mob_')) continue;
+      if (obj.key.startsWith('node_') || obj.key.startsWith('wb_')) continue;
       this.renderObject(obj);
     }
     this.rebuildColliders();
@@ -121,6 +129,20 @@ export class MapEditor {
     return this.objects
       .filter(o => o.key.startsWith('mob_'))
       .map(o => ({ x: o.x, y: o.y, creatureId: o.key.replace('mob_', '') }));
+  }
+
+  /** Возвращает ресурсные ноды из карты (node_copper_vein → 'copper_vein'). */
+  getResourceNodeSpawns(): Array<{ x: number; y: number; nodeId: string }> {
+    return this.objects
+      .filter(o => o.key.startsWith('node_'))
+      .map(o => ({ x: o.x, y: o.y, nodeId: o.key.replace('node_', '') }));
+  }
+
+  /** Возвращает верстаки из карты (wb_armorer → 'armorer'). */
+  getWorkbenchSpawns(): Array<{ x: number; y: number; type: string }> {
+    return this.objects
+      .filter(o => o.key.startsWith('wb_'))
+      .map(o => ({ x: o.x, y: o.y, type: o.key.replace('wb_', '') }));
   }
 
   /** Твёрдый ли объект (явный флаг → иначе по префиксу key). */
@@ -192,23 +214,41 @@ export class MapEditor {
 
   private renderObject(obj: PlacedMapObject): void {
     const isMob = obj.key.startsWith('mob_');
+    // Ноды и верстаки — фикстуры: рендерятся как мобы (по центру, фикс. размер),
+    // а не как декорации (origin 0.9 + setScale).
+    const isFixture = obj.key.startsWith('node_') || obj.key.startsWith('wb_');
+    const centered = isMob || isFixture;
     // For mobs, the placement key (e.g. 'mob_wolf') is not a real texture —
     // map it to the actual loaded sheet via EDITOR_MOB_ENTRIES.
+    // For fixtures the texture key === obj.key (generated in BootScene).
     const textureKey = isMob
       ? (EDITOR_MOB_ENTRIES.find(e => e.key === obj.key)?.textureKey ?? obj.key)
       : obj.key;
     if (!this.scene.textures.exists(textureKey)) return;
+    // Нода с PNG-спрайтом (куст/дерево) — высокая, неквадратная: масштабируем по
+    // высоте с сохранением пропорций, а не давим в квадрат.
+    const nodeDef = isFixture && obj.key.startsWith('node_')
+      ? RESOURCE_NODES[obj.key.replace('node_', '')]
+      : undefined;
+    const isPlantNode = !!nodeDef?.sprite;
     const img = isMob
       ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
       : this.scene.add.image(obj.x, obj.y, textureKey);
-    img.setOrigin(0.5, isMob ? 0.5 : 0.9);
-    if (isMob) {
-      // Mobs render at their in-game display size (~32px) regardless of
-      // sheet frame dimensions (which can be 128/256/etc per source).
-      const sz = 32 * obj.scale;
-      img.setDisplaySize(sz, sz);
+    if (isPlantNode) {
+      // Растительные ноды — origin снизу (как декорация), высота ~40px.
+      img.setOrigin(0.5, 0.85);
+      const targetH = 40 * obj.scale;
+      img.setScale(targetH / img.height);
     } else {
-      img.setScale(obj.scale);
+      img.setOrigin(0.5, centered ? 0.5 : 0.9);
+      if (centered) {
+        // Мобы и фикстуры рендерятся в своём игровом размере (~28-32px) вне
+        // зависимости от размера исходного кадра.
+        const sz = (isFixture ? 28 : 32) * obj.scale;
+        img.setDisplaySize(sz, sz);
+      } else {
+        img.setScale(obj.scale);
+      }
     }
     img.setAngle(obj.angle ?? 0);
     img.setDepth(obj.y);
@@ -375,40 +415,59 @@ export class MapEditor {
     this.thumbs = [];
     this.thumbLabels = [];
 
-    let decoKeys = CP_ASSETS.map(([k]) => k);
-    let mobEntries = EDITOR_MOB_ENTRIES;
-    if (this.filterText) {
-      decoKeys = decoKeys.filter(k => k.toLowerCase().includes(this.filterText));
-      mobEntries = mobEntries.filter(e => e.key.toLowerCase().includes(this.filterText));
-    }
+    const ft = this.filterText;
+    const flt = <T extends { key: string }>(arr: T[]): T[] =>
+      ft ? arr.filter(e => e.key.toLowerCase().includes(ft)) : arr;
+
+    // Сворачиваемые секции палитры.
+    const sections: { name: string; color: string; prefix: string; isMob?: boolean;
+                      entries: { key: string; textureKey: string }[] }[] = [
+      { name: 'Mobs', color: '#ff8855', prefix: 'mob_', isMob: true,
+        entries: flt(EDITOR_MOB_ENTRIES).map(e => ({ key: e.key, textureKey: e.textureKey })) },
+      { name: 'Nodes', color: '#88ddff', prefix: 'node_',
+        entries: flt(EDITOR_NODE_ENTRIES).map(e => ({ key: e.key, textureKey: e.key })) },
+      { name: 'Workbenches', color: '#ffcc55', prefix: 'wb_',
+        entries: flt(EDITOR_WORKBENCH_ENTRIES).map(e => ({ key: e.key, textureKey: e.key })) },
+      { name: 'Decorations', color: '#cccccc', prefix: 'cp_',
+        entries: flt(CP_ASSETS.map(([k]) => ({ key: k }))).map(e => ({ key: e.key, textureKey: e.key })) },
+    ];
+
     const startY = this.PANEL_HEADER_H - this.scrollOffset;
     const cam = this.scene.cameras.main;
-
+    const rowH = this.THUMB_SIZE + this.GAP + 10;
     let idx = 0;
 
-    // ── Mobs section ──
-    if (mobEntries.length > 0) {
-      const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
+    for (const sec of sections) {
+      if (sec.entries.length === 0) continue;
+      const collapsed = this.collapsedSections.has(sec.name);
+
+      // Заголовок секции — кликабельный (сворачивает/разворачивает).
+      const headerY = startY + Math.floor(idx / this.COLS) * rowH;
       if (headerY + 40 > 0 && headerY + 40 < cam.height) {
-        const hdr = this.scene.add.text(8, headerY, '▸ Mobs', {
-          fontSize: '12px', color: '#ff8855', fontStyle: 'bold',
-        } as Phaser.Types.GameObjects.Text.TextStyle);
+        const hdr = this.scene.add.text(8, headerY, `${collapsed ? '▶' : '▾'} ${sec.name} (${sec.entries.length})`, {
+          fontSize: '12px', color: sec.color, fontStyle: 'bold',
+        } as Phaser.Types.GameObjects.Text.TextStyle)
+          .setInteractive({ useHandCursor: true }).setScrollFactor(0);
+        hdr.on('pointerdown', () => this.toggleSection(sec.name));
         this.panel.add(hdr);
         this.thumbLabels.push(hdr);
       }
-      idx += this.COLS; // reserve a row for header
+      idx += this.COLS; // строка под заголовок
+      if (collapsed) continue; // свёрнута — миниатюры не рисуем
 
-      for (const entry of mobEntries) {
+      for (const entry of sec.entries) {
         if (!this.scene.textures.exists(entry.textureKey)) continue;
         const col = idx % this.COLS;
         const row = Math.floor(idx / this.COLS);
         const x = 8 + col * (this.THUMB_SIZE + this.GAP);
-        const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
+        const y = startY + row * rowH;
         const absY = y + 40;
         idx++;
         if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
 
-        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey, 0)
+        const thumb = (sec.isMob
+          ? this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey, 0)
+          : this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey))
           .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
           .setInteractive({ useHandCursor: true })
           .setScrollFactor(0);
@@ -417,56 +476,23 @@ export class MapEditor {
         this.panel.add(thumb);
         this.thumbs.push(thumb);
 
-        const short = entry.key.replace('mob_', '');
+        const short = entry.key.replace(sec.prefix, '').slice(0, 9);
         const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
-          short, { fontSize: '8px', color: '#ff8855' } as Phaser.Types.GameObjects.Text.TextStyle)
+          short, { fontSize: '8px', color: sec.color } as Phaser.Types.GameObjects.Text.TextStyle)
           .setOrigin(0.5, 0);
         this.panel.add(lbl);
         this.thumbLabels.push(lbl);
       }
-      // pad to next full row
       if (idx % this.COLS !== 0) idx += this.COLS - (idx % this.COLS);
     }
+  }
 
-    // ── Decorations section ──
-    if (decoKeys.length > 0) {
-      const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
-      if (headerY + 40 > 0 && headerY + 40 < cam.height) {
-        const hdr = this.scene.add.text(8, headerY, '▸ Decorations', {
-          fontSize: '12px', color: '#ffdd55', fontStyle: 'bold',
-        } as Phaser.Types.GameObjects.Text.TextStyle);
-        this.panel.add(hdr);
-        this.thumbLabels.push(hdr);
-      }
-      idx += this.COLS;
-
-      for (const key of decoKeys) {
-        if (!this.scene.textures.exists(key)) continue;
-        const col = idx % this.COLS;
-        const row = Math.floor(idx / this.COLS);
-        const x = 8 + col * (this.THUMB_SIZE + this.GAP);
-        const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
-        const absY = y + 40;
-        idx++;
-        if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
-
-        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key)
-          .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
-          .setInteractive({ useHandCursor: true })
-          .setScrollFactor(0);
-        thumb.on('pointerdown', () => this.selectAsset(key));
-        if (key === this.selectedKey) thumb.setTint(0xffdd55);
-        this.panel.add(thumb);
-        this.thumbs.push(thumb);
-
-        const short = key.replace('cp_', '').slice(0, 9);
-        const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
-          short, { fontSize: '8px', color: '#cccccc' } as Phaser.Types.GameObjects.Text.TextStyle)
-          .setOrigin(0.5, 0);
-        this.panel.add(lbl);
-        this.thumbLabels.push(lbl);
-      }
-    }
+  /** Свернуть/развернуть секцию палитры. */
+  private toggleSection(name: string): void {
+    if (this.collapsedSections.has(name)) this.collapsedSections.delete(name);
+    else this.collapsedSections.add(name);
+    this.scrollOffset = 0;
+    this.renderThumbs();
   }
 
   private selectAsset(key: string): void {
@@ -476,6 +502,8 @@ export class MapEditor {
       const tex = this.scene.textures.get(key);
       const frameW = tex?.get(0)?.width ?? 32;
       this.currentScale = 35 / frameW;
+    } else if (key.startsWith('node_') || key.startsWith('wb_')) {
+      this.currentScale = 1; // фикстуры рендерятся в своём размере (×scale)
     } else {
       this.currentScale = 0.3;
     }
@@ -616,8 +644,22 @@ export class MapEditor {
 
   private handleKey(e: KeyboardEvent): void {
     if (!this.active) return;
-    // Если фокус в поле поиска — пропускаем всю хоткей-логику
-    if (document.activeElement instanceof HTMLInputElement) return;
+
+    // Фокус в поле поиска — печатаем туда, хоткеи не трогаем.
+    if (this.searchFocused) {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        this.searchFocused = false;
+        this.updateSearchBox();
+      } else if (e.key === 'Backspace') {
+        this.filterText = this.filterText.slice(0, -1);
+        this.scrollOffset = 0; this.updateSearchBox(); this.renderThumbs();
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        this.filterText += e.key.toLowerCase();
+        this.scrollOffset = 0; this.updateSearchBox(); this.renderThumbs();
+      }
+      e.preventDefault();
+      return;
+    }
 
     // Undo / Redo
     if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
@@ -801,6 +843,8 @@ export class MapEditor {
   private handleMapClick(p: Phaser.Input.Pointer): void {
     // Клики по панели игнорируем
     if (p.x >= this.scene.cameras.main.width - this.PANEL_W) return;
+    // Клик по карте снимает фокус с поиска.
+    if (this.searchFocused) { this.searchFocused = false; this.updateSearchBox(); }
 
     // Проверяем не попали ли в placed-спрайт (gameobjectdown уже отработал)
     const hits = this.scene.input.hitTestPointer(p);
@@ -969,43 +1013,36 @@ export class MapEditor {
 
   // ── Search input ────────────────────────────────────────
 
+  /** Поиск — нативный Phaser-инпут внутри панели (часть окна, не HTML-оверлей). */
   private createSearchInput(): void {
-    const canvas = (this.scene.sys.game.canvas as HTMLCanvasElement);
-    const rect = canvas.getBoundingClientRect();
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Search...';
-    input.style.position = 'absolute';
-    input.style.left = `${rect.right - this.PANEL_W + 8}px`;
-    input.style.top = `${rect.top + 174}px`;
-    input.style.width = `${this.PANEL_W - 20}px`;
-    input.style.padding = '3px 6px';
-    input.style.background = '#1a1a1a';
-    input.style.color = '#ffffff';
-    input.style.border = '1px solid #ffdd55';
-    input.style.fontSize = '12px';
-    input.style.fontFamily = 'monospace';
-    input.style.zIndex = '10000';
-    input.style.outline = 'none';
-    input.value = this.filterText;
-    input.addEventListener('input', () => {
-      this.filterText = input.value.trim().toLowerCase();
-      this.scrollOffset = 0;
-      this.renderThumbs();
-    });
-    input.addEventListener('keydown', e => {
-      e.stopPropagation();
-      if (e.key === 'Escape' || e.key === 'Enter') {
-        input.blur();
-      }
-    });
-    document.body.appendChild(input);
-    this.searchInput = input;
+    if (!this.panel) return;
+    const y = 140;
+    const bg = this.scene.add.rectangle(8, y, this.PANEL_W - 16, 22, 0x1a1a1a)
+      .setOrigin(0, 0).setStrokeStyle(1, 0xffdd55).setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+    bg.on('pointerdown', () => { this.searchFocused = true; this.updateSearchBox(); });
+    const txt = this.scene.add.text(14, y + 5, '', {
+      fontSize: '12px', color: '#888888', fontFamily: 'monospace',
+    } as Phaser.Types.GameObjects.Text.TextStyle).setScrollFactor(0);
+    this.panel.add([bg, txt]);
+    this.searchBg = bg;
+    this.searchTextObj = txt;
+    this.updateSearchBox();
+  }
+
+  /** Обновить текст/рамку поля поиска. */
+  private updateSearchBox(): void {
+    if (!this.searchTextObj || !this.searchBg) return;
+    this.searchTextObj.setText(this.filterText || '🔍 Search...');
+    this.searchTextObj.setColor(this.filterText ? '#ffffff' : '#888888');
+    this.searchBg.setStrokeStyle(1, this.searchFocused ? 0x55ff55 : 0xffdd55);
   }
 
   private removeSearchInput(): void {
-    this.searchInput?.remove();
-    this.searchInput = undefined;
+    // Объекты уничтожаются вместе с панелью; просто сбрасываем ссылки/состояние.
+    this.searchBg = undefined;
+    this.searchTextObj = undefined;
+    this.searchFocused = false;
     this.filterText = '';
   }
 

@@ -30,6 +30,18 @@ const CREATURE_SPRITE_MAP: Record<string, string> = {
 const SLIME_IDS = new Set(['slime_fire', 'slime_water', 'slime_earth', 'slime_air']);
 const BEAR_IDS  = new Set(['bear', 'bear_veteran']);
 
+/** Спрайт-id существа (с учётом маппинга элементалей на слаймы). */
+export function creatureSpriteId(id: string): string {
+  return CREATURE_SPRITE_MAP[id] ?? id;
+}
+/** Базовый размер спрайта (px) по типу: слайм 40, медведь 41, зверь 30, иначе 34. */
+export function creatureBaseSize(spriteId: string, sheetKey: string): number {
+  const isSlime = SLIME_IDS.has(spriteId);
+  const isBear = BEAR_IDS.has(spriteId);
+  const isAnimal = sheetKey.startsWith('animal_');
+  return isSlime ? 40 : isBear ? 41 : isAnimal ? 30 : 34;
+}
+
 /**
  * Существо (NPC/моб) — враг или пассивное существо в мире.
  * Имеет свой набор статов (на основе капов тела).
@@ -39,6 +51,12 @@ export class Creature extends Phaser.GameObjects.Container {
   public stats: Stats;
   public currentHP: number;
   public aiState: CreatureAIState = 'idle';
+  /** Огрызается на атаковавшего: перебивает skipAggro (свои/safe), пока не уйдёт
+   *  за поводок. Иначе моб одного вида с игроком убегал бы и лечился на спавне. */
+  public retaliating: boolean = false;
+  /** Убегающий «напуган» (получил урон) — удирает независимо от дистанции до
+   *  игрока, пока таймер > 0. Иначе при выстреле издалека олень не реагировал. */
+  public spookedTimer: number = 0;
   public attackCooldown: number = 0;
   /** Кулдауны заклинаний моба (индекс соответствует npcSpells[i]) */
   public spellCooldowns: number[] = [];
@@ -81,6 +99,12 @@ export class Creature extends Phaser.GameObjects.Container {
   public wallCheckFn?: (x: number, y: number) => boolean;
   /** Безопасные зоны — мобы не могут в них заходить */
   public safeBoundsArr: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  /** Награда за убийство уже выдана (идемпотентность onCreatureKilled). */
+  public killProcessed: boolean = false;
+  /** Колбэк показа всплывающего числа от DoT (огонь/яд/кровь). */
+  public onDotTick?: (x: number, y: number, amount: number, kind: 'fire' | 'poison' | 'bleed') => void;
+  /** Таймер дискретного DoT-тика (раз в 1 сек). */
+  private dotTickTimer: number = 0;
 
   // Wander
   private wanderTimer: number = 0;
@@ -101,7 +125,7 @@ export class Creature extends Phaser.GameObjects.Container {
       if (val !== undefined) this.stats[stat as StatName] = val;
     }
 
-    this.currentHP = maxHP(this.stats);
+    this.currentHP = this.definition.npcMaxHp ?? maxHP(this.stats);
 
     // Инициализация кулдаунов заклинаний
     if (definition.npcSpells) {
@@ -153,13 +177,20 @@ export class Creature extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  get maxHP(): number { return maxHP(this.stats); }
+  get maxHP(): number { return this.definition.npcMaxHp ?? maxHP(this.stats); }
   get isDead(): boolean { return this.currentHP <= 0; }
+
+  /** Анимация/визуал смерти проигран один раз. */
+  private deathHandled = false;
 
   update(_time: number, delta: number, playerX?: number, playerY?: number) {
     if (this.isDead) {
       this.aiState = 'dead';
-      this.setAlpha(0.3);
+      if (!this.deathHandled) {
+        this.deathHandled = true;
+        this.updateSpriteAnim(); // проигрываем _dying один раз
+      }
+      // Альфу каждый кадр не трогаем — ей управляет пульс-твин «доступно для захвата».
       return;
     }
 
@@ -169,6 +200,7 @@ export class Creature extends Phaser.GameObjects.Container {
     if (this.attackCooldown > 0) {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
+    if (this.spookedTimer > 0) this.spookedTimer = Math.max(0, this.spookedTimer - dt);
     for (let i = 0; i < this.spellCooldowns.length; i++) {
       if (this.spellCooldowns[i] > 0) this.spellCooldowns[i] = Math.max(0, this.spellCooldowns[i] - dt);
     }
@@ -178,19 +210,38 @@ export class Creature extends Phaser.GameObjects.Container {
       this.castTimer = Math.max(0, this.castTimer - dt);
     }
 
-    // Статус-эффекты: тики и таймеры
+    // Статус-эффекты: DoT бьёт дискретно раз в 1 сек (таймер длительности — плавно).
+    this.dotTickTimer += dt;
+    const dotTick = this.dotTickTimer >= 1.0;
+    if (dotTick) this.dotTickTimer = 0;
+    const tickDmg = { fire: 0, poison: 0, bleed: 0 };
     for (const [id, status] of this.statusEffects) {
       const def = STATUS_DEFS[id];
-      // DoT урон по HP
-      if (id === 'poison' && def.dotDpsPerStack) {
-        this.currentHP = Math.max(0, this.currentHP - def.dotDpsPerStack * status.stacks * dt);
-      } else if (id === 'burn' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        this.currentHP = Math.max(0, this.currentHP - dps * dt);
+      if (dotTick) {
+        if (id === 'poison' && def.dotDpsPerStack) {
+          const d = def.dotDpsPerStack * status.stacks;
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.poison += d;
+        } else if (id === 'burn' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.fire += d;
+        } else if (id === 'bleed' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.bleed += d;
+        }
       }
-      // Декремент таймера, удаление истёкших
       status.timer -= dt;
       if (status.timer <= 0) this.statusEffects.delete(id);
+    }
+    if (dotTick && this.onDotTick) {
+      const kinds: ('fire' | 'poison' | 'bleed')[] = ['fire', 'poison', 'bleed'];
+      let offset = 0;
+      for (const k of kinds) {
+        const amt = Math.round(tickDmg[k]);
+        if (amt >= 1) { this.onDotTick(this.x + offset, this.y - 6, amt, k); offset += 10; }
+      }
     }
     if (this.currentHP <= 0 && this.aiState !== 'dead') {
       this.aiState = 'dead';
@@ -209,17 +260,27 @@ export class Creature extends Phaser.GameObjects.Container {
       const attackRange = weapon.isMelee ? weapon.range : weapon.range * 0.85;
       const preferredDist = weapon.isMelee ? 0 : weapon.range * 0.6; // дистанция удержания для ranged
 
+      // Убегающие (олень и т.п.) НИКОГДА не преследуют и не дерутся — даже
+      // если их перевели в chase ударом игрока/aggroCreature. Сбрасываем в idle,
+      // чтобы ниже сработала логика бегства (moveAwayFrom).
+      if (this.definition.type === BodyType.Fleeing &&
+          (this.aiState === 'chase' || this.aiState === 'attack')) {
+        this.aiState = 'idle';
+      }
+
       if (this.aiState === 'chase' || this.aiState === 'attack') {
-        if (this.skipAggro && !this.factionTarget) {
+        if (this.skipAggro && !this.factionTarget && !this.retaliating) {
           this.aiState = 'return';
         } else if (distFromSpawn > LEASH_RANGE) {
           this.aiState = 'return';
+          this.retaliating = false; // ушёл за поводок — перестаёт огрызаться
         } else if (dist <= attackRange) {
           this.aiState = 'attack';
         } else {
           this.aiState = 'chase';
         }
       } else if (this.aiState === 'return') {
+        this.retaliating = false;
         if (distFromSpawn < 20) {
           this.aiState = 'idle';
           this.currentHP = this.maxHP; // восстановление при возврате
@@ -230,9 +291,12 @@ export class Creature extends Phaser.GameObjects.Container {
           this.aiState = 'chase';
         }
         // Убегающие (Fleeing) — всегда убегают, никогда не дерутся.
-        // Скорость 1.2× даёт хищнику (BODY_SPEED 120) реальный шанс догнать.
-        if (dist < AGGRO_RANGE * 0.7 && this.definition.type === BodyType.Fleeing) {
-          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * 1.2, dt);
+        // Бегут если игрок в зоне опасности ИЛИ их недавно ранили (spooked).
+        // Скорость по умолчанию 1.2×; per-creature через fleeSpeedMult
+        // (олень 1.56× — быстрее игрока, чтобы не догнать луком/посохом).
+        if (this.definition.type === BodyType.Fleeing &&
+            (dist < AGGRO_RANGE * 0.7 || this.spookedTimer > 0)) {
+          this.moveAwayFrom(playerX, playerY, CREATURE_SPEED * (this.definition.fleeSpeedMult ?? 1.2), dt);
         }
       }
     }
@@ -449,12 +513,20 @@ export class Creature extends Phaser.GameObjects.Container {
     this.currentHP -= actual;
     // Сон снимается при получении урона
     if (actual > 0) this.statusEffects.delete('sleep');
-    // Пассивные (type 1) дерутся в ответ при получении урона
-    if (actual > 0 && this.definition.type === BodyType.Passive && (this.aiState === 'idle' || this.aiState === 'wander')) {
-      this.aiState = 'chase';
+    // Пассивные (type 1) и боевые (type 2) дерутся в ответ при получении урона.
+    // retaliating перебивает skipAggro (свои-одного-вида / safe-зона), иначе
+    // моб того же вида, что и игрок, убегал бы к спавну и лечился.
+    if (actual > 0 && this.definition.type !== BodyType.Fleeing && this.aiState !== 'dead') {
+      this.retaliating = true;
+      if (this.aiState === 'idle' || this.aiState === 'wander' || this.aiState === 'return') {
+        this.aiState = 'chase';
+      }
     }
-    // Убегающие (type 3) НЕ дерутся, только убегают быстрее
-    // (их aiState остаётся idle/wander → они просто убегают в update)
+    // Убегающие (type 3) НЕ дерутся — но при получении урона пугаются и удирают
+    // независимо от дистанции (выстрел из лука издалека тоже спугивает).
+    if (actual > 0 && this.definition.type === BodyType.Fleeing && this.aiState !== 'dead') {
+      this.spookedTimer = 5;
+    }
     if (this.currentHP <= 0) {
       this.aiState = 'dead';
       this.setAlpha(0.3);

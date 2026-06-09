@@ -25,10 +25,12 @@ function buildStandaloneSvg(symbol: Element, defsHtml: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${RENDER_SIZE}" height="${RENDER_SIZE}">${defsHtml}${symbol.innerHTML}</svg>`;
 }
 
-/** UTF-8 safe base64. */
+/** UTF-8 safe base64 (без устаревшего unescape). */
 function toDataUri(svg: string): string {
-  const utf8 = unescape(encodeURIComponent(svg));
-  return `data:image/svg+xml;base64,${btoa(utf8)}`;
+  const bytes = new TextEncoder().encode(svg);
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return `data:image/svg+xml;base64,${btoa(bin)}`;
 }
 
 async function loadSheet(scene: Phaser.Scene, file: string): Promise<void> {
@@ -45,13 +47,22 @@ async function loadSheet(scene: Phaser.Scene, file: string): Promise<void> {
     if (scene.textures.exists(key)) return Promise.resolve();
     const dataUri = toDataUri(buildStandaloneSvg(sym, defsHtml));
     return new Promise<void>(resolve => {
-      const onAdd = (addedKey: string) => {
-        if (addedKey === key) {
-          scene.textures.off(Phaser.Textures.Events.ADD, onAdd);
-          resolve();
-        }
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        scene.textures.off(Phaser.Textures.Events.ADD, onAdd);
+        scene.textures.off(Phaser.Textures.Events.ERROR, onErr);
+        clearTimeout(timer);
+        resolve();
       };
+      // Резолвим и на ADD (успех), и на ERROR (битый SVG не должен вешать загрузку).
+      const onAdd = (addedKey: string) => { if (addedKey === key) finish(); };
+      const onErr = (errKey: string) => { if (errKey === key) finish(); };
       scene.textures.on(Phaser.Textures.Events.ADD, onAdd);
+      scene.textures.on(Phaser.Textures.Events.ERROR, onErr);
+      // Страховка: если событие так и не пришло — не виснем на загрузке навсегда.
+      const timer = setTimeout(finish, 5000);
       scene.textures.addBase64(key, dataUri);
     });
   }));

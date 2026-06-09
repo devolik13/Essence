@@ -132,7 +132,7 @@ const QUEST_SHAMAN: BodyQuestDef = {
     objectId: 'spirit_clearing', nameRu: 'Духовная поляна', icon: '🌀', color: 0x8866ff,
     type: 'waypoint', count: 1, radius: 450,
   }],
-  rewardSpellId: 'mob_nature_t1',
+  rewardSpellId: 'mob_summon_wolf',
   xpReward: 50,
 };
 
@@ -159,7 +159,7 @@ const QUEST_SPARK: BodyQuestDef = {
     objectId: 'dry_tree', nameRu: 'Сухое дерево', icon: '🪵', color: 0x886633,
     type: 'destructible', count: 12, radius: 400,
   }],
-  rewardSpellId: 'mob_fire_t1',
+  rewardSpellId: 'mob_fire_spark',
   xpReward: 50,
 };
 
@@ -182,7 +182,7 @@ const QUEST_SPLASHER: BodyQuestDef = {
     objectId: 'burning_tree', nameRu: 'Горящее дерево', icon: '🔥', color: 0xff7733,
     type: 'destructible', count: 7, radius: 400,
   }],
-  rewardSpellId: 'mob_water_t1',
+  rewardSpellId: 'mob_ice_shard',
   xpReward: 50,
 };
 
@@ -205,7 +205,7 @@ const QUEST_PEBBLE: BodyQuestDef = {
     objectId: 'cave_breach', nameRu: 'Пробоина в стене', icon: '🪨', color: 0x886633,
     type: 'waypoint', count: 1, radius: 600,
   }],
-  rewardSpellId: 'mob_earth_t1',
+  rewardSpellId: 'mob_pebble_shot',
   xpReward: 50,
 };
 
@@ -222,10 +222,11 @@ const QUEST_GUSTY: BodyQuestDef = {
     { speaker: '', text: 'Исчез. Вершины твои. Порыв — теперь твой.' },
   ],
   objectives: [
-    // targetId undefined = matches any kill (any elemental in the zone will do)
-    { type: 'kill', count: 1, description: 'Уничтожь любого элементаля' },
+    // targetCategory 'elemental' = засчитывается убийство любого стихийного существа
+    // (а не любого моба вообще).
+    { type: 'kill', count: 1, targetCategory: 'elemental', description: 'Уничтожь любого элементаля' },
   ],
-  rewardSpellId: 'mob_wind_t1',
+  rewardSpellId: 'mob_gust',
   xpReward: 50,
 };
 
@@ -367,7 +368,7 @@ const QUEST_ASHER: BodyQuestDef = {
     objectId: 'border_mark', nameRu: 'Пограничная метка', icon: '🔥', color: 0xff6633,
     type: 'waypoint', count: 3, radius: 500,
   }],
-  rewardSpellId: 'mob_fire_t2',
+  rewardSpellId: 'mob_fire_arrow',
   xpReward: 100,
 };
 
@@ -390,7 +391,7 @@ const QUEST_FOGGER: BodyQuestDef = {
     objectId: 'fog_node', nameRu: 'Узел тумана', icon: '🌫️', color: 0x6699cc,
     type: 'waypoint', count: 4, radius: 550,
   }],
-  rewardSpellId: 'mob_water_t2',
+  rewardSpellId: 'mob_ice_arrow',
   xpReward: 100,
 };
 
@@ -414,7 +415,7 @@ const QUEST_MUDDER: BodyQuestDef = {
     { objectId: 'rock_wall', nameRu: 'Слой породы', icon: '🪨', color: 0x886644, type: 'destructible', count: 3, radius: 400 },
     { objectId: 'water_source', nameRu: 'Подземный источник', icon: '💧', color: 0x4499dd, type: 'waypoint', count: 1, radius: 600 },
   ],
-  rewardSpellId: 'mob_earth_t2',
+  rewardSpellId: 'mob_stone_spike',
   xpReward: 100,
 };
 
@@ -438,7 +439,7 @@ const QUEST_WHISTLER: BodyQuestDef = {
     { objectId: 'wind_blocker', nameRu: 'Источник помехи', icon: '💨', color: 0x88aacc, type: 'waypoint', count: 1, radius: 500 },
     { objectId: 'wind_blocker', nameRu: 'Помеха', icon: '🔩', color: 0x888888, type: 'destructible', count: 1, radius: 500 },
   ],
-  rewardSpellId: 'mob_wind_t2',
+  rewardSpellId: 'mob_wind_blade',
   xpReward: 100,
 };
 
@@ -459,7 +460,7 @@ const QUEST_SPIRIT_WOLF: BodyQuestDef = {
     { type: 'protect', count: 30, targetId: 'wounded_human', targetNameRu: 'Раненый человек', description: 'Защити его 30 сек', zoneRadius: 240 },
   ],
   friendlyCreatureIds: ['wounded_human'],
-  rewardSpellId: 'mob_nature_t2',
+  rewardSpellId: 'mob_bark_armor',
   xpReward: 100,
 };
 
@@ -487,7 +488,8 @@ const QUEST_GOBLIN_VETERAN: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'orc_loot', nameRu: 'Орочья добыча', icon: '💰', color: 0xddaa33,
-    type: 'collectible', count: 4, radius: 300,
+    type: 'collectible', count: 7, radius: 250,
+    anchor: { x: 1518, y: 253 }, // орочий лагерь (вождь в центре) — добыча с разбросом
   }],
   rewardSpellId: 'knife_throw',
   xpReward: 100,
@@ -506,8 +508,9 @@ const QUEST_ORC_VETERAN: BodyQuestDef = {
     { speaker: '', text: 'Лагерь чист. Широкая дуга — твоя.' },
   ],
   objectives: [
-    { type: 'kill', count: 3, targetId: 'goblin', targetNameRu: 'Гоблин-вор', description: 'Убей 3 гоблинов-воров' },
+    { type: 'kill', count: 3, targetId: 'goblin_veteran', targetNameRu: 'Гоблин-вор', description: 'Убей 3 гоблинов-воров' },
   ],
+  spawnEnemies: [{ creatureId: 'goblin_veteran', count: 3, radius: 180 }],
   rewardSpellId: 'slash_sweep',
   xpReward: 100,
   prerequisiteBodyQuestId: 'bq_orc',
@@ -528,7 +531,7 @@ const QUEST_WOLF_VETERAN: BodyQuestDef = {
     { speaker: '', text: 'Никто не оспорил второй удар. Стая сыта.' },
   ],
   objectives: [
-    { type: 'kill', count: 1, targetId: 'wolf', targetNameRu: 'Претендент', description: 'Победи претендента' },
+    { type: 'kill', count: 1, targetId: 'wolf_veteran', targetNameRu: 'Претендент', description: 'Победи претендента (волка-ветерана)' },
     { type: 'kill', count: 2, targetId: 'deer', targetNameRu: 'Олень', description: 'Возглавь охоту: добудь 2 оленей' },
   ],
   rewardSpellId: 'double_strike',
@@ -542,14 +545,14 @@ const QUEST_BEAR_VETERAN: BodyQuestDef = {
   description: 'Отгони стаю волков от своей территории.',
   introMessages: [
     { speaker: '', text: 'Старые кости. Старые шрамы.' },
-    { speaker: '', text: 'Четыре волка кружат. Чуют возраст.' },
+    { speaker: '', text: 'Стая кружит. Чуют возраст.' },
     { speaker: '', text: 'Думают — возраст значит медленный. Покажи иначе.' },
   ],
   completeMessages: [
     { speaker: '', text: 'Стая рассеялась. Старый не значит слабый.' },
   ],
   objectives: [
-    { type: 'kill', count: 4, targetId: 'wolf', targetNameRu: 'Волк', description: 'Отгони 4 волков' },
+    { type: 'kill', count: 10, targetId: 'wolf', targetNameRu: 'Волк', description: 'Отгони 10 волков' },
   ],
   rewardSpellId: 'mace_bash',
   xpReward: 100,
@@ -678,26 +681,6 @@ const QUEST_BANDIT_CROSSBOW_VET: BodyQuestDef = {
   prerequisiteBodyQuestId: 'bq_bandit_crossbow',
 };
 
-const QUEST_BANDIT_SPEAR_VET: BodyQuestDef = {
-  id: 'bq_bandit_spear_veteran', bodyId: 'bandit_spear_veteran', tier: 2,
-  nameRu: 'Сдержать натиск',
-  description: 'Удержи нескольких охранников тупым концом копья.',
-  introMessages: [
-    { speaker: '', text: 'Четверо охранников наступают с двух сторон.' },
-    { speaker: '', text: 'Острие убивает одного. Тупой конец держит четверых.' },
-    { speaker: '', text: 'Оттолкни прежде чем окружат.' },
-  ],
-  completeMessages: [
-    { speaker: '', text: 'Никто не подошёл достаточно близко. Задний конец копья — половина оружия.' },
-  ],
-  objectives: [
-    { type: 'kill', count: 4, targetId: 'caravan_guard', targetNameRu: 'Охранник', description: 'Оттолкни 4 охранников' },
-  ],
-  rewardSpellId: 'spear_butt',
-  xpReward: 100,
-  prerequisiteBodyQuestId: 'bq_bandit_spear',
-};
-
 const QUEST_BANDIT_BRUTE_VET: BodyQuestDef = {
   id: 'bq_bandit_brute_veteran', bodyId: 'bandit_brute_veteran', tier: 2,
   nameRu: 'Берсерк',
@@ -769,7 +752,7 @@ const QUEST_HARE: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'carrot', nameRu: 'Морковка', icon: '🥕', color: 0xff8833,
-    type: 'collectible', count: 6, radius: 300,
+    type: 'collectible', count: 7, radius: 300,
   }],
   rewardSpellId: 'acceleration',
   xpReward: 40,
@@ -792,7 +775,7 @@ const QUEST_DEER: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'safe_clearing', nameRu: 'Безопасная поляна', icon: '🌿', color: 0x44dd44,
-    type: 'waypoint', count: 1, radius: 700,
+    type: 'waypoint', count: 1, radius: 2800,
   }],
   rewardSpellId: 'dash',
   xpReward: 40,
@@ -877,7 +860,7 @@ export const BODY_QUESTS: BodyQuestDef[] = [
   QUEST_MONK,
   QUEST_ELDER,
   QUEST_BANDIT_ARCHER_VET, QUEST_BANDIT_CROSSBOW_VET,
-  QUEST_BANDIT_SPEAR_VET, QUEST_BANDIT_BRUTE_VET,
+  QUEST_BANDIT_BRUTE_VET,
 ];
 
 export const CONFLICT_QUESTS: ConflictQuestDef[] = [

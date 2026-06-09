@@ -64,8 +64,9 @@ export interface BodyDefinition {
   lootTable?: LootEntry[];
   /** Заклинания которые моб использует в бою (тиры 1-3 своей школы) */
   npcSpells?: AbilityDef[];
-  /** Стихия моба — для слабостей и зонального спавна */
-  element?: 'fire' | 'water' | 'earth' | 'wind';
+  /** Школа моба — для слабостей/VFX/спавна. 4 стихии участвуют в Печати Стихий;
+   *  nature/neutral — школы вне Печати (частоту не дают). */
+  element?: 'fire' | 'water' | 'earth' | 'wind' | 'nature' | 'neutral';
   /** Босс Главы */
   isBoss?: boolean;
   /** true = в этом теле доступны все выученные заклинания. false/undefined = только базовая атака + своё умение */
@@ -74,6 +75,12 @@ export interface BodyDefinition {
   faction?: string;
   /** Multiplier on the rendered display size (1.0 = default, 1.5 = +50%, 2.0 = +100%). */
   displaySizeMultiplier?: number;
+  /** Множитель скорости бегства для Fleeing-тел (× CREATURE_SPEED). По умолчанию 1.2.
+   *  Олень = 1.56 (~+30%), чтобы игрок не догонял его луком/посохом. */
+  fleeSpeedMult?: number;
+  /** Прямое значение HP для NPC-существа (обходит формулу 50+Здоровье×5, у которой
+   *  пол 50). Напр. заяц = 40, чтобы был хлипче. Не влияет на вселённого игрока. */
+  npcMaxHp?: number;
 }
 
 // ─── Стартовые тела ────────────────────────────────────
@@ -98,7 +105,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     nameRu: 'Human Archer',
     type: BodyType.Combat,
     damageType: 'ranged',
-    caps: { [StatName.Agility]: 30, [StatName.Accuracy]: 15, [StatName.Evasion]: 5 },
+    caps: { [StatName.Agility]: 30, [StatName.Evasion]: 15, [StatName.Health]: 5 },
     xpReward: 40,
     weapon: WeaponType.ShortBow,
     color: 0x33cc33,
@@ -111,7 +118,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
     nameRu: 'Human Mage',
     type: BodyType.Combat,
     damageType: 'magic',
-    caps: { [StatName.Intellect]: 30, [StatName.Mana]: 15, [StatName.Will]: 5 },
+    caps: { [StatName.Intellect]: 30, [StatName.Will]: 15, [StatName.Health]: 5 },
     xpReward: 40,
     weapon: WeaponType.StaffFire,
     color: 0x3366ff,
@@ -128,9 +135,10 @@ export const GOBLIN: BodyDefinition = {
   nameRu: 'Goblin',
   type: BodyType.Combat,
   damageType: 'melee',
-  caps: { [StatName.Agility]: 15, [StatName.Luck]: 10, [StatName.Evasion]: 8 },
+  caps: { [StatName.Agility]: 15, [StatName.Luck]: 10 },
   xpReward: 25,
   weapon: WeaponType.Dagger,
   color: 0x66aa44,
   abilityName: 'Sting',
+  canUseAllSpells: true, // гуманоид — полный набор оружия/спеллов Сферы
 };

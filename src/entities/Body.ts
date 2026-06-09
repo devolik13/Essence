@@ -8,6 +8,7 @@ import { BODY_SPEED } from '../utils/constants';
 import { WEAPONS, STRENGTH_WEAPONS, AGILITY_WEAPONS, getItemWeaponType } from '../data/weapons';
 import { clamp } from '../utils/math';
 import { pushOutOfColliders } from '../systems/mapColliders';
+import { creatureSpriteId, creatureBaseSize } from './Creature';
 import { WeaponType } from '../types/bodies';
 
 type AnimType = 'idle' | 'walk' | 'atk';
@@ -58,7 +59,15 @@ export class Body extends Phaser.GameObjects.Container {
   public abilitySlots: AbilitySlot[];
   public isPlayerControlled: boolean = false;
   public isCasting: boolean = false;
+  /** Двигался ли в этом кадре (WASD/клик) — для прерывания захвата тела. */
+  public isMoving: boolean = false;
+  /** Полная блокировка перемещения (напр. во время ковки). */
+  public movementLocked: boolean = false;
   public attackCooldown: number = 0;
+  /** Колбэк всплывающего числа от DoT (огонь/яд/горение маны). */
+  public onDotTick?: (x: number, y: number, amount: number, kind: 'fire' | 'poison' | 'mana') => void;
+  /** Таймер дискретного DoT-тика (раз в 1 сек). */
+  private dotTickTimer: number = 0;
   /** Активные статус-эффекты игрока */
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
   /** Штраф регена маны от зачарования (0.3 = −30%) */
@@ -111,9 +120,14 @@ export class Body extends Phaser.GameObjects.Container {
     let animCfg = getAnimConfig(definition);
 
     if (!animCfg) {
-      const id = definition.id;
-      if (scene.anims.exists(makeAnimKey(id, 'idle', 'down'))) {
-        animCfg = makeAnimCfg(scene, id, 30);
+      // Тот же резолв спрайта и размер, что и у NPC-существа (Creature), плюс
+      // displaySizeMultiplier — иначе медведь «уменьшался» при захвате (30 vs 41).
+      const spriteId = creatureSpriteId(definition.id);
+      const idleKey = makeAnimKey(spriteId, 'idle', 'down');
+      if (scene.anims.exists(idleKey)) {
+        const sheetKey = scene.anims.get(idleKey).frames[0]?.textureKey ?? '';
+        const size = creatureBaseSize(spriteId, sheetKey) * (definition.displaySizeMultiplier ?? 1);
+        animCfg = makeAnimCfg(scene, spriteId, size);
       }
     }
     this.resolvedAnim = animCfg ?? null;
@@ -180,16 +194,6 @@ export class Body extends Phaser.GameObjects.Container {
     return Math.round(baseArmor * percentBonus) + flatBonus;
   }
 
-  /** Бонус к Evasion от статусов (evasion_boost) */
-  get evasionBonus(): number {
-    let bonus = 0;
-    for (const [id, status] of this.statusEffects) {
-      const def = STATUS_DEFS[id];
-      if (def.evasionBonus) bonus += def.evasionBonus * status.stacks;
-    }
-    return bonus;
-  }
-
   /** Временные HP (щит от Стойкого удара) */
   public tempHP: number = 0;
   public tempHPTimer: number = 0;
@@ -199,21 +203,47 @@ export class Body extends Phaser.GameObjects.Container {
 
   get maxHP(): number { return maxHP(this.sphereStats); }
   get maxMana(): number { return maxMana(this.sphereStats); }
+
+  /**
+   * Пересчёт статов тела при смене экипировки.
+   * Принимает «экипировочные» статы (личные + бонусы предметов, БЕЗ статус-баффов).
+   * Текущие HP/мана не масштабируются — просто клампятся к новому максимуму
+   * (надел +ману → кап вырос, добиваешь регеном; снял → излишек срезается).
+   */
+  public refreshStats(newStats: Stats): void {
+    this.sphereStats = newStats;
+    this.currentHP = Math.min(this.currentHP, this.maxHP);
+    this.currentMana = Math.min(this.currentMana, this.maxMana);
+  }
   get isDead(): boolean { return this.currentHP <= 0; }
   get weapon() {
-    // If the player has an equipped weapon item, use ITS weapon type so
-    // basic attacks follow the equipped slot (Tab swap → bow combat etc.).
-    // Falls back to body's intrinsic weapon when no item is equipped.
-    const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
-    if (sphere?.equipment) {
-      const slot = sphere.activeWeaponSlot ?? 0;
-      const id = slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
+    // Гуманоид: оружие из активного слота Сферы. Если оружия НЕТ — кулаки/когти
+    // (Fists, ближний, урон от макс-стата), а НЕ врождённое оружие тела (иначе
+    // безоружная лучница «стреляла» бы луком). Зверь/элементаль — природное.
+    if (this.definition.canUseAllSpells) {
+      const id = this.equippedWeaponId();
       if (id) {
         const wt = getItemWeaponType(id);
         if (wt) return WEAPONS[wt];
       }
+      return WEAPONS[WeaponType.Fists]; // безоружный гуманоид — когти/кулаки
     }
     return WEAPONS[this.definition.weapon];
+  }
+
+  /** id оружия в активном слоте Сферы (или undefined, если не надето). */
+  private equippedWeaponId(): string | undefined {
+    const sphere = (this.scene as unknown as { sphere?: { equipment?: { weapon?: string; weapon2?: string }; activeWeaponSlot?: number } }).sphere;
+    if (!sphere?.equipment) return undefined;
+    const slot = sphere.activeWeaponSlot ?? 0;
+    return slot === 0 ? sphere.equipment.weapon : sphere.equipment.weapon2;
+  }
+
+  /** Бьёт «когтями» (нет выбранного оружия): зверь/элементаль ИЛИ безоружный
+   *  гуманоид. В обоих случаях урон масштабируется от макс-стата. */
+  get usesInnateAttack(): boolean {
+    if (!this.definition.canUseAllSpells) return true;
+    return !this.equippedWeaponId();
   }
 
   possess(scene: Phaser.Scene) {
@@ -310,20 +340,38 @@ export class Body extends Phaser.GameObjects.Container {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
 
-    // Статус-эффекты: тики и таймеры
+    // Статус-эффекты: DoT бьёт дискретно раз в 1 сек (таймер длительности — плавно).
+    this.dotTickTimer += dt;
+    const dotTick = this.dotTickTimer >= 1.0;
+    if (dotTick) this.dotTickTimer = 0;
+    const tickDmg = { fire: 0, poison: 0, mana: 0 };
     for (const [id, status] of this.statusEffects) {
       const def = STATUS_DEFS[id];
-      if (id === 'poison' && def.dotDpsPerStack) {
-        this.currentHP = Math.max(0, this.currentHP - def.dotDpsPerStack * status.stacks * dt);
-      } else if (id === 'burn' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        this.currentHP = Math.max(0, this.currentHP - dps * dt);
-      } else if (id === 'burn_mana' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxMana * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        this.currentMana = Math.max(0, this.currentMana - dps * dt);
+      if (dotTick) {
+        if (id === 'poison' && def.dotDpsPerStack) {
+          const d = def.dotDpsPerStack * status.stacks;
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.poison += d;
+        } else if (id === 'burn' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.fire += d;
+        } else if (id === 'burn_mana' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxMana * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentMana = Math.max(0, this.currentMana - d);
+          tickDmg.mana += d;
+        }
       }
       status.timer -= dt;
       if (status.timer <= 0) this.statusEffects.delete(id);
+    }
+    if (dotTick && this.onDotTick) {
+      const kinds: ('fire' | 'poison' | 'mana')[] = ['fire', 'poison', 'mana'];
+      let offset = 0;
+      for (const k of kinds) {
+        const amt = Math.round(tickDmg[k]);
+        if (amt >= 1) { this.onDotTick(this.x + offset, this.y - 6, amt, k); offset += 10; }
+      }
     }
 
     // Cooldowns are stored per ability id on the Sphere so they persist across
@@ -395,7 +443,8 @@ export class Body extends Phaser.GameObjects.Container {
     let vx = 0;
     let vy = 0;
 
-    const movementBlocked = this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root');
+    const movementBlocked = this.movementLocked || this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root');
+    if (movementBlocked) this.clickMoveTarget = null; // не возобновлять клик-движение после разблокировки
     // Все касты можно делать в движении — isCasting НЕ блокирует WASD
     if (this.isPlayerControlled && this.keys && !movementBlocked) {
       if (this.keys.A.isDown) vx = -1;
@@ -438,6 +487,7 @@ export class Body extends Phaser.GameObjects.Container {
     // Compare absolute components so click-to-move with continuous vx/vy
     // doesn't always pick up/down whenever there's any vertical bias.
     const moving = vx !== 0 || vy !== 0;
+    this.isMoving = moving; // для прерывания захвата тела при движении
     if (moving) {
       if (Math.abs(vx) > Math.abs(vy)) this.facingDir = vx > 0 ? 'right' : 'left';
       else                              this.facingDir = vy > 0 ? 'down'  : 'up';

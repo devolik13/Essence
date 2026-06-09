@@ -2,8 +2,9 @@
  * DOM-based Achievements window — brass/ether theme, progress bars.
  */
 import { Sphere } from '../entities/Sphere';
+import { t } from '../i18n';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 // Legacy alias used by isAchievementsWindowDomOpen
@@ -53,9 +54,9 @@ function getProgress(def: AchievementDef, sphere: Sphere): AchProgress {
     return { current, target };
   }
 
-  if (def.id.startsWith('spell_')) {
-    const spellId = def.id;
-    const has = sphere.learnedSpells.some(s => s.id === spellId) ? 1 : 0;
+  if (def.category === 'spell') {
+    const has = def.requiredSpellId &&
+      sphere.learnedSpells.some(s => s.id === def.requiredSpellId) ? 1 : 0;
     return { current: has, target: 1 };
   }
 
@@ -147,6 +148,7 @@ function buildCategoryGroup(catId: string, achievements: AchievementDef[], spher
 
 export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): void {
   hideAchievementsWindowDom();
+  collapsedCategories.clear(); // не тащим свёрнутые категории между открытиями
 
   handle = openWindowShell('', 'ess-backdrop', onClose);
   handle.root.id = 'ess-achievements-root';
@@ -162,12 +164,12 @@ export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): 
   const unlockedCount = sphere.unlockedAchievements.length;
   const badge = el('span', 'sg-count', `${unlockedCount} / ${ACHIEVEMENTS.length}`);
   badge.style.marginLeft = '6px';
-  left.appendChild(el('span', undefined, 'Unlocked'));
+  left.appendChild(el('span', undefined, t('win.unlocked')));
   left.appendChild(badge);
 
   const title = el('div', 'ess-title');
-  title.textContent = 'Achievements';
-  title.appendChild(el('span', 'sub', 'GLORY · PROGRESS'));
+  title.textContent = t('win.achievements');
+  title.appendChild(el('span', 'sub', t('ach.subtitle')));
 
   const right = el('div', 'ess-header-right');
   const close = el('div', 'ess-close-btn', '×');
@@ -182,7 +184,7 @@ export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): 
   // Body
   const body = el('div', 'ess-achievements-body');
   if (ACHIEVEMENTS.length === 0) {
-    body.appendChild(el('div', 'ess-empty', 'No achievements yet.'));
+    body.appendChild(el('div', 'ess-empty', t('ach.empty')));
   } else {
     for (const cat of CATEGORY_ORDER) {
       const catAchs = ACHIEVEMENTS.filter(a => a.category === cat);
@@ -193,6 +195,9 @@ export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): 
 
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-achievements');
+  restoreWindowPos(win, 'esswin-achievements');
 }
 
 export function hideAchievementsWindowDom(): void {

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
-import { CP_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS, WORKBENCH_COLORS } from '../data/craftpixAssets';
+import { RESOURCE_NODES } from '../data/itemDB';
 import { loadAllSpriteSheets } from '../systems/spriteSheetLoader';
 
 /**
@@ -85,6 +86,9 @@ export class BootScene extends Phaser.Scene {
     // ── Персонажи (28×28) ─────────────────────────────────
     this.genCharTextures(gfx);
 
+    // ── Ресурсные ноды / верстаки для редактора (плейсхолдеры) ─
+    this.genFixtureTextures(gfx);
+
     // ── VFX текстуры частиц ──────────────────────────────
     this.genParticleTextures(gfx);
 
@@ -95,6 +99,39 @@ export class BootScene extends Phaser.Scene {
     this.generateDecorationAtlas();
 
     gfx.destroy();
+  }
+
+  /**
+   * Плейсхолдер-текстуры для ресурсных нод и верстаков.
+   * Ключ текстуры === editor-ключ (node_* / wb_*), чтобы редактор и in-game
+   * рендер находили её напрямую.
+   */
+  private genFixtureTextures(g: Phaser.GameObjects.Graphics) {
+    // Ресурсные ноды — кружок цвета ноды с тёмной окантовкой (28×28)
+    for (const id of Object.keys(RESOURCE_NODES)) {
+      const def = RESOURCE_NODES[id];
+      if (def.sprite) continue; // ноды с PNG-спрайтом используют загруженную текстуру
+      g.clear();
+      g.fillStyle(def.color, 1);
+      g.fillCircle(14, 14, 12);
+      // тонкая тёмная окантовка
+      g.lineStyle(2, 0x222222, 0.8);
+      g.strokeCircle(14, 14, 12);
+      g.generateTexture('node_' + id, 28, 28);
+    }
+    g.clear();
+
+    // Верстаки — скруглённый прямоугольник своего цвета (28×24)
+    for (const type of ['armorer', 'weaponsmith', 'jeweler', 'runemaster']) {
+      const col = WORKBENCH_COLORS[type] ?? { fill: 0x664422, stroke: 0x996633 };
+      g.clear();
+      g.fillStyle(col.fill, 1);
+      g.fillRoundedRect(0, 2, 28, 20, 4);
+      g.lineStyle(2, col.stroke, 1);
+      g.strokeRoundedRect(0, 2, 28, 20, 4);
+      g.generateTexture('wb_' + type, 28, 24);
+    }
+    g.clear();
   }
 
   private genParticleTextures(g: Phaser.GameObjects.Graphics) {
@@ -1026,7 +1063,7 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('spell_meteor',        'assets/spells/earth/meteor_sprite.webp',         { frameWidth: 256, frameHeight: 256 }); // 5×5=25
 
     // WIND
-    this.load.spritesheet('spell_gust',          'assets/spells/wind/gust_spritesheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_gust',          'assets/spells/wind/gust_spritesheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 5×5=25
     this.load.spritesheet('spell_wind_blade',    'assets/spells/wind/wind_blade_spritesheet.webp', { frameWidth: 256, frameHeight: 256 }); // 3×3=9
     this.load.spritesheet('spell_wind_wall',     'assets/spells/wind/wind_wall_spritesheet.webp',  { frameWidth: 153, frameHeight: 384 }); // 5×2=10 (768/5=153, 768/2=384)
     this.load.spritesheet('spell_lightning',      'assets/spells/wind/lightning_spritesheet.webp',  { frameWidth: 153, frameHeight: 384 }); // 5×2=10
@@ -1038,6 +1075,21 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('spell_ent',           'assets/spells/nature/ent_sheet.webp',            { frameWidth: 256, frameHeight: 256 }); // 3×3=9
     this.load.spritesheet('spell_wolf_idle',     'assets/spells/nature/wolf_idle_sheet.webp',      { frameWidth: 102, frameHeight: 102 }); // 5×5=25 (512/5=102)
     this.load.spritesheet('spell_wolf_attack',   'assets/spells/nature/wolf-attack-v2.webp',       { frameWidth: 102, frameHeight: 102 }); // 5×5=25
+
+    // PLANT NODES — спрайты ресурсных нод (ключ === node-sprite key из RESOURCE_NODES)
+    this.load.image('node_fiber_bush',   'assets/deco/plants/Bush_pink_flowers1.png');
+    this.load.image('node_fern_patch',   'assets/deco/plants/Fern1_1.png');
+    this.load.image('node_cactus_plant', 'assets/deco/plants/Cactus2_1.png');
+    this.load.image('node_oak_tree',     'assets/deco/plants/Autumn_tree1.png');
+    this.load.image('node_broken_tree',  'assets/deco/plants/Broken_tree7.png');
+    this.load.image('node_burned_tree',  'assets/deco/plants/Burned_tree1.png');
+    // Камни-жилы (mining)
+    this.load.image('node_copper_vein',   'assets/deco/Rocks/Rock1_1.webp');
+    this.load.image('node_copper_vein_2', 'assets/deco/Rocks/Rock2_1.webp');
+    this.load.image('node_copper_vein_3', 'assets/deco/Rocks/Rock6_1.webp');
+    // Ива (woodcutting) и Груда шкур (trophy) — раньше были кружками
+    this.load.image('node_willow_tree',  'assets/deco/Top-Down Simple Summer_Prop - Tree Medium.webp');
+    this.load.image('node_hide_pile',    'assets/deco/Top-Down Simple Summer_Prop - Wooden Barrel.webp');
   }
 
   create() {
@@ -1155,7 +1207,7 @@ export class BootScene extends Phaser.Scene {
     mkSpell('spell_meteor',     'spell_meteor',     24, 14, false);
 
     // WIND
-    mkSpell('spell_gust',          'spell_gust',          8,  12, false);
+    mkSpell('spell_gust',          'spell_gust',          24, 18, true);
     mkSpell('spell_wind_blade',    'spell_wind_blade',    8,  12, false);
     mkSpell('spell_wind_wall',     'spell_wind_wall',     9,  10, true);
     mkSpell('spell_lightning',     'spell_lightning',      9,  14, false);
@@ -1169,9 +1221,15 @@ export class BootScene extends Phaser.Scene {
 
     // Pre-extract every <symbol> from public/*.svg sheets into Phaser textures
     // so the canvas-rendered skill bar can show real icons.
-    loadAllSpriteSheets(this).then(() => {
-      this.scene.start('TitleScene');
-    });
+    loadAllSpriteSheets(this)
+      .catch((err) => {
+        // Сбой загрузки спрайтшита не должен вешать игру на чёрном BootScene —
+        // у контента есть процедурные плейсхолдеры, просто идём дальше.
+        console.error('[BootScene] sprite sheet load failed, continuing:', err);
+      })
+      .finally(() => {
+        this.scene.start('TitleScene');
+      });
   }
 
   /**

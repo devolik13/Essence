@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import './ui/inventory.css';
+import './ui/craftVendor.css';
 import { BootScene } from './scenes/BootScene';
 import { TitleScene } from './scenes/TitleScene';
 import { CharCreateScene } from './scenes/CharCreateScene';

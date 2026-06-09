@@ -22,14 +22,23 @@ export function formatCurrency(copper: number): string {
 
 /** Copper rewards per creature tier */
 export const MOB_COPPER_DROPS: Record<string, { min: number; max: number }> = {
-  // Village T1
-  rabbit:  { min: 1, max: 3 },
+  // Village T1 — животные
+  hare:    { min: 1, max: 3 },
+  grouse:  { min: 1, max: 3 },
+  fox:     { min: 3, max: 8 },
+  deer:    { min: 5, max: 10 },
+  boar:    { min: 5, max: 12 },
+  // Village T1 — гуманоиды / NPC
   goblin:  { min: 3, max: 8 },
   wolf:    { min: 5, max: 10 },
   bear:    { min: 8, max: 15 },
   orc:     { min: 8, max: 15 },
   scout:   { min: 5, max: 10 },
-  spirit:  { min: 10, max: 20 },
+  monk:    { min: 5, max: 12 },
+  shaman:  { min: 8, max: 15 },
+  elder:   { min: 8, max: 15 },
+  caravan_merchant: { min: 3, max: 8 },
+  spirit_wolf: { min: 10, max: 20 },
   // Elementals T1
   spark:    { min: 5, max: 12 },
   asher:    { min: 8, max: 15 },
@@ -52,8 +61,10 @@ export const MOB_COPPER_DROPS: Record<string, { min: number; max: number }> = {
   bandit_brute:    { min: 15, max: 25 },
   bandit_archer_veteran:   { min: 25, max: 45 },
   bandit_crossbow_veteran: { min: 25, max: 45 },
-  bandit_spear_veteran:    { min: 25, max: 45 },
   bandit_brute_veteran:    { min: 30, max: 50 },
+  // Guards
+  caravan_guard: { min: 10, max: 20 },
+  fort_guard:    { min: 10, max: 20 },
   // Bosses
   ignis:   { min: 200, max: 300 },
   aquaris: { min: 200, max: 300 },

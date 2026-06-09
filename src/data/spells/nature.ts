@@ -3,8 +3,8 @@ import { AbilityDef } from '../../types/abilities';
 // ─── NATURE SCHOOL ─────────────────────────────────────────────────────────────
 /** T1 — Призыв волка: призывает волка-союзника */
 export const MOB_NATURE_T1: AbilityDef = {
-  id: 'mob_nature_t1',
-  nameRu: 'Summon Wolf',
+  id: 'mob_summon_wolf',
+  nameRu: 'Призыв волка',
   school: 'nature',
   damageType: 'magic',
   effectType: 'summon_wolf',
@@ -16,9 +16,8 @@ export const MOB_NATURE_T1: AbilityDef = {
 };
 /** T2 — Древесная кора: самобафф +Стойкость на 8 сек */
 export const MOB_NATURE_T2: AbilityDef = {
-  id: 'mob_nature_t2',
-  prerequisiteId: 'mob_nature_t1',
-  nameRu: 'Bark Armor',
+  id: 'mob_bark_armor',
+  nameRu: 'Древесная кора',
   school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',
@@ -32,9 +31,8 @@ export const MOB_NATURE_T2: AbilityDef = {
 };
 /** T3 — Покров листвы: групповая аура регена HP (оригинал Archimage) */
 export const MOB_NATURE_T3: AbilityDef = {
-  id: 'mob_nature_t3',
-  prerequisiteId: 'mob_nature_t2',
-  nameRu: 'Leaf Canopy',
+  id: 'mob_leaf_canopy',
+  nameRu: 'Покров листвы',
   school: 'nature',
   damageType: 'magic',
   effectType: 'self_buff',
@@ -54,8 +52,8 @@ export const MOB_NATURE_T3: AbilityDef = {
 // ─── NATURE T4/T5 ────────────────────────────────────────────────────────────
 /** T4 — Ent: protective structure (Archimage: защищает связанных магов) */
 export const MOB_NATURE_T4: AbilityDef = {
-  id: 'mob_nature_t4', prerequisiteId: 'mob_nature_t3',
-  nameRu: 'Ent', school: 'nature', damageType: 'magic',
+  id: 'mob_ent',
+  nameRu: 'Энт', school: 'nature', damageType: 'magic',
   effectType: 'summon_ent',
   aoeRadius: 100,       // protection radius
   barrierDuration: 20,  // max lifetime
@@ -64,8 +62,8 @@ export const MOB_NATURE_T4: AbilityDef = {
 };
 /** T5 — Meteorokinesis: AoE debuff (Archimage: +5-15% стихийным) */
 export const MOB_NATURE_T5: AbilityDef = {
-  id: 'mob_nature_t5', prerequisiteId: 'mob_nature_t4',
-  nameRu: 'Meteorokinesis', school: 'nature', damageType: 'magic',
+  id: 'mob_meteorokinesis',
+  nameRu: 'Метеорокинез', school: 'nature', damageType: 'magic',
   isAoe: true, aoeRadius: 250,
   statusEffect: 'magic_vulnerability', statusChance: 1.0,
   castTime: 2, cooldown: 30, manaCost: 15, range: 0, baseDamage: 0,

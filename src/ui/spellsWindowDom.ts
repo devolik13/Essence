@@ -3,9 +3,10 @@
  * Hover shows spellTooltip.
  */
 import { AbilityDef } from '../types/abilities';
+import { t } from '../i18n';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from './spellTooltip';
 import { spriteIdForWeapon, createWeaponSvg, spriteForSpell, createSpriteSvg } from './weaponIcon';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 let root: HTMLElement | null = null;
@@ -45,10 +46,6 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   if (cls) e.className = cls;
   if (text !== undefined) e.textContent = text;
   return e;
-}
-
-function tier(sp: AbilityDef): string {
-  return sp.manaCost >= 15 ? 'T3' : sp.manaCost >= 10 ? 'T2' : 'T1';
 }
 
 function buildSpellCard(spell: AbilityDef, learned: boolean): HTMLElement {
@@ -122,12 +119,12 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
   const left = el('div', 'ess-header-left');
   const badge = el('span', 'sg-count', `${learnedIds.size} / ${spells.length}`);
   badge.style.marginLeft = '6px';
-  left.appendChild(el('span', undefined, 'Learned'));
+  left.appendChild(el('span', undefined, t('win.learned')));
   left.appendChild(badge);
 
   const title = el('div', 'ess-title');
-  title.textContent = 'Spells';
-  title.appendChild(el('span', 'sub', 'GRIMOIRE · MEMORY'));
+  title.textContent = t('win.spells');
+  title.appendChild(el('span', 'sub', t('spells.subtitle')));
 
   const right = el('div', 'ess-header-right');
   const close = el('div', 'ess-close-btn', '×');
@@ -142,7 +139,7 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
   // Body
   const body = el('div', 'ess-spells-body');
   if (spells.length === 0) {
-    body.appendChild(el('div', 'ess-empty', 'No spells known.'));
+    body.appendChild(el('div', 'ess-empty', t('spells.empty')));
   } else {
     // Group schools
     const nonWeapon = spells.filter(s => !s.requiredWeapons?.length);
@@ -190,6 +187,9 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
 
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-spells');
+  restoreWindowPos(win, 'esswin-spells');
 }
 
 export function hideSpellsWindowDom(): void {

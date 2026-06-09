@@ -9,13 +9,14 @@ import { lookupStarterBody } from '../data/starterBodies';
 import { CREATURE_DB } from '../data/creatureDB';
 import { TILE_SIZE, CAPTURE_RANGE } from '../utils/constants';
 import { distance, clamp } from '../utils/math';
-import { calcMeleeDamage, calcRangedDamage, calcMagicDamage } from '../systems/combat';
-import { WEAPONS } from '../data/weapons';
+import { calcMeleeDamage, calcRangedDamage, calcMagicDamage, physicalReduction, magicalReduction } from '../systems/combat';
+import { WEAPONS, weaponDamageType, getItemWeaponType } from '../data/weapons';
 import {
   CaptureProcess, CaptureState,
   startCapture, updateCapture, interruptCapture,
 } from '../systems/capture';
-import { addXP, isFirstCapReached } from '../systems/progression';
+import { distributeXP, isFirstCapReached } from '../systems/progression';
+import { SpatialGrid } from '../systems/spatialGrid';
 import { Stats, StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
@@ -23,7 +24,7 @@ import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS, getSpellById } from '../data/allSpells';
 import { ALL_ZONES, ZoneConfig } from '../data/zones';
-import { rollLoot, ITEMS } from '../data/itemDB';
+import { rollLoot, ITEMS, equipmentStatBonuses } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t } from '../i18n';
@@ -32,11 +33,13 @@ import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
-import { STATUS_DEFS, StatusEffectId } from '../types/statuses';
+import { WORKBENCH_NAMES_RU, WORKBENCH_COLORS } from '../data/craftpixAssets';
+import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
+import { buyRecipe as buyRecipeLogic, buyMaterial as buyMaterialLogic, consumeCraftMaterials, completeCraft, disassemble } from '../systems/craftingLogic';
 import { MapEditor } from '../systems/mapEditor';
 import {
   SummonedEnt, FireTsunami, GroundZone, SummonedWall, WindBarrier,
@@ -45,11 +48,19 @@ import {
 } from './gameSceneTypes';
 export { DEATH_DEBUFF_MULT } from './gameSceneTypes';
 
+/** Радиус очистки стартовой зоны от агрессивных существ вокруг камня
+ *  возрождения Эшворта (px). Дефолтные спавны внутри удаляются. */
+const START_CLEAR_RADIUS = 1400;
+
 export class GameScene extends Phaser.Scene {
   private sphere!: Sphere;
   private playerBody: Body | null = null;
   private creatures: Creature[] = [];
   private caravans: Caravan[] = [];
+  /** Пространственная сетка живых существ, перестраивается каждый кадр. */
+  private creatureGrid = new SpatialGrid<Creature>(300);
+  /** Кэш статичных точек NPC для миникарты (NPC не двигаются). */
+  private cachedNpcDots: { x: number; y: number }[] | null = null;
   private damageTexts: DamageText[] = [];
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
@@ -134,6 +145,10 @@ export class GameScene extends Phaser.Scene {
   } | null = null;
   private aoeIndicator!: Phaser.GameObjects.Graphics;
   private protectZoneGfx!: Phaser.GameObjects.Graphics;
+  /** Слабый круг дальности активного оружия вокруг игрока. */
+  private weaponRangeGfx!: Phaser.GameObjects.Graphics;
+  /** Экранная стрелка-указатель на ближайшую квест-цель (когда она за экраном). */
+  private questArrow!: Phaser.GameObjects.Text;
 
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
@@ -158,6 +173,18 @@ export class GameScene extends Phaser.Scene {
   public editorMode = false;
   private spawnX?: number;
   private spawnY?: number;
+
+  /**
+   * Снятие слушателей/хендлеров, добавленных в create().
+   * scene.restart() (смена зоны) переиспользует this.events и не чистит его,
+   * поэтому без явного снятия собственные слушатели GameScene дублировались бы
+   * с каждым рестартом (множит persist/клики). Заполняется через trackEvent(),
+   * прогоняется в SHUTDOWN.
+   */
+  private teardownFns: Array<() => void> = [];
+
+  /** Текущая цель слежения камеры — чтобы не дёргать startFollow каждый кадр. */
+  private cameraFollowTarget?: Phaser.GameObjects.GameObject;
 
   // New game flow
   private isNewGame = false;
@@ -205,9 +232,36 @@ export class GameScene extends Phaser.Scene {
     this.questObjects = [];
     this.bodyQuestObjects = [];
     this.bodyQuestTracker.clear();
+    this.teardownFns = [];
+    this.cameraFollowTarget = undefined;
+    this.cachedNpcDots = null;
+    this.creatureGrid.clear();
+  }
+
+  /**
+   * Регистрирует слушатель на this.events и запоминает его снятие для SHUTDOWN.
+   * Снимаем именно по ссылке (а не events.off(event)), чтобы не задеть
+   * слушателей UIScene на тех же событиях (напр. 'spell-learned').
+   */
+  private trackEvent(event: string, handler: (...args: any[]) => void): void {
+    this.events.on(event, handler);
+    this.teardownFns.push(() => this.events.off(event, handler));
+  }
+
+  /** Переключает слежение камеры только при реальной смене цели (не каждый кадр). */
+  private followCamera(target: Phaser.GameObjects.GameObject): void {
+    if (this.cameraFollowTarget === target) return;
+    this.cameraFollowTarget = target;
+    this.cameras.main.startFollow(target, true, 0.1, 0.1);
   }
 
   create() {
+    // Снимаем все слушатели/хендлеры этой сцены при выгрузке. scene.restart()
+    // на смене зоны переиспользует эмиттер — без этого хендлеры накапливаются.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      for (const fn of this.teardownFns) fn();
+      this.teardownFns = [];
+    });
     // ─── Квесты ──────────────────────────────────────
     this.questTracker = new QuestTracker(QUESTS);
 
@@ -227,9 +281,7 @@ export class GameScene extends Phaser.Scene {
         }
       };
       window.addEventListener('keydown', domHandler);
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-        window.removeEventListener('keydown', domHandler);
-      });
+      this.teardownFns.push(() => window.removeEventListener('keydown', domHandler));
     }
 
     // ─── Сфера ───────────────────────────────────────
@@ -245,17 +297,11 @@ export class GameScene extends Phaser.Scene {
       this.sphere.characterName = this.newGameCharName ?? '';
       if (this.newGameWeapon1) {
         const itemId1 = `starter_${this.newGameWeapon1}`;
-        this.sphere.equipment.weapon = itemId1;
-        if (!this.sphere.inventory.find(i => i.itemId === itemId1)) {
-          this.sphere.inventory.push({ itemId: itemId1, quantity: 1 });
-        }
+        this.sphere.equipment.weapon = itemId1; // только в экипировку (не дублируем в сумку)
       }
       if (this.newGameWeapon2) {
         const itemId2 = `starter_${this.newGameWeapon2}`;
         this.sphere.equipment.weapon2 = itemId2;
-        if (!this.sphere.inventory.find(i => i.itemId === itemId2)) {
-          this.sphere.inventory.push({ itemId: itemId2, quantity: 1 });
-        }
       }
     } else {
       const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
@@ -263,7 +309,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // UI scenes (e.g. inventory equip/unequip) request a save via this event.
-    this.events.on('persist', () => this.persistState());
+    this.trackEvent('persist', () => this.persistState());
 
     // ─── Debug / cheat commands (DevTools console) ──────────────────────────
     // Usage: cheatWeapons() — adds 1 of every starter weapon to inventory
@@ -300,13 +346,18 @@ export class GameScene extends Phaser.Scene {
       (window as unknown as { cheatWeapons: () => void }).cheatWeapons();
       (window as unknown as { cheatSpells: () => void }).cheatSpells();
     };
+    // Снимаем чит-функции при выгрузке сцены (C4) — не оставляем висеть на window.
+    this.teardownFns.push(() => {
+      const w = window as unknown as Record<string, unknown>;
+      delete w.cheatWeapons; delete w.cheatSpells; delete w.cheatAll;
+    });
 
     // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
     const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
     if (autoBodyId) {
       const bodyDef = CREATURE_DB[autoBodyId] ?? lookupStarterBody(autoBodyId);
       if (bodyDef) {
-        this.playerBody = new Body(this, startX, startY, bodyDef, this.sphere.stats);
+        this.playerBody = new Body(this, startX, startY, bodyDef, this.getEquippedStats());
         this.playerBody.mapW = zoneW; this.playerBody.mapH = zoneH;
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
         this.playerBody.possess(this);
@@ -334,7 +385,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Камера ──────────────────────────────────────
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
-    this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
+    this.followCamera(this.sphere);
 
     // Show prologue on first game start (village only)
     if (this.currentZone.id === 'village') {
@@ -348,6 +399,9 @@ export class GameScene extends Phaser.Scene {
     // ─── AoE индикатор (следует за мышью) ─────────────
     this.aoeIndicator = this.add.graphics().setDepth(60).setVisible(false);
     this.protectZoneGfx = this.add.graphics().setDepth(2).setVisible(false);
+    this.weaponRangeGfx = this.add.graphics().setDepth(1).setVisible(false);
+    this.questArrow = this.add.text(0, 0, '➤', { fontSize: '22px', color: '#55ff66', stroke: '#000', strokeThickness: 3 })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(900).setVisible(false);
 
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
@@ -367,7 +421,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // При изучении заклинания — обновляем слоты и квесты
-    this.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
+    this.trackEvent('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       if (this.playerBody) this.fillBodySlots(this.playerBody);
       const spellCompleted = this.questTracker.onSpellLearned(spell.id);
       for (const q of spellCompleted) this.onQuestComplete(q);
@@ -379,7 +433,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Переключение отслеживания квеста
-    this.events.on('track-quest', (questId: string) => {
+    this.trackEvent('track-quest', (questId: string) => {
       const ids = this.sphere.trackedQuestIds;
       const idx = ids.indexOf(questId);
       if (idx >= 0) {
@@ -391,7 +445,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Назначение заклинания в слот из spell picker (из UIScene)
-    this.events.on('assign-spell', (data: { slotIndex: number; spell: import('../types/abilities').AbilityDef | null }) => {
+    this.trackEvent('assign-spell', (data: { slotIndex: number; spell: import('../types/abilities').AbilityDef | null }) => {
       if (!this.playerBody) return;
       const slot = this.playerBody.abilitySlots[data.slotIndex];
       if (!slot) return;
@@ -403,12 +457,12 @@ export class GameScene extends Phaser.Scene {
       this.persistState();
     });
 
-    this.events.on('activate-spell-slot', (slotIndex: number) => {
+    this.trackEvent('activate-spell-slot', (slotIndex: number) => {
       if (slotIndex === 0) this.handleAttack();
       else this.activateSpellSlot(slotIndex);
     });
 
-    this.events.on('use-item', (itemId: string) => {
+    this.trackEvent('use-item', (itemId: string) => {
       const def = ITEMS[itemId];
       if (!def || def.type !== 'consumable') return;
       if (!this.sphere.useItem(itemId)) return;
@@ -486,6 +540,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private persistState() {
+    // Пересчёт «постоянных» статов тела от текущей экипировки (maxHP/maxMana/база брони).
+    // persistState вызывается при любой смене снаряжения (equip/unequip/disassemble/use-item).
+    if (this.playerBody) this.playerBody.refreshStats(this.getEquippedStats());
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
@@ -499,11 +556,34 @@ export class GameScene extends Phaser.Scene {
     // Обновляем сферу
     this.sphere.update(time, delta);
 
+    // Пространственная сетка живых существ — строится раз в кадр (позиции с
+    // конца прошлого кадра) и обслуживает соседние запросы (фракции, бой,
+    // ближайший враг волка) за O(соседей) вместо O(всех). Должна быть готова
+    // до игрового ввода ниже (tryCaptureDead читает isInCombat).
+    this.creatureGrid.clear();
+    for (const c of this.creatures) {
+      if (!c.isDead) this.creatureGrid.insert(c);
+    }
+
     // Обновляем тело игрока
     if (this.playerBody) {
+      // Цветные числа DoT над игроком (огонь — красный, яд — фиолетовый, мана — синий).
+      if (!this.playerBody.onDotTick) {
+        this.playerBody.onDotTick = (x, y, amount, kind) => {
+          this.damageTexts.push(new DamageText(this, x, y, amount, false, false, undefined, kind));
+        };
+      }
       this.playerBody.update(time, delta);
       // Камера следит за телом
-      this.cameras.main.startFollow(this.playerBody, true, 0.1, 0.1);
+      this.followCamera(this.playerBody);
+
+      // Слабый круг дальности активного оружия (следует за телом)
+      this.weaponRangeGfx.clear().setVisible(true)
+        .lineStyle(1, 0xffffff, 0.14)
+        .strokeCircle(this.playerBody.x, this.playerBody.y, this.playerBody.weapon.range);
+
+      // Стрелка-указатель на квест-цель (если она за экраном)
+      this.updateQuestArrow();
 
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
@@ -540,7 +620,9 @@ export class GameScene extends Phaser.Scene {
         if (this.allyTargeting) this.exitAllyTargeting();
       }
     } else {
-      this.cameras.main.startFollow(this.sphere, true, 0.1, 0.1);
+      this.followCamera(this.sphere);
+      this.weaponRangeGfx.setVisible(false); // в астрале оружия нет
+      this.questArrow.setVisible(false);
 
       // В астрале: [E] — NPC, захват стартового тела, или мёртвого существа
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
@@ -553,8 +635,11 @@ export class GameScene extends Phaser.Scene {
     // Обновляем караваны (двигают телегу + строят охрану в формацию)
     // Делаем это ПЕРЕД обновлением мобов, чтобы каждый кадр их позиции
     // были выставлены к слотам формации до AI-логики мобов.
+    // Караван — самоуправляемый цикл (A→B→ожидание→полный респаун в A). Он сам
+    // добавляет/удаляет эскорт и рейдеров через колбэки на this.creatures, так
+    // что здесь фильтровать массив не нужно. Деспавн происходит только при смене
+    // зоны / teardown через caravan.destroy() (см. init/clear).
     for (const caravan of this.caravans) caravan.update(time, delta);
-    this.caravans = this.caravans.filter(c => !c.destroyed && !c.arrived);
 
     // Обновляем мобов
     const px = this.playerBody?.x ?? -9999;
@@ -564,9 +649,19 @@ export class GameScene extends Phaser.Scene {
     // suppressed — chasing mobs return to spawn. NPC faction wars continue
     // (creature.factionTarget is unaffected by skipAggro).
     const playerInSafe = !!(this.playerBody && this.isInSafeZone(this.playerBody.x, this.playerBody.y));
+    // Вид игрока: id тела без суффикса _veteran (orc/orc_veteran → 'orc').
+    // Свои (тот же вид) не агрятся на вселённое тело (орки уважают вождя).
+    // Ретализация при атаке всё равно срабатывает (aggroCreature игнорит skipAggro).
+    const playerSpecies = this.playerBody ? this.playerBody.definition.id.replace(/_veteran$/, '') : '';
     for (const creature of this.creatures) {
       creature.skipAggro = playerInSafe ||
-        (!!friendlyIds && friendlyIds.includes(creature.definition.id));
+        (!!friendlyIds && friendlyIds.includes(creature.definition.id)) ||
+        (!!playerSpecies && creature.definition.id.replace(/_veteran$/, '') === playerSpecies) ||
+        // Фракционные существа (рейдеры + эскорт каравана) воюют через
+        // faction-war AI + ретализацию, а не по близости игрока. Они не агрятся
+        // на игрока по дистанции — чтобы можно было подойти и вселиться. При
+        // атаке игроком ретализация всё равно работает (aggroCreature игнорит skipAggro).
+        !!creature.definition.faction;
       // ── Призванный союзник — отдельная логика ──────────────────────────
       if (creature.isSummoned) {
         if (creature.isDead) continue;
@@ -582,11 +677,11 @@ export class GameScene extends Phaser.Scene {
         // 2. Иначе ближайший враг в радиусе 300px
         if (!wolfTarget) {
           let nearestDist = 300;
-          for (const c of this.creatures) {
-            if (c === creature || c.isDead || c.isSummoned) continue;
+          this.creatureGrid.forEachNear(creature.x, creature.y, 300, (c) => {
+            if (c === creature || c.isDead || c.isSummoned) return;
             const d = distance(creature.x, creature.y, c.x, c.y);
             if (d < nearestDist) { nearestDist = d; wolfTarget = c; }
-          }
+          });
         }
 
         // 3. Если игрок далеко (>250px) — бежим к нему, бросаем цель
@@ -657,6 +752,12 @@ export class GameScene extends Phaser.Scene {
         const spell = creature.consumeCastingSpell();
         if (spell) this.creatureCastSpell(creature, spell);
       }
+    }
+
+    // Смерть от DoT (яд/горение в собственном update) — засчитать убийство
+    // (XP/лут), иначе существо просто зависает мёртвым. killProcessed дедуплицирует.
+    for (const c of [...this.creatures]) {
+      if (c.isDead && !c.killProcessed) this.onCreatureKilled(c);
     }
 
     // Столкновения: тело игрока ↔ мобы
@@ -753,12 +854,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.captureProcess && this.captureProcess.state === CaptureState.Casting) {
-      this.captureProcess = updateCapture(this.captureProcess, delta);
-
-      if (this.captureProcess.state === CaptureState.Success && this.captureTarget) {
-        this.completeCaptureCreature(this.captureTarget);
-        this.captureProcess = null;
+      // Захват требует стоять на месте — движение (WASD/клик) прерывает.
+      if (this.playerBody?.isMoving) {
+        this.captureProcess = interruptCapture(this.captureProcess);
         this.captureTarget = null;
+        this.events.emit('capture-interrupt');
+        this.showMessage('Захват прерван — нужно стоять на месте');
+      } else {
+        this.captureProcess = updateCapture(this.captureProcess, delta);
+
+        if (this.captureProcess.state === CaptureState.Success && this.captureTarget) {
+          this.completeCaptureCreature(this.captureTarget);
+          this.captureProcess = null;
+          this.captureTarget = null;
+        }
       }
     }
 
@@ -790,11 +899,15 @@ export class GameScene extends Phaser.Scene {
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
         : this.gatheringNode
           ? { elapsed: 3 - this.gatheringTimer, duration: 3, name: `⛏ ${this.gatheringNode.def.nameRu}` }
-          : null,
+          : (this.craftingRecipe && this.craftingTimer > 0)
+            ? { elapsed: this.craftingRecipe.craftTime - this.craftingTimer, duration: this.craftingRecipe.craftTime, name: `⚒ ${this.craftingRecipe.nameRu}` }
+            : null,
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
-      mapDotNpcs: this.worldNPCs.map(n => ({ x: n.x, y: n.y })),
+      mapDotNpcs: (this.cachedNpcDots ??= this.worldNPCs.map(n => ({ x: n.x, y: n.y }))),
       mapDotNodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
+      mapDotQuests: [...this.questObjects, ...this.bodyQuestObjects]
+        .filter(q => !q.used).map(q => ({ x: q.x, y: q.y })),
       creatures: this.creatures.map(c => ({
         x: c.x, y: c.y,
         isDead: c.isDead,
@@ -1172,7 +1285,7 @@ export class GameScene extends Phaser.Scene {
     const sb = this.starterBodies[index];
     const pos = { x: sb.x, y: sb.y };
     this.spawnCaptureFlash(pos.x, pos.y, () => {
-      this.playerBody = new Body(this, pos.x, pos.y, def, this.sphere.stats);
+      this.playerBody = new Body(this, pos.x, pos.y, def, this.getEquippedStats());
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
@@ -1183,36 +1296,67 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Базовая атака слота 0 — динамически по оружию в руках (тултип должен
+   *  совпадать с реальным ударом: кастеты → Strike/melee, лук → Shot/ranged,
+   *  посох → Staff Strike/magic). Слот 0 всегда вызывает handleAttack, так что
+   *  этот AbilityDef — только подпись/иконка. */
+  private basicAttackDef(body: Body): import('../types/abilities').AbilityDef {
+    const w = body.weapon; // следует за активным/природным оружием
+    const dt = weaponDamageType(w.type);
+    // Когти (зверь/элементаль ИЛИ безоружный гуманоид) — Когти/Стихия;
+    // иначе по оружию в руках.
+    const nameRu = !body.usesInnateAttack
+      ? (dt === 'magic' ? 'Staff Strike' : dt === 'ranged' ? 'Shot' : 'Strike')
+      : (dt === 'magic' ? t('body.element') : t('body.claws'));
+    const description = dt === 'magic' ? 'Магическая атака'
+      : dt === 'ranged' ? 'Дальняя атака' : 'Ближняя атака';
+    return {
+      id: 'basic_attack', nameRu, damageType: dt,
+      cooldown: w.cooldown, manaCost: 0, range: w.range, baseDamage: 0, description,
+    };
+  }
+
   /** Заполняет слоты умений тела: слот 1 — базовая атака, слоты 2+ — заклинания */
   private fillBodySlots(body: Body) {
-    // Слот 0 — всегда базовая атака тела
-    body.abilitySlots[0].ability = BASIC_ATTACKS[body.definition.id] ?? BASIC_ATTACKS['default'];
+    // Слот 0 — базовая атака по оружию в руках (динамически)
+    body.abilitySlots[0].ability = this.basicAttackDef(body);
 
     // Очищаем остальные слоты
     for (let i = 1; i < 8; i++) body.abilitySlots[i].ability = null;
 
-    // Не-гуманоиды: только своё умение (слот 1), остальное заблокировано
+    // Не-гуманоиды (звери/элементали): из оружейного — только базовая атака
+    // (слот 0, Когти/Стихия) + родной скил (слот 1). Оружейные слоты 2-4
+    // заблокированы. НО нейтральные скилы (5-7) — любые, что знает Сфера
+    // (Ускорение кролика и т.п. работают в любом теле).
     if (!body.definition.canUseAllSpells) {
       const sig = body.definition.signatureSpell;
       if (sig) {
         const learned = this.sphere.learnedSpells.find(s => s.id === sig.id);
         if (learned) body.abilitySlots[1].ability = learned;
       }
+      this.fillNeutralSlots(body);
       return;
     }
 
     // Гуманоиды: слоты 0-4 = оружейные, слоты 5-7 = нейтральные
     const equip = this.sphere.equipment;
     const activeWeaponId = this.sphere.activeWeaponSlot === 0 ? equip.weapon : equip.weapon2;
+    const activeWeaponType = activeWeaponId ? getItemWeaponType(activeWeaponId) : undefined;
+    // Умение подходит активному оружию, если у него нет requiredWeapons
+    // (нейтральное/универсальное) ИЛИ текущее оружие входит в список.
+    const fitsWeapon = (sp: import('../types/abilities').AbilityDef | null) =>
+      !sp || !sp.requiredWeapons || (activeWeaponType !== undefined && sp.requiredWeapons.includes(activeWeaponType));
 
     // Слоты 0-4: загружаем сохранённую конфигурацию для текущего оружия
     if (activeWeaponId && this.sphere.weaponSlotConfigs[activeWeaponId]) {
       const config = this.sphere.weaponSlotConfigs[activeWeaponId];
       for (let i = 0; i < 5; i++) {
         const spellId = config[i];
-        body.abilitySlots[i].ability = spellId
+        const resolved = spellId
           ? (this.sphere.learnedSpells.find(s => s.id === spellId) ?? BASIC_ATTACKS[body.definition.id] ?? null)
           : null;
+        // Чужие оружейные умения в слот не пускаем (Hook на луке и т.п.).
+        body.abilitySlots[i].ability = fitsWeapon(resolved) ? resolved : null;
       }
     } else {
       // Автозаполнение слотов 0-4: базовая атака + T1/T2/T3 оружия
@@ -1224,7 +1368,12 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Слоты 5-7: нейтральные (сохранённые или автозаполнение)
+    this.fillNeutralSlots(body);
+  }
+
+  /** Слоты 5-7 — нейтральные (не оружейные) скилы Сферы. Доступны в ЛЮБОМ теле,
+   *  включая зверей/элементалей: Ускорение/Рывок/Лечение и т.п. */
+  private fillNeutralSlots(body: Body) {
     const neutralSlotIds = this.sphere.savedSlotIds.slice(5);
     for (let i = 0; i < 3; i++) {
       const savedId = neutralSlotIds[i];
@@ -1327,7 +1476,45 @@ export class GameScene extends Phaser.Scene {
     // Спавним мобов текущей зоны (из конфига)
     spawnGroup(this.currentZone.spawnGroups);
 
-    // Спавним мобов из редактора карт (mob_* объекты)
+    // Разброс: существа рандомно по всей карте, мимо сейф-зон (ветераны и т.п.)
+    {
+      const mapW = this.currentZone.widthTiles * TILE_SIZE;
+      const mapH = this.currentZone.heightTiles * TILE_SIZE;
+      for (const sc of this.currentZone.scatterSpawns ?? []) {
+        const def = CREATURE_DB[sc.creatureId];
+        if (!def) continue;
+        for (let i = 0; i < sc.count; i++) {
+          let x = 0, y = 0;
+          for (let attempt = 0; attempt < 20; attempt++) {
+            x = 80 + Math.random() * (mapW - 160);
+            y = 80 + Math.random() * (mapH - 160);
+            if (!this.isInSafeZone(x, y)) break;
+          }
+          this.creatures.push(new Creature(this, x, y, def));
+        }
+      }
+    }
+
+    // Очистка стартовой зоны (только village/Эшворт): рядом со стартовой
+    // точкой возрождения не должно быть этих существ, чтобы новичок не попадал
+    // сразу в замес. Они остаются дальше по карте (для квестов/контента).
+    // ВАЖНО: фильтр идёт ДО спавна мобов из редактора — ручные правки игрока
+    // (mob_* объекты) не удаляются, можно добавить кого угодно у старта.
+    if (this.currentZone.id === 'village') {
+      const start = this.currentZone.respawnPoint;
+      const isCleared = (id: string) =>
+        id === 'fox' || id === 'orc' || id === 'shaman' ||
+        id === 'goblin_veteran' || id === 'pebble' || id.startsWith('wolf');
+      this.creatures = this.creatures.filter((c) => {
+        if (!isCleared(c.definition.id)) return true;
+        const inRadius = Math.hypot(c.x - start.x, c.y - start.y) < START_CLEAR_RADIUS;
+        if (inRadius) { c.destroy(); return false; }
+        return true;
+      });
+    }
+
+    // Спавним мобов из редактора карт (mob_* объекты) — после очистки, чтобы
+    // ручные размещения игрока всегда сохранялись.
     if (this.mapEditor) {
       for (const ms of this.mapEditor.getMobSpawns()) {
         const def = CREATURE_DB[ms.creatureId];
@@ -1336,7 +1523,17 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Караваны (живые группы: телега + охранники + мерчант, едут по маршруту)
+    // Внутри сейф-зон (городов за забором) мобы не спавнятся вообще — убираем
+    // всех (из конфига/разброса/редактора), кто оказался в любой сейф-зоне.
+    // ДО спавна караванов, чтобы их охрану/мерчанта (стартуют у Вальдмара) не задеть.
+    this.creatures = this.creatures.filter((c) => {
+      if (this.isInSafeZone(c.x, c.y)) { c.destroy(); return false; }
+      return true;
+    });
+
+    // Караваны (живые группы: телега + охранники + мерчант + рейдеры, цикл A→B).
+    // Передаём колбэки на ТЕКУЩИЙ this.creatures (он переприсваивается фильтром
+    // в нескольких местах), чтобы караван надёжно добавлял/удалял своих существ.
     for (const cs of this.currentZone.caravans ?? []) {
       this.caravans.push(new Caravan(
         this,
@@ -1344,17 +1541,23 @@ export class GameScene extends Phaser.Scene {
         cs.end.x,   cs.end.y,
         cs.speed ?? 36,
         cs.guardCount ?? 2,
-        this.creatures,
+        (c) => { this.creatures.push(c); },
+        (c) => { this.creatures = this.creatures.filter(x => x !== c); },
       ));
     }
 
     // Подключаем проверку стен и сейф-зоны ко всем существам
-    const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);
-    const safeArr = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
-    for (const c of this.creatures) {
-      c.wallCheckFn = wallCheck;
-      c.safeBoundsArr = safeArr;
-    }
+    for (const c of this.creatures) this.applyCreatureEnv(c);
+  }
+
+  /** Подключает к существу проверку стен и сейф-зон (мобы не заходят в сейф-зону). */
+  private applyCreatureEnv(c: Creature) {
+    c.wallCheckFn = (x: number, y: number) => this.isBlockedByWall(x, y, false);
+    c.safeBoundsArr = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
+    // Цветные всплывающие числа от DoT (огонь — красный, яд — фиолетовый, кровь — алый).
+    c.onDotTick = (x, y, amount, kind) => {
+      this.damageTexts.push(new DamageText(this, x, y, amount, false, false, undefined, kind));
+    };
   }
 
   // ─── Ресурсные ноды, верстаки, NPC ────────────────────
@@ -1362,27 +1565,63 @@ export class GameScene extends Phaser.Scene {
   private spawnWorldObjects() {
     const zone = this.currentZone;
 
-    // Resource nodes
-    for (const ns of zone.resourceNodes ?? []) {
-      const def = RESOURCE_NODES[ns.nodeId];
-      if (!def) continue;
-      const container = this.add.container(ns.x, ns.y).setDepth(3);
-      const circle = this.add.circle(0, 0, 12, def.color, 0.7);
+    // ── Локальные хелперы рендера (общие для zone-массивов и editor-placed) ──
+    const addResourceNode = (x: number, y: number, nodeId: string) => {
+      const def = RESOURCE_NODES[nodeId];
+      if (!def) return;
+      const container = this.add.container(x, y).setDepth(3);
+      // Тело ноды: PNG-спрайт (куст/дерево) если задан и загружен, иначе кружок.
+      let body: Phaser.GameObjects.GameObject;
+      if (def.sprite && this.textures.exists(def.sprite)) {
+        const img = this.add.image(0, 0, def.sprite).setOrigin(0.5, 0.9);
+        img.setScale((40 / img.height));
+        body = img;
+      } else {
+        body = this.add.circle(0, 0, 12, def.color, 0.7);
+      }
       const label = this.add.text(0, -20, def.nameRu, { fontSize: '8px', color: '#dddddd', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
-      container.add([circle, label, eKey]);
-      this.resourceNodes.push({ x: ns.x, y: ns.y, def, gfx: container, cooldown: 0, depleted: false });
-    }
+      container.add([body, label, eKey]);
+      this.resourceNodes.push({ x, y, def, gfx: container, cooldown: 0, depleted: false });
+    };
 
-    // Workbenches
-    for (const wb of zone.workbenches ?? []) {
-      const container = this.add.container(wb.x, wb.y).setDepth(5);
-      const rect = this.add.rectangle(0, 0, 28, 20, 0x664422, 0.8).setStrokeStyle(2, 0x996633);
-      const label = this.add.text(0, -18, wb.nameRu, { fontSize: '8px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+    const addWorkbench = (x: number, y: number, type: string, nameRu: string) => {
+      const container = this.add.container(x, y).setDepth(5);
+      const col = WORKBENCH_COLORS[type] ?? { fill: 0x664422, stroke: 0x996633 };
+      const rect = this.add.rectangle(0, 0, 28, 20, col.fill, 0.85).setStrokeStyle(2, col.stroke);
+      const label = this.add.text(0, -18, nameRu, { fontSize: '8px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const icon = this.add.text(0, 0, '⚒', { fontSize: '14px' }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       container.add([rect, label, icon, eKey]);
-      this.workbenches.push({ x: wb.x, y: wb.y, type: wb.type, nameRu: wb.nameRu, gfx: container });
+      this.workbenches.push({ x, y, type, nameRu, gfx: container });
+    };
+
+    // Resource nodes (из конфига зоны)
+    for (const ns of zone.resourceNodes ?? []) {
+      addResourceNode(ns.x, ns.y, ns.nodeId);
+    }
+
+    // Workbenches (из конфига зоны)
+    for (const wb of zone.workbenches ?? []) {
+      addWorkbench(wb.x, wb.y, wb.type, wb.nameRu);
+    }
+
+    // Ноды и верстаки, расставленные в редакторе карт (node_* / wb_* объекты).
+    if (this.mapEditor) {
+      for (const ns of this.mapEditor.getResourceNodeSpawns()) {
+        addResourceNode(ns.x, ns.y, ns.nodeId);
+      }
+      for (const wb of this.mapEditor.getWorkbenchSpawns()) {
+        addWorkbench(wb.x, wb.y, wb.type, WORKBENCH_NAMES_RU[wb.type] ?? wb.type);
+      }
+      // Колодцы — лечебные точки в городе ([E] = полный HP/мана).
+      for (const o of this.mapEditor.getObjects()) {
+        if (o.key !== 'cp_well') continue;
+        const hint = this.add.container(o.x, o.y).setDepth(6);
+        const label = this.add.text(0, -34, '💧 Колодец', { fontSize: '8px', color: '#aaddff', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+        const eKey = this.add.text(0, -22, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+        hint.add([label, eKey]);
+      }
     }
 
     // NPCs
@@ -1436,13 +1675,23 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // Healing well — restores full HP + mana (placed map fixture `cp_well`).
+    if (this.mapEditor) {
+      for (const o of this.mapEditor.getObjects()) {
+        if (o.key !== 'cp_well') continue;
+        if (distance(px, py, o.x, o.y) < interactRange) {
+          this.useHealingWell();
+          return true;
+        }
+      }
+    }
+
     // NPCs (vendor)
     for (const npc of this.worldNPCs) {
       const d = distance(px, py, npc.x, npc.y);
       if (d < interactRange) {
         if (npc.role === 'vendor') {
           this.openVendorUI();
-          this.events.emit('open-vendor');
         } else if (npc.role === 'weapon_vendor') {
           this.openWeaponVendor();
         } else if (npc.role === 'npc') {
@@ -1462,6 +1711,25 @@ export class GameScene extends Phaser.Scene {
     }
 
     return false;
+  }
+
+  /** Городской колодец: полностью восстанавливает HP и ману текущего тела. */
+  private useHealingWell(): void {
+    const b = this.playerBody;
+    if (!b) return;
+    if (b.currentHP >= b.maxHP && b.currentMana >= b.maxMana) {
+      this.showMessage('Колодец: здоровье и мана уже полны');
+      return;
+    }
+    const hpHealed = Math.round(b.maxHP - b.currentHP);
+    const manaHealed = Math.round(b.maxMana - b.currentMana);
+    b.currentHP = b.maxHP;
+    b.currentMana = b.maxMana;
+    if (hpHealed > 0) this.damageTexts.push(new DamageText(this, b.x, b.y - 10, hpHealed, false, false, `+${hpHealed} HP`, 'heal'));
+    if (manaHealed > 0) this.damageTexts.push(new DamageText(this, b.x, b.y - 24, manaHealed, false, false, `+${manaHealed} MP`, 'mana'));
+    sfxHeal();
+    this.spawnAoeFlash(b.x, b.y, 50);
+    this.showMessage('Колодец восстановил здоровье и ману');
   }
 
   private interactQuestObject(qo: typeof this.questObjects[0]): boolean {
@@ -1631,6 +1899,36 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Show/hide exit arrows based on player distance to edge */
+  /** Стрелка у края экрана, указывающая на ближайшую активную квест-цель,
+   *  когда та за пределами видимой области. На экране — стрелка скрыта. */
+  private updateQuestArrow() {
+    if (!this.playerBody) { this.questArrow.setVisible(false); return; }
+    let target: { x: number; y: number } | null = null;
+    let best = Infinity;
+    // Цели: объекты основной линии + объекты активного квеста тела (поляна оленя
+    // и т.п.) — иначе в теле зверя непонятно, куда бежать.
+    for (const q of [...this.questObjects, ...this.bodyQuestObjects]) {
+      if (q.used) continue;
+      const d = distance(this.playerBody.x, this.playerBody.y, q.x, q.y);
+      if (d < best) { best = d; target = q; }
+    }
+    if (!target) { this.questArrow.setVisible(false); return; }
+
+    const cam = this.cameras.main;
+    if (cam.worldView.contains(target.x, target.y)) {
+      this.questArrow.setVisible(false); // цель на экране — стрелка не нужна
+      return;
+    }
+    const ang = Math.atan2(target.y - this.playerBody.y, target.x - this.playerBody.x);
+    const W = cam.width, H = cam.height, m = 44;
+    const cx = W / 2, cy = H / 2;
+    const dx = Math.cos(ang), dy = Math.sin(ang);
+    const tx = dx !== 0 ? (dx > 0 ? W - m - cx : m - cx) / dx : Infinity;
+    const ty = dy !== 0 ? (dy > 0 ? H - m - cy : m - cy) / dy : Infinity;
+    const t = Math.min(Math.abs(tx), Math.abs(ty));
+    this.questArrow.setPosition(cx + dx * t, cy + dy * t).setRotation(ang).setVisible(true);
+  }
+
   private updateExitArrows() {
     const entity = this.playerBody ?? this.sphere;
     if (!entity) return;
@@ -1730,6 +2028,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Arms Dealer: gives all starter weapons for free */
   private openWeaponVendor() {
+    if (!this.isHumanoidBody()) { this.showMessage('Торговать можно только в теле гуманоида'); return; }
     const starterWeapons = [
       'starter_sword', 'starter_mace', 'starter_greatsword', 'starter_spear',
       'starter_hammer', 'starter_dagger', 'starter_fists',
@@ -1802,6 +2101,9 @@ export class GameScene extends Phaser.Scene {
     // Load saved config for new weapon
     this.fillBodySlots(this.playerBody);
 
+    // Пересчёт статов: активно только новое оружие (мгновенно, клампит HP/ману).
+    this.playerBody.refreshStats(this.getEquippedStats());
+
     this.showMessage(`Switched to ${ITEMS[newWeaponId!]?.nameRu ?? 'weapon'}`);
     sfxBuff();
   }
@@ -1835,6 +2137,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startGathering(node: typeof this.resourceNodes[0]) {
+    if (!this.isHumanoidBody()) { this.showMessage('Собирать ресурсы можно только в теле гуманоида'); return; }
     // Check for required tool
     const toolMap: Record<string, string> = { mining: 'pickaxe', woodcutting: 'axe', trophy: 'skinning_knife' };
     const requiredTool = toolMap[node.def.profession];
@@ -1874,7 +2177,13 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Ковать/покупать/собирать можно только в теле гуманоида. */
+  private isHumanoidBody(): boolean {
+    return !!this.playerBody?.definition.canUseAllSpells;
+  }
+
   private openCraftingUI(workbenchType: string) {
+    if (!this.isHumanoidBody()) { this.showMessage('Ковать можно только в теле гуманоида'); return; }
     this.events.emit('open-crafting', workbenchType);
   }
 
@@ -1884,20 +2193,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startCrafting(recipe: import('../types/items').RecipeDef) {
-    // Consume materials
-    for (const [itemId, qty] of Object.entries(recipe.materials)) {
-      const inv = this.sphere.inventory.find(i => i.itemId === itemId);
-      if (inv) inv.quantity -= qty;
-    }
-    this.sphere.inventory = this.sphere.inventory.filter(i => i.quantity > 0);
-
+    consumeCraftMaterials(this.sphere, recipe);
     this.craftingTimer = recipe.craftTime;
     this.craftingRecipe = recipe;
+    // Ковка обездвиживает игрока на время craftTime (прогресс-бар сверху).
+    if (this.playerBody) this.playerBody.movementLocked = true;
     this.showMessage(`Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
     this.events.emit('crafting-start', recipe.craftTime);
   }
 
   private openVendorUI() {
+    if (!this.isHumanoidBody()) { this.showMessage('Торговать можно только в теле гуманоида'); return; }
     // Give tools for free (always)
     const tools = ['pickaxe', 'axe', 'skinning_knife'];
     for (const toolId of tools) {
@@ -1912,59 +2218,23 @@ export class GameScene extends Phaser.Scene {
 
   /** Disassemble equipment item — returns 50% of materials */
   public disassembleItem(itemId: string) {
-    const inv = this.sphere.inventory.find(i => i.itemId === itemId);
-    if (!inv || inv.quantity <= 0) return;
-
-    // Find the recipe that produces this item
-    const recipe = RECIPES.find(r => r.resultId === itemId);
-    if (!recipe) {
-      this.showMessage('Cannot disassemble this item');
-      return;
-    }
-
-    // Remove 1 from inventory
-    inv.quantity -= 1;
-    if (inv.quantity <= 0) {
-      this.sphere.inventory = this.sphere.inventory.filter(i => i.quantity > 0);
-    }
-
-    // Unequip if equipped
-    const equip = this.sphere.equipment as Record<string, string | undefined>;
-    for (const key of Object.keys(equip)) {
-      if (equip[key] === itemId) {
-        equip[key] = undefined;
-      }
-    }
-
-    // Return 50% of materials
-    const returned: string[] = [];
-    for (const [matId, qty] of Object.entries(recipe.materials)) {
-      const returnQty = Math.max(1, Math.floor(qty * 0.5));
-      const existing = this.sphere.inventory.find(i => i.itemId === matId);
-      if (existing) existing.quantity += returnQty;
-      else this.sphere.inventory.push({ itemId: matId, quantity: returnQty });
-      returned.push(`${returnQty}x ${ITEMS[matId]?.nameRu ?? matId}`);
-    }
-
-    this.showMessage(`Disassembled! Got: ${returned.join(', ')}`);
-    this.persistState();
+    const r = disassemble(this.sphere, itemId);
+    if (r.msg) this.showMessage(r.msg);
+    if (r.ok) this.persistState();
   }
 
   /** Buy recipe from vendor */
   public buyRecipe(recipeId: string, price: number) {
-    if (this.sphere.copper < price) {
-      this.showMessage(`Not enough coins! Need ${formatCurrency(price)}`);
-      return;
-    }
-    if (this.sphere.learnedRecipes.includes(recipeId)) {
-      this.showMessage('Already known');
-      return;
-    }
-    this.sphere.copper -= price;
-    this.sphere.learnedRecipes.push(recipeId);
-    this.showMessage(`Learned recipe! -${formatCurrency(price)}`);
-    sfxLevelUp();
-    this.persistState();
+    const r = buyRecipeLogic(this.sphere, recipeId, price);
+    this.showMessage(r.msg);
+    if (r.ok) { sfxLevelUp(); this.persistState(); }
+  }
+
+  /** Купить сырьё у торговца (нитки/заклёпки). */
+  public buyMaterial(itemId: string, qty: number, price: number) {
+    const r = buyMaterialLogic(this.sphere, itemId, qty, price);
+    this.showMessage(r.msg);
+    if (r.ok) { sfxBuff(); this.persistState(); }
   }
 
   // ─── Атака ────────────────────────────────────────────
@@ -1972,12 +2242,15 @@ export class GameScene extends Phaser.Scene {
   private get isInCombat(): boolean {
     if (!this.playerBody) return false;
     const px = this.playerBody.x, py = this.playerBody.y;
-    return this.creatures.some(c =>
-      !c.isDead &&
-      (c.aiState === 'chase' || c.aiState === 'attack') &&
-      !c.factionTarget &&
-      distance(c.x, c.y, px, py) < 400
-    );
+    let inCombat = false;
+    this.creatureGrid.forEachNear(px, py, 400, (c) => {
+      if (inCombat || c.isDead) return;
+      if ((c.aiState === 'chase' || c.aiState === 'attack') &&
+          !c.factionTarget && distance(c.x, c.y, px, py) < 400) {
+        inCombat = true;
+      }
+    });
+    return inCombat;
   }
 
   private selectTarget(creature: Creature) {
@@ -2020,14 +2293,12 @@ export class GameScene extends Phaser.Scene {
     if (this.craftingTimer > 0 && this.craftingRecipe) {
       this.craftingTimer -= dt;
       if (this.craftingTimer <= 0) {
-        // Complete craft
         const recipe = this.craftingRecipe;
-        const existing = this.sphere.inventory.find(i => i.itemId === recipe.resultId);
-        if (existing) existing.quantity += recipe.resultQty;
-        else this.sphere.inventory.push({ itemId: recipe.resultId, quantity: recipe.resultQty });
+        completeCraft(this.sphere, recipe);
         this.showMessage(`Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
         sfxLevelUp();
         this.craftingRecipe = null;
+        if (this.playerBody) this.playerBody.movementLocked = false;
         this.persistState();
       }
     }
@@ -2193,7 +2464,7 @@ export class GameScene extends Phaser.Scene {
             const r = calcMagicDamage(t.casterStats, c.stats, t.baseDamage);
             c.takeDamage(r.final);
             this.aggroCreature(c);
-            spawnSpellImpact(this, c.x, c.y, 'mob_fire_t1'); // spark explosion
+            spawnSpellImpact(this, c.x, c.y, 'mob_fire_spark'); // spark explosion
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, r.crit, false));
             if (c.isDead) this.onCreatureKilled(c);
           }
@@ -2362,44 +2633,43 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Статы игрока с учётом экипировки + статус-бонусов */
-  private getPlayerDefenseStats(): Stats {
-    return this.getEffectiveStats();
+  /**
+   * Статы = личные (база, растут навсегда) + бонусы экипировки.
+   * БЕЗ статус-эффектов — это «постоянные» статы тела (maxHP/maxMana/база брони).
+   * Пересчитываются при каждой смене экипировки (см. persistState → refreshStats).
+   */
+  private getEquippedStats(): Stats {
+    const s = { ...this.sphere.stats };
+    const bonuses = equipmentStatBonuses(
+      this.sphere.equipment as Record<string, string | undefined>,
+      this.sphere.activeWeaponSlot ?? 0,
+    );
+    for (const [stat, val] of Object.entries(bonuses)) {
+      s[stat as StatName] += val ?? 0;
+    }
+    return s;
   }
 
-  /** Полные статы = база + экипировка + статус-эффекты */
+  /** Полные статы = база + экипировка + временные статус-эффекты (для боя) */
   private getEffectiveStats(): Stats {
-    const s = { ...this.sphere.stats };
+    const s = this.getEquippedStats();
 
-    // Бонусы от экипировки
-    const equip = this.sphere.equipment as Record<string, string | undefined>;
-    const statMap: Record<string, StatName> = {
-      strength: StatName.Strength, agility: StatName.Agility,
-      accuracy: StatName.Accuracy, evasion: StatName.Evasion,
-      health: StatName.Health, armor: StatName.Armor,
-      intellect: StatName.Intellect, will: StatName.Will,
-      mana: StatName.Mana, luck: StatName.Luck,
-    };
-    for (const slotKey of Object.keys(equip)) {
-      const itemId = equip[slotKey];
-      if (!itemId) continue;
-      const def = ITEMS[itemId];
-      if (!def) continue;
-      // Stat bonuses
-      if (def.statBonuses) {
-        for (const [stat, val] of Object.entries(def.statBonuses)) {
-          const sn = statMap[stat];
-          if (sn && val) s[sn] += val;
-        }
-      }
-      if (def.armorBonus) s[StatName.Armor] += def.armorBonus;
-      if (def.manaBonus) s[StatName.Mana] += def.manaBonus;
-    }
-
-    // Бонусы от статус-эффектов
+    // Временные бонусы от статус-эффектов (баффы/дебаффы) — только для боевых формул
     if (this.playerBody) {
       s[StatName.Armor] += this.playerBody.armorBonus;
-      s[StatName.Evasion] += this.playerBody.evasionBonus;
+
+      // Когти (зверь/элементаль ИЛИ безоружный гуманоид): оружие не выбрано,
+      // поэтому атака масштабируется от НАИБОЛЬШЕГО боевого стата (Сила/Ловкость/
+      // Интеллект) — вложение в любой стат всегда работает. Затрагивает только
+      // исходящий урон: защита от Брони/Уклонения/Воли не трогается.
+      if (this.playerBody.usesInnateAttack) {
+        const maxOff = Math.max(
+          s[StatName.Strength], s[StatName.Agility], s[StatName.Intellect],
+        );
+        s[StatName.Strength] = maxOff;
+        s[StatName.Agility] = maxOff;
+        s[StatName.Intellect] = maxOff;
+      }
     }
 
     return s;
@@ -2438,8 +2708,9 @@ export class GameScene extends Phaser.Scene {
 
     if (!closestCreature) return;
 
-    // Расчёт урона по damageType тела
-    const dt = this.playerBody.definition.damageType;
+    // Тип урона следует за ОРУЖИЕМ в руках, а не за врождённым телом
+    // (воин с посохом бьёт магией по Интеллекту, с луком — дальним по Ловкости).
+    const dt = weaponDamageType(weapon.type);
     const wb = weapon.baseDamage;
     const hasFocus = this.playerBody.hasStatus('focus');
 
@@ -2451,7 +2722,7 @@ export class GameScene extends Phaser.Scene {
       const raw = dt === 'magic' ? wb * (1 + (this.sphere.stats[StatName.Intellect] ?? 1) / 100)
                 : dt === 'ranged' ? wb * (1 + (this.sphere.stats[StatName.Agility] ?? 1) / 100)
                 :                   wb * (1 + (this.sphere.stats[StatName.Strength] ?? 1) / 100);
-      const stat = dt === 'magic' ? StatName.Will : StatName.Armor;
+      const stat = dt === 'magic' ? StatName.Will : dt === 'ranged' ? StatName.Evasion : StatName.Armor;
       const defVal = closestCreature.stats[stat];
       const reduction = Math.min(defVal / (defVal + 125), 0.8);
       const reduced = raw * (1 - reduction);
@@ -2474,6 +2745,34 @@ export class GameScene extends Phaser.Scene {
     // Vulnerability: +10% incoming damage on target
     if (result.hit) {
       finalDmg = this.applyTargetVulnerability(closestCreature, finalDmg, dt === 'magic');
+    }
+
+    // ── Школьный бонус посоха на ОБЫЧНОЙ атаке (аналог фирменного эффекта оружия):
+    //    огонь→горение 10%, вода→охлаждение 20%, земля→пробитие 20% защиты,
+    //    ветер→×2 урон 20%, природа→самоисцеление 5% HP 20%. ──
+    const staffSchool = this.getWeaponSchool();
+    if (result.hit && staffSchool) {
+      const sb = SCHOOL_BONUSES[staffSchool as MagicSchool];
+      if (sb) {
+        // Земля: пробитие части защиты — масштабируем урон по новой редукции.
+        if (sb.penetrationChance && sb.penetrationPercent && Math.random() < sb.penetrationChance) {
+          const origDef = closestCreature.stats[StatName.Will];
+          const oldRed = magicalReduction(origDef);
+          const newRed = magicalReduction(origDef * (1 - sb.penetrationPercent));
+          if (oldRed < 1) finalDmg = Math.round(finalDmg * (1 - newRed) / (1 - oldRed));
+        }
+        // Ветер: двойной урон.
+        if (sb.doubleDamageChance && Math.random() < sb.doubleDamageChance) finalDmg *= 2;
+        // Огонь/Вода: статус на цель.
+        if (sb.statusEffect && Math.random() < (sb.statusChance ?? 0)) {
+          this.applyStatusToTarget(closestCreature, sb.statusEffect);
+        }
+        // Природа: самоисцеление при ударе.
+        if (sb.selfHealChance && this.playerBody && Math.random() < sb.selfHealChance) {
+          const heal = Math.round(this.playerBody.maxHP * (sb.selfHealPercent ?? 0));
+          this.playerBody.currentHP = Math.min(this.playerBody.maxHP, this.playerBody.currentHP + heal);
+        }
+      }
     }
 
     if (result.hit) {
@@ -2516,6 +2815,15 @@ export class GameScene extends Phaser.Scene {
     // Доп. урон от зачарования оружия
     this.applyEnchantDamage(closestCreature, result.hit);
 
+    // Фирменный эффект оружия теперь срабатывает и на обычной атаке
+    // (тот же шанс, что у оружейных умений — 20%). Для зверей/элементалей
+    // природное оружие без weaponEffect ничего не накладывает.
+    if (result.hit && weapon.weaponEffect) {
+      if (Math.random() < (weapon.weaponEffectChance ?? 0.2)) {
+        this.applyStatusToTarget(closestCreature, weapon.weaponEffect);
+      }
+    }
+
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
 
@@ -2550,7 +2858,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const defStats = this.getPlayerDefenseStats();
+    const defStats = this.getEffectiveStats();
     const result = cdt === 'magic'  ? calcMagicDamage(creature.stats, defStats, cwb)
                  : cdt === 'ranged' ? calcRangedDamage(creature.stats, defStats, cwb)
                  :                    calcMeleeDamage(creature.stats, defStats, cwb);
@@ -2679,6 +2987,10 @@ export class GameScene extends Phaser.Scene {
   // onCreatureKilled, onPlayerDeath, completeCaptureCreature
 
   private onCreatureKilled(creature: Creature) {
+    // Идемпотентность: смерть может прийти из нескольких путей (прямой удар, AoE,
+    // DoT-тик в update) — награду выдаём один раз.
+    if (creature.killProcessed) return;
+    creature.killProcessed = true;
     sfxDeath();
     // Призванный союзник: убрать из мира, без XP, без захвата, без респауна
     if (creature.isSummoned) {
@@ -2690,13 +3002,11 @@ export class GameScene extends Phaser.Scene {
     const xpTotal = creature.definition.xpReward;
 
     if (this.playerBody) {
-      // 1. Stat XP — делится по капам тела
+      // 1. Stat XP — делится только между растущими (не на капе) cap-статами
       const caps = this.playerBody.definition.caps;
       const capStats = Object.keys(caps) as StatName[];
-      const xpEach = Math.floor(xpTotal / capStats.length);
-      for (const stat of capStats) {
-        const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
-        if (levelUp) this.events.emit('stat-up', levelUp);
+      for (const levelUp of distributeXP(this.sphere.stats, this.sphere.xpTracker, xpTotal, caps)) {
+        this.events.emit('stat-up', levelUp);
       }
 
       this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: xpTotal, stats: capStats });
@@ -2766,8 +3076,9 @@ export class GameScene extends Phaser.Scene {
 
   private onPlayerDeath() {
     sfxDeath();
-    this.bodyQuestTracker.clear();
-    this.clearBodyQuestObjects();
+    // Прогресс квеста тела НЕ сбрасываем: тело остаётся тем же (телепорт к камню),
+    // поэтому собранное/прогресс сохраняются — продолжаешь с того же места.
+    // (Сброс остаётся при добровольном выходе [Q] и захвате другого тела.)
     // ── Штраф за смерть ──────────────────────────────────
     let totalXpLost = 0;
     if (this.playerBody) {
@@ -2829,7 +3140,7 @@ export class GameScene extends Phaser.Scene {
         this.playerBody = null;
       }
 
-      this.playerBody = new Body(this, cx, cy, def, this.sphere.stats);
+      this.playerBody = new Body(this, cx, cy, def, this.getEquippedStats());
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
@@ -2872,10 +3183,13 @@ export class GameScene extends Phaser.Scene {
     const completed = this.questTracker.onKill(creatureId);
     for (const q of completed) this.onQuestComplete(q);
 
-    // Body quest kill tracking
+    // Body quest kill tracking — категория цели (для квестов «убей любого элементаля»).
     if (this.bodyQuestTracker.getActive() && !this.bodyQuestTracker.isComplete()) {
+      const def = CREATURE_DB[creatureId];
+      const category = def?.element && ['fire', 'water', 'earth', 'wind'].includes(def.element)
+        ? 'elemental' : undefined;
       const wasComplete = this.bodyQuestTracker.isComplete();
-      this.bodyQuestTracker.onKill(creatureId);
+      this.bodyQuestTracker.onKill(creatureId, category);
       if (!wasComplete && this.bodyQuestTracker.isComplete()) {
         this.onBodyQuestComplete();
       }
@@ -2905,6 +3219,7 @@ export class GameScene extends Phaser.Scene {
       if (hasObjectives) {
         this.bodyQuestTracker.start(bq);
         this.spawnBodyQuestObjects(bq);
+        this.spawnBodyQuestEnemies(bq);
         this.showMessage(`Quest started: ${bq.nameRu}`);
       } else {
         this.grantBodyQuestReward(bq);
@@ -2921,6 +3236,9 @@ export class GameScene extends Phaser.Scene {
     const mapH = this.currentZone.heightTiles * TILE_SIZE;
 
     for (const so of bq.spawnObjects) {
+      // Центр спавна: якорь (фикс. точка, напр. лагерь) или вокруг игрока.
+      const ax = so.anchor?.x ?? cx;
+      const ay = so.anchor?.y ?? cy;
       // Minimum spacing between same-batch objects so they don't clump.
       // Scales with available area: ~half the avg cell size for `count` items
       // packed into the (0.4–1.0)·radius annulus.
@@ -2931,8 +3249,8 @@ export class GameScene extends Phaser.Scene {
         for (let attempt = 0; attempt < 30; attempt++) {
           const angle = Math.random() * Math.PI * 2;
           const dist = so.radius * 0.4 + Math.random() * so.radius * 0.6;
-          ox = Math.max(40, Math.min(mapW - 40, cx + Math.cos(angle) * dist));
-          oy = Math.max(40, Math.min(mapH - 40, cy + Math.sin(angle) * dist));
+          ox = Math.max(40, Math.min(mapW - 40, ax + Math.cos(angle) * dist));
+          oy = Math.max(40, Math.min(mapH - 40, ay + Math.sin(angle) * dist));
           const tooClose = placed.some(p => Math.hypot(p.x - ox, p.y - oy) < minSpacing);
           if (!tooClose) break;
         }
@@ -2949,6 +3267,31 @@ export class GameScene extends Phaser.Scene {
         const obj = { x: ox, y: oy, objectId: so.objectId, nameRu: so.nameRu, objType: so.type, gfx: container, used: false };
         this.questObjects.push(obj);
         this.bodyQuestObjects.push(obj);
+      }
+    }
+  }
+
+  /** Спавн врагов при старте квеста тела — сразу агрятся на игрока. */
+  private spawnBodyQuestEnemies(bq: import('../types/bodyQuests').BodyQuestDef): void {
+    if (!bq.spawnEnemies || !this.playerBody) return;
+    const cx = this.playerBody.x, cy = this.playerBody.y;
+    const mapW = this.currentZone.widthTiles * TILE_SIZE;
+    const mapH = this.currentZone.heightTiles * TILE_SIZE;
+    for (const se of bq.spawnEnemies) {
+      const def = CREATURE_DB[se.creatureId];
+      if (!def) continue;
+      const ax = se.anchor?.x ?? cx;
+      const ay = se.anchor?.y ?? cy;
+      const radius = se.radius ?? 150;
+      for (let i = 0; i < se.count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = radius * 0.5 + Math.random() * radius * 0.5;
+        const x = Math.max(40, Math.min(mapW - 40, ax + Math.cos(angle) * dist));
+        const y = Math.max(40, Math.min(mapH - 40, ay + Math.sin(angle) * dist));
+        const c = new Creature(this, x, y, def);
+        c.aiState = 'chase'; // сразу бегут на игрока
+        this.applyCreatureEnv(c);
+        this.creatures.push(c);
       }
     }
   }
@@ -2991,11 +3334,8 @@ export class GameScene extends Phaser.Scene {
     }
     if (bq.xpReward > 0 && this.playerBody) {
       const caps = this.playerBody.definition.caps;
-      const capStats = Object.keys(caps) as StatName[];
-      const xpEach = Math.floor(bq.xpReward / capStats.length);
-      for (const stat of capStats) {
-        const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
-        if (levelUp) this.events.emit('stat-up', levelUp);
+      for (const levelUp of distributeXP(this.sphere.stats, this.sphere.xpTracker, bq.xpReward, caps)) {
+        this.events.emit('stat-up', levelUp);
       }
     }
     this.events.emit('show-dialog', { messages: bq.completeMessages });
@@ -3014,8 +3354,8 @@ export class GameScene extends Phaser.Scene {
 
       // Boss reward: auto-learn T2 spell of the Guardian's school
       const rewardSpellIds: Record<string, string> = {
-        fire: 'mob_fire_t2', water: 'mob_water_t2',
-        earth: 'mob_earth_t2', wind: 'mob_wind_t2',
+        fire: 'mob_fire_arrow', water: 'mob_ice_arrow',
+        earth: 'mob_stone_spike', wind: 'mob_wind_blade',
       };
       const rewardId = rewardSpellIds[def.element];
       if (rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {
@@ -3048,13 +3388,8 @@ export class GameScene extends Phaser.Scene {
 
     if (this.playerBody && xpReward > 0) {
       const caps = this.playerBody.definition.caps;
-      const capStats = Object.keys(caps) as StatName[];
-      if (capStats.length > 0) {
-        const xpEach = Math.floor(xpReward / capStats.length);
-        for (const stat of capStats) {
-          const levelUp = addXP(this.sphere.stats, this.sphere.xpTracker, stat, xpEach, caps);
-          if (levelUp) this.events.emit('stat-up', levelUp);
-        }
+      for (const levelUp of distributeXP(this.sphere.stats, this.sphere.xpTracker, xpReward, caps)) {
+        this.events.emit('stat-up', levelUp);
       }
     }
 
@@ -3147,13 +3482,17 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Проверка маны
-    if (this.playerBody.currentMana < spell.manaCost) {
+    if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       return;
     }
 
-    // Бесплатный каст (от Рассечения)
-    if (this.sphere.freeNextCast) {
+    // Бесплатный каст (от Рассечения). Запоминаем факт, чтобы «отменяющие»
+    // ветки (toggle-выкл, неверное оружие, волк уже жив) могли вернуть РОВНО
+    // то, что списали, и восстановить заряд бесплатного каста — иначе мана
+    // бралась бы из ниоткуда, а бесплатный каст тратился впустую.
+    const usedFreeCast = this.sphere.freeNextCast;
+    if (usedFreeCast) {
       this.sphere.freeNextCast = false;
     } else {
       this.playerBody.currentMana -= spell.manaCost;
@@ -3175,12 +3514,14 @@ export class GameScene extends Phaser.Scene {
         this.sphere.activeEnchant = spell;
         if (this.playerBody) this.playerBody.enchantRegenPenalty = spell.regenPenalty ?? 0.3;
         this.events.emit('enchant-toggled', spell);
-        this.events.emit('log', { text: `${spell.nameRu} — активировано! Реген маны −30%`, color: '#ffaa00' });
+        const penaltyPct = Math.round((spell.regenPenalty ?? 0.3) * 100);
+        this.events.emit('log', { text: `${spell.nameRu} — активировано! Реген маны −${penaltyPct}%`, color: '#ffaa00' });
       }
       // Не тратим ману и не запускаем кулдаун
       slot.cooldownRemaining = 0;
       this.sphere.abilityCooldowns[spell.id] = 0;
-      this.playerBody.currentMana += spell.manaCost;
+      if (usedFreeCast) this.sphere.freeNextCast = true;
+      else this.playerBody.currentMana += spell.manaCost;
       return;
     }
 
@@ -3238,7 +3579,8 @@ export class GameScene extends Phaser.Scene {
       if (spell.requiredWeapons && !spell.requiredWeapons.includes(this.playerBody.weapon.type)) {
         slot.cooldownRemaining = 0;
         this.sphere.abilityCooldowns[spell.id] = 0;
-        this.playerBody.currentMana += spell.manaCost;
+        if (usedFreeCast) this.sphere.freeNextCast = true;
+        else this.playerBody.currentMana += spell.manaCost;
         return;
       }
       if (spell.statusEffect) {
@@ -3287,7 +3629,7 @@ export class GameScene extends Phaser.Scene {
         }
         if (allyTarget && healAmount > 0) {
           allyTarget.currentHP = Math.min(allyTarget.currentHP + healAmount, allyTarget.maxHP);
-          this.damageTexts.push(new DamageText(this, allyTarget.x, allyTarget.y - 10, healAmount, false, false));
+          this.damageTexts.push(new DamageText(this, allyTarget.x, allyTarget.y - 10, healAmount, false, false, `+${healAmount}`, 'heal'));
           spawnHealVFX(this, allyTarget.x, allyTarget.y);
         }
       } else if (healAmount > 0) {
@@ -3295,6 +3637,7 @@ export class GameScene extends Phaser.Scene {
           this.playerBody.currentHP + healAmount,
           this.playerBody.maxHP,
         );
+        this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, healAmount, false, false, `+${healAmount}`, 'heal'));
         spawnHealVFX(this, this.playerBody.x, this.playerBody.y);
         sfxHeal();
       }
@@ -3308,7 +3651,8 @@ export class GameScene extends Phaser.Scene {
       if (this.creatures.some(c => c.isSummoned && !c.isDead)) {
         slot.cooldownRemaining = 0;
         this.sphere.abilityCooldowns[spell.id] = 0;
-        this.playerBody.currentMana += spell.manaCost;
+        if (usedFreeCast) this.sphere.freeNextCast = true;
+        else this.playerBody.currentMana += spell.manaCost;
         this.events.emit('log', { text: 'Волк ещё жив', color: '#aaaaaa' });
         return;
       }
@@ -3364,13 +3708,13 @@ export class GameScene extends Phaser.Scene {
       if (schoolBonus?.penetrationChance && schoolBonus?.penetrationPercent) {
         if (Math.random() < schoolBonus.penetrationChance) {
           // Пересчитываем урон с пониженной защитой
-          const stat = spell.damageType === 'magic' ? StatName.Will : StatName.Armor;
+          const stat = spell.damageType === 'magic' ? StatName.Will : spell.damageType === 'ranged' ? StatName.Evasion : StatName.Armor;
           const origDef = target.stats[stat];
           const reducedDef = origDef * (1 - schoolBonus.penetrationPercent);
           const raw = result.raw;
           const reduction = spell.damageType === 'magic'
-            ? Math.min(reducedDef / (reducedDef + 125), 0.8)
-            : Math.min(reducedDef / (reducedDef + 125), 0.8);
+            ? magicalReduction(reducedDef)
+            : physicalReduction(reducedDef);
           const reduced = raw * (1 - reduction);
           const final_ = result.crit ? reduced * 1.5 : reduced;
           baseDmg = Math.round(final_);
@@ -3400,23 +3744,13 @@ export class GameScene extends Phaser.Scene {
 
     // ── Отчаяние: +10 урона за дебафф на себе ────────────────────────────
     if (spell.bonusDamagePerSelfDebuff && this.playerBody) {
-      const debuffCount = [...this.playerBody.statusEffects.keys()].filter(id => {
-        return !['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
-                 'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
-                 'mana_regen_boost', 'stun_immune', 'knockback_immune',
-                 'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'focus', 'damage_boost'].includes(id);
-      }).length;
+      const debuffCount = [...this.playerBody.statusEffects.keys()].filter(id => !isBuffStatus(id)).length;
       dmg += spell.bonusDamagePerSelfDebuff * debuffCount;
     }
 
     // ── Разоблачение: +10% урона за бафф на враге ────────────────────────
     if (spell.bonusDamagePercentPerTargetBuff) {
-      const buffCount = [...target.statusEffects.keys()].filter(id => {
-        return ['fortify', 'evasion_boost', 'block_next', 'shield_stance',
-                'hp_regen_boost', 'mana_regen_boost', 'stun_immune', 'knockback_immune',
-                'regen_per_buff', 'regen_per_debuff', 'ranged_resist', 'acceleration',
-                'inspiration', 'bark_armor', 'leaf_regen', 'focus', 'damage_boost'].includes(id);
-      }).length;
+      const buffCount = [...target.statusEffects.keys()].filter(id => isBuffStatus(id)).length;
       dmg = Math.round(dmg * (1 + spell.bonusDamagePercentPerTargetBuff * buffCount));
     }
 
@@ -3465,6 +3799,13 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.playAttackAnim();
     }
 
+    // Летящий снаряд — пока ТОЛЬКО для Порыва ветра (mob_gust → spell_gust).
+    // Остальные одиночные заклинания — позже.
+    if (spell.id === 'mob_gust' && this.playerBody) {
+      spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.id, 38);
+      spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.school ?? 'neutral');
+    }
+
     // VFX попадания способности
     const spellSchool = spell.school ?? (spell.damageType === 'melee' ? 'neutral' : 'neutral');
     if (spell.damageType === 'melee') {
@@ -3483,14 +3824,8 @@ export class GameScene extends Phaser.Scene {
 
     // ── Очищение дебаффов (Очищающий удар) ───────────────────────────────
     if ((spell.cleanseCount || spell.cleanseSelf) && this.playerBody) {
-      const debuffIds = [...this.playerBody.statusEffects.keys()].filter(id => {
-        const def = STATUS_DEFS[id];
-        // Дебаффы — всё кроме баффов (acceleration, inspiration, bark_armor, etc.)
-        return !['acceleration', 'inspiration', 'bark_armor', 'leaf_regen', 'fortify',
-                 'evasion_boost', 'block_next', 'shield_stance', 'hp_regen_boost',
-                 'mana_regen_boost', 'stun_immune', 'knockback_immune',
-                 'regen_per_buff', 'regen_per_debuff', 'ranged_resist'].includes(id);
-      });
+      // Очищаем только дебаффы — всё, что не бафф (единый список в statuses.ts).
+      const debuffIds = [...this.playerBody.statusEffects.keys()].filter(id => !isBuffStatus(id));
       if (spell.cleanseCount) {
         // Снимаем N случайных дебаффов
         for (let i = 0; i < spell.cleanseCount && debuffIds.length > 0; i++) {
@@ -3845,7 +4180,7 @@ export class GameScene extends Phaser.Scene {
 
     if (spell.isAoe && spell.range === 0) {
       // AoE на себе (Whirlwind и пр.) — без прицеливания
-      if (this.playerBody.currentMana < spell.manaCost) {
+      if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
         this.events.emit('no-mana');
         return;
       }
@@ -3876,12 +4211,16 @@ export class GameScene extends Phaser.Scene {
       this.showMessage('Out of range');
       return;
     }
-    if (this.playerBody.currentMana < spell.manaCost) {
+    if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       return;
     }
 
-    this.playerBody.currentMana -= spell.manaCost;
+    if (this.sphere.freeNextCast) {
+      this.sphere.freeNextCast = false;
+    } else {
+      this.playerBody.currentMana = Math.max(0, this.playerBody.currentMana - spell.manaCost);
+    }
     slot.cooldownRemaining = spell.cooldown;
     this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
@@ -3914,7 +4253,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    if (this.playerBody.currentMana < spell.manaCost) {
+    if (!this.sphere.freeNextCast && this.playerBody.currentMana < spell.manaCost) {
       this.events.emit('no-mana');
       this.exitAoeTargeting();
       return;
@@ -3956,7 +4295,11 @@ export class GameScene extends Phaser.Scene {
     const slot = this.playerBody.abilitySlots[slotIndex];
     if (!slot) return;
 
-    this.playerBody.currentMana -= spell.manaCost;
+    if (this.sphere.freeNextCast) {
+      this.sphere.freeNextCast = false;
+    } else {
+      this.playerBody.currentMana = Math.max(0, this.playerBody.currentMana - spell.manaCost);
+    }
     slot.cooldownRemaining = spell.cooldown;
     this.sphere.abilityCooldowns[spell.id] = spell.cooldown;
 
@@ -4519,6 +4862,7 @@ export class GameScene extends Phaser.Scene {
       const def = CREATURE_DB[entry.id];
       if (!def) continue;
       const creature = new Creature(this, entry.x, entry.y, def);
+      this.applyCreatureEnv(creature);
       this.creatures.push(creature);
     }
   }
@@ -4581,13 +4925,13 @@ export class GameScene extends Phaser.Scene {
     if (creature.definition.type !== BodyType.Combat) return null;
     let best: Creature | null = null;
     let bestDist = GameScene.FACTION_SIGHT;
-    for (const other of this.creatures) {
-      if (other === creature || other.isDead || other.isSummoned) continue;
+    this.creatureGrid.forEachNear(creature.x, creature.y, GameScene.FACTION_SIGHT, (other) => {
+      if (other === creature || other.isDead || other.isSummoned) return;
       const otherFaction = other.definition.faction;
-      if (!otherFaction || otherFaction === selfFaction) continue;
+      if (!otherFaction || otherFaction === selfFaction) return;
       const d = distance(creature.x, creature.y, other.x, other.y);
       if (d < bestDist) { bestDist = d; best = other; }
-    }
+    });
     return best;
   }
 

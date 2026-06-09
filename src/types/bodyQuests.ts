@@ -8,6 +8,9 @@ export interface BodyQuestObjective {
   type: BodyObjectiveType;
   targetId?: string;
   targetNameRu?: string;
+  /** Для 'kill': категория цели (напр. 'elemental'). Убийство засчитывается только
+   *  если у убитого совпадает категория. Без targetId и targetCategory — любое убийство. */
+  targetCategory?: string;
   count: number;
   description: string;
   /** For 'protect': max distance (px) the player can stray from the target. Reset on exit. */
@@ -24,6 +27,8 @@ export interface BodyQuestSpawnObject {
   type: 'collectible' | 'waypoint' | 'destructible';
   count: number;
   radius: number;
+  /** Фиксированная точка спавна (напр. орочий лагерь). Если нет — вокруг игрока. */
+  anchor?: { x: number; y: number };
 }
 
 export interface BodyQuestDef {
@@ -40,6 +45,9 @@ export interface BodyQuestDef {
   prerequisiteBodyQuestId?: string;
   conflictQuestId?: string;
   spawnObjects?: BodyQuestSpawnObject[];
+  /** Враги, спавнящиеся при старте квеста и агрящиеся на игрока (напр. гоблины
+   *  набегают на орка-вождя). Без anchor — вокруг игрока. */
+  spawnEnemies?: { creatureId: string; count: number; radius?: number; anchor?: { x: number; y: number } }[];
   friendlyCreatureIds?: string[];
 }
 

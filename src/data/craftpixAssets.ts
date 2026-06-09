@@ -88,7 +88,6 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
   { key: 'mob_bandit_archer',           textureKey: 'mob_sheet_bandit_archer_front_idle'   },
   { key: 'mob_bandit_archer_veteran',   textureKey: 'mob_sheet_bandit_archer_front_idle'   },
   { key: 'mob_bandit_spear',            textureKey: 'mob_sheet_bandit_spear_front_idle'    },
-  { key: 'mob_bandit_spear_veteran',    textureKey: 'mob_sheet_bandit_spear_front_idle'    },
   // ── Скауты ───────────────────────────────────────────────────────────────
   { key: 'mob_scout',                   textureKey: 'mob_sheet_scout_front_idle'           },
   { key: 'mob_scout_veteran',           textureKey: 'mob_sheet_scout_front_idle'           },
@@ -121,6 +120,53 @@ export const EDITOR_MOB_ENTRIES: EditorMobEntry[] = [
 ];
 /** @deprecated use EDITOR_MOB_ENTRIES — kept only to avoid import errors during migration */
 export const MOB_ASSETS: Array<[string, string, number, number]> = [];
+
+/**
+ * Ресурсные ноды для редактора карт.
+ * key = node_{nodeId} (getResourceNodeSpawns strips node_ prefix).
+ * Текстура с тем же key генерируется процедурно в BootScene.
+ */
+export const EDITOR_NODE_ENTRIES: Array<{ key: string }> = [
+  { key: 'node_copper_vein' },
+  { key: 'node_copper_vein_2' },
+  { key: 'node_copper_vein_3' },
+  { key: 'node_willow_tree' },
+  { key: 'node_hide_pile' },
+  { key: 'node_fiber_bush' },
+  { key: 'node_fern_patch' },
+  { key: 'node_cactus_plant' },
+  { key: 'node_oak_tree' },
+  { key: 'node_broken_tree' },
+  { key: 'node_burned_tree' },
+];
+
+/**
+ * Крафтовые верстаки для редактора карт.
+ * key = wb_{type} (getWorkbenchSpawns strips wb_ prefix).
+ * Текстура с тем же key генерируется процедурно в BootScene.
+ */
+export const EDITOR_WORKBENCH_ENTRIES: Array<{ key: string }> = [
+  { key: 'wb_armorer' },
+  { key: 'wb_weaponsmith' },
+  { key: 'wb_jeweler' },
+  { key: 'wb_runemaster' },
+];
+
+/** Цвета верстаков (чтобы отличать квадратики в редакторе и в игре). */
+export const WORKBENCH_COLORS: Record<string, { fill: number; stroke: number }> = {
+  armorer:     { fill: 0x5a6b7a, stroke: 0x9ab0c5 }, // сталь — серо-синий
+  weaponsmith: { fill: 0x7a3b30, stroke: 0xc8705a }, // железо/огонь — красный
+  jeweler:     { fill: 0x6a5520, stroke: 0xd4af37 }, // золото
+  runemaster:  { fill: 0x4a3a6a, stroke: 0x9a6fd0 }, // магия — фиолетовый
+};
+
+/** Названия верстаков на русском (для отрисовки in-game у editor-placed). */
+export const WORKBENCH_NAMES_RU: Record<string, string> = {
+  armorer: 'Бронник',
+  weaponsmith: 'Оружейник',
+  jeweler: 'Ювелир',
+  runemaster: 'Рунный мастер',
+};
 
 export interface MobSpriteSet {
   folder: string;
@@ -594,7 +640,6 @@ export const MOB_SPRITE_SETS: Record<string, MobSpriteSet> = {
   bandit_archer: BANDIT_ARCHER_SPRITES,
   bandit_archer_veteran: BANDIT_ARCHER_SPRITES,
   bandit_spear: BANDIT_SPEAR_SPRITES,
-  bandit_spear_veteran: BANDIT_SPEAR_SPRITES,
   bandit_brute: BANDIT_BRUTE_SPRITES,
   bandit_brute_veteran: BANDIT_BRUTE_SPRITES,
   bandit_crossbow: BANDIT_CROSSBOW_SPRITES,
@@ -721,7 +766,6 @@ const ANIMAL_ALIAS: Record<string, string> = {
 const MOB_ALIAS: Record<string, string> = {
   scout_veteran: 'scout',
   bandit_archer_veteran: 'bandit_archer',
-  bandit_spear_veteran: 'bandit_spear',
   bandit_brute_veteran: 'bandit_brute',
   bandit_crossbow_veteran: 'bandit_crossbow',
   goblin_veteran: 'goblin_veteran',

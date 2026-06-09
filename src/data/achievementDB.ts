@@ -6,111 +6,114 @@ export interface AchievementDef {
   icon: string;
   /** Category for grouping */
   category: 'kill' | 'capture' | 'spell' | 'explore';
+  /** Для category:'spell' — реальный id заклинания, которое нужно выучить
+   *  (id ачивки и id спелла различаются: spell_spark vs mob_fire_spark). */
+  requiredSpellId?: string;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Kill achievements ─────────────────────────────────
   {
     id: 'kill_rabbit_1',
-    nameRu: 'Rabbit Hunter',
+    nameRu: 'Охотник на зайцев',
     descRu: 'Убить 1 кролика',
     icon: '~',
     category: 'kill',
   },
   {
     id: 'kill_rabbit_10',
-    nameRu: 'Rabbit Slayer',
+    nameRu: 'Истребитель зайцев',
     descRu: 'Убить 10 кроликов',
     icon: '~~',
     category: 'kill',
   },
   {
     id: 'kill_goblin_1',
-    nameRu: 'First Goblin',
+    nameRu: 'Первый гоблин',
     descRu: 'Убить 1 гоблина',
     icon: '◇',
     category: 'kill',
   },
   {
     id: 'kill_goblin_5',
-    nameRu: 'Goblin Slayer',
+    nameRu: 'Истребитель гоблинов',
     descRu: 'Убить 5 гоблинов',
     icon: '◇◇',
     category: 'kill',
   },
   {
     id: 'kill_goblin_20',
-    nameRu: 'Cleaner',
+    nameRu: 'Чистильщик',
     descRu: 'Убить 20 гоблинов',
     icon: '◈',
     category: 'kill',
   },
   {
     id: 'kill_wolf_1',
-    nameRu: 'Wolf Slayer',
+    nameRu: 'Истребитель волков',
     descRu: 'Убить 1 волка',
     icon: '◈',
     category: 'kill',
   },
   {
     id: 'kill_wolf_5',
-    nameRu: 'Wolf Hunter',
+    nameRu: 'Охотник на волков',
     descRu: 'Убить 5 волков',
     icon: '◈◈',
     category: 'kill',
   },
   {
     id: 'kill_scout_3',
-    nameRu: 'Counter-Scout',
+    nameRu: 'Контрразведчик',
     descRu: 'Убить 3 разведчиков',
     icon: '▲',
     category: 'kill',
   },
   {
     id: 'kill_bear_1',
-    nameRu: 'Bear Hunt',
+    nameRu: 'Охота на медведя',
     descRu: 'Убить 1 медведя',
     icon: '⌖',
     category: 'kill',
   },
   {
     id: 'kill_bear_5',
-    nameRu: 'Den Destroyer',
+    nameRu: 'Разоритель логова',
     descRu: 'Убить 5 медведей',
     icon: '⌖⌖',
     category: 'kill',
   },
   {
     id: 'kill_orc_1',
-    nameRu: 'Orc Catcher',
+    nameRu: 'Ловец орков',
     descRu: 'Убить 1 орка',
     icon: '✦',
     category: 'kill',
   },
   {
     id: 'kill_orc_5',
-    nameRu: 'Devastator',
+    nameRu: 'Опустошитель',
     descRu: 'Убить 5 орков',
     icon: '✦✦',
     category: 'kill',
   },
   {
     id: 'kill_shaman_1',
-    nameRu: 'Anti-Mage',
+    nameRu: 'Антимаг',
     descRu: 'Убить 1 шамана',
     icon: '✺',
     category: 'kill',
   },
   {
     id: 'kill_shaman_3',
-    nameRu: 'Coven Destroyer',
+    nameRu: 'Разрушитель ковена',
     descRu: 'Убить 3 шаманов',
     icon: '✺✺',
     category: 'kill',
   },
   {
     id: 'kill_all_types',
-    nameRu: 'Full Bestiary',
+    nameRu: 'Полный бестиарий',
     descRu: 'Убить хотя бы одно существо каждого вида',
     icon: '★',
     category: 'kill',
@@ -118,14 +121,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Capture achievements ──────────────────────────────
   {
     id: 'capture_1',
-    nameRu: 'First Body',
+    nameRu: 'Первое тело',
     descRu: 'Захватить любое существо',
     icon: '◉',
     category: 'capture',
   },
   {
     id: 'capture_5',
-    nameRu: 'Capture Master',
+    nameRu: 'Мастер захвата',
     descRu: 'Захватить 5 тел',
     icon: '◉◉',
     category: 'capture',
@@ -133,17 +136,19 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Spell achievements ────────────────────────────────
   {
     id: 'spell_spark',
-    nameRu: 'Spark Slayer',
+    nameRu: 'Покоритель искр',
     descRu: 'Выучить заклинание Искра',
     icon: '⚡',
     category: 'spell',
+    requiredSpellId: 'mob_fire_spark',
   },
   {
     id: 'spell_fireball',
-    nameRu: 'Pyromancer',
+    nameRu: 'Пиромант',
     descRu: 'Выучить заклинание Огненный шар',
     icon: '🔥',
     category: 'spell',
+    requiredSpellId: 'mob_fireball',
   },
 ];
 

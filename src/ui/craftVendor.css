@@ -1,0 +1,462 @@
+/* ============================================================
+   ESSENCE — UI windows (Vendor + Crafting).
+   Ported from design mock; namespaced cv-/--cv- to avoid
+   collisions with inventory.css (ess-/--ess-).
+   ============================================================ */
+:root {
+  --cv-bg-0: #14110c;        /* darkest ink */
+  --cv-bg-1: #1d1811;        /* panel base */
+  --cv-bg-2: #241d14;        /* raised row */
+  --cv-bg-btn: #2a2218;      /* button fill */
+  --cv-brass: #c9a227;       /* brass line */
+  --cv-brass-lit: #e8c66a;   /* lit brass / headings */
+  --cv-brass-dim: rgba(201,162,39,0.32);
+  --cv-text: #d8cbb0;        /* warm parchment */
+  --cv-text-mute: #8a7f68;   /* muted */
+  --cv-green: #6d9a5a;       /* enough */
+  --cv-red: #c86a6a;         /* not enough */
+  --cv-radius: 4px;
+  --cv-serif: 'Cormorant Garamond', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --cv-mono: 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+  --cv-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ---------------- Overlay shell ---------------- */
+.cv-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 998;
+}
+.cv-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  pointer-events: none;
+}
+.cv-stage * { box-sizing: border-box; }
+
+/* ---------------- Window shell ---------------- */
+.cv-window {
+  pointer-events: auto;
+  width: 380px;
+  background:
+    linear-gradient(180deg, rgba(29,24,17,0.96) 0%, rgba(20,17,12,0.97) 100%);
+  border: 1px solid var(--cv-brass);
+  border-radius: var(--cv-radius);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.6),
+    0 1px 0 rgba(201,162,39,0.18) inset,
+    0 22px 50px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--cv-text);
+  font-family: var(--cv-sans);
+}
+
+/* corner rivets for steampunk flavour */
+.cv-window-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.cv-rivet {
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e8c66a, #7a5e15 70%, #2a2010);
+  box-shadow: 0 0 3px rgba(0,0,0,0.7);
+  z-index: 3;
+  pointer-events: none;
+}
+.cv-rivet.tl { top: 7px; left: 7px; }
+.cv-rivet.tr { top: 7px; right: 7px; }
+
+/* ---------------- Header ---------------- */
+.cv-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 11px;
+  background: linear-gradient(180deg, rgba(40,32,21,0.9) 0%, rgba(26,21,14,0.6) 100%);
+  border-bottom: 1px solid var(--cv-brass);
+}
+.cv-title {
+  font-family: var(--cv-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--cv-brass-lit);
+  margin: 0;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6), 0 0 14px rgba(201,162,39,0.18);
+  white-space: nowrap;
+}
+.cv-title .cv-glyph { font-size: 17px; }
+.cv-header-spacer { flex: 1 1 auto; }
+
+.cv-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--cv-brass-dim);
+  border-radius: var(--cv-radius);
+  font-family: var(--cv-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cv-brass-lit);
+  white-space: nowrap;
+}
+.cv-balance .coin { font-family: var(--cv-sans); font-size: 12px; }
+
+.cv-close {
+  width: 28px; height: 28px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cv-bg-btn);
+  border: 1px solid var(--cv-brass-dim);
+  border-radius: var(--cv-radius);
+  color: var(--cv-text-mute);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.cv-close:hover {
+  color: var(--cv-brass-lit);
+  border-color: var(--cv-brass);
+  background: #34291a;
+}
+
+/* ---------------- Body / scroll ---------------- */
+.cv-body {
+  max-height: 520px;
+  overflow-y: auto;
+  padding: 6px 6px 6px;
+}
+.cv-body::-webkit-scrollbar { width: 9px; }
+.cv-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+.cv-body::-webkit-scrollbar-thumb {
+  background: rgba(201,162,39,0.28);
+  border-radius: 4px;
+  border: 2px solid var(--cv-bg-1);
+}
+.cv-body::-webkit-scrollbar-thumb:hover { background: rgba(201,162,39,0.5); }
+
+/* ---------------- Collapsible section ---------------- */
+.cv-vendor-section,
+.cv-recipe-section {
+  margin: 4px 4px 8px;
+  border: 1px solid rgba(201,162,39,0.16);
+  border-radius: var(--cv-radius);
+  background: rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+.cv-section-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 11px;
+  background: linear-gradient(180deg, rgba(36,29,20,0.85), rgba(24,19,13,0.7));
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--cv-text);
+  transition: background 0.16s ease;
+  font-family: var(--cv-serif);
+}
+.cv-section-header:hover { background: linear-gradient(180deg, rgba(46,37,25,0.9), rgba(30,24,16,0.8)); }
+.cv-section-header[aria-expanded="true"] { border-bottom-color: rgba(201,162,39,0.18); }
+
+.cv-caret {
+  color: var(--cv-brass);
+  font-size: 10px;
+  width: 12px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+.cv-section-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--cv-brass-lit);
+  flex: 1 1 auto;
+}
+.cv-section-count {
+  font-family: var(--cv-mono);
+  font-size: 11px;
+  color: var(--cv-text-mute);
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--cv-brass-dim);
+  border-radius: 999px;
+  padding: 1px 8px;
+  flex: 0 0 auto;
+}
+
+.cv-section-body { padding: 4px; }
+.cv-section-body.is-collapsed { display: none; }
+
+/* ---------------- Vendor item row ---------------- */
+.cv-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--cv-radius);
+  transition: background 0.14s ease;
+}
+.cv-item-row + .cv-item-row {
+  border-top: 1px solid rgba(201,162,39,0.08);
+}
+.cv-item-row:hover { background: rgba(201,162,39,0.05); }
+
+.cv-item-icon {
+  width: 30px; height: 30px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--cv-brass-dim);
+  border-radius: var(--cv-radius);
+}
+.cv-item-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--cv-text);
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cv-item-price {
+  flex: 0 0 auto;
+  font-family: var(--cv-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cv-text);
+  min-width: 46px;
+  text-align: right;
+}
+.cv-item-price.is-free { color: var(--cv-green); }
+.cv-item-price.is-short { color: var(--cv-red); }
+
+/* ---------------- Buttons ---------------- */
+.cv-buy-btn,
+.cv-craft-btn {
+  flex: 0 0 auto;
+  font-family: var(--cv-serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cv-brass-lit);
+  background: var(--cv-bg-btn);
+  border: 1px solid var(--cv-brass);
+  border-radius: var(--cv-radius);
+  padding: 5px 13px;
+  cursor: pointer;
+  transition: background 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
+  white-space: nowrap;
+}
+.cv-buy-btn:hover,
+.cv-craft-btn:hover {
+  background: #3a2e1c;
+  color: #f6e3a4;
+  box-shadow: 0 0 14px rgba(201,162,39,0.28), inset 0 1px 0 rgba(232,198,106,0.2);
+}
+.cv-buy-btn:active,
+.cv-craft-btn:active { background: #241c11; }
+
+.cv-buy-btn:disabled,
+.cv-craft-btn:disabled,
+.cv-buy-btn[disabled],
+.cv-craft-btn[disabled] {
+  color: var(--cv-text-mute);
+  background: #1c1810;
+  border-color: rgba(138,127,104,0.32);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* learned / owned state */
+.cv-item-row.is-learned { opacity: 0.55; }
+.cv-learned-tag {
+  flex: 0 0 auto;
+  font-family: var(--cv-sans);
+  font-size: 12px;
+  color: var(--cv-text-mute);
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+.cv-learned-tag .check { color: var(--cv-green); }
+
+/* ---------------- Footer ---------------- */
+.cv-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: linear-gradient(0deg, rgba(40,32,21,0.85) 0%, rgba(26,21,14,0.5) 100%);
+  border-top: 1px solid var(--cv-brass);
+}
+.cv-footer-label {
+  font-family: var(--cv-sans);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cv-text-mute);
+}
+.cv-footer .cv-balance { margin-left: auto; }
+
+/* ============================================================
+   CRAFTING-specific
+   ============================================================ */
+.cv-recipe-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 11px;
+  margin: 4px;
+  background: linear-gradient(180deg, rgba(36,29,20,0.55), rgba(22,18,12,0.55));
+  border: 1px solid rgba(201,162,39,0.18);
+  border-radius: var(--cv-radius);
+}
+.cv-recipe-row + .cv-recipe-row { margin-top: 6px; }
+.cv-recipe-row.is-locked { opacity: 0.62; }
+
+.cv-recipe-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cv-recipe-icon {
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--cv-brass-dim);
+  border-radius: var(--cv-radius);
+}
+.cv-recipe-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--cv-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cv-brass-lit);
+  letter-spacing: 0.01em;
+}
+.cv-recipe-time {
+  flex: 0 0 auto;
+  font-family: var(--cv-mono);
+  font-size: 12px;
+  color: var(--cv-text-mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cv-recipe-time::before { content: "⏱"; font-size: 11px; }
+
+.cv-recipe-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cv-mats {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 4px;
+  min-width: 0;
+}
+.cv-mat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--cv-mono);
+  font-size: 12px;
+  color: var(--cv-text);
+}
+.cv-mat .cv-mat-icon { font-family: var(--cv-sans); font-size: 13px; }
+.cv-mat .cv-mat-count.ok { color: var(--cv-green); }
+.cv-mat .cv-mat-count.short { color: var(--cv-red); }
+.cv-mat-sep {
+  color: var(--cv-brass-dim);
+  font-size: 11px;
+  user-select: none;
+}
+
+.cv-craft-btn { padding: 6px 14px; align-self: stretch; }
+.cv-recipe-bottom .cv-craft-btn { align-self: center; }
+
+/* craft progress footer */
+.cv-craft-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 14px 13px;
+  background: linear-gradient(0deg, rgba(40,32,21,0.85) 0%, rgba(26,21,14,0.5) 100%);
+  border-top: 1px solid var(--cv-brass);
+}
+.cv-craft-progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--cv-sans);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cv-text-mute);
+}
+.cv-craft-progress-label .pct { font-family: var(--cv-mono); color: var(--cv-brass-lit); }
+.cv-progress-track {
+  height: 7px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--cv-brass-dim);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cv-progress-fill {
+  height: 100%;
+  width: 46%;
+  background: linear-gradient(90deg, #7a5e15, var(--cv-brass-lit));
+  box-shadow: 0 0 10px rgba(201,162,39,0.45);
+  border-radius: 999px;
+}
+
+/* ---------------- Quests window (reuses cv-* base) ---------------- */
+.cv-quest {
+  padding: 2px 0 6px;
+}
+.cv-quest + .cv-quest { border-top: 1px solid rgba(201,162,39,0.08); }
+.cv-quest-objs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 4px 8px 2px 48px;
+}
+.cv-quest-empty {
+  padding: 10px 12px;
+  font-family: var(--cv-serif);
+  font-size: 14px;
+  color: var(--cv-text-mute);
+  text-align: center;
+}

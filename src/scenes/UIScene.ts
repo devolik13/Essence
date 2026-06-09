@@ -10,28 +10,37 @@ import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constan
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { QuestProgress } from '../types/quests';
 import { InventoryItem } from '../types/items';
-import { ITEMS, RECIPES } from '../data/itemDB';
-import { WEAPONS } from '../data/weapons';
+import { ITEMS, RECIPES, VENDOR_MATERIALS, equipmentStatBonuses } from '../data/itemDB';
+import { WEAPONS, getItemWeaponType, weaponDamageType } from '../data/weapons';
 import { formatCurrency } from '../systems/currency';
 import { AchievementDef } from '../data/achievementDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
-import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
+import { showEquipmentDom, hideEquipmentDom, refreshEquipmentDom, isEquipmentDomOpen } from '../ui/equipmentWindowDom';
+import { showBagDom, hideBagDom, refreshBagDom, isBagDomOpen } from '../ui/bagWindowDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
+import { showQuestsDom, hideQuestsDom, isQuestsDomOpen } from '../ui/questsWindowDom';
 import { spriteForSpell } from '../ui/weaponIcon';
 import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
 import { showBestiaryWindowDom, hideBestiaryWindowDom, isBestiaryWindowDomOpen, refreshBestiaryWindowDom } from '../ui/bestiaryWindowDom';
+import { showVendorDom, hideVendorDom, isVendorDomOpen } from '../ui/vendorWindowDom';
+import { showCraftingDom, hideCraftingDom, isCraftingDomOpen } from '../ui/craftingWindowDom';
 import { syncPlayerStatusDom, clearPlayerStatusDom, StatusEntry } from '../ui/playerStatusDom';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
 const UI_LAYOUT_KEY = 'essence_ui_layout_v1';
+const WINDOW_LAYOUT_KEY = 'essence_window_layout_v1';
 const HEADER_H = 20;
 const WIN_W = 310;
 const WIN_TITLE_H = 22;
+const WIN_MIN_W = 220;
+const WIN_MIN_H = 160;
+/** Типы плавающего (Phaser) окна — остальные рендерятся через DOM. */
+const FLOATING_TYPES: WindowType[] = ['stats', 'quests', 'vendor', 'crafting'];
 
-type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
+type WindowType = 'stats' | 'equipment' | 'bag' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -56,6 +65,7 @@ interface UIData {
   playerPos: { x: number; y: number } | null;
   mapDotNpcs: { x: number; y: number }[];
   mapDotNodes: { x: number; y: number; depleted: boolean }[];
+  mapDotQuests?: { x: number; y: number }[];
   inventory: InventoryItem[];
   unlockedAchievements: string[];
   trackedQuestIds: string[];
@@ -94,6 +104,7 @@ export class UIScene extends Phaser.Scene {
   private hintText!:    Phaser.GameObjects.Text;
   private logText!:     Phaser.GameObjects.Text;
   private captureBar!:  Phaser.GameObjects.Rectangle;
+  private captureLabel!: Phaser.GameObjects.Text;
 
   // ── Tracked quest HUD (top-left) ──────────────────────
   private trackedQuestText!: Phaser.GameObjects.Text;
@@ -107,7 +118,7 @@ export class UIScene extends Phaser.Scene {
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
   private menuBtnIcons: Phaser.GameObjects.Text[]      = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
-  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells', 'bestiary'];
+  private readonly menuBtnTypes: WindowType[] = ['stats', 'equipment', 'bag', 'quests', 'achievements', 'spells', 'bestiary'];
 
   // Weapon block (active equipped weapon: icon + damage)
   private weaponBlockBg?: Phaser.GameObjects.Rectangle;
@@ -128,12 +139,18 @@ export class UIScene extends Phaser.Scene {
   private winBg!: Phaser.GameObjects.Rectangle;
   private winTitleBg!: Phaser.GameObjects.Rectangle;
   private winCloseBtn!: Phaser.GameObjects.Text;
+  private winResizeGrip!: Phaser.GameObjects.Rectangle;
+  /** Сохранённые позиция/размер плавающего окна по типу (persist в localStorage). */
+  private windowLayouts: Partial<Record<WindowType, { x: number; y: number; w: number; h: number }>> = {};
   private cachedUIData: UIData | null = null;
   /** Тип верстака для окна крафта */
   private craftingWorkbenchType: string = '';
   /** Vendor filter */
   private vendorFilter: string = 'all';
   private inventoryFilter: string = 'all';
+  /** Сигнатура данных открытого окна — пересобираем содержимое только при её
+   *  изменении, а не каждый кадр (иначе пересоздаём интерактивные GameObjects 60×/с). */
+  private lastWindowSignature = '';
   private vendorButtons: Phaser.GameObjects.Text[] = [];
   private _contentMaskGfx!: Phaser.GameObjects.Graphics;
   private _contentScrollY: number = 0;
@@ -219,6 +236,7 @@ export class UIScene extends Phaser.Scene {
     this.scene.bringToTop();
     // Load saved layout before creating anything
     this.loadUILayout();
+    this.loadWindowLayouts();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       clearPlayerStatusDom();
@@ -249,11 +267,12 @@ export class UIScene extends Phaser.Scene {
       .setStrokeStyle(1, THEME.brass0, 0.6);
     this.captureBar = this.add.rectangle(GAME_WIDTH / 2 - 70, GAME_HEIGHT / 2 + 40, 0, 10, THEME.ether2)
       .setOrigin(0, 0.5).setScrollFactor(0).setDepth(1002).setVisible(false);
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Capturing...', {
+    this.captureLabel = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 26, 'Capturing...', {
       fontSize: '11px', fontFamily: '"Special Elite", monospace', color: TC.ether3,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
-    const castY = GAME_HEIGHT - 72;
+    // Заметно выше баров HP/маны (они на GAME_HEIGHT - SKILL_SLOT_SIZE - 32).
+    const castY = GAME_HEIGHT - SKILL_SLOT_SIZE - 32 - 90;
     this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, THEME.ink2)
       .setScrollFactor(0).setDepth(1001).setVisible(false)
       .setStrokeStyle(1, THEME.brass0, 0.6);
@@ -354,7 +373,8 @@ export class UIScene extends Phaser.Scene {
     }).setScrollFactor(0).setDepth(1000);
 
     this.logText = this.add.text(0, 0, '', {
-      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: TC.text2, lineSpacing: 3,
+      fontSize: '10px', fontFamily: '"JetBrains Mono", monospace', color: '#ffffff', lineSpacing: 3,
+      stroke: '#000000', strokeThickness: 2,
     }).setScrollFactor(0).setDepth(1000);
 
     // Achievement unlock notification (top-center, fades out)
@@ -432,14 +452,17 @@ export class UIScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-M',   () => this.toggleMaximap());
     this.input.keyboard?.on('keydown-ESC', () => { if (this.maximapOpen) this.toggleMaximap(); });
 
-    // Window shortcuts: I=inventory, Q=quests, C=stats(char), K=spells, B=bestiary, J=achievements
-    this.input.keyboard?.on('keydown-I', () => this.toggleWindow('inventory'));
-    this.input.keyboard?.on('keydown-Q', () => this.toggleWindow('quests'));
+    // Window shortcuts: I=equipment, G=bag, L=quests, C=stats(char), K=spells, B=bestiary, J=achievements
+    this.input.keyboard?.on('keydown-I', () => this.toggleWindow('equipment'));
+    this.input.keyboard?.on('keydown-G', () => this.toggleWindow('bag'));
+    this.input.keyboard?.on('keydown-L', () => this.toggleWindow('quests'));
     this.input.keyboard?.on('keydown-C', () => this.toggleWindow('stats'));
     this.input.keyboard?.on('keydown-K', () => this.toggleWindow('spells'));
     this.input.keyboard?.on('keydown-B', () => this.toggleWindow('bestiary'));
     this.input.keyboard?.on('keydown-J', () => this.toggleWindow('achievements'));
-    this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow) this.toggleWindow(this.currentWindow); });
+    // DOM windows close themselves on Escape (openWindowShell key handler).
+    // Here we only need to close the Phaser stats window.
+    this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow === 'stats') this.closeSingleWindow('stats'); });
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
@@ -466,6 +489,7 @@ export class UIScene extends Phaser.Scene {
     });
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} ${t('log.capture_prompt')}`));
     gs.events.on('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
+    gs.events.on('capture-interrupt', () => this.addLog('✖ Захват прерван (движение)'));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`★ Learned: ${spell.nameRu}`);
     });
@@ -498,15 +522,12 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('save-loaded', () => this.addLog(t('log.progress_loaded')));
     gs.events.on('log', (data: { text: string; color?: string }) => this.addLog(data.text));
     gs.events.on('open-vendor', () => {
-      this.currentWindow = 'vendor';
-      this.windowContainer.setVisible(true);
-      if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      // Independent window — does not close inventory/etc.
+      this.openVendorDom();
     });
     gs.events.on('open-crafting', (workbenchType: string) => {
       this.craftingWorkbenchType = workbenchType;
-      this.currentWindow = 'crafting';
-      this.windowContainer.setVisible(true);
-      if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      this.openCraftingDom(workbenchType);
     });
     gs.events.on('aoe-targeting', (name: string) => {
       this.addLog(`◎ Targeting: ${name}  [LMB/RMB]`);
@@ -573,7 +594,9 @@ export class UIScene extends Phaser.Scene {
       })
       .on('pointerup', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
-        if (!dragMoved) {
+        // Клик (а не перетаскивание) → сворачиваем. Считаем по дистанции
+        // от нажатия, чтобы микро-сдвиг мыши не ломал тоггл.
+        if (ptr.getDistance() < 6) {
           state.collapsed = !state.collapsed;
           (arrow as Phaser.GameObjects.Text).setText(state.collapsed ? '▶' : '▼');
           this.saveUILayout();
@@ -673,6 +696,45 @@ export class UIScene extends Phaser.Scene {
     } catch { /* corrupt save */ }
   }
 
+  // ── Floating window layout persistence (per type) ─────
+
+  private loadWindowLayouts() {
+    try {
+      const raw = localStorage.getItem(WINDOW_LAYOUT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Record<string, { x: number; y: number; w: number; h: number }>;
+      for (const [k, v] of Object.entries(saved)) {
+        if (!FLOATING_TYPES.includes(k as WindowType)) continue;
+        this.windowLayouts[k as WindowType] = {
+          x: Math.max(0, Math.min(GAME_WIDTH  - 40, v.x ?? 0)),
+          y: Math.max(0, Math.min(GAME_HEIGHT - 40, v.y ?? 0)),
+          w: Math.max(WIN_MIN_W, v.w ?? WIN_MIN_W),
+          h: Math.max(WIN_MIN_H, v.h ?? WIN_MIN_H),
+        };
+      }
+    } catch { /* corrupt save */ }
+  }
+
+  /** Persist current window's position+size under its type. */
+  private saveWindowLayout(type: WindowType | null) {
+    if (!type || !FLOATING_TYPES.includes(type)) return;
+    this.windowLayouts[type] = {
+      x: this.windowX, y: this.windowY, w: this.windowW, h: this.windowH,
+    };
+    try {
+      localStorage.setItem(WINDOW_LAYOUT_KEY, JSON.stringify(this.windowLayouts));
+    } catch { /* localStorage unavailable */ }
+  }
+
+  /** Position the resize grip at the window's bottom-right corner. */
+  private positionWindowGrip() {
+    if (!this.winResizeGrip) return;
+    this.winResizeGrip.setPosition(
+      this.windowX + this.windowW - 6,
+      this.windowY + WIN_TITLE_H + this.windowH - 6,
+    );
+  }
+
   // ── Grip positioning helper ───────────────────────────
 
   private positionGrip(panelId: string, contentBottom: number) {
@@ -700,24 +762,11 @@ export class UIScene extends Phaser.Scene {
     // ── Tracked quest HUD (right side) ─────────────────────
     {
       const tracked = data.trackedQuestIds ?? [];
-      // Active main quest (first incomplete in chain)
       const activeQuests = data.quests.filter(q => !q.completed);
-      const mainQuest = activeQuests.find(q => q.def.prerequisiteIds !== undefined || q.def.id.startsWith('q'));
-      // Tracked side quests
+      // На HUD — только ОТМЕЧЕННЫЕ квесты (чекбокс в окне квестов рулит видимостью).
       const trackedQuests = activeQuests.filter(q => tracked.includes(q.def.id));
 
       const lines: string[] = [];
-
-      // Main quest always shown
-      if (mainQuest && !trackedQuests.find(q => q.def.id === mainQuest.def.id)) {
-        lines.push(`◆ ${mainQuest.def.nameRu}`);
-        for (let i = 0; i < mainQuest.def.objectives.length; i++) {
-          const obj = mainQuest.def.objectives[i];
-          const cur = mainQuest.counts[i];
-          const isDone = cur >= obj.count;
-          lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? ''}`);
-        }
-      }
 
       // Tracked quests
       for (const q of trackedQuests) {
@@ -772,8 +821,14 @@ export class UIScene extends Phaser.Scene {
       }
     }
 
-    // ── Refresh open window ───────────────────────────────
-    if (this.currentWindow) this.buildWindowContent(data);
+    // ── Refresh open window (только при изменении данных, не каждый кадр) ──
+    if (this.currentWindow) {
+      const sig = this.windowSignature(data);
+      if (sig !== this.lastWindowSignature) {
+        this.lastWindowSignature = sig;
+        this.buildWindowContent(data);
+      }
+    }
 
     // ── Resources (always visible when in body) ──────────
     this.updateGoldWidget(data.sphere.copper ?? 0);
@@ -813,15 +868,17 @@ export class UIScene extends Phaser.Scene {
       const p = capture.elapsed / capture.duration;
       this.captureBarBg.setVisible(true);
       this.captureBar.setVisible(true);
+      this.captureLabel.setVisible(true);
       this.captureBar.width = 140 * p;
     } else {
       this.captureBarBg.setVisible(false);
       this.captureBar.setVisible(false);
+      this.captureLabel.setVisible(false);
     }
 
     // ── Skill bar ─────────────────────────────────────────
     this.updateSkillBar(body, data.activeEnchantId);
-    this.updatePlayerStatusBar(body);
+    this.updatePlayerStatusBar(body, data.deathDebuff ?? 0);
 
     // ── Cast bar ──────────────────────────────────────────
     if (data.aoeCast) {
@@ -846,10 +903,14 @@ export class UIScene extends Phaser.Scene {
       if (body) {
         this.setHeaderLabel('body', `Body · ${body.definition.nameRu}`);
         if (!s.collapsed) {
+          // Гуманоид — реальное оружие; зверь/элементаль — природная атака
+          // (Когти/Стихия), без понятия «оружие», чтобы не путать.
+          const weaponLine = body.definition.canUseAllSpells
+            ? `${t('body.weapon')}: ${body.weapon.nameRu}  ${t('body.cd')}: ${body.weapon.cooldown}s`
+            : `${this.naturalAttackName(body)}  ${t('body.cd')}: ${body.weapon.cooldown}s`;
           this.bodyInfoText.setFixedSize(s.w, 0)
             .setPosition(s.x, s.y + HEADER_H).setText(
-              `── ${body.definition.nameRu} ──\n` +
-              `${t('body.weapon')}: ${body.weapon.nameRu}  ${t('body.cd')}: ${body.weapon.cooldown}s`
+              `── ${body.definition.nameRu} ──\n` + weaponLine
             ).setVisible(true);
           this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
         } else {
@@ -1108,7 +1169,9 @@ export class UIScene extends Phaser.Scene {
       .on('dragend', () => { if (dragMoved) this.saveUILayout(); this.input.setDefaultCursor('default'); })
       .on('pointerup', (ptr: Phaser.Input.Pointer) => {
         ptr.event.stopPropagation();
-        if (!dragMoved) {
+        // Клик (а не перетаскивание) → сворачиваем. Считаем по дистанции
+        // от нажатия, чтобы микро-сдвиг мыши не ломал тоггл.
+        if (ptr.getDistance() < 6) {
           state.collapsed = !state.collapsed;
           (arrow as Phaser.GameObjects.Text).setText(state.collapsed ? '▶' : '▼');
           this.saveUILayout();
@@ -1190,6 +1253,13 @@ export class UIScene extends Phaser.Scene {
       if (!inBounds(n.x, n.y)) continue;
       g.fillStyle(0xffdd55, 0.9);
       drawDot(n.x, n.y, dotSize);
+    }
+
+    // Цели квестов — крупнее и ярче (зелёный, как вейпоинт)
+    for (const q of data.mapDotQuests ?? []) {
+      if (!inBounds(q.x, q.y)) continue;
+      g.fillStyle(0x55ff66, 1);
+      drawDot(q.x, q.y, dotSize + 1.5);
     }
 
     for (const c of data.creatures) {
@@ -1329,7 +1399,10 @@ export class UIScene extends Phaser.Scene {
       bg.setInteractive({ useHandCursor: true })
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
-          if (i === 0 || this.skillBarLocked) {
+          // Зверь/элементаль: оружейные слоты 0-4 (Когти + родной скил) не
+          // редактируются — только каст. Редактируются лишь нейтральные 5-7.
+          const beastWeaponSlot = !this.cachedBody?.definition.canUseAllSpells && i < 5;
+          if (i === 0 || this.skillBarLocked || beastWeaponSlot) {
             this.scene.get('GameScene').events.emit('activate-spell-slot', i);
             return;
           }
@@ -1481,13 +1554,17 @@ export class UIScene extends Phaser.Scene {
 
   // ── Панель статусов игрока (DOM-оверлей сверху экрана) ──
 
-  private updatePlayerStatusBar(body: Body | null) {
+  private updatePlayerStatusBar(body: Body | null, deathDebuff = 0) {
     if (!body) {
       clearPlayerStatusDom();
       return;
     }
 
     const entries: StatusEntry[] = [];
+    // Слабость после смерти тела — показываем значок с таймером сверху.
+    if (deathDebuff > 0) {
+      entries.push({ id: 'death_weakness', stacks: 1, timer: deathDebuff });
+    }
     for (const [, s] of body.statusEffects) {
       entries.push({ id: s.id, stacks: s.stacks, timer: s.timer });
     }
@@ -1764,19 +1841,23 @@ export class UIScene extends Phaser.Scene {
     const data = this.lastUIData;
     if (!data?.body || !data?.sphere) return;
     const eq = data.sphere.equipment;
+    // Когти (зверь/элементаль ИЛИ безоружный гуманоид) → природная атака,
+    // иначе надетое оружие. wt всегда из body.weapon (для безоружного — Fists).
+    const innate = data.body.usesInnateAttack;
     const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
-    if (!activeId) return;
-    const item = ITEMS[activeId];
-    if (!item) return;
-    const weapon = WEAPONS[data.body.definition.weapon];
-    const str = data.sphere.stats?.strength ?? 0;
-    const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
-    const inactiveId = data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon;
+    const item = innate ? undefined : ITEMS[activeId ?? ''];
+    const wt = data.body.weapon.type;
+    const weapon = WEAPONS[wt];
+    const atk = this.weaponAttackStat(wt, data.sphere, innate);
+    const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
+    const inactiveId = innate ? undefined : (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon);
     const lines = [
-      item.nameRu,
+      item ? item.nameRu : `${data.body.definition.nameRu} — ${this.naturalAttackName(data.body)}`,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
-      `Damage (STR ${str}): ${dmg}`,
-      weapon.weaponEffect ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
+      `Damage (${atk.label} ${atk.value}): ${dmg}`,
+      // Эффект оружия показываем только гуманоидам: у зверей «оружие» — заглушка
+      // (заяц не машет ядовитым кинжалом), и базовая атака эффект не накладывает.
+      (!innate && weapon.weaponEffect) ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
       inactiveId ? `[Tab] swap → ${ITEMS[inactiveId]?.nameRu ?? inactiveId}` : '',
     ].filter(Boolean);
     this.hideWeaponTooltip();
@@ -1796,27 +1877,69 @@ export class UIScene extends Phaser.Scene {
 
   private updateWeaponBlock(data: UIData) {
     if (!this.weaponBlockIcon || !this.weaponBlockDmg) return;
-    const eq = data.sphere.equipment;
-    const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
-    if (!activeId || !data.body) {
+    if (!data.body) {
       this.weaponBlockIcon.setText('—');
       this.weaponBlockDmg.setText('');
       return;
     }
-    const item = ITEMS[activeId];
-    const weapon = WEAPONS[data.body.definition.weapon];
-    // Body itself doesn't store stats — they live on the Sphere.
-    const str = data.sphere.stats?.strength ?? 0;
-    const dmg = Math.round(weapon.baseDamage * (1 + str / 100));
-    this.weaponBlockIcon.setText(item?.icon ?? '⚔');
+    // Когти (зверь/элементаль ИЛИ безоружный гуманоид) → 🐾; иначе иконка оружия.
+    const innate = data.body.usesInnateAttack;
+    const eq = data.sphere.equipment;
+    const activeId = data.sphere.activeWeaponSlot === 0 ? eq.weapon : eq.weapon2;
+    const item = innate ? undefined : ITEMS[activeId ?? ''];
+    const wt = data.body.weapon.type;
+    const weapon = WEAPONS[wt];
+    const atk = this.weaponAttackStat(wt, data.sphere, innate);
+    const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
+    this.weaponBlockIcon.setText(item?.icon ?? '🐾');
     this.weaponBlockDmg.setText(String(dmg));
+  }
+
+  /** Имя природной атаки тела (зверь → Когти, элементаль → Стихия). */
+  private naturalAttackName(body: NonNullable<UIData['body']>): string {
+    return weaponDamageType(body.weapon.type) === 'magic' ? t('body.element') : t('body.claws');
+  }
+
+  /** Атакующий стат оружия (STR/AGI/INT) + его эффективное значение (база + активная экипировка).
+   *  Для зверей/элементалей (isNatural) атака идёт от НАИБОЛЬШЕГО боевого стата. */
+  private weaponAttackStat(
+    wt: import('../types/bodies').WeaponType,
+    sphere: UIData['sphere'],
+    isNatural = false,
+  ): { label: string; stat: StatName; value: number } {
+    const bonuses = equipmentStatBonuses(
+      (sphere.equipment ?? {}) as Record<string, string | undefined>,
+      sphere.activeWeaponSlot ?? 0,
+    );
+    const eff = (st: StatName) => (sphere.stats?.[st] ?? 0) + (bonuses[st] ?? 0);
+
+    if (isNatural) {
+      // Тело зверя/элементаля: урон от максимума Сила/Ловкость/Интеллект.
+      const trio: [StatName, string][] = [
+        [StatName.Strength, 'STR'], [StatName.Agility, 'AGI'], [StatName.Intellect, 'INT'],
+      ];
+      let best = trio[0]; let bestVal = eff(trio[0][0]);
+      for (const pair of trio) {
+        const v = eff(pair[0]);
+        if (v > bestVal) { bestVal = v; best = pair; }
+      }
+      return { label: best[1], stat: best[0], value: bestVal };
+    }
+
+    // Гуманоид: стат совпадает с типом урона оружия.
+    const dmgType = weaponDamageType(wt);
+    const stat = dmgType === 'magic' ? StatName.Intellect
+      : dmgType === 'ranged' ? StatName.Agility
+      : StatName.Strength;
+    const label = stat === StatName.Intellect ? 'INT' : stat === StatName.Agility ? 'AGI' : 'STR';
+    return { label, stat, value: eff(stat) };
   }
 
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
-    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary')];
-    const icons  = ['✦', '⬡', '❖', '★', '⚡', '⌬'];
+    const labels = [t('menu.stats'), t('menu.equipment'), t('menu.bag'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary')];
+    const icons  = ['✦', '⬡', '🎒', '❖', '★', '⚡', '⌬'];
     const btnSz = SKILL_SLOT_SIZE;
     const gap = SKILL_SLOT_GAP;
 
@@ -1830,9 +1953,9 @@ export class UIScene extends Phaser.Scene {
     const trayLeft = barCx - trayW / 2;
     const trayRight = barCx + trayW / 2;
 
-    // Left group: Stats, Inventory, Quests (3 buttons), weapon block, then tray.
+    // Left group: Stats, Equipment, Bag, Quests (4 buttons), weapon block, then tray.
     // Right group: Achievements, Spells, Bestiary (3 buttons)
-    const leftCount = 3;
+    const leftCount = 4;
     const sideGap = 10;
     // Weapon block sits just to the left of the lock icon.
     const weaponBlockX = trayLeft - 22 - btnSz / 2;
@@ -1854,8 +1977,8 @@ export class UIScene extends Phaser.Scene {
       const bg = this.add.rectangle(x, y, btnSz, btnSz, THEME.ink0, 0.95)
         .setScrollFactor(0).setDepth(1000)
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink3, 0.97); })
-        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink0, 0.95); })
+        .on('pointerover', () => { if (!this.isWindowOpen(this.menuBtnTypes[i])) bg.setFillStyle(THEME.ink3, 0.97); })
+        .on('pointerout',  () => { if (!this.isWindowOpen(this.menuBtnTypes[i])) bg.setFillStyle(THEME.ink0, 0.95); })
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
           this.toggleWindow(this.menuBtnTypes[i]);
@@ -1928,8 +2051,29 @@ export class UIScene extends Phaser.Scene {
         this.windowY = Math.max(0, Math.min(GAME_HEIGHT - 40, ptr.y - dragOffY));
         this.windowContainer.setPosition(this.windowX, this.windowY);
         this.updateContentMask();
-      });
+        this.positionWindowGrip();
+      })
+      .on('dragend', () => this.saveWindowLayout(this.currentWindow));
     this.input.setDraggable(this.winTitleBg);
+
+    // Resize grip (bottom-right corner) — scene-level so it sits above the
+    // container; repositioned on move/resize. Hidden until a window is shown.
+    this.winResizeGrip = this.add.rectangle(0, 0, 12, 12, THEME.brass0, 0.75)
+      .setScrollFactor(0).setDepth(1019).setVisible(false)
+      .setStrokeStyle(1, THEME.brass2, 0.6)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => { this.winResizeGrip.setFillStyle(THEME.brass1, 0.9); this.input.setDefaultCursor('se-resize'); })
+      .on('pointerout',  () => { this.winResizeGrip.setFillStyle(THEME.brass0, 0.75); this.input.setDefaultCursor('default'); })
+      .on('drag', (ptr: Phaser.Input.Pointer) => {
+        const w = Math.max(WIN_MIN_W, Math.min(GAME_WIDTH - this.windowX, Math.round(ptr.x - this.windowX)));
+        const h = Math.max(WIN_MIN_H, Math.min(GAME_HEIGHT - this.windowY - WIN_TITLE_H, Math.round(ptr.y - this.windowY - WIN_TITLE_H)));
+        this.resizeWindow(w, h);
+        this._contentScrollY = 0;
+        this.windowContentText.setY(WIN_TITLE_H + 8);
+        if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      })
+      .on('dragend', () => { this.saveWindowLayout(this.currentWindow); this.input.setDefaultCursor('default'); });
+    this.input.setDraggable(this.winResizeGrip);
 
     // Container holds everything — position is (windowX, windowY)
     this.windowContainer = this.add.container(this.windowX, this.windowY, [
@@ -1973,6 +2117,7 @@ export class UIScene extends Phaser.Scene {
     );
     this.winCloseBtn.setX(w - 6);
     this.updateContentMask();
+    this.positionWindowGrip();
   }
 
   private updateContentMask() {
@@ -1982,95 +2127,130 @@ export class UIScene extends Phaser.Scene {
     }
   }
 
+  /** Is the given window type currently open? (each window independent) */
+  private isWindowOpen(type: WindowType): boolean {
+    switch (type) {
+      case 'equipment':    return isEquipmentDomOpen();
+      case 'bag':          return isBagDomOpen();
+      case 'spells':       return isSpellsWindowDomOpen();
+      case 'quests':       return isQuestsDomOpen();
+      case 'achievements': return isAchievementsWindowDomOpen();
+      case 'bestiary':     return isBestiaryWindowDomOpen();
+      case 'vendor':       return isVendorDomOpen();
+      case 'crafting':     return isCraftingDomOpen();
+      case 'stats':        return this.currentWindow === 'stats';
+    }
+  }
+
+  /**
+   * Toggle a single window independently — opening one does NOT close any other.
+   * Each window's button highlight reflects only its own open state.
+   */
   private toggleWindow(type: WindowType) {
-    if (this.currentWindow === type) {
-      this.closeWindow();
+    if (this.isWindowOpen(type)) {
+      this.closeSingleWindow(type);
       return;
     }
-    this.currentWindow = type;
+    this.openSingleWindow(type);
+  }
+
+  /** Open exactly one window without touching the others. */
+  private openSingleWindow(type: WindowType) {
+    switch (type) {
+      case 'equipment':
+        this.openEquipmentDom();
+        break;
+      case 'bag':
+        this.openBagDom();
+        break;
+      case 'spells': {
+        const learnedIds = new Set(this.cachedLearnedSpells.map(s => s.id));
+        showSpellsWindowDom(ALL_KNOWN_SPELLS, learnedIds, () => this.closeSingleWindow('spells'));
+        break;
+      }
+      case 'quests':
+        this.openQuestsDom();
+        break;
+      case 'achievements': {
+        const sphere = this.cachedUIData?.sphere;
+        if (sphere) showAchievementsWindowDom(sphere, () => this.closeSingleWindow('achievements'));
+        break;
+      }
+      case 'bestiary':
+        showBestiaryWindowDom(() => this.closeSingleWindow('bestiary'));
+        break;
+      case 'vendor':
+        this.openVendorDom();
+        break;
+      case 'crafting':
+        this.openCraftingDom(this.craftingWorkbenchType);
+        break;
+      case 'stats':
+        this.openStatsWindow();
+        break;
+    }
+    this.refreshMenuHighlight(type);
+  }
+
+  /** Open the Phaser-rendered floating stats window. */
+  private openStatsWindow() {
+    this.currentWindow = 'stats';
     this._contentScrollY = 0;
     this.windowContentText.setY(WIN_TITLE_H + 8);
 
-    // DOM-based inventory takes over for type 'inventory'
-    if (type === 'inventory') {
-      this.windowContainer.setVisible(false);
-      this.openInventoryDom();
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based spellbook
-    if (type === 'spells') {
-      this.windowContainer.setVisible(false);
-      const learnedIds = new Set(this.cachedLearnedSpells.map(s => s.id));
-      showSpellsWindowDom(ALL_KNOWN_SPELLS, learnedIds, () => this.closeWindow());
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based achievements
-    if (type === 'achievements') {
-      this.windowContainer.setVisible(false);
-      const sphere = this.cachedUIData?.sphere;
-      if (sphere) {
-        showAchievementsWindowDom(sphere, () => this.closeWindow());
-      }
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based bestiary
-    if (type === 'bestiary') {
-      this.windowContainer.setVisible(false);
-      showBestiaryWindowDom(() => this.closeWindow());
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    if (type === 'vendor' || type === 'crafting') {
-      this.windowX = Math.floor((GAME_WIDTH - 400) / 2);
-      this.windowY = 30;
-      this.resizeWindow(400, 420);
-    } else {
-      this.windowX = Math.floor((GAME_WIDTH - 320) / 2);
-      this.windowY = 30;
-      this.resizeWindow(320, 400);
-    }
+    const def = { w: 320, h: 400, x: Math.floor((GAME_WIDTH - 320) / 2), y: 30 };
+    const saved = this.windowLayouts['stats'];
+    this.windowX = saved?.x ?? def.x;
+    this.windowY = saved?.y ?? def.y;
+    this.resizeWindow(saved?.w ?? def.w, saved?.h ?? def.h);
 
     this.windowContainer.setPosition(this.windowX, this.windowY);
     this.windowContainer.setVisible(true);
-
-    // Create vendor filter/buy buttons (outside container for clickability)
-    this.destroyVendorButtons();
-    if (type === 'vendor') this.createVendorButtons(this.cachedUIData);
-
-    for (let i = 0; i < this.menuBtnTypes.length; i++) {
-      const active = this.menuBtnTypes[i] === type;
-      this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-      this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-      this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-    }
+    this.winResizeGrip.setVisible(true);
+    this.positionWindowGrip();
+    this.lastWindowSignature = '';
     if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+  }
+
+  /** Close exactly one window without touching the others. */
+  private closeSingleWindow(type: WindowType) {
+    switch (type) {
+      case 'equipment':    if (isEquipmentDomOpen()) hideEquipmentDom(); break;
+      case 'bag':          if (isBagDomOpen()) hideBagDom(); break;
+      case 'spells':       if (isSpellsWindowDomOpen()) hideSpellsWindowDom(); break;
+      case 'quests':       if (isQuestsDomOpen()) hideQuestsDom(); break;
+      case 'achievements': if (isAchievementsWindowDomOpen()) hideAchievementsWindowDom(); break;
+      case 'bestiary':     if (isBestiaryWindowDomOpen()) hideBestiaryWindowDom(); break;
+      case 'vendor':       if (isVendorDomOpen()) hideVendorDom(); break;
+      case 'crafting':     if (isCraftingDomOpen()) hideCraftingDom(); break;
+      case 'stats':        this.closeStatsWindow(); break;
+    }
+    this.refreshMenuHighlight(type);
+  }
+
+  /** Hide the Phaser stats window and its scene-level decorations. */
+  private closeStatsWindow() {
+    this.currentWindow = null;
+    this.lastWindowSignature = '';
+    this.windowContainer.setVisible(false);
+    this.winResizeGrip?.setVisible(false);
+    for (const btn of this.windowInteractables) btn.destroy();
+    this.windowInteractables = [];
+  }
+
+  /** Update a single menu button's highlight to match its own window's state. */
+  private refreshMenuHighlight(type: WindowType) {
+    const i = this.menuBtnTypes.indexOf(type);
+    if (i < 0) return; // vendor/crafting have no menu button
+    const active = this.isWindowOpen(type);
+    this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+    this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+    this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
+  }
+
+  /** Refresh every menu button's highlight to match its window's open state. */
+  private refreshAllMenuHighlights() {
+    for (const type of this.menuBtnTypes) this.refreshMenuHighlight(type);
   }
 
   // ── Dialog system ──────────────────────────────────────
@@ -2106,7 +2286,7 @@ export class UIScene extends Phaser.Scene {
 
   private createVendorButtons(data: UIData | null) {
     if (!data) return;
-    const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3'];
+    const tabs = ['All', 'Weapon', 'Armor', 'Jewel', 'Rune', 'T1', 'T2', 'T3', 'Mat'];
 
     // Filter tabs
     let fx = this.windowX + 8;
@@ -2127,6 +2307,34 @@ export class UIScene extends Phaser.Scene {
       });
       this.vendorButtons.push(btn);
       fx += btn.width + 4;
+    }
+
+    // Вкладка Mat — кнопки покупки сырья (по одной на материал), без рецептов.
+    if (this.vendorFilter === 'Mat') {
+      let my = this.windowY + WIN_TITLE_H + 28;
+      for (const m of VENDOR_MATERIALS) {
+        const it = ITEMS[m.itemId];
+        const afford = (data.sphere?.copper ?? 0) >= m.price;
+        const btn = this.add.text(this.windowX + 8, my,
+          `[ Купить ${it?.nameRu ?? m.itemId} ×${m.qty} — ${formatCurrency(m.price)} ]`, {
+            fontSize: '10px', fontFamily: '"Special Elite", monospace',
+            color: afford ? '#6d9a5a' : TC.text3, backgroundColor: '#1d1811', padding: { x: 6, y: 3 },
+          }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
+        if (afford) {
+          btn.on('pointerdown', () => {
+            const gs = this.scene.get('GameScene');
+            (gs as any).buyMaterial?.(m.itemId, m.qty, m.price);
+            this.time.delayedCall(150, () => {
+              this.destroyVendorButtons();
+              this.createVendorButtons(this.cachedUIData);
+              this.refreshWindow();
+            });
+          });
+        }
+        this.vendorButtons.push(btn);
+        my += 22;
+      }
+      return;
     }
 
     // Buy All button
@@ -2175,124 +2383,180 @@ export class UIScene extends Phaser.Scene {
 
   private refreshWindow() {
     if (this.currentWindow && this.cachedUIData) {
-      if (this.currentWindow === 'inventory' && isInventoryDomOpen()) {
-        this.refreshInventoryDom();
-      } else {
-        this.buildWindowContent(this.cachedUIData);
-      }
+      this.buildWindowContent(this.cachedUIData);
     }
   }
 
+  /** Open (or re-render) the DOM vendor window with fresh sphere data. */
+  private openQuestsDom() {
+    const data = this.cachedUIData;
+    if (!data) return;
+    showQuestsDom(
+      { quests: data.quests, trackedQuestIds: data.trackedQuestIds ?? [], bodyQuest: data.bodyQuest },
+      {
+        onClose: () => this.closeSingleWindow('quests'),
+        onTrackToggle: (id) => {
+          this.scene.get('GameScene').events.emit('track-quest', id);
+          this.openQuestsDom(); // re-render with updated tracked state
+        },
+      },
+    );
+  }
+
+  private openVendorDom() {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const gs = this.scene.get('GameScene') as any;
+    showVendorDom(
+      { copper: sphere.copper, learnedRecipes: sphere.learnedRecipes ?? [] },
+      {
+        onClose: () => this.closeSingleWindow('vendor'),
+        onBuyRecipe: (id, price) => {
+          gs?.buyRecipe?.(id, price);
+          this.openVendorDom(); // re-render with updated copper / learned recipes
+        },
+        onBuyMaterial: (itemId, qty, price) => {
+          gs?.buyMaterial?.(itemId, qty, price);
+          this.openVendorDom();
+        },
+      },
+    );
+  }
+
+  /** Open (or re-render) the DOM crafting window for the given workbench. */
+  private openCraftingDom(workbenchType: string) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const gs = this.scene.get('GameScene') as any;
+    showCraftingDom(
+      workbenchType,
+      { inventory: sphere.inventory, learnedRecipes: sphere.learnedRecipes ?? [] },
+      {
+        onClose: () => this.closeSingleWindow('crafting'),
+        onCraft: (id) => {
+          gs?.startCraftingFromUI?.(RECIPES.find(r => r.id === id));
+          this.openCraftingDom(workbenchType); // re-render with consumed materials
+        },
+      },
+    );
+  }
+
+  /** Close the Phaser stats window (× button / its own toggle). */
   private closeWindow() {
-    if (this.currentWindow === 'inventory' && isInventoryDomOpen()) {
-      hideInventoryDom();
-    }
-    if (this.currentWindow === 'spells' && isSpellsWindowDomOpen()) {
-      hideSpellsWindowDom();
-    }
-    if (this.currentWindow === 'achievements' && isAchievementsWindowDomOpen()) {
-      hideAchievementsWindowDom();
-    }
-    if (this.currentWindow === 'bestiary' && isBestiaryWindowDomOpen()) {
-      hideBestiaryWindowDom();
-    }
-    this.currentWindow = null;
-    this.windowContainer.setVisible(false);
-    for (const btn of this.windowInteractables) btn.destroy();
-    this.windowInteractables = [];
     this.destroyVendorButtons();
-    for (let i = 0; i < this.menuBtnTypes.length; i++) {
-      this.menuBtnBgs[i].setFillStyle(THEME.ink2, 0.92);
-      this.menuBtnIcons[i].setColor(TC.brass3);
-      this.menuBtnTexts[i].setColor(TC.text3);
+    this.closeStatsWindow();
+    this.refreshMenuHighlight('stats');
+  }
+
+  // ── Equipment + Bag (split inventory) ──────────────────
+  // Two independent, draggable windows sharing the same sphere data.
+  // Equipping/unequipping/using mutates the sphere then refreshes BOTH
+  // windows (whichever are open) plus the stats window.
+
+  private doEquip(itemId: string, slot: string) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const equip = sphere.equipment as any;
+    const invIdx = sphere.inventory.findIndex(i => i.itemId === itemId);
+    if (invIdx < 0) return;
+    const prev = equip[slot];
+    equip[slot] = itemId;
+    sphere.inventory.splice(invIdx, 1);
+    if (prev && prev !== itemId) sphere.inventory.push({ itemId: prev, quantity: 1 });
+    this.refreshInventoryWindows();
+    this.scene.get('GameScene').events.emit('persist');
+  }
+
+  private doUnequip(slot: string) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const equip = sphere.equipment as any;
+    const iid = equip[slot];
+    if (!iid) return;
+    equip[slot] = undefined;
+    sphere.inventory.push({ itemId: iid, quantity: 1 });
+    this.refreshInventoryWindows();
+    this.scene.get('GameScene').events.emit('persist');
+  }
+
+  private doUseConsumable(itemId: string) {
+    this.scene.get('GameScene').events.emit('use-item', itemId);
+    this.refreshInventoryWindows();
+  }
+
+  private doSwitchWeapon(idx: 0 | 1) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    sphere.activeWeaponSlot = idx;
+    this.refreshInventoryWindows();
+    // persist → refreshStats (active-weapon-only stats change on Tab switch).
+    this.scene.get('GameScene').events.emit('persist');
+  }
+
+  private equipCallbacks() {
+    return {
+      onUnequip: (slot: string) => this.doUnequip(slot),
+      onEquip: (itemId: string, slot: string) => this.doEquip(itemId, slot),
+      onSwitchWeapon: (idx: 0 | 1) => this.doSwitchWeapon(idx),
+      onClose: () => this.closeSingleWindow('equipment'),
+    };
+  }
+
+  private bagCallbacks() {
+    return {
+      onEquip: (itemId: string, slot: string) => this.doEquip(itemId, slot),
+      onUseConsumable: (itemId: string) => this.doUseConsumable(itemId),
+      onClose: () => this.closeSingleWindow('bag'),
+    };
+  }
+
+  private openEquipmentDom() {
+    if (!this.cachedUIData) return;
+    const { sphere, body } = this.cachedUIData;
+    showEquipmentDom({ sphere, body: body ?? null }, this.equipCallbacks());
+  }
+
+  private openBagDom() {
+    if (!this.cachedUIData) return;
+    showBagDom({ sphere: this.cachedUIData.sphere }, this.bagCallbacks());
+  }
+
+  /** Re-render whichever inventory windows are currently open. */
+  private refreshInventoryWindows() {
+    if (!this.cachedUIData) return;
+    const { sphere, body } = this.cachedUIData;
+    if (isEquipmentDomOpen()) refreshEquipmentDom({ sphere, body: body ?? null }, this.equipCallbacks());
+    if (isBagDomOpen()) refreshBagDom({ sphere }, this.bagCallbacks());
+  }
+
+  /** Сжатая сигнатура данных, которые отображает текущее окно (для гейта перестройки). */
+  private windowSignature(data: UIData): string {
+    const s = data.sphere;
+    switch (this.currentWindow) {
+      case 'stats':
+        return 'stats|' + JSON.stringify(s.stats) + '|' + JSON.stringify(s.xpTracker)
+          + '|' + JSON.stringify(s.equipment) + '|' + (s.copper ?? 0)
+          + '|' + s.learnedSpells.map(sp => sp.id).join(',')
+          + '|' + JSON.stringify(data.body?.definition.caps ?? {})
+          + '|' + Math.ceil(data.deathDebuff ?? 0);
+      case 'quests':
+        return 'quests|' + data.quests.map(q => `${q.def.id}:${q.completed ? 1 : 0}:${q.counts.join('.')}`).join('|')
+          + '|' + (data.trackedQuestIds ?? []).join(',');
+      case 'vendor':
+        return 'vendor|' + (s.copper ?? 0) + '|' + (s.learnedRecipes ?? []).join(',') + '|' + this.vendorFilter;
+      case 'crafting':
+        return 'crafting|' + JSON.stringify(data.inventory ?? []) + '|' + (s.learnedRecipes ?? []).join(',') + '|' + this.craftingWorkbenchType;
+      default:
+        return String(this.currentWindow);
     }
-  }
-
-  private openInventoryDom() {
-    if (!this.cachedUIData) return;
-    const { sphere, body } = this.cachedUIData;
-    showInventoryDom({
-      sphere,
-      body: body ?? null,
-      cb: {
-        onEquip: (itemId, slot) => {
-          const equip = sphere.equipment as any;
-          // Remove from inventory, put back any existing in slot
-          const invIdx = sphere.inventory.findIndex(i => i.itemId === itemId);
-          if (invIdx < 0) return;
-          const prev = equip[slot];
-          equip[slot] = itemId;
-          sphere.inventory.splice(invIdx, 1);
-          if (prev) sphere.inventory.push({ itemId: prev, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUnequip: (slot) => {
-          const equip = sphere.equipment as any;
-          const iid = equip[slot];
-          if (!iid) return;
-          equip[slot] = undefined;
-          sphere.inventory.push({ itemId: iid, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUseConsumable: (itemId) => {
-          this.scene.get('GameScene').events.emit('use-item', itemId);
-          this.refreshInventoryDom();
-        },
-        onSwitchWeapon: (idx) => {
-          sphere.activeWeaponSlot = idx;
-          this.refreshInventoryDom();
-        },
-        onClose: () => this.closeWindow(),
-      },
-    });
-  }
-
-  private refreshInventoryDom() {
-    if (!this.cachedUIData) return;
-    const { sphere, body } = this.cachedUIData;
-    refreshInventoryDom({
-      sphere,
-      body: body ?? null,
-      cb: {
-        onEquip: (itemId, slot) => {
-          const equip = sphere.equipment as any;
-          const invIdx = sphere.inventory.findIndex(i => i.itemId === itemId);
-          if (invIdx < 0) return;
-          const prev = equip[slot];
-          equip[slot] = itemId;
-          sphere.inventory.splice(invIdx, 1);
-          if (prev) sphere.inventory.push({ itemId: prev, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUnequip: (slot) => {
-          const equip = sphere.equipment as any;
-          const iid = equip[slot];
-          if (!iid) return;
-          equip[slot] = undefined;
-          sphere.inventory.push({ itemId: iid, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUseConsumable: (itemId) => {
-          this.scene.get('GameScene').events.emit('use-item', itemId);
-          this.refreshInventoryDom();
-        },
-        onSwitchWeapon: (idx) => {
-          sphere.activeWeaponSlot = idx;
-          this.refreshInventoryDom();
-        },
-        onClose: () => this.closeWindow(),
-      },
-    });
   }
 
   private buildWindowContent(data: UIData) {
     if (!this.currentWindow) return;
-    if (this.currentWindow === 'inventory') return; // handled by DOM overlay
     if (this.currentWindow === 'spells') return;    // handled by DOM overlay
+    if (this.currentWindow === 'vendor') return;    // handled by DOM overlay
+    if (this.currentWindow === 'crafting') return;  // handled by DOM overlay
+    if (this.currentWindow === 'quests') return;    // handled by DOM overlay
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
 
@@ -2307,30 +2571,11 @@ export class UIScene extends Phaser.Scene {
         const debuffStr = debuffSecs > 0 ? `  ⚠ Weakness: ${debuffSecs}s` : '';
         const lines: string[] = [`◉ Rank ${rank.toFixed(1)}${debuffStr}`, ''];
 
-        // Calculate equipment bonuses
-        const equipBonuses: Partial<Record<StatName, number>> = {};
-        const equip = sphere.equipment ?? {};
-        const statMap: Record<string, StatName> = {
-          strength: StatName.Strength, agility: StatName.Agility,
-          accuracy: StatName.Accuracy, evasion: StatName.Evasion,
-          health: StatName.Health, armor: StatName.Armor,
-          intellect: StatName.Intellect, will: StatName.Will,
-          mana: StatName.Mana, luck: StatName.Luck,
-        };
-        for (const slotKey of Object.keys(equip)) {
-          const itemId = (equip as any)[slotKey];
-          if (!itemId) continue;
-          const def = ITEMS[itemId];
-          if (!def) continue;
-          if (def.statBonuses) {
-            for (const [s, v] of Object.entries(def.statBonuses)) {
-              const sn = statMap[s];
-              if (sn && v) equipBonuses[sn] = (equipBonuses[sn] ?? 0) + v;
-            }
-          }
-          if (def.armorBonus) equipBonuses[StatName.Armor] = (equipBonuses[StatName.Armor] ?? 0) + def.armorBonus;
-          if (def.manaBonus) equipBonuses[StatName.Mana] = (equipBonuses[StatName.Mana] ?? 0) + def.manaBonus;
-        }
+        // Бонусы экипировки — общий хелпер (см. itemDB.equipmentStatBonuses)
+        const equipBonuses = equipmentStatBonuses(
+          (sphere.equipment ?? {}) as Record<string, string | undefined>,
+          sphere.activeWeaponSlot ?? 0,
+        );
 
         for (const stat of STAT_ORDER) {
           const base = sphere.stats[stat];
@@ -2372,168 +2617,10 @@ export class UIScene extends Phaser.Scene {
         this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
         break;
       }
-      case 'quests': {
-        const completedIds = data.quests.filter(q => q.completed).map(q => q.def.id);
-        // Only show quests where prerequisites are met
-        const active = data.quests.filter(q => {
-          if (q.completed) return false;
-          const prereqs = q.def.prerequisiteIds;
-          if (!prereqs || prereqs.length === 0) return true;
-          return prereqs.every(pid => completedIds.includes(pid));
-        });
-        const done = data.quests.filter(q => q.completed);
-        const tracked = data.trackedQuestIds ?? [];
-        const lines: string[] = [];
-        let relY = WIN_TITLE_H + 8;
-        const lineH = 15;
-
-        if (active.length === 0) {
-          lines.push('  All quests complete!');
-        } else {
-          for (const q of active) {
-            const isTracked = tracked.includes(q.def.id);
-            // Checkbox — inside container with relative coords
-            const btn = this.add.text(
-              this.windowW - 28, relY,
-              isTracked ? '☑' : '☐',
-              { fontSize: '14px', color: isTracked ? TC.ether2 : TC.text3,
-                padding: { x: 4, y: 2 } },
-            ).setInteractive({ useHandCursor: true })
-              .on('pointerover', () => btn.setColor(TC.ether3))
-              .on('pointerout',  () => btn.setColor(isTracked ? TC.ether2 : TC.text3))
-              .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-                ptr.event.stopPropagation();
-                this.scene.get('GameScene').events.emit('track-quest', q.def.id);
-                if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
-              });
-            this.windowContainer.add(btn);
-            this.windowInteractables.push(btn);
-
-            lines.push(`▸ ${q.def.nameRu}  +${q.def.xpReward} XP`);
-            relY += lineH;
-            for (let i = 0; i < q.def.objectives.length; i++) {
-              const obj = q.def.objectives[i];
-              const cur = q.counts[i];
-              const d = cur >= obj.count ? '✓' : `${cur}/${obj.count}`;
-              const verb = obj.type === 'kill' ? t('quest.kill') : obj.type === 'capture' ? t('quest.capture') : obj.type === 'talk' ? t('quest.talk') : obj.type === 'craft_t3' ? t('quest.craft') : obj.type === 'kill_boss' ? t('quest.defeat') : t('quest.learn');
-              lines.push(`   ${verb} ${obj.targetNameRu ?? obj.targetId ?? ''}: ${d}`);
-              relY += lineH;
-            }
-            relY += 4;
-          }
-        }
-        if (done.length > 0) lines.push('', `✓ Completed: ${done.length} quests`);
-        this.windowTitleText.setText(`▸ Quests  (${active.length} active)`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 30, true).setText(lines.join('\n'));
-        break;
-      }
       case 'achievements':
         break;
 
-      case 'vendor': {
-        const coins = data.sphere?.copper ?? 0;
-        const learned = data.sphere?.learnedRecipes ?? [];
-        const filter = this.vendorFilter;
-
-        // Filter recipes
-        let filtered = RECIPES;
-        if (filter === 'Weapon') filtered = RECIPES.filter(r => r.workbench === 'weaponsmith');
-        else if (filter === 'Armor') filtered = RECIPES.filter(r => r.workbench === 'armorer');
-        else if (filter === 'Jewel') filtered = RECIPES.filter(r => r.workbench === 'jeweler');
-        else if (filter === 'Rune') filtered = RECIPES.filter(r => r.workbench === 'runemaster');
-        else if (filter === 'T1') filtered = RECIPES.filter(r => !r.resultId.includes('_t2') && !r.resultId.includes('_t3'));
-        else if (filter === 'T2') filtered = RECIPES.filter(r => r.resultId.includes('_t2'));
-        else if (filter === 'T3') filtered = RECIPES.filter(r => r.resultId.includes('_t3'));
-
-        const notLearned = filtered.filter(r => !learned.includes(r.id));
-
-        const lines: string[] = [];
-        lines.push(''); // space for filter tabs
-        lines.push(`${notLearned.length} recipes available | ${filtered.length - notLearned.length} learned`);
-        lines.push('');
-
-        for (const recipe of notLearned) {
-          const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
-          const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
-          const result = ITEMS[recipe.resultId];
-          const canAfford = coins >= price;
-          const priceStr = price === 0 ? 'Free' : formatCurrency(price);
-          lines.push(`${canAfford ? '●' : '○'} ${result?.icon ?? '?'} ${recipe.nameRu}  ${priceStr}`);
-        }
-        if (notLearned.length === 0) lines.push('✓ All learned!');
-
-        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-        break;
-      }
-
-      case 'crafting': {
-        const inv = data.inventory ?? [];
-        const wbType = this.craftingWorkbenchType;
-        const available = RECIPES.filter(r => r.workbench === wbType);
-        const lines: string[] = [];
-
-        lines.push(`═══ ${wbType.toUpperCase()} ═══`);
-        lines.push('');
-
-        if (available.length === 0) {
-          lines.push('No recipes for this workbench.');
-        }
-
-        for (const recipe of available) {
-          const result = ITEMS[recipe.resultId];
-          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  (${recipe.craftTime}s)`);
-          if (result?.descRu) lines.push(`   ${result.descRu}`);
-
-          // Ingredients with have/need
-          const matLines: string[] = [];
-          let canCraft = true;
-          for (const [itemId, need] of Object.entries(recipe.materials)) {
-            const have = inv.find(i => i.itemId === itemId)?.quantity ?? 0;
-            const ok = have >= need;
-            if (!ok) canCraft = false;
-            const color = ok ? '' : '!';
-            matLines.push(`   ${color}${ITEMS[itemId]?.icon ?? '?'} ${ITEMS[itemId]?.nameRu ?? itemId}: ${have}/${need}`);
-          }
-          lines.push(...matLines);
-          lines.push(canCraft ? '   ✓ Ready to craft' : '   ✗ Missing materials');
-          lines.push('');
-        }
-
-        this.windowTitleText.setText(`⚒ ${wbType.charAt(0).toUpperCase() + wbType.slice(1)}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-
-        // Craft buttons
-        this.windowInteractables.forEach(t => t.destroy());
-        this.windowInteractables = [];
-        let btnY = 0;
-        for (const recipe of available) {
-          const canCraft = Object.entries(recipe.materials).every(([itemId, qty]) => {
-            return (inv.find(i => i.itemId === itemId)?.quantity ?? 0) >= qty;
-          });
-          const btn = this.add.text(
-            this.windowX + this.windowW - 60, this.windowY + 60 + btnY,
-            canCraft ? t('quest.craft') : '---',
-            {
-              fontSize: '10px', fontFamily: '"Special Elite", monospace',
-              color: canCraft ? '#6d9a5a' : TC.text3,
-              backgroundColor: canCraft ? '#1d1811' : '#14110c',
-              padding: { x: 6, y: 3 },
-            }
-          ).setDepth(1003).setInteractive();
-          if (canCraft) {
-            btn.on('pointerdown', () => {
-              const gs = this.scene.get('GameScene');
-              if (gs) (gs as any).startCraftingFromUI?.(recipe);
-              this.time.delayedCall(200, () => this.refreshWindow());
-            });
-          }
-          this.windowInteractables.push(btn);
-          btnY += 80; // space per recipe
-        }
-        break;
-      }
-
+      // 'vendor' / 'crafting' are handled by DOM overlays (early-returned above).
     }
   }
 
@@ -2589,7 +2676,7 @@ function buildXPBar(current: number, needed: number, width: number): string {
 }
 
 const STAT_ORDER: StatName[] = [
-  StatName.Strength, StatName.Agility, StatName.Accuracy, StatName.Evasion,
-  StatName.Health, StatName.Armor, StatName.Intellect, StatName.Will,
+  StatName.Strength, StatName.Agility,
+  StatName.Health, StatName.Armor, StatName.Evasion, StatName.Intellect, StatName.Will,
   StatName.Mana, StatName.Luck,
 ];

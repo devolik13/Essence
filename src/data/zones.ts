@@ -80,6 +80,8 @@ export interface ZoneConfig {
   biomes?: BiomeRegion[];
   respawnPoint: { x: number; y: number };
   spawnGroups: SpawnGroup[];
+  /** Существа, разбросанные рандомно по всей карте (мимо сейф-зон). */
+  scatterSpawns?: { creatureId: string; count: number }[];
   exits: ZoneExit[];
   /** Resource gathering nodes */
   resourceNodes?: ResourceNodeSpawn[];
@@ -123,26 +125,27 @@ const WX = WALDMAR_X, WY = WALDMAR_Y;
 
 export const ZONE_VILLAGE: ZoneConfig = {
   id: 'village',
-  nameRu: 'Eshworth Region',
+  nameRu: 'Регион Эшворт',
   widthTiles: BIG_W,
   heightTiles: BIG_H,
   baseTile: 'tile_grass',
   respawnPoint: { x: EX, y: EY },
-  safeBounds: { x1: EX - 256, y1: EY - 224, x2: EX + 256, y2: EY + 224 },
+  // Сейф-зона Эшворта расширена под перенесённый игроком забор (x 2930..3874).
+  safeBounds: { x1: 2920, y1: 2570, x2: 3880, y2: 3030 },
 
   safeZones: [
-    { x1: EX - 256, y1: EY - 224, x2: EX + 256, y2: EY + 224,
-      respawnPoint: { x: EX, y: EY }, nameRu: 'Eshworth' },
+    { x1: 2920, y1: 2570, x2: 3880, y2: 3030,
+      respawnPoint: { x: EX, y: EY }, nameRu: 'Эшворт' },
     { x1: WX - 256, y1: WY - 224, x2: WX + 256, y2: WY + 224,
-      respawnPoint: { x: WX, y: WY }, nameRu: 'Waldmar' },
+      respawnPoint: { x: WX, y: WY }, nameRu: 'Вальдмар' },
   ],
 
   biomes: [
-    { id: 'eshworth', nameRu: 'Eshworth Village',
+    { id: 'eshworth', nameRu: 'Деревня Эшворт',
       bounds: { x1: EX - 1600, y1: EY - 1400, x2: EX + 1600, y2: EY + 1400 } },
-    { id: 'trade_road', nameRu: 'Trade Road', tint: 0x77aa55,
+    { id: 'trade_road', nameRu: 'Торговый тракт', tint: 0x77aa55,
       bounds: { x1: EX + 1600, y1: EY - 800, x2: WX - 1600, y2: EY + 800 } },
-    { id: 'waldmar', nameRu: 'Waldmar', tint: 0x667755,
+    { id: 'waldmar', nameRu: 'Вальдмар', tint: 0x667755,
       bounds: { x1: WX - 1600, y1: WY - 1400, x2: WX + 1600, y2: WY + 1400 } },
   ],
 
@@ -309,7 +312,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 4500,  y: 6300, creatureId: 'spark', count: 1 },
     { x: 7600,  y: 6900, creatureId: 'spark', count: 1 },
 
-    // Splashers — 30 (water T1, learns Ice Drop / mob_water_t1)
+    // Splashers — 30 (water T1, learns Ice Drop / mob_ice_shard)
     { x: 1100,  y: 1700, creatureId: 'splasher', count: 1 },
     { x: 2900,  y: 900,  creatureId: 'splasher', count: 1 },
     { x: 4900,  y: 1700, creatureId: 'splasher', count: 1 },
@@ -341,7 +344,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 7800,  y: 6700, creatureId: 'splasher', count: 1 },
     { x: 10100, y: 6900, creatureId: 'splasher', count: 1 },
 
-    // Pebbles — 30 (earth T1, learns Pebble / mob_earth_t1)
+    // Pebbles — 30 (earth T1, learns Pebble / mob_pebble_shot)
     { x: 700,   y: 800,  creatureId: 'pebble', count: 1 },
     { x: 2300,  y: 1100, creatureId: 'pebble', count: 1 },
     { x: 4300,  y: 1700, creatureId: 'pebble', count: 1 },
@@ -373,7 +376,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 6900,  y: 6500, creatureId: 'pebble', count: 1 },
     { x: 9700,  y: 6700, creatureId: 'pebble', count: 1 },
 
-    // Gusties — 30 (wind T1, learns Gust / mob_wind_t1)
+    // Gusties — 30 (wind T1, learns Gust / mob_gust)
     { x: 1500,  y: 700,  creatureId: 'gusty', count: 1 },
     { x: 3500,  y: 1300, creatureId: 'gusty', count: 1 },
     { x: 5500,  y: 900,  creatureId: 'gusty', count: 1 },
@@ -546,6 +549,15 @@ export const ZONE_VILLAGE: ZoneConfig = {
     { x: 11200, y: 6700, creatureId: 'grouse', count: 1 },
   ],
 
+  // Не-каравановые ветераны — рандомный разброс по карте (по 30 каждого).
+  // orc_veteran НЕ здесь — он один (Вождь в орочьем лагере, через village.json).
+  // Каравановые (scout/bandit_*_veteran) спавнятся у обоза/лагеря, не здесь.
+  scatterSpawns: [
+    { creatureId: 'goblin_veteran', count: 30 },
+    { creatureId: 'wolf_veteran',   count: 30 },
+    { creatureId: 'bear_veteran',   count: 30 },
+  ],
+
   exits: [
     { edge: 'north', targetZone: 'water',  spawnX: PW / 2, spawnY: PH - 80 },
     { edge: 'south', targetZone: 'fire',   spawnX: PW / 2, spawnY: 80 },
@@ -553,9 +565,18 @@ export const ZONE_VILLAGE: ZoneConfig = {
   ],
 
   caravans: [
-    // Cleared along with all other map mobs. Will be re-added under the
-    // "skills first" design pass once caravan_guard / caravan_merchant
-    // teach distinct, undisputed abilities.
+    // Looping caravan event: departs Waldmar (A) → Eshworth (B), past the
+    // raider camp (~5550,2350, hardcoded in Caravan.ts). Roster respawns every
+    // cycle. WAIT_START=120s at A, WAIT_END=30s at B.
+    // guardCount=15 balances the escort (15 guards + merchant-healer + scout_vet)
+    // against the raid (7 base + 3 veterans). Sim puts the tossup around 15-18
+    // guards — tune after playtest.
+    {
+      start: { x: WX, y: WY },   // Waldmar — departure (not player start)
+      end:   { x: EX, y: EY },   // Eshworth — destination
+      speed: 36,
+      guardCount: 15,
+    },
   ],
 
   resourceNodes: [],
@@ -566,8 +587,8 @@ export const ZONE_VILLAGE: ZoneConfig = {
     // Eshworth + Waldmar NPCs (Bert/Aldric/Mira/Pol/Stranger/Captain/Healer/Blacksmith)
     // temporarily removed — will return when each one has a proper sprite/role.
     // Vendors kept so the player can still buy/sell while testing.
-    { x: EX + 20,  y: EY + 40,  id: 'merchant', nameRu: 'Shop',    role: 'vendor' },
-    { x: WX + 80,  y: WY + 40,  id: 'arms_dealer',nameRu: 'Arms',   role: 'weapon_vendor' },
+    { x: EX + 20,  y: EY + 40,  id: 'merchant', nameRu: 'Лавка',    role: 'vendor' },
+    { x: WX + 80,  y: WY + 40,  id: 'arms_dealer',nameRu: 'Оружие',   role: 'weapon_vendor' },
   ],
 
   questObjects: [
@@ -579,7 +600,7 @@ export const ZONE_VILLAGE: ZoneConfig = {
 
 export const ZONE_WATER: ZoneConfig = {
   id: 'water',
-  nameRu: 'Misty Lake',
+  nameRu: 'Туманное озеро',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -597,7 +618,7 @@ export const ZONE_WATER: ZoneConfig = {
 
 export const ZONE_FIRE: ZoneConfig = {
   id: 'fire',
-  nameRu: 'Ashen Grove',
+  nameRu: 'Пепельная роща',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -615,7 +636,7 @@ export const ZONE_FIRE: ZoneConfig = {
 
 export const ZONE_WIND: ZoneConfig = {
   id: 'wind',
-  nameRu: 'Wind Peaks',
+  nameRu: 'Вершины ветров',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',
@@ -633,7 +654,7 @@ export const ZONE_WIND: ZoneConfig = {
 
 export const ZONE_EARTH: ZoneConfig = {
   id: 'earth',
-  nameRu: 'Stone Hills',
+  nameRu: 'Каменные холмы',
   widthTiles: ZONE_W,
   heightTiles: ZONE_H,
   baseTile: 'tile_grass',

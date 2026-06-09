@@ -8,9 +8,10 @@ export function maxHP(stats: Stats): number {
 }
 
 export function maxMana(stats: Stats): number {
-  // 50 (старт) + стат Мана × 0.1 (до 50 от статов) + бонус брони (будущее, до 50)
-  // Жёсткий кап: 150
-  return Math.min(50 + stats[StatName.Mana] * 0.1, 150);
+  // 50 (старт) + стат Мана × 2.5 (личный стат, кап стата ~20 → до +50)
+  // + бонус маны от экипировки (manaBonus добавляется в стат Mana в getEquippedStats)
+  // Жёсткий кап 150: личный стат и экипировка вместе.
+  return Math.min(50 + stats[StatName.Mana] * 2.5, 150);
 }
 
 // ─── Регенерация (процентная) ──────────────────────────
@@ -42,26 +43,26 @@ export function magicBaseDamage(weaponBase: number, intellect: number): number {
 
 // ─── Защита ────────────────────────────────────────────
 
-/** Снижение физурона: Стойкость / (Стойкость + 125), макс 80% */
+/** Снижение физурона: Стойкость / (Стойкость + 125), макс 80%.
+ *  Броня клампится в ≥0: отрицательная (от armor_break) даёт 0 редукции,
+ *  а не сингулярность/усиление урона (за усиление отвечает статус vulnerability). */
 export function physicalReduction(armor: number): number {
-  return Math.min(armor / (armor + 125), 0.8);
+  const a = Math.max(0, armor);
+  return Math.min(a / (a + 125), 0.8);
 }
 
-/** Снижение магурона: Воля / (Воля + 125), макс 80% */
+/** Снижение магурона: Воля / (Воля + 125), макс 80%. Воля клампится в ≥0. */
 export function magicalReduction(will: number): number {
-  return Math.min(will / (will + 125), 0.8);
+  const w = Math.max(0, will);
+  return Math.min(w / (w + 125), 0.8);
 }
 
-// ─── Попадание и крит ──────────────────────────────────
+// ─── Крит ──────────────────────────────────────────────
 
-/** Шанс попасть: Точность / (Точность + Уклонение) */
-export function hitChance(accuracy: number, evasion: number): number {
-  return accuracy / (accuracy + evasion);
-}
-
-/** Шанс крита: Удача / (Удача + 50) — при Удаче 50 = 50% */
+/** Шанс крита: Удача / (Удача + 50) — при Удаче 50 = 50%. Удача клампится в ≥0. */
 export function critChance(luck: number): number {
-  return luck / (luck + LUCK_CONSTANT);
+  const l = Math.max(0, luck);
+  return l / (l + LUCK_CONSTANT);
 }
 
 export const CRIT_MULTIPLIER = 1.5;
@@ -77,9 +78,7 @@ export interface DamageResult {
 }
 
 export function calcMeleeDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
-  const hit = Math.random() < hitChance(attacker[StatName.Accuracy], defender[StatName.Evasion]);
-  if (!hit) return { raw: 0, reduced: 0, hit: false, crit: false, final: 0 };
-
+  // Ближний бой всегда попадает (точность/уклонение удалены)
   const raw = meleeBaseDamage(weaponBase, attacker[StatName.Strength]);
   const reduction = physicalReduction(defender[StatName.Armor]);
   const reduced = raw * (1 - reduction);
@@ -90,11 +89,10 @@ export function calcMeleeDamage(attacker: Stats, defender: Stats, weaponBase: nu
 }
 
 export function calcRangedDamage(attacker: Stats, defender: Stats, weaponBase: number): DamageResult {
-  const hit = Math.random() < hitChance(attacker[StatName.Accuracy], defender[StatName.Evasion]);
-  if (!hit) return { raw: 0, reduced: 0, hit: false, crit: false, final: 0 };
-
+  // Дальний бой всегда попадает; урон режется Уклонением цели (та же формула,
+  // что у брони — снижение, а не промах).
   const raw = rangedBaseDamage(weaponBase, attacker[StatName.Agility]);
-  const reduction = physicalReduction(defender[StatName.Armor]);
+  const reduction = physicalReduction(defender[StatName.Evasion]);
   const reduced = raw * (1 - reduction);
   const crit = Math.random() < critChance(attacker[StatName.Luck]);
   const final_ = crit ? reduced * CRIT_MULTIPLIER : reduced;
@@ -113,16 +111,5 @@ export function calcMagicDamage(attacker: Stats, defender: Stats, weaponBase: nu
   return { raw, reduced, hit: true, crit, final: Math.round(final_) };
 }
 
-// ─── Ранг Сущности ────────────────────────────────────
-
-export function sphereRank(stats: Stats): number {
-  const sum = Object.values(stats).reduce((a, b) => a + b, 0);
-  return sum / 10;
-}
-
-// ─── Прогрессия XP ────────────────────────────────────
-
-/** XP для повышения параметра с current до current+1 */
-export function xpToNextLevel(current: number): number {
-  return current * 10;
-}
+// Ранг Сущности и XP-прогрессия живут в systems/progression.ts (calcRank,
+// xpToNextLevel) — единый источник истины. Дубли отсюда удалены.
