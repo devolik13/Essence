@@ -39,6 +39,8 @@ export class MapEditor {
   private panelBg?: Phaser.GameObjects.Rectangle;
   private thumbs: Phaser.GameObjects.Image[] = [];
   private thumbLabels: Phaser.GameObjects.Text[] = [];
+  /** Свёрнутые секции палитры (Mobs/Nodes/Workbenches/Decorations). */
+  private collapsedSections = new Set<string>();
   private searchText?: Phaser.GameObjects.Text;
   private selectedKeyText?: Phaser.GameObjects.Text;
   private hintText?: Phaser.GameObjects.Text;
@@ -411,40 +413,59 @@ export class MapEditor {
     this.thumbs = [];
     this.thumbLabels = [];
 
-    let decoKeys = CP_ASSETS.map(([k]) => k);
-    let mobEntries = EDITOR_MOB_ENTRIES;
-    if (this.filterText) {
-      decoKeys = decoKeys.filter(k => k.toLowerCase().includes(this.filterText));
-      mobEntries = mobEntries.filter(e => e.key.toLowerCase().includes(this.filterText));
-    }
+    const ft = this.filterText;
+    const flt = <T extends { key: string }>(arr: T[]): T[] =>
+      ft ? arr.filter(e => e.key.toLowerCase().includes(ft)) : arr;
+
+    // Сворачиваемые секции палитры.
+    const sections: { name: string; color: string; prefix: string; isMob?: boolean;
+                      entries: { key: string; textureKey: string }[] }[] = [
+      { name: 'Mobs', color: '#ff8855', prefix: 'mob_', isMob: true,
+        entries: flt(EDITOR_MOB_ENTRIES).map(e => ({ key: e.key, textureKey: e.textureKey })) },
+      { name: 'Nodes', color: '#88ddff', prefix: 'node_',
+        entries: flt(EDITOR_NODE_ENTRIES).map(e => ({ key: e.key, textureKey: e.key })) },
+      { name: 'Workbenches', color: '#ffcc55', prefix: 'wb_',
+        entries: flt(EDITOR_WORKBENCH_ENTRIES).map(e => ({ key: e.key, textureKey: e.key })) },
+      { name: 'Decorations', color: '#cccccc', prefix: 'cp_',
+        entries: flt(CP_ASSETS.map(([k]) => ({ key: k }))).map(e => ({ key: e.key, textureKey: e.key })) },
+    ];
+
     const startY = this.PANEL_HEADER_H - this.scrollOffset;
     const cam = this.scene.cameras.main;
-
+    const rowH = this.THUMB_SIZE + this.GAP + 10;
     let idx = 0;
 
-    // ── Mobs section ──
-    if (mobEntries.length > 0) {
-      const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
+    for (const sec of sections) {
+      if (sec.entries.length === 0) continue;
+      const collapsed = this.collapsedSections.has(sec.name);
+
+      // Заголовок секции — кликабельный (сворачивает/разворачивает).
+      const headerY = startY + Math.floor(idx / this.COLS) * rowH;
       if (headerY + 40 > 0 && headerY + 40 < cam.height) {
-        const hdr = this.scene.add.text(8, headerY, '▸ Mobs', {
-          fontSize: '12px', color: '#ff8855', fontStyle: 'bold',
-        } as Phaser.Types.GameObjects.Text.TextStyle);
+        const hdr = this.scene.add.text(8, headerY, `${collapsed ? '▶' : '▾'} ${sec.name} (${sec.entries.length})`, {
+          fontSize: '12px', color: sec.color, fontStyle: 'bold',
+        } as Phaser.Types.GameObjects.Text.TextStyle)
+          .setInteractive({ useHandCursor: true }).setScrollFactor(0);
+        hdr.on('pointerdown', () => this.toggleSection(sec.name));
         this.panel.add(hdr);
         this.thumbLabels.push(hdr);
       }
-      idx += this.COLS; // reserve a row for header
+      idx += this.COLS; // строка под заголовок
+      if (collapsed) continue; // свёрнута — миниатюры не рисуем
 
-      for (const entry of mobEntries) {
+      for (const entry of sec.entries) {
         if (!this.scene.textures.exists(entry.textureKey)) continue;
         const col = idx % this.COLS;
         const row = Math.floor(idx / this.COLS);
         const x = 8 + col * (this.THUMB_SIZE + this.GAP);
-        const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
+        const y = startY + row * rowH;
         const absY = y + 40;
         idx++;
         if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
 
-        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey, 0)
+        const thumb = (sec.isMob
+          ? this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey, 0)
+          : this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, entry.textureKey))
           .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
           .setInteractive({ useHandCursor: true })
           .setScrollFactor(0);
@@ -453,56 +474,23 @@ export class MapEditor {
         this.panel.add(thumb);
         this.thumbs.push(thumb);
 
-        const short = entry.key.replace('mob_', '');
+        const short = entry.key.replace(sec.prefix, '').slice(0, 9);
         const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
-          short, { fontSize: '8px', color: '#ff8855' } as Phaser.Types.GameObjects.Text.TextStyle)
+          short, { fontSize: '8px', color: sec.color } as Phaser.Types.GameObjects.Text.TextStyle)
           .setOrigin(0.5, 0);
         this.panel.add(lbl);
         this.thumbLabels.push(lbl);
       }
-      // pad to next full row
       if (idx % this.COLS !== 0) idx += this.COLS - (idx % this.COLS);
     }
+  }
 
-    // ── Decorations section ──
-    if (decoKeys.length > 0) {
-      const headerY = startY + Math.floor(idx / this.COLS) * (this.THUMB_SIZE + this.GAP + 10);
-      if (headerY + 40 > 0 && headerY + 40 < cam.height) {
-        const hdr = this.scene.add.text(8, headerY, '▸ Decorations', {
-          fontSize: '12px', color: '#ffdd55', fontStyle: 'bold',
-        } as Phaser.Types.GameObjects.Text.TextStyle);
-        this.panel.add(hdr);
-        this.thumbLabels.push(hdr);
-      }
-      idx += this.COLS;
-
-      for (const key of decoKeys) {
-        if (!this.scene.textures.exists(key)) continue;
-        const col = idx % this.COLS;
-        const row = Math.floor(idx / this.COLS);
-        const x = 8 + col * (this.THUMB_SIZE + this.GAP);
-        const y = startY + row * (this.THUMB_SIZE + this.GAP + 10);
-        const absY = y + 40;
-        idx++;
-        if (absY < this.PANEL_HEADER_H - this.THUMB_SIZE || absY > cam.height) continue;
-
-        const thumb = this.scene.add.image(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE / 2, key)
-          .setDisplaySize(this.THUMB_SIZE - 4, this.THUMB_SIZE - 4)
-          .setInteractive({ useHandCursor: true })
-          .setScrollFactor(0);
-        thumb.on('pointerdown', () => this.selectAsset(key));
-        if (key === this.selectedKey) thumb.setTint(0xffdd55);
-        this.panel.add(thumb);
-        this.thumbs.push(thumb);
-
-        const short = key.replace('cp_', '').slice(0, 9);
-        const lbl = this.scene.add.text(x + this.THUMB_SIZE / 2, y + this.THUMB_SIZE + 2,
-          short, { fontSize: '8px', color: '#cccccc' } as Phaser.Types.GameObjects.Text.TextStyle)
-          .setOrigin(0.5, 0);
-        this.panel.add(lbl);
-        this.thumbLabels.push(lbl);
-      }
-    }
+  /** Свернуть/развернуть секцию палитры. */
+  private toggleSection(name: string): void {
+    if (this.collapsedSections.has(name)) this.collapsedSections.delete(name);
+    else this.collapsedSections.add(name);
+    this.scrollOffset = 0;
+    this.renderThumbs();
   }
 
   private selectAsset(key: string): void {
@@ -512,6 +500,8 @@ export class MapEditor {
       const tex = this.scene.textures.get(key);
       const frameW = tex?.get(0)?.width ?? 32;
       this.currentScale = 35 / frameW;
+    } else if (key.startsWith('node_') || key.startsWith('wb_')) {
+      this.currentScale = 1; // фикстуры рендерятся в своём размере (×scale)
     } else {
       this.currentScale = 0.3;
     }
@@ -1008,13 +998,17 @@ export class MapEditor {
   private createSearchInput(): void {
     const canvas = (this.scene.sys.game.canvas as HTMLCanvasElement);
     const rect = canvas.getBoundingClientRect();
+    // Канвас игры масштабируется под окно — переводим игровые координаты панели
+    // в экранные через коэффициент, иначе инпут съезжает на кнопки/миниатюры.
+    const sx = rect.width / canvas.width;
+    const sy = rect.height / canvas.height;
     const input = document.createElement('input');
     input.type = 'text';
-    input.placeholder = 'Search...';
+    input.placeholder = '🔍 Search...';
     input.style.position = 'absolute';
-    input.style.left = `${rect.right - this.PANEL_W + 8}px`;
-    input.style.top = `${rect.top + 174}px`;
-    input.style.width = `${this.PANEL_W - 20}px`;
+    input.style.left = `${rect.right - (this.PANEL_W - 8) * sx}px`;
+    input.style.top = `${rect.top + 142 * sy}px`;
+    input.style.width = `${(this.PANEL_W - 20) * sx}px`;
     input.style.padding = '3px 6px';
     input.style.background = '#1a1a1a';
     input.style.color = '#ffffff';
