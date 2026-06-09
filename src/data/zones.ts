@@ -130,10 +130,11 @@ export const ZONE_VILLAGE: ZoneConfig = {
   heightTiles: BIG_H,
   baseTile: 'tile_grass',
   respawnPoint: { x: EX, y: EY },
-  safeBounds: { x1: EX - 256, y1: EY - 224, x2: EX + 256, y2: EY + 224 },
+  // Сейф-зона Эшворта расширена под перенесённый игроком забор (x 2930..3874).
+  safeBounds: { x1: 2920, y1: 2570, x2: 3880, y2: 3030 },
 
   safeZones: [
-    { x1: EX - 256, y1: EY - 224, x2: EX + 256, y2: EY + 224,
+    { x1: 2920, y1: 2570, x2: 3880, y2: 3030,
       respawnPoint: { x: EX, y: EY }, nameRu: 'Эшворт' },
     { x1: WX - 256, y1: WY - 224, x2: WX + 256, y2: WY + 224,
       respawnPoint: { x: WX, y: WY }, nameRu: 'Вальдмар' },
