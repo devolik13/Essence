@@ -1535,12 +1535,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Подключаем проверку стен и сейф-зоны ко всем существам
-    const wallCheck = (x: number, y: number) => this.isBlockedByWall(x, y, false);
-    const safeArr = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
-    for (const c of this.creatures) {
-      c.wallCheckFn = wallCheck;
-      c.safeBoundsArr = safeArr;
-    }
+    for (const c of this.creatures) this.applyCreatureEnv(c);
+  }
+
+  /** Подключает к существу проверку стен и сейф-зон (мобы не заходят в сейф-зону). */
+  private applyCreatureEnv(c: Creature) {
+    c.wallCheckFn = (x: number, y: number) => this.isBlockedByWall(x, y, false);
+    c.safeBoundsArr = this.currentZone.safeZones ?? (this.currentZone.safeBounds ? [this.currentZone.safeBounds] : []);
   }
 
   // ─── Ресурсные ноды, верстаки, NPC ────────────────────
@@ -2726,6 +2727,34 @@ export class GameScene extends Phaser.Scene {
       finalDmg = this.applyTargetVulnerability(closestCreature, finalDmg, dt === 'magic');
     }
 
+    // ── Школьный бонус посоха на ОБЫЧНОЙ атаке (аналог фирменного эффекта оружия):
+    //    огонь→горение 10%, вода→охлаждение 20%, земля→пробитие 20% защиты,
+    //    ветер→×2 урон 20%, природа→самоисцеление 5% HP 20%. ──
+    const staffSchool = this.getWeaponSchool();
+    if (result.hit && staffSchool) {
+      const sb = SCHOOL_BONUSES[staffSchool as MagicSchool];
+      if (sb) {
+        // Земля: пробитие части защиты — масштабируем урон по новой редукции.
+        if (sb.penetrationChance && sb.penetrationPercent && Math.random() < sb.penetrationChance) {
+          const origDef = closestCreature.stats[StatName.Will];
+          const oldRed = magicalReduction(origDef);
+          const newRed = magicalReduction(origDef * (1 - sb.penetrationPercent));
+          if (oldRed < 1) finalDmg = Math.round(finalDmg * (1 - newRed) / (1 - oldRed));
+        }
+        // Ветер: двойной урон.
+        if (sb.doubleDamageChance && Math.random() < sb.doubleDamageChance) finalDmg *= 2;
+        // Огонь/Вода: статус на цель.
+        if (sb.statusEffect && Math.random() < (sb.statusChance ?? 0)) {
+          this.applyStatusToTarget(closestCreature, sb.statusEffect);
+        }
+        // Природа: самоисцеление при ударе.
+        if (sb.selfHealChance && this.playerBody && Math.random() < sb.selfHealChance) {
+          const heal = Math.round(this.playerBody.maxHP * (sb.selfHealPercent ?? 0));
+          this.playerBody.currentHP = Math.min(this.playerBody.maxHP, this.playerBody.currentHP + heal);
+        }
+      }
+    }
+
     if (result.hit) {
       closestCreature.takeDamage(finalDmg);
       if (closestCreature.aiState === 'idle' || closestCreature.aiState === 'wander') {
@@ -3234,6 +3263,7 @@ export class GameScene extends Phaser.Scene {
         const y = Math.max(40, Math.min(mapH - 40, ay + Math.sin(angle) * dist));
         const c = new Creature(this, x, y, def);
         c.aiState = 'chase'; // сразу бегут на игрока
+        this.applyCreatureEnv(c);
         this.creatures.push(c);
       }
     }
@@ -4797,6 +4827,7 @@ export class GameScene extends Phaser.Scene {
       const def = CREATURE_DB[entry.id];
       if (!def) continue;
       const creature = new Creature(this, entry.x, entry.y, def);
+      this.applyCreatureEnv(creature);
       this.creatures.push(creature);
     }
   }
