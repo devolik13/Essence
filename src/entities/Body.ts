@@ -66,7 +66,7 @@ export class Body extends Phaser.GameObjects.Container {
   public attackCooldown: number = 0;
   /** Колбэк всплывающего числа от DoT (огонь/яд/горение маны). */
   public onDotTick?: (x: number, y: number, amount: number, kind: 'fire' | 'poison' | 'mana') => void;
-  private dotAccum: { fire: number; poison: number; mana: number } = { fire: 0, poison: 0, mana: 0 };
+  /** Таймер дискретного DoT-тика (раз в 1 сек). */
   private dotTickTimer: number = 0;
   /** Активные статус-эффекты игрока */
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
@@ -340,37 +340,37 @@ export class Body extends Phaser.GameObjects.Container {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
 
-    // Статус-эффекты: тики и таймеры (накапливаем DoT для всплывающих чисел)
+    // Статус-эффекты: DoT бьёт дискретно раз в 1 сек (таймер длительности — плавно).
+    this.dotTickTimer += dt;
+    const dotTick = this.dotTickTimer >= 1.0;
+    if (dotTick) this.dotTickTimer = 0;
+    const tickDmg = { fire: 0, poison: 0, mana: 0 };
     for (const [id, status] of this.statusEffects) {
       const def = STATUS_DEFS[id];
-      if (id === 'poison' && def.dotDpsPerStack) {
-        const d = def.dotDpsPerStack * status.stacks * dt;
-        this.currentHP = Math.max(0, this.currentHP - d);
-        this.dotAccum.poison += d;
-      } else if (id === 'burn' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        const d = dps * dt;
-        this.currentHP = Math.max(0, this.currentHP - d);
-        this.dotAccum.fire += d;
-      } else if (id === 'burn_mana' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxMana * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        const d = dps * dt;
-        this.currentMana = Math.max(0, this.currentMana - d);
-        this.dotAccum.mana += d;
+      if (dotTick) {
+        if (id === 'poison' && def.dotDpsPerStack) {
+          const d = def.dotDpsPerStack * status.stacks;
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.poison += d;
+        } else if (id === 'burn' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.fire += d;
+        } else if (id === 'burn_mana' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxMana * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentMana = Math.max(0, this.currentMana - d);
+          tickDmg.mana += d;
+        }
       }
       status.timer -= dt;
       if (status.timer <= 0) this.statusEffects.delete(id);
     }
-    // Раз в ~0.5с показываем накопленный DoT отдельными цветными числами.
-    this.dotTickTimer += dt;
-    if (this.dotTickTimer >= 0.5) {
-      this.dotTickTimer = 0;
+    if (dotTick && this.onDotTick) {
       const kinds: ('fire' | 'poison' | 'mana')[] = ['fire', 'poison', 'mana'];
       let offset = 0;
       for (const k of kinds) {
-        const amt = Math.round(this.dotAccum[k]);
-        if (amt >= 1 && this.onDotTick) { this.onDotTick(this.x + offset, this.y - 6, amt, k); offset += 10; }
-        this.dotAccum[k] = 0;
+        const amt = Math.round(tickDmg[k]);
+        if (amt >= 1) { this.onDotTick(this.x + offset, this.y - 6, amt, k); offset += 10; }
       }
     }
 

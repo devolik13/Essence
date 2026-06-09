@@ -103,8 +103,7 @@ export class Creature extends Phaser.GameObjects.Container {
   public killProcessed: boolean = false;
   /** Колбэк показа всплывающего числа от DoT (огонь/яд/кровь). */
   public onDotTick?: (x: number, y: number, amount: number, kind: 'fire' | 'poison' | 'bleed') => void;
-  /** Накопитель урона DoT для редких всплывающих чисел (раз в ~0.5с). */
-  private dotAccum: { fire: number; poison: number; bleed: number } = { fire: 0, poison: 0, bleed: 0 };
+  /** Таймер дискретного DoT-тика (раз в 1 сек). */
   private dotTickTimer: number = 0;
 
   // Wander
@@ -211,42 +210,37 @@ export class Creature extends Phaser.GameObjects.Container {
       this.castTimer = Math.max(0, this.castTimer - dt);
     }
 
-    // Статус-эффекты: тики и таймеры
+    // Статус-эффекты: DoT бьёт дискретно раз в 1 сек (таймер длительности — плавно).
+    this.dotTickTimer += dt;
+    const dotTick = this.dotTickTimer >= 1.0;
+    if (dotTick) this.dotTickTimer = 0;
+    const tickDmg = { fire: 0, poison: 0, bleed: 0 };
     for (const [id, status] of this.statusEffects) {
       const def = STATUS_DEFS[id];
-      // DoT урон по HP (накапливаем для всплывающих чисел)
-      if (id === 'poison' && def.dotDpsPerStack) {
-        const d = def.dotDpsPerStack * status.stacks * dt;
-        this.currentHP = Math.max(0, this.currentHP - d);
-        this.dotAccum.poison += d;
-      } else if (id === 'burn' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        const d = dps * dt;
-        this.currentHP = Math.max(0, this.currentHP - d);
-        this.dotAccum.fire += d;
-      } else if (id === 'bleed' && def.dotPercentPerSec) {
-        const dps = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
-        const d = dps * dt;
-        this.currentHP = Math.max(0, this.currentHP - d);
-        this.dotAccum.bleed += d;
+      if (dotTick) {
+        if (id === 'poison' && def.dotDpsPerStack) {
+          const d = def.dotDpsPerStack * status.stacks;
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.poison += d;
+        } else if (id === 'burn' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.fire += d;
+        } else if (id === 'bleed' && def.dotPercentPerSec) {
+          const d = Math.min(this.maxHP * def.dotPercentPerSec, def.dotDpsCap ?? Infinity);
+          this.currentHP = Math.max(0, this.currentHP - d);
+          tickDmg.bleed += d;
+        }
       }
-      // Декремент таймера, удаление истёкших
       status.timer -= dt;
       if (status.timer <= 0) this.statusEffects.delete(id);
     }
-    // Раз в ~0.5с показываем накопленный DoT-урон отдельными цветными числами.
-    this.dotTickTimer += dt;
-    if (this.dotTickTimer >= 0.5) {
-      this.dotTickTimer = 0;
+    if (dotTick && this.onDotTick) {
       const kinds: ('fire' | 'poison' | 'bleed')[] = ['fire', 'poison', 'bleed'];
       let offset = 0;
       for (const k of kinds) {
-        const amt = Math.round(this.dotAccum[k]);
-        if (amt >= 1 && this.onDotTick) {
-          this.onDotTick(this.x + offset, this.y - 6, amt, k);
-          offset += 10;
-        }
-        this.dotAccum[k] = 0;
+        const amt = Math.round(tickDmg[k]);
+        if (amt >= 1) { this.onDotTick(this.x + offset, this.y - 6, amt, k); offset += 10; }
       }
     }
     if (this.currentHP <= 0 && this.aiState !== 'dead') {
