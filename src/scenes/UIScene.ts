@@ -222,6 +222,9 @@ export class UIScene extends Phaser.Scene {
   private minimapTerrainImg: Phaser.GameObjects.Image | null = null;
   private minimapMapW: number = MAP_WIDTH;
   private minimapMapH: number = MAP_HEIGHT;
+  /** Кэш последней отрисовки точек минимапы (skip redraw, см. drawMinimap). */
+  private lastMinimapCreatures: UIData['creatures'] | null = null;
+  private minimapDotsKey = '';
 
   // ── Maxi-map overlay ──────────────────────────────────
   private maximapOpen: boolean = false;
@@ -1188,9 +1191,10 @@ export class UIScene extends Phaser.Scene {
     const hidden = s.hidden || this.maximapOpen;
 
     this.panelHeaders['minimap'].setVisible(!hidden).setPosition(s.x, s.y);
-    this.minimapGfx.clear();
 
     if (hidden) {
+      this.minimapGfx.clear();
+      this.minimapDotsKey = '';
       this.minimapBorder.setVisible(false);
       if (this.minimapTerrainImg) this.minimapTerrainImg.setVisible(false);
       this.grips['minimap']?.setVisible(false);
@@ -1211,9 +1215,21 @@ export class UIScene extends Phaser.Scene {
     }
 
     if (!collapsed) {
-      this.drawMapDots(this.minimapGfx, data, s.x, mapTop, s.w, s.h, 2, 1.5);
+      // Точки перерисовываем только при изменении данных (массивы из GameScene
+      // пересобираются раз в 200мс) или заметном сдвиге игрока/панели —
+      // clear() + ~250 fillRect на каждом кадре тратили CPU впустую.
+      const pp = data.playerPos;
+      const key = `${s.x},${s.y},${s.w},${s.h},${pp ? Math.round(pp.x / 16) + ':' + Math.round(pp.y / 16) : 'n'}`;
+      if (data.creatures !== this.lastMinimapCreatures || key !== this.minimapDotsKey) {
+        this.lastMinimapCreatures = data.creatures;
+        this.minimapDotsKey = key;
+        this.minimapGfx.clear();
+        this.drawMapDots(this.minimapGfx, data, s.x, mapTop, s.w, s.h, 2, 1.5);
+      }
       this.positionGrip('minimap', mapTop + s.h);
     } else {
+      this.minimapGfx.clear();
+      this.minimapDotsKey = '';
       this.positionGrip('minimap', s.y + HEADER_H);
     }
     this.grips['minimap']?.setVisible(!collapsed);

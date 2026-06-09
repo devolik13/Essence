@@ -61,6 +61,13 @@ export class GameScene extends Phaser.Scene {
   private creatureGrid = new SpatialGrid<Creature>(300);
   /** Кэш статичных точек NPC для миникарты (NPC не двигаются). */
   private cachedNpcDots: { x: number; y: number }[] | null = null;
+  /** Кэш динамичных точек миникарты — пересборка раз в 200мс вместо каждого кадра. */
+  private mapDotsTimer = 0;
+  private cachedMapDots: {
+    nodes: { x: number; y: number; depleted: boolean }[];
+    quests: { x: number; y: number }[];
+    creatures: { x: number; y: number; isDead: boolean; isPassive: boolean; isAggro: boolean }[];
+  } | null = null;
   private damageTexts: DamageText[] = [];
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
@@ -144,6 +151,11 @@ export class GameScene extends Phaser.Scene {
     elapsed: number; duration: number;
   } | null = null;
   private aoeIndicator!: Phaser.GameObjects.Graphics;
+  /** Последние координаты, для которых отрисован AoE-индикатор (skip redraw). */
+  private aoeIndLastWx = NaN;
+  private aoeIndLastWy = NaN;
+  private aoeIndLastPx = NaN;
+  private aoeIndLastPy = NaN;
   private protectZoneGfx!: Phaser.GameObjects.Graphics;
   /** Слабый круг дальности активного оружия вокруг игрока. */
   private weaponRangeGfx!: Phaser.GameObjects.Graphics;
@@ -235,6 +247,8 @@ export class GameScene extends Phaser.Scene {
     this.teardownFns = [];
     this.cameraFollowTarget = undefined;
     this.cachedNpcDots = null;
+    this.cachedMapDots = null;
+    this.mapDotsTimer = 0;
     this.creatureGrid.clear();
   }
 
@@ -653,6 +667,12 @@ export class GameScene extends Phaser.Scene {
     // Свои (тот же вид) не агрятся на вселённое тело (орки уважают вождя).
     // Ретализация при атаке всё равно срабатывает (aggroCreature игнорит skipAggro).
     const playerSpecies = this.playerBody ? this.playerBody.definition.id.replace(/_veteran$/, '') : '';
+    // Живые призванные союзники (обычно 0-1) — чтобы мобы в атаке не
+    // сканировали весь список существ в поисках волка (O(N²) при ~250 мобах).
+    const aliveSummons: Creature[] = [];
+    for (const c of this.creatures) {
+      if (c.isSummoned && !c.isDead) aliveSummons.push(c);
+    }
     for (const creature of this.creatures) {
       creature.skipAggro = playerInSafe ||
         (!!friendlyIds && friendlyIds.includes(creature.definition.id)) ||
@@ -702,6 +722,21 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
 
+      // ── Троттлинг AI дальних мобов ───────────────────────
+      // Вне боя и дальше FAR_AI_DIST от игрока моб «думает» ~10 раз/сек
+      // с накопленной дельтой (кулдауны/DoT/таймеры остаются точными),
+      // вместо полного апдейта на каждом из 60 кадров.
+      creature.aiAccumMs += delta;
+      const fdx = creature.x - px;
+      const fdy = creature.y - py;
+      if (fdx * fdx + fdy * fdy > GameScene.FAR_AI_DIST_SQ &&
+          !creature.castingSpell &&
+          (creature.aiState === 'idle' || creature.aiState === 'wander' || creature.aiState === 'return')) {
+        if (creature.aiAccumMs < 100) continue;
+      }
+      const aiDelta = creature.aiAccumMs;
+      creature.aiAccumMs = 0;
+
       // ── Поиск вражеской фракции ──────────────────────────
       // Если моб имеет faction и рядом есть живой моб противоположной
       // фракции — он становится предпочтительной целью. Иначе — игрок.
@@ -720,7 +755,7 @@ export class GameScene extends Phaser.Scene {
           creature.aiState = 'chase';
         }
       }
-      creature.update(time, delta, targetX, targetY);
+      creature.update(time, aiDelta, targetX, targetY);
 
       // Моб атакует: приоритет — factionTarget, потом волк, потом игрок
       if (creature.aiState === 'attack' && creature.attackCooldown <= 0) {
@@ -728,8 +763,7 @@ export class GameScene extends Phaser.Scene {
           this.creatureAttackCreature(creature, creature.factionTarget);
         } else if (this.playerBody) {
           let wolfNearby: Creature | null = null;
-          for (const c of this.creatures) {
-            if (!c.isSummoned || c.isDead) continue;
+          for (const c of aliveSummons) {
             const d = distance(creature.x, creature.y, c.x, c.y);
             if (d < WEAPONS[creature.definition.weapon].range * 1.2) { wolfNearby = c; break; }
           }
@@ -760,22 +794,23 @@ export class GameScene extends Phaser.Scene {
       if (c.isDead && !c.killProcessed) this.onCreatureKilled(c);
     }
 
-    // Столкновения: тело игрока ↔ мобы
+    // Столкновения: тело игрока ↔ мобы (через сетку — O(соседей), не O(всех))
     if (this.playerBody) {
-      for (const c of this.creatures) {
-        if (c.isDead) continue;
-        const dx = this.playerBody.x - c.x;
-        const dy = this.playerBody.y - c.y;
+      const pb = this.playerBody;
+      const minDist = 26; // 14 + 12 — радиусы тела и моба
+      this.creatureGrid.forEachNear(pb.x, pb.y, minDist + 16, (c) => {
+        if (c.isDead) return;
+        const dx = pb.x - c.x;
+        const dy = pb.y - c.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const minDist = 26; // 14 + 12 — радиусы тела и моба
         if (dist > 0 && dist < minDist) {
           const push = (minDist - dist) / dist;
-          this.playerBody.x += dx * push * 0.6;
-          this.playerBody.y += dy * push * 0.6;
+          pb.x += dx * push * 0.6;
+          pb.y += dy * push * 0.6;
           c.x -= dx * push * 0.4;
           c.y -= dy * push * 0.4;
         }
-      }
+      });
     }
 
     // Обновляем текст урона
@@ -798,12 +833,23 @@ export class GameScene extends Phaser.Scene {
       this.targetIndicator.setVisible(false);
     }
 
-    // AoE индикатор — следует за мышью
+    // AoE индикатор — следует за мышью.
+    // Перерисовываем только если мышь/игрок сдвинулись — clear() + redraw
+    // Graphics на каждом кадре заметно дороже, чем проверка четырёх чисел.
     if (this.aoeTargeting && this.playerBody) {
       const spell = this.aoeTargeting.spell;
       const ptr = this.input.activePointer;
       const wx = this.cameras.main.scrollX + ptr.x / this.cameras.main.zoom;
       const wy = this.cameras.main.scrollY + ptr.y / this.cameras.main.zoom;
+      if (wx === this.aoeIndLastWx && wy === this.aoeIndLastWy &&
+          this.playerBody.x === this.aoeIndLastPx && this.playerBody.y === this.aoeIndLastPy &&
+          this.aoeIndicator.visible) {
+        // ничего не изменилось — индикатор актуален
+      } else {
+      this.aoeIndLastWx = wx;
+      this.aoeIndLastWy = wy;
+      this.aoeIndLastPx = this.playerBody.x;
+      this.aoeIndLastPy = this.playerBody.y;
       const aoeR = spell.aoeRadius ?? 60;
       const castDist = distance(this.playerBody.x, this.playerBody.y, wx, wy);
       const inRange = castDist <= spell.range;
@@ -836,6 +882,7 @@ export class GameScene extends Phaser.Scene {
         this.aoeIndicator.fillCircle(wx, wy, aoeR);
         this.aoeIndicator.lineStyle(2, strokeColor, strokeAlpha);
         this.aoeIndicator.strokeCircle(wx, wy, aoeR);
+      }
       }
     }
 
@@ -884,6 +931,26 @@ export class GameScene extends Phaser.Scene {
       this.checkWaypointProximity();
     }
 
+    // Точки миникарты пересобираются раз в 200мс — пересборка каждый кадр
+    // плодила сотни короткоживущих объектов (GC-паузы при ~250 мобах).
+    this.mapDotsTimer -= delta;
+    let mapDots = this.cachedMapDots;
+    if (!mapDots || this.mapDotsTimer <= 0) {
+      this.mapDotsTimer = 200;
+      mapDots = {
+        nodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
+        quests: [...this.questObjects, ...this.bodyQuestObjects]
+          .filter(q => !q.used).map(q => ({ x: q.x, y: q.y })),
+        creatures: this.creatures.map(c => ({
+          x: c.x, y: c.y,
+          isDead: c.isDead,
+          isPassive: c.definition.type !== BodyType.Combat,
+          isAggro: c.aiState === 'chase' || c.aiState === 'attack',
+        })),
+      };
+      this.cachedMapDots = mapDots;
+    }
+
     // Передаём данные в UIScene
     this.events.emit('update-ui', {
       sphere: this.sphere,
@@ -905,15 +972,9 @@ export class GameScene extends Phaser.Scene {
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
       mapDotNpcs: (this.cachedNpcDots ??= this.worldNPCs.map(n => ({ x: n.x, y: n.y }))),
-      mapDotNodes: this.resourceNodes.map(n => ({ x: n.x, y: n.y, depleted: n.depleted })),
-      mapDotQuests: [...this.questObjects, ...this.bodyQuestObjects]
-        .filter(q => !q.used).map(q => ({ x: q.x, y: q.y })),
-      creatures: this.creatures.map(c => ({
-        x: c.x, y: c.y,
-        isDead: c.isDead,
-        isPassive: c.definition.type !== BodyType.Combat,
-        isAggro: c.aiState === 'chase' || c.aiState === 'attack',
-      })),
+      mapDotNodes: mapDots.nodes,
+      mapDotQuests: mapDots.quests,
+      creatures: mapDots.creatures,
       inventory: this.sphere.inventory,
       killCounts: this.sphere.killCounts,
       unlockedAchievements: this.sphere.unlockedAchievements,
@@ -4919,6 +4980,8 @@ export class GameScene extends Phaser.Scene {
    * моб не боевой/убегающий.
    */
   private static FACTION_SIGHT = 600;
+  /** Дальше этой дистанции от игрока мирные мобы обновляют AI ~10 раз/сек (квадрат, px²). */
+  private static FAR_AI_DIST_SQ = 1600 * 1600;
   private findFactionEnemy(creature: Creature): Creature | null {
     const selfFaction = creature.definition.faction;
     if (!selfFaction) return null;

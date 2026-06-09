@@ -51,6 +51,8 @@ export class Creature extends Phaser.GameObjects.Container {
   public stats: Stats;
   public currentHP: number;
   public aiState: CreatureAIState = 'idle';
+  /** Накопленная дельта (мс) для троттлинга AI дальних мобов (см. GameScene.update). */
+  public aiAccumMs = 0;
   /** Огрызается на атаковавшего: перебивает skipAggro (свои/safe), пока не уйдёт
    *  за поводок. Иначе моб одного вида с игроком убегал бы и лечился на спавне. */
   public retaliating: boolean = false;
