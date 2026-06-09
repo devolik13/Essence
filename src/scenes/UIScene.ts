@@ -886,7 +886,7 @@ export class UIScene extends Phaser.Scene {
 
     // ── Skill bar ─────────────────────────────────────────
     this.updateSkillBar(body, data.activeEnchantId);
-    this.updatePlayerStatusBar(body);
+    this.updatePlayerStatusBar(body, data.deathDebuff ?? 0);
 
     // ── Cast bar ──────────────────────────────────────────
     if (data.aoeCast) {
@@ -1562,13 +1562,17 @@ export class UIScene extends Phaser.Scene {
 
   // ── Панель статусов игрока (DOM-оверлей сверху экрана) ──
 
-  private updatePlayerStatusBar(body: Body | null) {
+  private updatePlayerStatusBar(body: Body | null, deathDebuff = 0) {
     if (!body) {
       clearPlayerStatusDom();
       return;
     }
 
     const entries: StatusEntry[] = [];
+    // Слабость после смерти тела — показываем значок с таймером сверху.
+    if (deathDebuff > 0) {
+      entries.push({ id: 'death_weakness', stacks: 1, timer: deathDebuff });
+    }
     for (const [, s] of body.statusEffects) {
       entries.push({ id: s.id, stacks: s.stacks, timer: s.timer });
     }

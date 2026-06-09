@@ -24,6 +24,7 @@ const STATUS_SPRITE: Record<string, string> = {
   armor_break: 'st_armor_break',
   vulnerability: 'st_vulnerability',
   weaken: 'st_weaken',
+  death_weakness: 'st_weaken',  // Слабость после смерти тела (−15% урона)
   acceleration: 'st_acceleration',
   fortify: 'st_fortify',
   bark_armor: 'st_bark_armor',
