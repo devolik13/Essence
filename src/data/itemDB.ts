@@ -609,6 +609,12 @@ export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
     itemId: 'wolf_hide', gatherTime: 2, minQty: 1, maxQty: 2,
     respawnTime: 30, color: 0x886644, icon: '🦴',
   },
+  // Куст с волокном — основной источник plant_fiber (Leather/Robe T1). Топор.
+  fiber_bush: {
+    id: 'fiber_bush', nameRu: 'Куст (волокно)', profession: 'woodcutting',
+    itemId: 'plant_fiber', gatherTime: 2, minQty: 1, maxQty: 3,
+    respawnTime: 30, color: 0x66aa44, icon: '🌾',
+  },
 };
 
 /** Roll loot for a creature and return what dropped (may be empty). */
