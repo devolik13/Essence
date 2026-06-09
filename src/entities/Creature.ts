@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { lt } from '../i18n';
 import { BodyDefinition, BodyType } from '../types/bodies';
 import { Stats, StatName, createDefaultStats } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
@@ -159,7 +160,7 @@ export class Creature extends Phaser.GameObjects.Container {
     this.add(this.bodySprite);
 
     // Имя
-    this.nameText = scene.add.text(0, -30, definition.nameRu, {
+    this.nameText = scene.add.text(0, -30, lt(definition.nameRu, definition.name), {
       fontSize: '10px',
       color: '#cccccc',
       align: 'center',

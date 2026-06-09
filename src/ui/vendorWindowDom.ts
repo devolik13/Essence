@@ -6,6 +6,7 @@ import { RECIPES, VENDOR_MATERIALS, ITEMS } from '../data/itemDB';
 import { RecipeDef } from '../types/items';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 import { wireItemTooltip } from './itemTooltip';
+import { lt } from '../i18n';
 
 interface VendorData {
   copper: number;
@@ -50,17 +51,18 @@ function weaponCategory(resultId: string): 'melee' | 'staff' | 'ranged' {
 interface SectionDef {
   key: string;
   name: string;
+  nameEn: string;
   expanded: boolean;
   match?: (r: RecipeDef) => boolean;
 }
 const SECTIONS: SectionDef[] = [
-  { key: 'armorer',       name: 'Броня',       expanded: true  },
-  { key: 'weapon_melee',  name: 'Ближний бой', expanded: true,  match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'melee'  },
-  { key: 'weapon_staff',  name: 'Посохи',      expanded: false, match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'staff'  },
-  { key: 'weapon_ranged', name: 'Дальний бой', expanded: false, match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'ranged' },
-  { key: 'jeweler',       name: 'Украшения',   expanded: false },
-  { key: 'runemaster',    name: 'Руны',        expanded: false },
-  { key: 'materials',     name: 'Материалы',   expanded: true  },
+  { key: 'armorer',       name: 'Броня',       nameEn: 'Armor',      expanded: true  },
+  { key: 'weapon_melee',  name: 'Ближний бой', nameEn: 'Melee',      expanded: true,  match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'melee'  },
+  { key: 'weapon_staff',  name: 'Посохи',      nameEn: 'Staffs',     expanded: false, match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'staff'  },
+  { key: 'weapon_ranged', name: 'Дальний бой', nameEn: 'Ranged',     expanded: false, match: r => r.workbench === 'weaponsmith' && weaponCategory(r.resultId) === 'ranged' },
+  { key: 'jeweler',       name: 'Украшения',   nameEn: 'Jewelry',    expanded: false },
+  { key: 'runemaster',    name: 'Руны',        nameEn: 'Runes',      expanded: false },
+  { key: 'materials',     name: 'Материалы',   nameEn: 'Materials',  expanded: true  },
 ];
 
 function buildBalance(copper: number): HTMLElement {
@@ -77,7 +79,7 @@ function buildRecipeRow(recipe: RecipeDef, data: VendorData, cb: VendorCallbacks
 
   const row = el('div', `cv-item-row${learned ? ' is-learned' : ''}`);
   row.appendChild(el('span', 'cv-item-icon', ITEMS[recipe.resultId]?.icon ?? '?'));
-  row.appendChild(el('span', 'cv-item-name', recipe.nameRu));
+  row.appendChild(el('span', 'cv-item-name', lt(recipe.nameRu, recipe.nameEn)));
 
   let priceCls = 'cv-item-price';
   if (price === 0) priceCls += ' is-free';
@@ -87,10 +89,10 @@ function buildRecipeRow(recipe: RecipeDef, data: VendorData, cb: VendorCallbacks
   if (learned) {
     const tag = el('span', 'cv-learned-tag');
     tag.appendChild(el('span', 'check', '✓'));
-    tag.appendChild(document.createTextNode(' Изучено'));
+    tag.appendChild(document.createTextNode(' ' + lt('Изучено', 'Learned')));
     row.appendChild(tag);
   } else {
-    const btn = el('button', 'cv-buy-btn', 'Купить');
+    const btn = el('button', 'cv-buy-btn', lt('Купить', 'Buy'));
     if (!canAfford) btn.setAttribute('disabled', 'true');
     else btn.addEventListener('click', () => cb.onBuyRecipe(recipe.id, price));
     row.appendChild(btn);
@@ -107,10 +109,10 @@ function buildMaterialRow(mat: { itemId: string; price: number; qty: number }, d
 
   const row = el('div', 'cv-item-row');
   row.appendChild(el('span', 'cv-item-icon', def?.icon ?? '?'));
-  row.appendChild(el('span', 'cv-item-name', `${def?.nameRu ?? mat.itemId} ×${mat.qty}`));
+  row.appendChild(el('span', 'cv-item-name', `${def ? lt(def.nameRu, def.nameEn) : mat.itemId} ×${mat.qty}`));
   row.appendChild(el('span', `cv-item-price${canAfford ? '' : ' is-short'}`, `${mat.price}c`));
 
-  const btn = el('button', 'cv-buy-btn', 'Купить');
+  const btn = el('button', 'cv-buy-btn', lt('Купить', 'Buy'));
   if (!canAfford) btn.setAttribute('disabled', 'true');
   else btn.addEventListener('click', () => cb.onBuyMaterial(mat.itemId, mat.qty, mat.price));
   row.appendChild(btn);
@@ -126,7 +128,7 @@ function buildSection(def: SectionDef, data: VendorData, cb: VendorCallbacks): H
   header.setAttribute('aria-expanded', def.expanded ? 'true' : 'false');
   const caret = el('span', 'cv-caret', def.expanded ? '▾' : '▸');
   header.appendChild(caret);
-  header.appendChild(el('span', 'cv-section-name', def.name));
+  header.appendChild(el('span', 'cv-section-name', lt(def.name, def.nameEn)));
 
   const body = el('div', `cv-section-body${def.expanded ? '' : ' is-collapsed'}`);
 
@@ -170,7 +172,7 @@ export function showVendorDom(data: VendorData, cb: VendorCallbacks): void {
   const header = el('header', 'cv-header');
   const title = el('h2', 'cv-title');
   title.appendChild(el('span', 'cv-glyph', '🏪'));
-  title.appendChild(document.createTextNode(' Торговец'));
+  title.appendChild(document.createTextNode(' ' + lt('Торговец', 'Vendor')));
   header.appendChild(title);
   header.appendChild(el('span', 'cv-header-spacer'));
   header.appendChild(buildBalance(data.copper));
@@ -189,7 +191,7 @@ export function showVendorDom(data: VendorData, cb: VendorCallbacks): void {
 
   // Footer
   const footer = el('footer', 'cv-footer');
-  footer.appendChild(el('span', 'cv-footer-label', 'Баланс'));
+  footer.appendChild(el('span', 'cv-footer-label', lt('Баланс', 'Balance')));
   footer.appendChild(buildBalance(data.copper));
   inner.appendChild(footer);
 

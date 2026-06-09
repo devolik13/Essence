@@ -4,6 +4,7 @@
  * Вынесено из GameScene для уменьшения размера сцены и тестируемости.
  */
 import { Sphere } from '../entities/Sphere';
+import { lt } from '../i18n';
 import { RECIPES, ITEMS } from '../data/itemDB';
 import { RecipeDef } from '../types/items';
 import { formatCurrency } from './currency';
@@ -28,7 +29,7 @@ export function buyMaterial(sphere: Sphere, itemId: string, qty: number, price: 
   if (sphere.copper < price) return { ok: false, msg: `Not enough coins! Need ${formatCurrency(price)}` };
   sphere.copper -= price;
   sphere.addItem(itemId, qty);
-  return { ok: true, msg: `+${qty}× ${ITEMS[itemId]?.nameRu ?? itemId}  -${formatCurrency(price)}` };
+  return { ok: true, msg: `+${qty}× ${ITEMS[itemId] ? lt(ITEMS[itemId].nameRu, ITEMS[itemId].nameEn) : itemId}  -${formatCurrency(price)}` };
 }
 
 /** Списать материалы рецепта из инвентаря (старт крафта). */
@@ -71,7 +72,7 @@ export function disassemble(sphere: Sphere, itemId: string): EconResult {
     const existing = sphere.inventory.find(i => i.itemId === matId);
     if (existing) existing.quantity += returnQty;
     else sphere.inventory.push({ itemId: matId, quantity: returnQty });
-    returned.push(`${returnQty}x ${ITEMS[matId]?.nameRu ?? matId}`);
+    returned.push(`${returnQty}x ${ITEMS[matId] ? lt(ITEMS[matId].nameRu, ITEMS[matId].nameEn) : matId}`);
   }
 
   return { ok: true, msg: `Disassembled! Got: ${returned.join(', ')}` };

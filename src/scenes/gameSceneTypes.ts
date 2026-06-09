@@ -110,13 +110,13 @@ export function pointInRotatedRect(
 // ── Basic attacks per body type ───────────────────────────────────────────────
 /** Slot-0 auto-attack definitions. baseDamage = 0 uses weapon.baseDamage at runtime. */
 export const BASIC_ATTACKS: Record<string, AbilityDef> = {
-  default:      { id: 'basic_melee', nameRu: 'Strike',       damageType: 'melee',  cooldown: 1.2, manaCost: 0, range: 48,  baseDamage: 0, description: 'Basic attack'    },
-  human_warrior:{ id: 'basic_sword', nameRu: 'Sword Strike',  damageType: 'melee',  cooldown: 1.2, manaCost: 0, range: 48,  baseDamage: 0, description: 'Sword attack'    },
-  human_archer: { id: 'basic_bow',   nameRu: 'Shot',          damageType: 'ranged', cooldown: 1.0, manaCost: 0, range: 200, baseDamage: 0, description: 'Bow shot'        },
-  human_mage:   { id: 'basic_staff', nameRu: 'Staff Strike',  damageType: 'magic',  cooldown: 1.5, manaCost: 2, range: 180, baseDamage: 0, description: 'Magic shot'      },
-  rabbit:       { id: 'basic_paw',   nameRu: 'Paw Strike',    damageType: 'melee',  cooldown: 0.8, manaCost: 0, range: 36,  baseDamage: 0, description: 'Quick paw strike'},
-  goblin:       { id: 'basic_dagger',nameRu: 'Dagger Stab',   damageType: 'melee',  cooldown: 0.8, manaCost: 0, range: 40,  baseDamage: 0, description: 'Dagger stab'    },
-  wolf:         { id: 'basic_bite',  nameRu: 'Bite',          damageType: 'melee',  cooldown: 0.8, manaCost: 0, range: 38,  baseDamage: 0, description: 'Wolf bite'       },
+  default:      { id: 'basic_melee', nameRu: 'Удар',          nameEn: 'Strike',       damageType: 'melee',  cooldown: 1.2, manaCost: 0, range: 48,  baseDamage: 0, description: 'Базовая атака',  descriptionEn: 'Basic attack'    },
+  human_warrior:{ id: 'basic_sword', nameRu: 'Удар мечом',    nameEn: 'Sword Strike', damageType: 'melee',  cooldown: 1.2, manaCost: 0, range: 48,  baseDamage: 0, description: 'Атака мечом',    descriptionEn: 'Sword attack'    },
+  human_archer: { id: 'basic_bow',   nameRu: 'Выстрел',       nameEn: 'Shot',         damageType: 'ranged', cooldown: 1.0, manaCost: 0, range: 200, baseDamage: 0, description: 'Выстрел из лука', descriptionEn: 'Bow shot'       },
+  human_mage:   { id: 'basic_staff', nameRu: 'Удар посохом',  nameEn: 'Staff Strike', damageType: 'magic',  cooldown: 1.5, manaCost: 2, range: 180, baseDamage: 0, description: 'Магический снаряд', descriptionEn: 'Magic shot'   },
+  rabbit:       { id: 'basic_paw',   nameRu: 'Удар лапой',    nameEn: 'Paw Strike',   damageType: 'melee',  cooldown: 0.8, manaCost: 0, range: 36,  baseDamage: 0, description: 'Быстрый удар лапой', descriptionEn: 'Quick paw strike'},
+  goblin:       { id: 'basic_dagger',nameRu: 'Укол кинжалом', nameEn: 'Dagger Stab',  damageType: 'melee',  cooldown: 0.8, manaCost: 0, range: 40,  baseDamage: 0, description: 'Укол кинжалом',  descriptionEn: 'Dagger stab'    },
+  wolf:         { id: 'basic_bite',  nameRu: 'Укус',          nameEn: 'Bite',         damageType: 'melee',  cooldown: 0.8, manaCost: 0, range: 38,  baseDamage: 0, description: 'Волчий укус',    descriptionEn: 'Wolf bite'       },
 };
 
 // ── Death penalty constants ───────────────────────────────────────────────────

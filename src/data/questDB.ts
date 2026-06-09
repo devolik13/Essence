@@ -5,9 +5,11 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q1_awakening',
-    nameRu: 'Awakening',
-    description: 'You are a Sphere — a consciousness from another world. Possess a body to begin.',
-    objectives: [{ type: 'capture', targetNameRu: 'any body', count: 1 }],
+    nameRu: 'Пробуждение',
+    nameEn: 'Awakening',
+    description: 'Ты — Сфера, сознание из другого мира. Вселись в тело, чтобы начать.',
+    descriptionEn: 'You are a Sphere — a consciousness from another world. Possess a body to begin.',
+    objectives: [{ type: 'capture', targetNameRu: 'любое тело', targetNameEn: 'any body', count: 1 }],
     xpReward: 20,
     dialogStart: "You have no form here. Approach one of the vessels near the Respawn Stone and press [E] to possess it.",
     dialogEnd: "Good. You can feel it now — the weight, the strength. This body is your tool.",
@@ -22,9 +24,11 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q4_rangers_request',
-    nameRu: "Hunter's Briefing",
-    description: 'Bert tells you about the four elemental zones and their Guardians.',
-    objectives: [{ type: 'talk', targetId: 'bert', targetNameRu: 'Bert', count: 1 }],
+    nameRu: 'Брифинг охотника',
+    nameEn: "Hunter's Briefing",
+    description: 'Берт рассказывает о четырёх стихийных зонах и их Стражах.',
+    descriptionEn: 'Bert tells you about the four elemental zones and their Guardians.',
+    objectives: [{ type: 'talk', targetId: 'bert', targetNameRu: 'Берт', targetNameEn: 'Bert', count: 1 }],
     xpReward: 30,
     prerequisiteIds: ['q3_essence_within'],
     giverNpcId: 'bert',
@@ -34,11 +38,13 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q5_frozen_trail',
-    nameRu: 'The Price of Fog',
-    description: "Mira's father is sick. Find a cure at the Misty Lake.",
+    nameRu: 'Цена тумана',
+    nameEn: 'The Price of Fog',
+    description: 'Отец Миры болен. Найди лекарство на Туманном озере.',
+    descriptionEn: "Mira's father is sick. Find a cure at the Misty Lake.",
     objectives: [
-      { type: 'kill', targetId: 'splasher', targetNameRu: 'Splashers', count: 5 },
-      { type: 'kill', targetId: 'fogger', targetNameRu: 'Foggers', count: 3 },
+      { type: 'kill', targetId: 'splasher', targetNameRu: 'Брызгуны', targetNameEn: 'Splashers', count: 5 },
+      { type: 'kill', targetId: 'fogger', targetNameRu: 'Туманники', targetNameEn: 'Foggers', count: 3 },
     ],
     xpReward: 80,
     prerequisiteIds: ['q4_rangers_request'],
@@ -48,11 +54,13 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q6_ashen_path',
-    nameRu: 'Trial by Fire',
-    description: 'Aldric asked for a volcanic stone from the Ashen Grove.',
+    nameRu: 'Испытание огнём',
+    nameEn: 'Trial by Fire',
+    description: 'Алдрик просил принести вулканический камень из Пепельной рощи.',
+    descriptionEn: 'Aldric asked for a volcanic stone from the Ashen Grove.',
     objectives: [
-      { type: 'kill', targetId: 'spark', targetNameRu: 'Sparks', count: 5 },
-      { type: 'kill', targetId: 'asher', targetNameRu: 'Ashers', count: 3 },
+      { type: 'kill', targetId: 'spark', targetNameRu: 'Искры', targetNameEn: 'Sparks', count: 5 },
+      { type: 'kill', targetId: 'asher', targetNameRu: 'Пепельники', targetNameEn: 'Ashers', count: 3 },
     ],
     xpReward: 80,
     prerequisiteIds: ['q4_rangers_request'],
@@ -62,11 +70,13 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q7_stone_heart',
-    nameRu: 'What the Hills Hide',
-    description: 'Bert says miner Sven went into the Stone Hills and never returned.',
+    nameRu: 'Что скрывают холмы',
+    nameEn: 'What the Hills Hide',
+    description: 'Берт говорит, что горняк Свен ушёл в Каменные холмы и не вернулся.',
+    descriptionEn: 'Bert says miner Sven went into the Stone Hills and never returned.',
     objectives: [
-      { type: 'kill', targetId: 'pebble', targetNameRu: 'Pebbles', count: 5 },
-      { type: 'kill', targetId: 'mudder', targetNameRu: 'Mudders', count: 3 },
+      { type: 'kill', targetId: 'pebble', targetNameRu: 'Камешки', targetNameEn: 'Pebbles', count: 5 },
+      { type: 'kill', targetId: 'mudder', targetNameRu: 'Грязевики', targetNameEn: 'Mudders', count: 3 },
     ],
     xpReward: 80,
     prerequisiteIds: ['q4_rangers_request'],
@@ -76,11 +86,13 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q8_wind_song',
-    nameRu: 'Voice of the Wind',
-    description: 'The Nameless Stranger speaks of the fourth Guardian.',
+    nameRu: 'Голос ветра',
+    nameEn: 'Voice of the Wind',
+    description: 'Странник без имени говорит о четвёртом Страже.',
+    descriptionEn: 'The Nameless Stranger speaks of the fourth Guardian.',
     objectives: [
-      { type: 'kill', targetId: 'gusty', targetNameRu: 'Gusties', count: 5 },
-      { type: 'kill', targetId: 'whistler', targetNameRu: 'Whistlers', count: 3 },
+      { type: 'kill', targetId: 'gusty', targetNameRu: 'Вихревики', targetNameEn: 'Gusties', count: 5 },
+      { type: 'kill', targetId: 'whistler', targetNameRu: 'Свистуны', targetNameEn: 'Whistlers', count: 3 },
     ],
     xpReward: 80,
     prerequisiteIds: ['q4_rangers_request'],
@@ -92,9 +104,11 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q9_gathering_storm',
-    nameRu: 'The Gathering Storm',
-    description: 'Return to Bert. The Guardians grow restless.',
-    objectives: [{ type: 'talk', targetId: 'bert', targetNameRu: 'Bert', count: 1 }],
+    nameRu: 'Надвигающаяся буря',
+    nameEn: 'The Gathering Storm',
+    description: 'Вернись к Берту. Стражи становятся беспокойнее.',
+    descriptionEn: 'Return to Bert. The Guardians grow restless.',
+    objectives: [{ type: 'talk', targetId: 'bert', targetNameRu: 'Берт', targetNameEn: 'Bert', count: 1 }],
     xpReward: 50,
     prerequisiteIds: ['q5_frozen_trail', 'q6_ashen_path', 'q7_stone_heart', 'q8_wind_song'],
     giverNpcId: 'bert',
@@ -104,9 +118,11 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q10_forge_strength',
-    nameRu: 'Forge Your Strength',
-    description: 'Craft a T3 item — weapon, armor, or accessory.',
-    objectives: [{ type: 'craft_t3', targetNameRu: 'any T3 item', count: 1 }],
+    nameRu: 'Закали силу',
+    nameEn: 'Forge Your Strength',
+    description: 'Скрафти предмет T3 — оружие, броню или аксессуар.',
+    descriptionEn: 'Craft a T3 item — weapon, armor, or accessory.',
+    objectives: [{ type: 'craft_t3', targetNameRu: 'любой предмет T3', targetNameEn: 'any T3 item', count: 1 }],
     xpReward: 100,
     prerequisiteIds: ['q9_gathering_storm'],
     dialogStart: "Visit the workbenches. Gather resources. Craft something worthy of a Guardian fight.",
@@ -114,9 +130,11 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q11_body_collector',
-    nameRu: 'Body Collector',
-    description: 'Capture 5 different creature types to expand your knowledge.',
-    objectives: [{ type: 'capture', targetNameRu: 'different bodies', count: 5 }],
+    nameRu: 'Коллекционер тел',
+    nameEn: 'Body Collector',
+    description: 'Захвати 5 разных видов существ, чтобы расширить свои знания.',
+    descriptionEn: 'Capture 5 different creature types to expand your knowledge.',
+    objectives: [{ type: 'capture', targetNameRu: 'разные тела', targetNameEn: 'different bodies', count: 5 }],
     xpReward: 100,
     prerequisiteIds: ['q9_gathering_storm'],
     dialogStart: "Every body teaches you something. Seek variety — capture creatures you haven't tried yet.",
@@ -124,9 +142,11 @@ export const QUESTS: QuestDef[] = [
 
   {
     id: 'q12_guardians_trial',
-    nameRu: "Guardian's Trial",
-    description: 'Defeat an Elemental Guardian and claim its Crystal.',
-    objectives: [{ type: 'kill_boss', targetNameRu: 'any Guardian', count: 1 }],
+    nameRu: 'Испытание Стражем',
+    nameEn: "Guardian's Trial",
+    description: 'Победи Стража стихии и забери его Кристалл.',
+    descriptionEn: 'Defeat an Elemental Guardian and claim its Crystal.',
+    objectives: [{ type: 'kill_boss', targetNameRu: 'любой Страж', targetNameEn: 'any Guardian', count: 1 }],
     xpReward: 300,
     prerequisiteIds: ['q10_forge_strength', 'q11_body_collector'],
     dialogStart: "This is it. Choose your Guardian — Ignis, Aquaris, Terra, or Aeros. Defeat one, and its crystal is yours.",

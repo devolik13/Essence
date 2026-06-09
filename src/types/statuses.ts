@@ -168,23 +168,23 @@ export interface ActiveStatusEffect {
 export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
   // DoT
   poison: {
-    id: 'poison', nameRu: 'Poison',
+    id: 'poison', nameRu: 'Яд', nameEn: 'Poison',
     maxStacks: 5, duration: 5, stackBehavior: 'refresh',
     dotDpsPerStack: 5,
   },
   bleed: {
-    id: 'bleed', nameRu: 'Bleed',
+    id: 'bleed', nameRu: 'Кровотечение', nameEn: 'Bleed',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     healReduction: 0.5,
   },
   burn: {
-    id: 'burn', nameRu: 'Burn',
+    id: 'burn', nameRu: 'Горение', nameEn: 'Burn',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     dotPercentPerSec: 0.05,
     dotDpsCap: 100,
   },
   burn_mana: {
-    id: 'burn_mana', nameRu: 'Mana Burn',
+    id: 'burn_mana', nameRu: 'Горение маны', nameEn: 'Mana Burn',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     dotPercentPerSec: 0.05,
     dotDpsCap: 100,
@@ -193,241 +193,241 @@ export const STATUS_DEFS: Record<StatusEffectId, StatusEffectDef> = {
 
   // Контроль движения
   slow: {
-    id: 'slow', nameRu: 'Slow',
+    id: 'slow', nameRu: 'Замедление', nameEn: 'Slow',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     moveSlow: 0.3,
   },
   knockback: {
-    id: 'knockback', nameRu: 'Knockback',
+    id: 'knockback', nameRu: 'Отбрасывание', nameEn: 'Knockback',
     maxStacks: 1, duration: 0, stackBehavior: 'refresh',
     knockbackDistance: 180,
     knockbackStunDuration: 0.5,
   },
   root: {
-    id: 'root', nameRu: 'Root',
+    id: 'root', nameRu: 'Корни', nameEn: 'Root',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     blockMovement: true,
   },
 
   // Контроль действий
   stun: {
-    id: 'stun', nameRu: 'Stun',
+    id: 'stun', nameRu: 'Оглушение', nameEn: 'Stun',
     maxStacks: 1, duration: 2, stackBehavior: 'refresh',
     blockAll: true,
   },
   knockdown: {
-    id: 'knockdown', nameRu: 'Knockdown',
+    id: 'knockdown', nameRu: 'Нокдаун', nameEn: 'Knockdown',
     maxStacks: 1, duration: 1, stackBehavior: 'refresh',
     blockAll: true,
   },
   sleep: {
-    id: 'sleep', nameRu: 'Sleep',
+    id: 'sleep', nameRu: 'Сон', nameEn: 'Sleep',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     blockAll: true,
     breakOnDamage: true,
   },
   silence: {
-    id: 'silence', nameRu: 'Silence',
+    id: 'silence', nameRu: 'Немота', nameEn: 'Silence',
     maxStacks: 1, duration: 2, stackBehavior: 'refresh',
     blockSpells: true,
   },
   fear: {
-    id: 'fear', nameRu: 'Fear',
+    id: 'fear', nameRu: 'Страх', nameEn: 'Fear',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     castTimeIncrease: 0.5,
   },
   interrupt: {
-    id: 'interrupt', nameRu: 'Interrupt',
+    id: 'interrupt', nameRu: 'Прерывание', nameEn: 'Interrupt',
     maxStacks: 1, duration: 0, stackBehavior: 'refresh',
     interruptCast: true,
   },
 
   // Дебаффы
   chill: {
-    id: 'chill', nameRu: 'Chill',
+    id: 'chill', nameRu: 'Охлаждение', nameEn: 'Chill',
     maxStacks: 1, duration: 2, stackBehavior: 'refresh',
     outgoingDamageReduction: 0.2,
   },
   freeze: {
-    id: 'freeze', nameRu: 'Freeze',
+    id: 'freeze', nameRu: 'Заморозка', nameEn: 'Freeze',
     maxStacks: 1, duration: 1, stackBehavior: 'refresh',
     outgoingDamageReduction: 0.2,
     moveSlow: 0.7,
   },
   armor_reduce: {
-    id: 'armor_reduce', nameRu: 'Armor Crush',
+    id: 'armor_reduce', nameRu: 'Сокрушение брони', nameEn: 'Armor Crush',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     armorReduction: 0.2,
   },
   armor_break: {
-    id: 'armor_break', nameRu: 'Armor Break',
+    id: 'armor_break', nameRu: 'Пробитие брони', nameEn: 'Armor Break',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     armorReduction: 0.5,
   },
   weaken: {
-    id: 'weaken', nameRu: 'Weaken',
+    id: 'weaken', nameRu: 'Ослабление', nameEn: 'Weaken',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     strengthReduction: 0.2,
   },
   drain: {
-    id: 'drain', nameRu: 'Drain',
+    id: 'drain', nameRu: 'Иссушение', nameEn: 'Drain',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     agilityReduction: 0.2,
   },
   // Инертный плейсхолдер: acc/eva удалены, переработать в dodge-скилл позже
   blind: {
-    id: 'blind', nameRu: 'Blind',
+    id: 'blind', nameRu: 'Ослепление', nameEn: 'Blind',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
   },
   vulnerability: {
-    id: 'vulnerability', nameRu: 'Vulnerability',
+    id: 'vulnerability', nameRu: 'Уязвимость', nameEn: 'Vulnerability',
     maxStacks: 1, duration: 4, stackBehavior: 'refresh',
     incomingDamageIncrease: 0.10,
   },
   stagger: {
-    id: 'stagger', nameRu: 'Stagger',
+    id: 'stagger', nameRu: 'Ошеломление', nameEn: 'Stagger',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     maxManaReduction: 0.5,
   },
   curse: {
-    id: 'curse', nameRu: 'Curse',
+    id: 'curse', nameRu: 'Проклятие', nameEn: 'Curse',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     hpCostMultiplier: 2,
   },
 
   // Баффы
   mana_regen_boost: {
-    id: 'mana_regen_boost', nameRu: 'Mana Regen Boost',
+    id: 'mana_regen_boost', nameRu: 'Усиление регена маны', nameEn: 'Mana Regen Boost',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenManaBonus: 0.5,
   },
   mana_regen_block: {
-    id: 'mana_regen_block', nameRu: 'Mana Regen Block',
+    id: 'mana_regen_block', nameRu: 'Блок регена маны', nameEn: 'Mana Regen Block',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenManaBonus: -0.5, // −50% реген маны
   },
   hp_regen_boost: {
-    id: 'hp_regen_boost', nameRu: 'HP Regen',
+    id: 'hp_regen_boost', nameRu: 'Регенерация HP', nameEn: 'HP Regen',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     regenHpBonus: 1.0,
   },
   leaf_regen: {
-    id: 'leaf_regen', nameRu: 'Leaf Canopy',
+    id: 'leaf_regen', nameRu: 'Покров листвы', nameEn: 'Leaf Canopy',
     maxStacks: 1, duration: 10, stackBehavior: 'refresh',
     regenHpBonus: 1.0, // +100% реген HP (≈5% HP/2 сек при 60 сек полного бара)
   },
   bark_armor: {
-    id: 'bark_armor', nameRu: 'Bark Armor',
+    id: 'bark_armor', nameRu: 'Древесная кора', nameEn: 'Bark Armor',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     armorBonusPercent: 0.15, // +15% от текущего Armor
   },
   daze: {
-    id: 'daze', nameRu: 'Stagger',
+    id: 'daze', nameRu: 'Ошеломление', nameEn: 'Daze',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     castTimeIncrease: 0.3, // +30% время каста
   },
   // Инертный плейсхолдер: acc/eva удалены, переработать в dodge-скилл позже
   accuracy_reduce: {
-    id: 'accuracy_reduce', nameRu: 'Accuracy Down',
+    id: 'accuracy_reduce', nameRu: 'Понижение точности', nameEn: 'Accuracy Down',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
   },
   fortify: {
-    id: 'fortify', nameRu: 'Fortify',
+    id: 'fortify', nameRu: 'Укрепление', nameEn: 'Fortify',
     maxStacks: 5, duration: 5, stackBehavior: 'refresh',
     armorBonusPercent: 0.05, // +5% за стак, макс +25%
   },
   concussion: {
-    id: 'concussion', nameRu: 'Concussion',
+    id: 'concussion', nameRu: 'Сотрясение', nameEn: 'Concussion',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     addCooldownToNextAbility: 10, // следующая абилка +10 сек КД
   },
   // Инертный плейсхолдер: acc/eva удалены, переработать в dodge-скилл позже
   evasion_boost: {
-    id: 'evasion_boost', nameRu: 'Maneuver',
+    id: 'evasion_boost', nameRu: 'Манёвр', nameEn: 'Maneuver',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
   },
   block_next: {
-    id: 'block_next', nameRu: 'Cover',
+    id: 'block_next', nameRu: 'Прикрытие', nameEn: 'Cover',
     maxStacks: 5, duration: 10, stackBehavior: 'refresh',
     blockNextAttack: true, // поглощает melee/ranged атаки, 1 стак = 1 блок
   },
   shield_stance: {
-    id: 'shield_stance', nameRu: 'Shield Stance',
+    id: 'shield_stance', nameRu: 'Щитовая стойка', nameEn: 'Shield Stance',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     moveSlow: 0.3, // −30% скорость
     armorBonusPercent: 0.20, // +20% от текущего Armor
   },
   stun_immune: {
-    id: 'stun_immune', nameRu: 'Unshakeable',
+    id: 'stun_immune', nameRu: 'Непоколебимость', nameEn: 'Unshakeable',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     stunImmune: true,
   },
   knockback_immune: {
-    id: 'knockback_immune', nameRu: 'Firm Stance',
+    id: 'knockback_immune', nameRu: 'Твёрдая стойка', nameEn: 'Firm Stance',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     knockbackImmune: true,
   },
   ranged_resist: {
-    id: 'ranged_resist', nameRu: 'Hardening',
+    id: 'ranged_resist', nameRu: 'Закалка', nameEn: 'Hardening',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     rangedDamageReduction: 0.3, // −30% входящего дальнего урона
   },
   regen_per_buff: {
-    id: 'regen_per_buff', nameRu: 'Sustain',
+    id: 'regen_per_buff', nameRu: 'Подпитка', nameEn: 'Sustain',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     regenPerBuff: 3, // +3 HP/сек за каждый бафф
   },
   regen_per_debuff: {
-    id: 'regen_per_debuff', nameRu: 'Spirit Resilience',
+    id: 'regen_per_debuff', nameRu: 'Стойкость духа', nameEn: 'Spirit Resilience',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     regenPerDebuff: 3, // +3 HP/сек за каждый дебафф
   },
   armor_group_buff: {
-    id: 'armor_group_buff', nameRu: 'Iron Skin',
+    id: 'armor_group_buff', nameRu: 'Железная кожа', nameEn: 'Iron Skin',
     maxStacks: 1, duration: 6, stackBehavior: 'refresh',
     armorBonusPercent: 0.10,
   },
   luck_group_buff: {
-    id: 'luck_group_buff', nameRu: "Fortune's Blessing",
+    id: 'luck_group_buff', nameRu: 'Благословение фортуны', nameEn: "Fortune's Blessing",
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     luckBonusPercent: 0.20, // +20% Luck
   },
   mana_flow: {
-    id: 'mana_flow', nameRu: 'Mana Flow',
+    id: 'mana_flow', nameRu: 'Поток маны', nameEn: 'Mana Flow',
     maxStacks: 1, duration: 10, stackBehavior: 'refresh',
     regenManaBonus: 0.20, // +20% реген маны
   },
   mana_link_self: {
-    id: 'mana_link_self', nameRu: 'Mana Link (cost)',
+    id: 'mana_link_self', nameRu: 'Связь маны (цена)', nameEn: 'Mana Link (cost)',
     maxStacks: 1, duration: 9999, stackBehavior: 'refresh', // toggle — бессрочный
     regenManaBonus: -0.10,
   },
   mana_link_target: {
-    id: 'mana_link_target', nameRu: 'Mana Link',
+    id: 'mana_link_target', nameRu: 'Связь маны', nameEn: 'Mana Link',
     maxStacks: 1, duration: 9999, stackBehavior: 'refresh', // toggle — бессрочный
     regenManaBonus: 0.15,
   },
   magic_vulnerability: {
-    id: 'magic_vulnerability', nameRu: 'Meteorokinesis',
+    id: 'magic_vulnerability', nameRu: 'Метеокинез', nameEn: 'Meteorokinesis',
     maxStacks: 1, duration: 8, stackBehavior: 'refresh',
     elementalDamageIncrease: 0.5, // +50% incoming elemental (fire/water/earth/wind) damage ONLY
   },
   focus: {
-    id: 'focus', nameRu: 'Focus',
+    id: 'focus', nameRu: 'Фокусировка', nameEn: 'Focus',
     maxStacks: 1, duration: 10, stackBehavior: 'refresh',
   },
   damage_boost: {
-    id: 'damage_boost', nameRu: 'War Cry',
+    id: 'damage_boost', nameRu: 'Боевой клич', nameEn: 'War Cry',
     maxStacks: 1, duration: 6, stackBehavior: 'refresh',
     outgoingDamageIncrease: 0.1, // +10% исходящего урона
   },
   acceleration: {
-    id: 'acceleration', nameRu: 'Acceleration',
+    id: 'acceleration', nameRu: 'Ускорение', nameEn: 'Acceleration',
     maxStacks: 1, duration: 5, stackBehavior: 'refresh',
     moveSlow: -0.5, // отрицательное = ускорение (+50% скорость)
   },
   inspiration: {
-    id: 'inspiration', nameRu: 'Inspiration',
+    id: 'inspiration', nameRu: 'Вдохновение', nameEn: 'Inspiration',
     maxStacks: 1, duration: 3, stackBehavior: 'refresh',
     castTimeIncrease: -0.3, // отрицательное = ускорение каста (-30% время каста)
   },

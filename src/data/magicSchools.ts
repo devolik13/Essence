@@ -34,30 +34,36 @@ export interface SchoolBonus {
 export const SCHOOL_BONUSES: Partial<Record<MagicSchool, SchoolBonus>> = {
   fire: {
     nameRu: 'Горение',
+    nameEn: 'Burning',
     statusEffect: 'burn',
     statusChance: 0.1,
   },
   water: {
     nameRu: 'Охлаждение',
+    nameEn: 'Chill',
     statusEffect: 'chill',
     statusChance: 0.2,
   },
   earth: {
     nameRu: 'Пробивание защиты',
+    nameEn: 'Armor Pierce',
     penetrationChance: 0.2,
     penetrationPercent: 0.2,
   },
   wind: {
     nameRu: 'Двойной урон',
+    nameEn: 'Double Damage',
     doubleDamageChance: 0.2,
   },
   nature: {
     nameRu: 'Самоисцеление',
+    nameEn: 'Self-Heal',
     selfHealChance: 0.2,
     selfHealPercent: 0.05,
   },
   neutral: {
     nameRu: 'Нейтральная',
+    nameEn: 'Neutral',
     // Нет школьного бонуса
   },
 };

@@ -11,6 +11,7 @@ import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } fro
 import { spriteForItem, createSpriteSvg } from './weaponIcon';
 import { wireItemTooltip, hideItemTooltip } from './itemTooltip';
 import { setDraggedItem } from './dragState';
+import { lt } from '../i18n';
 
 const STORAGE_KEY = 'esswin-bag';
 const BAG_CAPACITY = 64;
@@ -26,11 +27,11 @@ export interface BagCallbacks {
   onClose: () => void;
 }
 
-const TABS: { id: Filter; label: string }[] = [
-  { id: 'all',         label: 'Все' },
-  { id: 'equipment',   label: 'Экипировка' },
-  { id: 'material',    label: 'Материалы' },
-  { id: 'consumable',  label: 'Расходники' },
+const TABS: { id: Filter; labelRu: string; labelEn: string }[] = [
+  { id: 'all',         labelRu: 'Все',        labelEn: 'All' },
+  { id: 'equipment',   labelRu: 'Экипировка', labelEn: 'Equipment' },
+  { id: 'material',    labelRu: 'Материалы',  labelEn: 'Materials' },
+  { id: 'consumable',  labelRu: 'Расходники', labelEn: 'Consumables' },
 ];
 
 let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
@@ -115,7 +116,7 @@ function render() {
   const header = el('header', 'eb-header');
   const title = el('h2', 'eb-title');
   title.appendChild(el('span', 'eb-glyph', '🎒'));
-  title.appendChild(document.createTextNode(' Сумка'));
+  title.appendChild(document.createTextNode(' ' + lt('Сумка', 'Bag')));
   header.appendChild(title);
   header.appendChild(el('span', 'eb-header-spacer'));
   header.appendChild(el('span', 'eb-counter', `${inv.length} / ${BAG_CAPACITY}`));
@@ -127,7 +128,7 @@ function render() {
   // Tabs
   const tabs = el('div', 'eb-tabs');
   for (const tDef of TABS) {
-    const btn = el('button', `eb-tab${filter === tDef.id ? ' is-active' : ''}`, tDef.label);
+    const btn = el('button', `eb-tab${filter === tDef.id ? ' is-active' : ''}`, lt(tDef.labelRu, tDef.labelEn));
     btn.addEventListener('click', () => { filter = tDef.id; page = 0; render(); });
     tabs.appendChild(btn);
   }
@@ -154,7 +155,7 @@ function render() {
   footer.appendChild(pager);
 
   const slots = el('span', 'eb-slots-label');
-  slots.appendChild(document.createTextNode('Ячейки: '));
+  slots.appendChild(document.createTextNode(lt('Ячейки', 'Slots') + ': '));
   slots.appendChild(el('b', undefined, `${inv.length} / ${BAG_CAPACITY}`));
   footer.appendChild(slots);
   inner.appendChild(footer);

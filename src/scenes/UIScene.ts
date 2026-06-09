@@ -3,7 +3,7 @@ import { Sphere } from '../entities/Sphere';
 import { Body } from '../entities/Body';
 import { Creature } from '../entities/Creature';
 import { StatName } from '../types/stats';
-import { t, initLang } from '../i18n';
+import { t, lt, initLang } from '../i18n';
 import { CaptureProcess, CaptureState } from '../systems/capture';
 import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
@@ -491,10 +491,10 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
     gs.events.on('capture-interrupt', () => this.addLog('✖ Захват прерван (движение)'));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
-      this.addLog(`★ Learned: ${spell.nameRu}`);
+      this.addLog(`${t('log.learned')} ${lt(spell.nameRu, spell.nameEn)}`);
     });
     gs.events.on('spell-locked', (data: { spell: import('../types/abilities').AbilityDef; prereqId: string }) => {
-      this.addLog(`✗ ${data.spell.nameRu} — learn basic ability first`);
+      this.addLog(`✗ ${lt(data.spell.nameRu, data.spell.nameEn)} ${t('log.prereq')}`);
     });
     gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
       this.addLog(`✦ QUEST: ${data.name}  +${data.xp} XP`);
@@ -508,7 +508,7 @@ export class UIScene extends Phaser.Scene {
           const progress = q.counts.map((c, i) =>
             `${c}/${q.def.objectives[i].count}`
           ).join(', ');
-          this.addLog(`  ▸ ${q.def.nameRu} [${progress}]  +${q.def.xpReward} XP`);
+          this.addLog(`  ▸ ${lt(q.def.nameRu, q.def.nameEn)} [${progress}]  +${q.def.xpReward} XP`);
         }
       }
       if (data.done.length > 0) {
@@ -538,7 +538,7 @@ export class UIScene extends Phaser.Scene {
     });
     gs.events.on('achievement-unlocked', (ach: AchievementDef) => {
       this.achievementNotifQueue.push(ach);
-      this.addLog(`★ Achievement: ${ach.nameRu}`);
+      this.addLog(`${t('log.achievement')} ${lt(ach.nameRu, ach.nameEn)}`);
     });
     gs.events.on('boss-state', (data: { name: string; hp: number; maxHp: number; hpFrac: number } | null) => {
       this.updateBossBanner(data);
@@ -771,12 +771,12 @@ export class UIScene extends Phaser.Scene {
       // Tracked quests
       for (const q of trackedQuests) {
         if (lines.length > 0) lines.push('');
-        lines.push(`▸ ${q.def.nameRu}`);
+        lines.push(`▸ ${lt(q.def.nameRu, q.def.nameEn)}`);
         for (let i = 0; i < q.def.objectives.length; i++) {
           const obj = q.def.objectives[i];
           const cur = q.counts[i];
           const isDone = cur >= obj.count;
-          lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? ''}`);
+          lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${lt(obj.targetNameRu, obj.targetNameEn)}`);
         }
       }
 
@@ -784,7 +784,7 @@ export class UIScene extends Phaser.Scene {
       const bq = data.bodyQuest;
       if (bq && !bq.completed) {
         if (lines.length > 0) lines.push('');
-        lines.push(`★ ${bq.def.nameRu}`);
+        lines.push(`★ ${lt(bq.def.nameRu, bq.def.nameEn)}`);
         for (let i = 0; i < bq.def.objectives.length; i++) {
           const obj = bq.def.objectives[i];
           const cur = bq.counts[i];
@@ -795,9 +795,9 @@ export class UIScene extends Phaser.Scene {
             const reachDone = obj.type !== 'protect' || bq.def.objectives.some(
               (o, j) => o.type === 'reach' && o.targetId === obj.targetId && bq.counts[j] >= o.count,
             );
-            lines.push(`  ${reachDone ? `${secs}s` : '–'} ${obj.description}`);
+            lines.push(`  ${reachDone ? `${secs}s` : '–'} ${lt(obj.description, obj.descriptionEn)}`);
           } else {
-            const label = obj.description || obj.targetNameRu || '';
+            const label = lt(obj.description, obj.descriptionEn) || lt(obj.targetNameRu, obj.targetNameEn) || '';
             lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${label}`);
           }
         }
@@ -848,7 +848,7 @@ export class UIScene extends Phaser.Scene {
         const parts: string[] = [];
         for (const [, status] of body.statusEffects) {
           const def = (STATUS_DEFS as Record<string, import('../types/statuses').StatusEffectDef>)[status.id];
-          const name = def?.nameRu ?? status.id;
+          const name = def ? lt(def.nameRu, def.nameEn) : status.id;
           const secs = Math.ceil(status.timer);
           const stacks = status.stacks > 1 ? `×${status.stacks}` : '';
           parts.push(`${name}${stacks}(${secs}с)`);
@@ -901,16 +901,16 @@ export class UIScene extends Phaser.Scene {
       this.panelHeaders['body'].setVisible(!!body).setPosition(s.x, s.y);
       this.grips['body'].setVisible(!!body);
       if (body) {
-        this.setHeaderLabel('body', `Body · ${body.definition.nameRu}`);
+        this.setHeaderLabel('body', `${t('panel.body')} · ${lt(body.definition.nameRu, body.definition.name)}`);
         if (!s.collapsed) {
           // Гуманоид — реальное оружие; зверь/элементаль — природная атака
           // (Когти/Стихия), без понятия «оружие», чтобы не путать.
           const weaponLine = body.definition.canUseAllSpells
-            ? `${t('body.weapon')}: ${body.weapon.nameRu}  ${t('body.cd')}: ${body.weapon.cooldown}s`
+            ? `${t('body.weapon')}: ${lt(body.weapon.nameRu, body.weapon.nameEn)}  ${t('body.cd')}: ${body.weapon.cooldown}s`
             : `${this.naturalAttackName(body)}  ${t('body.cd')}: ${body.weapon.cooldown}s`;
           this.bodyInfoText.setFixedSize(s.w, 0)
             .setPosition(s.x, s.y + HEADER_H).setText(
-              `── ${body.definition.nameRu} ──\n` + weaponLine
+              `── ${lt(body.definition.nameRu, body.definition.name)} ──\n` + weaponLine
             ).setVisible(true);
           this.positionGrip('body', this.bodyInfoText.getBounds().bottom);
         } else {
@@ -936,9 +936,9 @@ export class UIScene extends Phaser.Scene {
         const def = hasCreatureTarget ? tgt!.definition : starterDef!;
         if (hasCreatureTarget) {
           const hpPct = Math.round((tgt!.currentHP / tgt!.maxHP) * 100);
-          this.setHeaderLabel('target', `${def.nameRu}  ${hpPct}%`);
+          this.setHeaderLabel('target', `${lt(def.nameRu, def.name)}  ${hpPct}%`);
         } else {
-          this.setHeaderLabel('target', def.nameRu);
+          this.setHeaderLabel('target', lt(def.nameRu, def.name));
         }
 
         if (!s.collapsed) {
@@ -965,7 +965,7 @@ export class UIScene extends Phaser.Scene {
             tLines.push(``, `Ability: ${def.abilityName}`);
           }
           if (def.signatureSpell) {
-            tLines.push(`✦ ${def.signatureSpell.nameRu}  (via Quest)`);
+            tLines.push(`✦ ${lt(def.signatureSpell.nameRu, def.signatureSpell.nameEn)}  ${lt('(через квест)', '(via Quest)')}`);
           }
           this.targetPanel.setFixedSize(s.w, 0).setWordWrapWidth(s.w - 16, true)
             .setPosition(s.x, s.y + HEADER_H).setText(tLines.join('\n')).setVisible(true);
@@ -1530,7 +1530,7 @@ export class UIScene extends Phaser.Scene {
           .setOrigin(0.5).setDisplaySize(sz - 6, sz - 6);
         this.spellPickerContainer.add(iimg);
       } else {
-        const itxt = this.add.text(ix, iy - 2, spell.nameRu.slice(0, 7), {
+        const itxt = this.add.text(ix, iy - 2, lt(spell.nameRu, spell.nameEn).slice(0, 7), {
           fontSize: '8px', fontFamily: '"JetBrains Mono", monospace', color: TC.text1, align: 'center',
         }).setOrigin(0.5);
         this.spellPickerContainer.add(itxt);
@@ -1637,7 +1637,7 @@ export class UIScene extends Phaser.Scene {
           txt.setText('');
         } else {
           img.setVisible(false);
-          txt.setText(ability.nameRu.slice(0, 6)).setColor(TC.ether3).setFontSize('10px');
+          txt.setText(lt(ability.nameRu, ability.nameEn).slice(0, 6)).setColor(TC.ether3).setFontSize('10px');
         }
       } else {
         img.setVisible(false);
@@ -1865,13 +1865,13 @@ export class UIScene extends Phaser.Scene {
     const dmg = Math.round(weapon.baseDamage * (1 + atk.value / 100));
     const inactiveId = innate ? undefined : (data.sphere.activeWeaponSlot === 0 ? eq.weapon2 : eq.weapon);
     const lines = [
-      item ? item.nameRu : `${data.body.definition.nameRu} — ${this.naturalAttackName(data.body)}`,
+      item ? lt(item.nameRu, item.nameEn) : `${lt(data.body.definition.nameRu, data.body.definition.name)} — ${this.naturalAttackName(data.body)}`,
       `Base: ${weapon.baseDamage} • Range: ${weapon.range} • CD: ${weapon.cooldown}s`,
       `Damage (${atk.label} ${atk.value}): ${dmg}`,
       // Эффект оружия показываем только гуманоидам: у зверей «оружие» — заглушка
       // (заяц не машет ядовитым кинжалом), и базовая атака эффект не накладывает.
       (!innate && weapon.weaponEffect) ? `Effect: ${weapon.weaponEffect} ${Math.round((weapon.weaponEffectChance ?? 0) * 100)}%` : '',
-      inactiveId ? `[Tab] swap → ${ITEMS[inactiveId]?.nameRu ?? inactiveId}` : '',
+      inactiveId ? `[Tab] swap → ${ITEMS[inactiveId] ? lt(ITEMS[inactiveId].nameRu, ITEMS[inactiveId].nameEn) : inactiveId}` : '',
     ].filter(Boolean);
     this.hideWeaponTooltip();
     const c = this.add.container(x, y - 60).setScrollFactor(0).setDepth(1100);
@@ -2210,7 +2210,11 @@ export class UIScene extends Phaser.Scene {
       case 'settings':
         showSettingsDom({
           onClose: () => this.closeSingleWindow('settings'),
-          onLangChange: () => this.refreshLanguageTexts(),
+          onLangChange: () => {
+            this.refreshLanguageTexts();
+            // Мировые лейблы пересоздаются рестартом зоны (см. GameScene)
+            this.scene.get('GameScene').events.emit('language-changed');
+          },
         });
         break;
     }
@@ -2295,8 +2299,13 @@ export class UIScene extends Phaser.Scene {
 
   // ── Dialog system ──────────────────────────────────────
 
-  public showDialog(messages: { speaker: string; text: string }[], onEnd?: () => void) {
-    this.dialogQueue = [...messages];
+  public showDialog(messages: { speaker: string; speakerRu?: string; text: string; textRu?: string }[], onEnd?: () => void) {
+    // Канон DialogMessage: speaker/text — EN, speakerRu/textRu — RU.
+    // Локализуем при показе, чтобы в очереди лежал уже выбранный язык.
+    this.dialogQueue = messages.map(m => ({
+      speaker: lt(m.speakerRu, m.speaker),
+      text: lt(m.textRu, m.text),
+    }));
     this.dialogOnEnd = onEnd;
     this.dialogVisible = true;
     this.advanceDialog();
@@ -2356,7 +2365,7 @@ export class UIScene extends Phaser.Scene {
         const it = ITEMS[m.itemId];
         const afford = (data.sphere?.copper ?? 0) >= m.price;
         const btn = this.add.text(this.windowX + 8, my,
-          `[ Купить ${it?.nameRu ?? m.itemId} ×${m.qty} — ${formatCurrency(m.price)} ]`, {
+          `[ ${lt('Купить', 'Buy')} ${it ? lt(it.nameRu, it.nameEn) : m.itemId} ×${m.qty} — ${formatCurrency(m.price)} ]`, {
             fontSize: '10px', fontFamily: '"Special Elite", monospace',
             color: afford ? '#6d9a5a' : TC.text3, backgroundColor: '#1d1811', padding: { x: 6, y: 3 },
           }).setScrollFactor(0).setDepth(3000).setInteractive({ useHandCursor: true });
@@ -2643,9 +2652,9 @@ export class UIScene extends Phaser.Scene {
           lines.push('');
           const learned = sphere.learnedSpells.some(sp => sp.id === sig.id);
           if (learned) {
-            lines.push(`✦ ${sig.nameRu} — LEARNED`);
+            lines.push(`✦ ${lt(sig.nameRu, sig.nameEn)} — ${t('stats.learned')}`);
           } else {
-            lines.push(`✧ ${sig.nameRu} — via Body Quest`);
+            lines.push(`✧ ${lt(sig.nameRu, sig.nameEn)} — ${lt('через квест тела', 'via Body Quest')}`);
           }
         }
 
@@ -2702,7 +2711,7 @@ export class UIScene extends Phaser.Scene {
       const ach = this.achievementNotifQueue.shift()!;
       this.achievementNotifBg.setAlpha(0.93).setVisible(true);
       this.achievementNotifText
-        .setText(`★ ACHIEVEMENT: ${ach.nameRu}\n${ach.descRu}`)
+        .setText(`★ ${lt('ДОСТИЖЕНИЕ', 'ACHIEVEMENT')}: ${lt(ach.nameRu, ach.nameEn)}\n${lt(ach.descRu, ach.descEn)}`)
         .setAlpha(1).setVisible(true);
       this.achievementNotifTimer = 3000;
     }

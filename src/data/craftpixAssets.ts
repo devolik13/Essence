@@ -168,6 +168,14 @@ export const WORKBENCH_NAMES_RU: Record<string, string> = {
   runemaster: 'Рунный мастер',
 };
 
+/** Названия верстаков на английском (пара к WORKBENCH_NAMES_RU). */
+export const WORKBENCH_NAMES_EN: Record<string, string> = {
+  armorer: 'Armorer',
+  weaponsmith: 'Weaponsmith',
+  jeweler: 'Jeweler',
+  runemaster: 'Runemaster',
+};
+
 export interface MobSpriteSet {
   folder: string;
   frameW: number;

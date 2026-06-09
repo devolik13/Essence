@@ -5,6 +5,7 @@ import { AbilityDef } from '../../types/abilities';
 export const MOB_FIRE_T1: AbilityDef = {
   id: 'mob_fire_spark',
   nameRu: 'Искра',
+  nameEn: 'Spark',
   school: 'fire',
   damageType: 'magic',
   cooldown: 2.0,
@@ -12,11 +13,13 @@ export const MOB_FIRE_T1: AbilityDef = {
   range: 240,
   baseDamage: 20,
   description: 'Быстрый магический разряд огня.',
+  descriptionEn: 'A quick magical bolt of fire.',
 };
 /** T2 — Огненная стрела: 5 снарядов в случайные цели в радиусе 150px */
 export const MOB_FIRE_T2: AbilityDef = {
   id: 'mob_fire_arrow',
   nameRu: 'Огненная стрела',
+  nameEn: 'Fire Arrow',
   school: 'fire',
   damageType: 'magic',
   effectType: 'multi_projectile',
@@ -28,11 +31,13 @@ export const MOB_FIRE_T2: AbilityDef = {
   range: 240,
   baseDamage: 6,
   description: '5 снарядов по 6 урона в случайные цели (радиус 150px).',
+  descriptionEn: '5 projectiles of 6 damage each at random targets (150px radius).',
 };
 /** T3 — Огненная стена: зона на земле, урон стоящим в ней (оригинал Archimage) */
 export const MOB_FIRE_T3: AbilityDef = {
   id: 'mob_fire_wall',
   nameRu: 'Огненная стена',
+  nameEn: 'Fire Wall',
   school: 'fire',
   damageType: 'magic',
   effectType: 'ground_zone',
@@ -49,20 +54,22 @@ export const MOB_FIRE_T3: AbilityDef = {
   zoneDuration: 5,
   zoneDps: 35,
   description: 'Стена огня (140×30, 5 сек). Враги в зоне получают 12 урона/сек.',
+  descriptionEn: 'A wall of fire (140×30, 5 sec). Enemies in the zone take 12 damage/sec.',
 };
 // ─── FIRE T4/T5 ──────────────────────────────────────────────────────────────
 /** T4 — Fireball: AoE explosion (Archimage: взрыв 3×3) */
 export const MOB_FIRE_T4: AbilityDef = {
   id: 'mob_fireball',
-  nameRu: 'Огненный шар', school: 'fire', damageType: 'magic',
+  nameRu: 'Огненный шар', nameEn: 'Fireball', school: 'fire', damageType: 'magic',
   isAoe: true, aoeRadius: 160,
   castTime: 2, cooldown: 15, manaCost: 15, range: 280, baseDamage: 35,
   description: 'Massive fireball explosion. AoE r160.',
+  descriptionEn: 'Massive fireball explosion. AoE r160.',
 };
 /** T5 — Fire Tsunami: wave sweeps toward caster, leaves burning ground */
 export const MOB_FIRE_T5: AbilityDef = {
   id: 'mob_fire_tsunami',
-  nameRu: 'Огненное цунами', school: 'fire', damageType: 'magic',
+  nameRu: 'Огненное цунами', nameEn: 'Fire Tsunami', school: 'fire', damageType: 'magic',
   effectType: 'fire_tsunami',
   wallWidth: 200,       // width of the wave
   wallThickness: 160,   // depth of the zone (wave travels this distance)
@@ -72,6 +79,7 @@ export const MOB_FIRE_T5: AbilityDef = {
   zoneDuration: 6,      // burning ground lasts 6 sec
   zoneDps: 25,          // burning ground DPS
   description: 'Fire wave sweeps toward caster. 30 dmg on hit + burning ground 25 dps, 6 sec.',
+  descriptionEn: 'Fire wave sweeps toward caster. 30 dmg on hit + burning ground 25 dps, 6 sec.',
 };
 
 export const FIRE_SPELLS: AbilityDef[] = [

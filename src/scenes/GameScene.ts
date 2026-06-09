@@ -27,13 +27,13 @@ import { ALL_ZONES, ZoneConfig } from '../data/zones';
 import { rollLoot, ITEMS, equipmentStatBonuses } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
-import { t } from '../i18n';
+import { t, lt } from '../i18n';
 import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG } from '../data/dialogs';
 import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
-import { WORKBENCH_NAMES_RU, WORKBENCH_COLORS } from '../data/craftpixAssets';
+import { WORKBENCH_NAMES_RU, WORKBENCH_NAMES_EN, WORKBENCH_COLORS } from '../data/craftpixAssets';
 import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
@@ -446,6 +446,18 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    // Смена языка в настройках: мировые лейблы (имена мобов, ноды, NPC,
+    // верстаки, название зоны) создаются при спавне — перезапускаем зону
+    // на месте, чтобы пересоздать их на новом языке. Состояние сохраняется
+    // как при обычном переходе между зонами.
+    this.trackEvent('language-changed', () => {
+      if (this.playerBody) this.sphere.lastBodyId = this.playerBody.definition.id;
+      this.persistState();
+      const px = this.playerBody?.x ?? this.currentZone.respawnPoint.x;
+      const py = this.playerBody?.y ?? this.currentZone.respawnPoint.y;
+      this.scene.restart({ zoneId: this.currentZone.id, spawnX: px, spawnY: py });
+    });
+
     // Переключение отслеживания квеста
     this.trackEvent('track-quest', (questId: string) => {
       const ids = this.sphere.trackedQuestIds;
@@ -519,7 +531,7 @@ export class GameScene extends Phaser.Scene {
         if (clickedAlly) {
           this.fireAllySpell(clickedAlly);
         } else {
-          this.showMessage('Выбери союзника');
+          this.showMessage(lt('Выбери союзника', 'Choose an ally'));
         }
         return;
       }
@@ -906,7 +918,7 @@ export class GameScene extends Phaser.Scene {
         this.captureProcess = interruptCapture(this.captureProcess);
         this.captureTarget = null;
         this.events.emit('capture-interrupt');
-        this.showMessage('Захват прерван — нужно стоять на месте');
+        this.showMessage(lt('Захват прерван — нужно стоять на месте', 'Capture interrupted — you must stand still'));
       } else {
         this.captureProcess = updateCapture(this.captureProcess, delta);
 
@@ -963,11 +975,11 @@ export class GameScene extends Phaser.Scene {
       activeEnchantId: this.sphere.activeEnchant?.id ?? null,
       inCombat: this.isInCombat,
       aoeCast: this.aoeCasting
-        ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
+        ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: lt(this.aoeCasting.spell.nameRu, this.aoeCasting.spell.nameEn) }
         : this.gatheringNode
-          ? { elapsed: 3 - this.gatheringTimer, duration: 3, name: `⛏ ${this.gatheringNode.def.nameRu}` }
+          ? { elapsed: 3 - this.gatheringTimer, duration: 3, name: `⛏ ${lt(this.gatheringNode.def.nameRu, this.gatheringNode.def.nameEn)}` }
           : (this.craftingRecipe && this.craftingTimer > 0)
-            ? { elapsed: this.craftingRecipe.craftTime - this.craftingTimer, duration: this.craftingRecipe.craftTime, name: `⚒ ${this.craftingRecipe.nameRu}` }
+            ? { elapsed: this.craftingRecipe.craftTime - this.craftingTimer, duration: this.craftingRecipe.craftTime, name: `⚒ ${lt(this.craftingRecipe.nameRu, this.craftingRecipe.nameEn)}` }
             : null,
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
@@ -1091,7 +1103,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Название зоны
-    this.add.text(wt * TILE_SIZE / 2, 40, zone.nameRu, {
+    this.add.text(wt * TILE_SIZE / 2, 40, lt(zone.nameRu, zone.nameEn), {
       fontSize: '16px', color: '#ffffff', align: 'center',
       stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5);
@@ -1106,7 +1118,7 @@ export class GameScene extends Phaser.Scene {
       if (exit.edge === 'east')  { ex = wt * TILE_SIZE - 20; ey = ht * TILE_SIZE / 2; }
       if (exit.edge === 'west')  { ex = 20; ey = ht * TILE_SIZE / 2; }
       const arrow = exit.edge === 'north' ? '↑' : exit.edge === 'south' ? '↓' : exit.edge === 'east' ? '→' : '←';
-      this.add.text(ex, ey, `${arrow} ${targetZone.nameRu}`, {
+      this.add.text(ex, ey, `${arrow} ${lt(targetZone.nameRu, targetZone.nameEn)}`, {
         fontSize: '12px', color: '#ffdd88', align: 'center',
         stroke: '#000000', strokeThickness: 3,
       }).setOrigin(0.5).setDepth(100);
@@ -1190,7 +1202,7 @@ export class GameScene extends Phaser.Scene {
       const pos = this.starterPositions[i];
       const anim = animMap[def.id];
 
-      const nameLabel = this.add.text(pos.x, pos.y + 36, def.nameRu, {
+      const nameLabel = this.add.text(pos.x, pos.y + 36, lt(def.nameRu, def.name), {
         fontSize: '9px', color: '#cccccc', align: 'center',
         stroke: '#000000', strokeThickness: 2,
       }).setOrigin(0.5);
@@ -1334,7 +1346,7 @@ export class GameScene extends Phaser.Scene {
       if (dist < CAPTURE_RANGE) {
         this.captureProcess = startCapture(creature.definition.id);
         this.captureTarget = creature;
-        this.events.emit('capture-start', creature.definition.nameRu);
+        this.events.emit('capture-start', lt(creature.definition.nameRu, creature.definition.name));
         return true;
       }
     }
@@ -1369,8 +1381,8 @@ export class GameScene extends Phaser.Scene {
     const nameRu = !body.usesInnateAttack
       ? (dt === 'magic' ? 'Staff Strike' : dt === 'ranged' ? 'Shot' : 'Strike')
       : (dt === 'magic' ? t('body.element') : t('body.claws'));
-    const description = dt === 'magic' ? 'Магическая атака'
-      : dt === 'ranged' ? 'Дальняя атака' : 'Ближняя атака';
+    const description = dt === 'magic' ? lt('Магическая атака', 'Magic attack')
+      : dt === 'ranged' ? lt('Дальняя атака', 'Ranged attack') : lt('Ближняя атака', 'Melee attack');
     return {
       id: 'basic_attack', nameRu, damageType: dt,
       cooldown: w.cooldown, manaCost: 0, range: w.range, baseDamage: 0, description,
@@ -1640,7 +1652,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         body = this.add.circle(0, 0, 12, def.color, 0.7);
       }
-      const label = this.add.text(0, -20, def.nameRu, { fontSize: '8px', color: '#dddddd', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+      const label = this.add.text(0, -20, lt(def.nameRu, def.nameEn), { fontSize: '8px', color: '#dddddd', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       container.add([body, label, eKey]);
       this.resourceNodes.push({ x, y, def, gfx: container, cooldown: 0, depleted: false });
@@ -1664,7 +1676,7 @@ export class GameScene extends Phaser.Scene {
 
     // Workbenches (из конфига зоны)
     for (const wb of zone.workbenches ?? []) {
-      addWorkbench(wb.x, wb.y, wb.type, wb.nameRu);
+      addWorkbench(wb.x, wb.y, wb.type, lt(wb.nameRu, wb.nameEn));
     }
 
     // Ноды и верстаки, расставленные в редакторе карт (node_* / wb_* объекты).
@@ -1673,13 +1685,13 @@ export class GameScene extends Phaser.Scene {
         addResourceNode(ns.x, ns.y, ns.nodeId);
       }
       for (const wb of this.mapEditor.getWorkbenchSpawns()) {
-        addWorkbench(wb.x, wb.y, wb.type, WORKBENCH_NAMES_RU[wb.type] ?? wb.type);
+        addWorkbench(wb.x, wb.y, wb.type, lt(WORKBENCH_NAMES_RU[wb.type], WORKBENCH_NAMES_EN[wb.type]) || wb.type);
       }
       // Колодцы — лечебные точки в городе ([E] = полный HP/мана).
       for (const o of this.mapEditor.getObjects()) {
         if (o.key !== 'cp_well') continue;
         const hint = this.add.container(o.x, o.y).setDepth(6);
-        const label = this.add.text(0, -34, '💧 Колодец', { fontSize: '8px', color: '#aaddff', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+        const label = this.add.text(0, -34, lt('💧 Колодец', '💧 Well'), { fontSize: '8px', color: '#aaddff', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
         const eKey = this.add.text(0, -22, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
         hint.add([label, eKey]);
       }
@@ -1690,12 +1702,12 @@ export class GameScene extends Phaser.Scene {
       const container = this.add.container(npc.x, npc.y).setDepth(5);
       const circle = this.add.circle(0, 0, 12, 0xffdd55, 0.9);
       const glow = this.add.circle(0, 0, 16, 0xffaa00, 0.3);
-      const label = this.add.text(0, -22, npc.nameRu, { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
+      const label = this.add.text(0, -22, lt(npc.nameRu, npc.nameEn), { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
       const eLabel = npc.role === 'vendor' || npc.role === 'weapon_vendor' ? t('misc.shop') : t('misc.talk');
       const eKey = this.add.text(0, 18, eLabel, { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       const questMarker = this.add.text(12, -28, '!', { fontSize: '14px', color: '#ffff00', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setVisible(false);
       container.add([glow, circle, label, eKey, questMarker]);
-      this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: npc.nameRu, role: npc.role, gfx: container, questMarker });
+      this.worldNPCs.push({ x: npc.x, y: npc.y, id: npc.id, nameRu: lt(npc.nameRu, npc.nameEn), role: npc.role, gfx: container, questMarker });
     }
 
     // Quest objects (waypoints, collectibles, destructibles)
@@ -1703,11 +1715,11 @@ export class GameScene extends Phaser.Scene {
       const container = this.add.container(qo.x, qo.y).setDepth(3);
       const glow = this.add.circle(0, 0, 14, qo.color, 0.3);
       const icon = this.add.text(0, 0, qo.icon, { fontSize: '16px' }).setOrigin(0.5);
-      const label = this.add.text(0, -22, qo.nameRu, { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+      const label = this.add.text(0, -22, lt(qo.nameRu, qo.nameEn), { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const eKey = this.add.text(0, 18, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
       container.add([glow, icon, label, eKey]);
       this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1200, yoyo: true, repeat: -1 });
-      this.questObjects.push({ x: qo.x, y: qo.y, objectId: qo.objectId, nameRu: qo.nameRu, objType: qo.type, gfx: container, used: false });
+      this.questObjects.push({ x: qo.x, y: qo.y, objectId: qo.objectId, nameRu: lt(qo.nameRu, qo.nameEn), objType: qo.type, gfx: container, used: false });
     }
   }
 
@@ -1779,7 +1791,7 @@ export class GameScene extends Phaser.Scene {
     const b = this.playerBody;
     if (!b) return;
     if (b.currentHP >= b.maxHP && b.currentMana >= b.maxMana) {
-      this.showMessage('Колодец: здоровье и мана уже полны');
+      this.showMessage(lt('Колодец: здоровье и мана уже полны', 'Well: health and mana already full'));
       return;
     }
     const hpHealed = Math.round(b.maxHP - b.currentHP);
@@ -1790,7 +1802,7 @@ export class GameScene extends Phaser.Scene {
     if (manaHealed > 0) this.damageTexts.push(new DamageText(this, b.x, b.y - 24, manaHealed, false, false, `+${manaHealed} MP`, 'mana'));
     sfxHeal();
     this.spawnAoeFlash(b.x, b.y, 50);
-    this.showMessage('Колодец восстановил здоровье и ману');
+    this.showMessage(lt('Колодец восстановил здоровье и ману', 'The well restored your health and mana'));
   }
 
   private interactQuestObject(qo: typeof this.questObjects[0]): boolean {
@@ -1858,7 +1870,7 @@ export class GameScene extends Phaser.Scene {
         const advanced = this.bodyQuestTracker.onReach(obj.targetId);
         if (advanced) {
           sfxBuff();
-          this.showMessage(`${obj.targetNameRu} ✓`);
+          this.showMessage(`${lt(obj.targetNameRu, obj.targetNameEn)} ✓`);
           if (this.bodyQuestTracker.isComplete()) {
             this.onBodyQuestComplete();
           }
@@ -1888,7 +1900,7 @@ export class GameScene extends Phaser.Scene {
       // Fail check only after reach is done (timer ticking)
       if (isActive && distance(px, py, target.x, target.y) > obj.zoneRadius) {
         const reset = this.bodyQuestTracker.failProtect(obj.targetId);
-        if (reset) this.showMessage('Ты слишком далеко. Раненый остался без защиты — вернись и начни заново.');
+        if (reset) this.showMessage(lt('Ты слишком далеко. Раненый остался без защиты — вернись и начни заново.', 'Too far away. The wounded one is unprotected — return and start over.'));
       }
     }
   }
@@ -1950,7 +1962,7 @@ export class GameScene extends Phaser.Scene {
       if (exit.edge === 'south') { x = zw / 2; y = zh - 60; arrow = '▼'; }
       if (exit.edge === 'east')  { x = zw - 60; y = zh / 2; arrow = '▶'; }
       if (exit.edge === 'west')  { x = 60; y = zh / 2; arrow = '◀'; }
-      const text = this.add.text(x, y, `${arrow} ${target.nameRu}`, {
+      const text = this.add.text(x, y, `${arrow} ${lt(target.nameRu, target.nameEn)}`, {
         fontSize: '18px', color: '#ffdd44',
         stroke: '#000000', strokeThickness: 4,
         shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true },
@@ -2031,7 +2043,7 @@ export class GameScene extends Phaser.Scene {
       this._bossBannerId = nearest.definition.id;
       const hpFrac = Math.max(0, Math.min(1, nearest.currentHP / nearest.maxHP));
       this.events.emit('boss-state', {
-        name: nearest.definition.nameRu,
+        name: lt(nearest.definition.nameRu, nearest.definition.name),
         hp: Math.ceil(nearest.currentHP),
         maxHp: Math.ceil(nearest.maxHP),
         hpFrac,
@@ -2076,7 +2088,7 @@ export class GameScene extends Phaser.Scene {
         for (const { itemId, qty } of drop.items) {
           this.sphere.addItem(itemId, qty);
         }
-        const lootStr = drop.items.map(d => `+${d.qty} ${ITEMS[d.itemId]?.nameRu ?? d.itemId}`).join(', ');
+        const lootStr = drop.items.map(d => `+${d.qty} ${ITEMS[d.itemId] ? lt(ITEMS[d.itemId].nameRu, ITEMS[d.itemId].nameEn) : d.itemId}`).join(', ');
         this.showMessage(lootStr);
         drop.gfx.destroy();
         this.lootDrops.splice(i, 1);
@@ -2089,7 +2101,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Arms Dealer: gives all starter weapons for free */
   private openWeaponVendor() {
-    if (!this.isHumanoidBody()) { this.showMessage('Торговать можно только в теле гуманоида'); return; }
+    if (!this.isHumanoidBody()) { this.showMessage(lt('Торговать можно только в теле гуманоида', 'Only humanoid bodies can trade')); return; }
     const starterWeapons = [
       'starter_sword', 'starter_mace', 'starter_greatsword', 'starter_spear',
       'starter_hammer', 'starter_dagger', 'starter_fists',
@@ -2165,7 +2177,7 @@ export class GameScene extends Phaser.Scene {
     // Пересчёт статов: активно только новое оружие (мгновенно, клампит HP/ману).
     this.playerBody.refreshStats(this.getEquippedStats());
 
-    this.showMessage(`Switched to ${ITEMS[newWeaponId!]?.nameRu ?? 'weapon'}`);
+    this.showMessage(`${t('weapon.switched')} ${ITEMS[newWeaponId!] ? lt(ITEMS[newWeaponId!].nameRu, ITEMS[newWeaponId!].nameEn) : 'weapon'}`);
     sfxBuff();
   }
 
@@ -2198,18 +2210,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startGathering(node: typeof this.resourceNodes[0]) {
-    if (!this.isHumanoidBody()) { this.showMessage('Собирать ресурсы можно только в теле гуманоида'); return; }
+    if (!this.isHumanoidBody()) { this.showMessage(lt('Собирать ресурсы можно только в теле гуманоида', 'Only humanoid bodies can gather resources')); return; }
     // Check for required tool
     const toolMap: Record<string, string> = { mining: 'pickaxe', woodcutting: 'axe', trophy: 'skinning_knife' };
     const requiredTool = toolMap[node.def.profession];
     if (requiredTool && !this.sphere.inventory.find(i => i.itemId === requiredTool)) {
-      this.showMessage(`Need ${ITEMS[requiredTool]?.nameRu ?? requiredTool}! Visit Merchant.`);
+      this.showMessage(`${lt('Нужен', 'Need')} ${ITEMS[requiredTool] ? lt(ITEMS[requiredTool].nameRu, ITEMS[requiredTool].nameEn) : requiredTool}! ${lt('Посетите торговца.', 'Visit Merchant.')}`);
       return;
     }
     // Start gathering cast (3 sec)
     this.gatheringTimer = 3;
     this.gatheringNode = node;
-    this.showMessage(`Gathering ${node.def.nameRu}...`);
+    this.showMessage(`${lt('Сбор:', 'Gathering')} ${lt(node.def.nameRu, node.def.nameEn)}...`);
     this.events.emit('crafting-start', 3); // reuse cast bar for gathering
   }
 
@@ -2221,7 +2233,7 @@ export class GameScene extends Phaser.Scene {
     if (existing) existing.quantity += qty;
     else this.sphere.inventory.push({ itemId: node.def.itemId, quantity: qty });
 
-    this.showMessage(`+${qty} ${ITEMS[node.def.itemId]?.nameRu ?? node.def.itemId}`);
+    this.showMessage(`+${qty} ${ITEMS[node.def.itemId] ? lt(ITEMS[node.def.itemId].nameRu, ITEMS[node.def.itemId].nameEn) : node.def.itemId}`);
     node.depleted = true;
     node.cooldown = node.def.respawnTime;
     node.gfx.setAlpha(0.3);
@@ -2244,7 +2256,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private openCraftingUI(workbenchType: string) {
-    if (!this.isHumanoidBody()) { this.showMessage('Ковать можно только в теле гуманоида'); return; }
+    if (!this.isHumanoidBody()) { this.showMessage(lt('Ковать можно только в теле гуманоида', 'Only humanoid bodies can craft')); return; }
     this.events.emit('open-crafting', workbenchType);
   }
 
@@ -2259,12 +2271,12 @@ export class GameScene extends Phaser.Scene {
     this.craftingRecipe = recipe;
     // Ковка обездвиживает игрока на время craftTime (прогресс-бар сверху).
     if (this.playerBody) this.playerBody.movementLocked = true;
-    this.showMessage(`Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
+    this.showMessage(`${lt('Создание:', 'Crafting')} ${lt(recipe.nameRu, recipe.nameEn)}... (${recipe.craftTime}s)`);
     this.events.emit('crafting-start', recipe.craftTime);
   }
 
   private openVendorUI() {
-    if (!this.isHumanoidBody()) { this.showMessage('Торговать можно только в теле гуманоида'); return; }
+    if (!this.isHumanoidBody()) { this.showMessage(lt('Торговать можно только в теле гуманоида', 'Only humanoid bodies can trade')); return; }
     // Give tools for free (always)
     const tools = ['pickaxe', 'axe', 'skinning_knife'];
     for (const toolId of tools) {
@@ -2356,7 +2368,7 @@ export class GameScene extends Phaser.Scene {
       if (this.craftingTimer <= 0) {
         const recipe = this.craftingRecipe;
         completeCraft(this.sphere, recipe);
-        this.showMessage(`Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
+        this.showMessage(`${lt('Создано:', 'Crafted:')} ${ITEMS[recipe.resultId] ? lt(ITEMS[recipe.resultId].nameRu, ITEMS[recipe.resultId].nameEn) : recipe.resultId}!`);
         sfxLevelUp();
         this.craftingRecipe = null;
         if (this.playerBody) this.playerBody.movementLocked = false;
@@ -2938,7 +2950,7 @@ export class GameScene extends Phaser.Scene {
       // Ent absorbs damage for player if in range
       const afterEnt = this.tryEntAbsorb(this.playerBody.x, this.playerBody.y, finalDmg);
       this.playerBody.takeDamage(afterEnt);
-      this.logIncomingDamage(creature.definition.nameRu, afterEnt, result.crit);
+      this.logIncomingDamage(lt(creature.definition.nameRu, creature.definition.name), afterEnt, result.crit);
     }
 
     // Снаряд моба
@@ -3032,7 +3044,7 @@ export class GameScene extends Phaser.Scene {
           projColor, 7, 5,
         );
       }
-      this.logIncomingDamage(creature.definition.nameRu, npcDmg, result.crit, spell.nameRu);
+      this.logIncomingDamage(lt(creature.definition.nameRu, creature.definition.name), npcDmg, result.crit, lt(spell.nameRu, spell.nameEn));
     }
 
     this.damageTexts.push(
@@ -3070,16 +3082,16 @@ export class GameScene extends Phaser.Scene {
         this.events.emit('stat-up', levelUp);
       }
 
-      this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: xpTotal, stats: capStats });
+      this.events.emit('creature-killed', { name: lt(creature.definition.nameRu, creature.definition.name), xp: xpTotal, stats: capStats });
     } else {
-      this.events.emit('creature-killed', { name: creature.definition.nameRu, xp: 0, stats: [] });
+      this.events.emit('creature-killed', { name: lt(creature.definition.nameRu, creature.definition.name), xp: 0, stats: [] });
     }
 
     // Бестиарий — отметить запись (для боссов и обычных мобов)
     {
       const { newlyRevealed } = bestiaryReveal(creature.definition.id, 'killed');
       if (newlyRevealed) {
-        this.events.emit('bestiary-revealed', { id: creature.definition.id, reason: 'killed', nameRu: creature.definition.nameRu });
+        this.events.emit('bestiary-revealed', { id: creature.definition.id, reason: 'killed', nameRu: lt(creature.definition.nameRu, creature.definition.name) });
       }
     }
 
@@ -3123,7 +3135,7 @@ export class GameScene extends Phaser.Scene {
       yoyo: true,
       repeat: -1,
     });
-    this.events.emit('capture-available', creature.definition.nameRu);
+    this.events.emit('capture-available', lt(creature.definition.nameRu, creature.definition.name));
 
     // Через 30 сек тело само исчезает и встаёт в очередь респауна
     this.time.delayedCall(30000, () => {
@@ -3210,13 +3222,13 @@ export class GameScene extends Phaser.Scene {
       this.sphere.enterBody();
       this.sphere.lastBodyId = def.id;
 
-      this.events.emit('body-captured', def.nameRu);
+      this.events.emit('body-captured', lt(def.nameRu, def.name));
 
       // Бестиарий — записать вселение
       {
         const { newlyRevealed } = bestiaryReveal(def.id, 'sphered');
         if (newlyRevealed) {
-          this.events.emit('bestiary-revealed', { id: def.id, reason: 'sphered', nameRu: def.nameRu });
+          this.events.emit('bestiary-revealed', { id: def.id, reason: 'sphered', nameRu: lt(def.nameRu, def.name) });
         }
       }
 
@@ -3260,7 +3272,7 @@ export class GameScene extends Phaser.Scene {
     if (this.bodyQuestTracker.getActive()) {
       const reset = this.bodyQuestTracker.failProtect(creatureId);
       if (reset) {
-        this.showMessage('Раненый погиб. Подойди снова чтобы попробовать ещё раз.');
+        this.showMessage(lt('Раненый погиб. Подойди снова чтобы попробовать ещё раз.', 'The wounded one died. Approach again to retry.'));
       }
     }
   }
@@ -3281,7 +3293,7 @@ export class GameScene extends Phaser.Scene {
         this.bodyQuestTracker.start(bq);
         this.spawnBodyQuestObjects(bq);
         this.spawnBodyQuestEnemies(bq);
-        this.showMessage(`Quest started: ${bq.nameRu}`);
+        this.showMessage(`${lt('Квест начат:', 'Quest started:')} ${lt(bq.nameRu, bq.nameEn)}`);
       } else {
         this.grantBodyQuestReward(bq);
       }
@@ -3320,12 +3332,12 @@ export class GameScene extends Phaser.Scene {
         const container = this.add.container(ox, oy).setDepth(3);
         const glow = this.add.circle(0, 0, 14, so.color, 0.3);
         const icon = this.add.text(0, 0, so.icon, { fontSize: '16px' }).setOrigin(0.5);
-        const label = this.add.text(0, -22, so.nameRu, { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+        const label = this.add.text(0, -22, lt(so.nameRu, so.nameEn), { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
         const eKey = this.add.text(0, 18, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
         container.add([glow, icon, label, eKey]);
         this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1200, yoyo: true, repeat: -1 });
 
-        const obj = { x: ox, y: oy, objectId: so.objectId, nameRu: so.nameRu, objType: so.type, gfx: container, used: false };
+        const obj = { x: ox, y: oy, objectId: so.objectId, nameRu: lt(so.nameRu, so.nameEn), objType: so.type, gfx: container, used: false };
         this.questObjects.push(obj);
         this.bodyQuestObjects.push(obj);
       }
@@ -3445,7 +3457,7 @@ export class GameScene extends Phaser.Scene {
 
   private onQuestComplete(q: import('../types/quests').QuestProgress) {
     const xpReward = q.def.xpReward;
-    this.events.emit('quest-complete', { name: q.def.nameRu, xp: xpReward });
+    this.events.emit('quest-complete', { name: lt(q.def.nameRu, q.def.nameEn), xp: xpReward });
 
     if (this.playerBody && xpReward > 0) {
       const caps = this.playerBody.definition.caps;
@@ -3569,14 +3581,14 @@ export class GameScene extends Phaser.Scene {
         this.sphere.activeEnchant = null;
         if (this.playerBody) this.playerBody.enchantRegenPenalty = 0;
         this.events.emit('enchant-toggled', null);
-        this.events.emit('log', { text: `${spell.nameRu} — деактивировано`, color: '#aaaaaa' });
+        this.events.emit('log', { text: `${lt(spell.nameRu, spell.nameEn)} — ${lt('деактивировано', 'deactivated')}`, color: '#aaaaaa' });
       } else {
         // Активация
         this.sphere.activeEnchant = spell;
         if (this.playerBody) this.playerBody.enchantRegenPenalty = spell.regenPenalty ?? 0.3;
         this.events.emit('enchant-toggled', spell);
         const penaltyPct = Math.round((spell.regenPenalty ?? 0.3) * 100);
-        this.events.emit('log', { text: `${spell.nameRu} — активировано! Реген маны −${penaltyPct}%`, color: '#ffaa00' });
+        this.events.emit('log', { text: `${lt(spell.nameRu, spell.nameEn)} — ${lt('активировано! Реген маны', 'activated! Mana regen')} −${penaltyPct}%`, color: '#ffaa00' });
       }
       // Не тратим ману и не запускаем кулдаун
       slot.cooldownRemaining = 0;
@@ -3627,7 +3639,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      this.events.emit('ability-used', spell.nameRu);
+      this.events.emit('ability-used', lt(spell.nameRu, spell.nameEn));
       return;
     }
 
@@ -3665,7 +3677,7 @@ export class GameScene extends Phaser.Scene {
       spawnCastVFX(this, this.playerBody.x, this.playerBody.y, spell.school ?? 'neutral');
       this.playerBody.playAttackAnim();
       sfxBuff();
-      this.events.emit('ability-used', spell.nameRu);
+      this.events.emit('ability-used', lt(spell.nameRu, spell.nameEn));
       return;
     }
 
@@ -3702,7 +3714,7 @@ export class GameScene extends Phaser.Scene {
         spawnHealVFX(this, this.playerBody.x, this.playerBody.y);
         sfxHeal();
       }
-      this.events.emit('ability-used', spell.nameRu);
+      this.events.emit('ability-used', lt(spell.nameRu, spell.nameEn));
       return;
     }
 
@@ -3714,14 +3726,14 @@ export class GameScene extends Phaser.Scene {
         this.sphere.abilityCooldowns[spell.id] = 0;
         if (usedFreeCast) this.sphere.freeNextCast = true;
         else this.playerBody.currentMana += spell.manaCost;
-        this.events.emit('log', { text: 'Волк ещё жив', color: '#aaaaaa' });
+        this.events.emit('log', { text: lt('Волк ещё жив', 'Your wolf is still alive'), color: '#aaaaaa' });
         return;
       }
       // КД не ставим сейчас — запустится когда волк умрёт
       slot.cooldownRemaining = 0;
       this.sphere.abilityCooldowns[spell.id] = 0;
       this.spawnSummonedWolf(this.playerBody.x + 40, this.playerBody.y);
-      this.events.emit('ability-used', spell.nameRu);
+      this.events.emit('ability-used', lt(spell.nameRu, spell.nameEn));
       return;
     }
 
@@ -4233,7 +4245,7 @@ export class GameScene extends Phaser.Scene {
     // Повторное нажатие на стену/зону — досрочная отмена (даже во время КД)
     const isPlaceable = spell.effectType === 'summon_wall' || spell.effectType === 'ground_zone' || spell.effectType === 'wind_barrier' || spell.effectType === 'fire_tsunami' || spell.effectType === 'summon_ent';
     if (isPlaceable && this.cancelPlacedEffect(spell.id)) {
-      this.events.emit('log', { text: `${spell.nameRu} — отменено`, color: '#aaaaaa' });
+      this.events.emit('log', { text: `${lt(spell.nameRu, spell.nameEn)} — ${lt('отменено', 'cancelled')}`, color: '#aaaaaa' });
       return;
     }
 
@@ -4249,11 +4261,11 @@ export class GameScene extends Phaser.Scene {
     } else if (spell.isAoe) {
       // Входим в режим прицеливания
       this.aoeTargeting = { slotIndex, spell };
-      this.events.emit('aoe-targeting', spell.nameRu);
+      this.events.emit('aoe-targeting', lt(spell.nameRu, spell.nameEn));
     } else if (spell.targetAlly) {
       // Ally targeting — wait for click on friendly creature
       this.allyTargeting = { slotIndex, spell };
-      this.events.emit('aoe-targeting', `${spell.nameRu} — выбери союзника`);
+      this.events.emit('aoe-targeting', `${lt(spell.nameRu, spell.nameEn)} — ${lt('выбери союзника', 'choose an ally')}`);
     } else {
       this.handleSpell(slotIndex);
     }
@@ -4333,7 +4345,7 @@ export class GameScene extends Phaser.Scene {
         targetX: worldX, targetY: worldY,
         elapsed: 0, duration: castTime,
       };
-      this.events.emit('cast-start', { name: spell.nameRu, duration: castTime });
+      this.events.emit('cast-start', { name: lt(spell.nameRu, spell.nameEn), duration: castTime });
     } else {
       // Мгновенный выстрел
       this.doAoeDamage(spell, slotIndex, worldX, worldY);

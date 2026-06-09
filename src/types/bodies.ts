@@ -89,7 +89,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
   {
     id: 'human_warrior',
     name: 'Human Warrior',
-    nameRu: 'Human Warrior',
+    nameRu: 'Воин-человек',
     type: BodyType.Combat,
     damageType: 'melee',
     caps: { [StatName.Strength]: 30, [StatName.Armor]: 15, [StatName.Health]: 5 },
@@ -102,7 +102,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
   {
     id: 'human_archer',
     name: 'Human Archer',
-    nameRu: 'Human Archer',
+    nameRu: 'Лучник-человек',
     type: BodyType.Combat,
     damageType: 'ranged',
     caps: { [StatName.Agility]: 30, [StatName.Evasion]: 15, [StatName.Health]: 5 },
@@ -115,7 +115,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
   {
     id: 'human_mage',
     name: 'Human Mage',
-    nameRu: 'Human Mage',
+    nameRu: 'Маг-человек',
     type: BodyType.Combat,
     damageType: 'magic',
     caps: { [StatName.Intellect]: 30, [StatName.Will]: 15, [StatName.Health]: 5 },
@@ -132,7 +132,7 @@ export const STARTER_BODIES: BodyDefinition[] = [
 export const GOBLIN: BodyDefinition = {
   id: 'goblin',
   name: 'Goblin',
-  nameRu: 'Goblin',
+  nameRu: 'Гоблин',
   type: BodyType.Combat,
   damageType: 'melee',
   caps: { [StatName.Agility]: 15, [StatName.Luck]: 10 },

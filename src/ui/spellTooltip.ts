@@ -3,6 +3,7 @@
  * Reuses .ess-tooltip CSS from inventory.css.
  */
 import { AbilityDef } from '../types/abilities';
+import { lt } from '../i18n';
 
 let activeTooltip: HTMLElement | null = null;
 
@@ -34,7 +35,7 @@ function buildSpellTooltipDom(spell: AbilityDef): HTMLElement {
   tt.setAttribute('data-rarity', rarity);
 
   const head = el('div', 'tt-head');
-  const nameSpan = el('span', 'tt-name', spell.nameRu);
+  const nameSpan = el('span', 'tt-name', lt(spell.nameRu, spell.nameEn));
   const school = spell.school ?? 'neutral';
   nameSpan.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
   head.appendChild(nameSpan);
@@ -74,8 +75,9 @@ function buildSpellTooltipDom(spell: AbilityDef): HTMLElement {
     tt.appendChild(stats);
   }
 
-  if ((spell as any).description) {
-    tt.appendChild(el('div', 'tt-desc', (spell as any).description));
+  const desc = lt(spell.description, spell.descriptionEn);
+  if (desc) {
+    tt.appendChild(el('div', 'tt-desc', desc));
   }
 
   return tt;

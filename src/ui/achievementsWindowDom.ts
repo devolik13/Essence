@@ -2,7 +2,7 @@
  * DOM-based Achievements window — brass/ether theme, progress bars.
  */
 import { Sphere } from '../entities/Sphere';
-import { t } from '../i18n';
+import { t, lt } from '../i18n';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
@@ -75,11 +75,11 @@ function buildAchievementCard(def: AchievementDef, unlocked: boolean, progress: 
   const body = el('div', 'ach-body');
 
   const nameRow = el('div', 'ach-name');
-  nameRow.textContent = def.nameRu;
+  nameRow.textContent = lt(def.nameRu, def.nameEn);
   if (unlocked) nameRow.style.color = CATEGORY_COLORS[cat] ?? '#d8c9a4';
   body.appendChild(nameRow);
 
-  const desc = el('div', 'ach-desc', def.descRu);
+  const desc = el('div', 'ach-desc', lt(def.descRu, def.descEn));
   body.appendChild(desc);
 
   const barWrap = el('div', 'ach-bar-wrap');

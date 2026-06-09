@@ -3,7 +3,7 @@
  * Hover shows spellTooltip.
  */
 import { AbilityDef } from '../types/abilities';
-import { t } from '../i18n';
+import { t, lt } from '../i18n';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from './spellTooltip';
 import { spriteIdForWeapon, createWeaponSvg, spriteForSpell, createSpriteSvg } from './weaponIcon';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
@@ -60,7 +60,7 @@ function buildSpellCard(spell: AbilityDef, learned: boolean): HTMLElement {
     card.appendChild(iconWrap);
   }
 
-  const name = el('div', 'sp-name', spell.nameRu);
+  const name = el('div', 'sp-name', lt(spell.nameRu, spell.nameEn));
   if (learned) name.style.color = SCHOOL_COLORS[school] ?? '#d8c9a4';
   card.appendChild(name);
 

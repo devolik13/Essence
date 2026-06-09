@@ -7,6 +7,15 @@ import { RecipeDef } from '../types/items';
 import { WORKBENCH_NAMES_RU } from '../data/craftpixAssets';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 import { wireItemTooltip } from './itemTooltip';
+import { lt } from '../i18n';
+
+/** English workbench names (RU names live in craftpixAssets.WORKBENCH_NAMES_RU). */
+const WORKBENCH_NAMES_EN: Record<string, string> = {
+  armorer: 'Armorer',
+  weaponsmith: 'Weaponsmith',
+  jeweler: 'Jeweler',
+  runemaster: 'Runemaster',
+};
 
 interface CraftingData {
   inventory: { itemId: string; quantity: number }[];
@@ -49,7 +58,7 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
     // Hover the ingredient to see its name / есть-нужно (emoji alone is unclear).
     // Тематический тултип окна (не нативный белый title).
     const mdef = ITEMS[matId];
-    if (mdef) wireItemTooltip(mat, mdef, `Есть ${have} / нужно ${need}`);
+    if (mdef) wireItemTooltip(mat, mdef, lt(`Есть ${have} / нужно ${need}`, `Have ${have} / need ${need}`));
     mats.appendChild(mat);
     if (i < entries.length - 1) mats.appendChild(el('span', 'cv-mat-sep', '·'));
   });
@@ -60,7 +69,7 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
 
   const top = el('div', 'cv-recipe-top');
   top.appendChild(el('span', 'cv-recipe-icon', ITEMS[recipe.resultId]?.icon ?? '?'));
-  top.appendChild(el('span', 'cv-recipe-name', recipe.nameRu));
+  top.appendChild(el('span', 'cv-recipe-name', lt(recipe.nameRu, recipe.nameEn)));
   top.appendChild(el('span', 'cv-recipe-time', `${recipe.craftTime}s`));
   // Result tooltip lives on the result line (not the whole row) so it doesn't
   // override the per-ingredient tooltips below.
@@ -73,13 +82,13 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
 
   const btn = el('button', 'cv-craft-btn');
   if (locked) {
-    btn.textContent = '🔒 Не изучено';
+    btn.textContent = '🔒 ' + lt('Не изучено', 'Not learned');
     btn.setAttribute('disabled', 'true');
   } else if (anyShort) {
-    btn.textContent = 'Ковать';
+    btn.textContent = lt('Ковать', 'Forge');
     btn.setAttribute('disabled', 'true');
   } else {
-    btn.textContent = 'Ковать';
+    btn.textContent = lt('Ковать', 'Forge');
     btn.addEventListener('click', () => cb.onCraft(recipe.id));
   }
   bottom.appendChild(btn);
@@ -98,7 +107,7 @@ function buildTierSection(tier: number, recipes: RecipeDef[], expanded: boolean,
   header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   const caret = el('span', 'cv-caret', expanded ? '▾' : '▸');
   header.appendChild(caret);
-  header.appendChild(el('span', 'cv-section-name', `Тир ${tier}`));
+  header.appendChild(el('span', 'cv-section-name', `${lt('Тир', 'Tier')} ${tier}`));
   header.appendChild(el('span', 'cv-section-count', String(recipes.length)));
 
   const body = el('div', `cv-section-body${expanded ? '' : ' is-collapsed'}`);
@@ -132,7 +141,7 @@ export function showCraftingDom(workbenchType: string, data: CraftingData, cb: C
   const header = el('header', 'cv-header');
   const title = el('h2', 'cv-title');
   title.appendChild(el('span', 'cv-glyph', '⚒'));
-  title.appendChild(document.createTextNode(` ${WORKBENCH_NAMES_RU[workbenchType] ?? workbenchType}`));
+  title.appendChild(document.createTextNode(` ${lt(WORKBENCH_NAMES_RU[workbenchType], WORKBENCH_NAMES_EN[workbenchType]) || workbenchType}`));
   header.appendChild(title);
   header.appendChild(el('span', 'cv-header-spacer'));
   const close = el('button', 'cv-close', '×');
@@ -158,7 +167,7 @@ export function showCraftingDom(workbenchType: string, data: CraftingData, cb: C
   const footer = el('footer', 'cv-craft-progress');
   footer.style.display = 'none';
   const label = el('div', 'cv-craft-progress-label');
-  label.appendChild(el('span', undefined, 'Идёт ковка…'));
+  label.appendChild(el('span', undefined, lt('Идёт ковка…', 'Forging…')));
   label.appendChild(el('span', 'pct', '0%'));
   footer.appendChild(label);
   const track = el('div', 'cv-progress-track');

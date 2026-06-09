@@ -30,7 +30,7 @@ export function getStarterBodyForWeapon(wt: WeaponType): BodyDefinition {
 
   return {
     id: `starter_${wt}`,
-    name: w.nameRu,
+    name: w.nameEn ?? w.nameRu,
     nameRu: w.nameRu,
     type: BodyType.Combat,
     damageType,

@@ -5,6 +5,7 @@ import { AbilityDef } from '../../types/abilities';
 export const MOB_WATER_T1: AbilityDef = {
   id: 'mob_ice_shard',
   nameRu: 'Ледяной осколок',
+  nameEn: 'Ice Shard',
   school: 'water',
   damageType: 'magic',
   cooldown: 2.0,
@@ -12,11 +13,13 @@ export const MOB_WATER_T1: AbilityDef = {
   range: 240,
   baseDamage: 20,
   description: 'Ледяной осколок.',
+  descriptionEn: 'A shard of ice.',
 };
 /** T2 — Ледяная стрела: снаряд в цель + взрыв AoE 45px вокруг неё */
 export const MOB_WATER_T2: AbilityDef = {
   id: 'mob_ice_arrow',
   nameRu: 'Ледяная стрела',
+  nameEn: 'Ice Arrow',
   school: 'water',
   damageType: 'magic',
   effectType: 'projectile_aoe',
@@ -28,11 +31,13 @@ export const MOB_WATER_T2: AbilityDef = {
   splashDamage: 10,
   aoeRadius: 45,
   description: 'Снаряд 15 урона + взрыв 10 урона (r45).',
+  descriptionEn: 'A projectile dealing 15 damage + a 10 damage explosion (r45).',
 };
 /** T3 — Ледяной дождь: зона ледяного дождя, урон + школьный бонус охлаждения */
 export const MOB_WATER_T3: AbilityDef = {
   id: 'mob_ice_rain',
   nameRu: 'Ледяной дождь',
+  nameEn: 'Ice Rain',
   school: 'water',
   damageType: 'magic',
   effectType: 'ground_zone',
@@ -46,26 +51,29 @@ export const MOB_WATER_T3: AbilityDef = {
   zoneDuration: 3,
   zoneDps: 25,
   description: 'Зона ледяного дождя (r80, 3 сек). 25 урона/сек. Школьный бонус: 20% охлаждение.',
+  descriptionEn: 'A zone of icy rain (r80, 3 sec). 25 damage/sec. School bonus: 20% chill.',
 };
 // ─── WATER T4/T5 ─────────────────────────────────────────────────────────────
 /** T4 — Blizzard: interrupt + slow zone (Archimage: прерывание 5-10%) */
 export const MOB_WATER_T4: AbilityDef = {
   id: 'mob_blizzard',
-  nameRu: 'Метель', school: 'water', damageType: 'magic',
+  nameRu: 'Метель', nameEn: 'Blizzard', school: 'water', damageType: 'magic',
   effectType: 'ground_zone',
   castTime: 2, cooldown: 20, manaCost: 15, range: 250, baseDamage: 0,
   isAoe: true, aoeRadius: 120, zoneDuration: 4, zoneDps: 25,
   statusEffect: 'interrupt', statusChance: 0.1,
   description: 'Blizzard zone. 25 dps, r120, 4 sec. 10% interrupt per tick.',
+  descriptionEn: 'Blizzard zone. 25 dps, r120, 4 sec. 10% interrupt per tick.',
 };
 /** T5 — Absolute Zero: instant freeze nova (Archimage: пассивка урон + заморозка) */
 export const MOB_WATER_T5: AbilityDef = {
   id: 'mob_absolute_zero',
-  nameRu: 'Абсолютный ноль', school: 'water', damageType: 'magic',
+  nameRu: 'Абсолютный ноль', nameEn: 'Absolute Zero', school: 'water', damageType: 'magic',
   isAoe: true, aoeRadius: 150,
   cooldown: 30, manaCost: 15, range: 0, baseDamage: 30,
   statusEffect: 'freeze', statusChance: 1.0,
   description: 'Instant ice nova. r150, freeze all 1 sec.',
+  descriptionEn: 'Instant ice nova. r150, freeze all 1 sec.',
 };
 
 export const WATER_SPELLS: AbilityDef[] = [

@@ -4,6 +4,7 @@
  * equipBag.css (.eb-tooltip*). Self-contained: import and call wireItemTooltip.
  */
 import { ItemDef } from '../types/items';
+import { lt } from '../i18n';
 
 const STAT_LABELS: Record<string, string> = {
   Strength: 'STR', Agility: 'AGI', Accuracy: 'ACC', Evasion: 'EVA',
@@ -26,7 +27,7 @@ function statLabel(key: string): string {
 
 function buildTooltip(item: ItemDef, note?: string): HTMLElement {
   const t = el('div', 'eb-tooltip');
-  t.appendChild(el('div', 'eb-tt-name', item.nameRu));
+  t.appendChild(el('div', 'eb-tt-name', lt(item.nameRu, item.nameEn)));
   t.appendChild(el('div', 'eb-tt-type',
     item.type.toUpperCase() + (item.equipSlot ? ` · ${item.equipSlot}` : '')));
   if (note) t.appendChild(el('div', 'eb-tt-note', note));
@@ -52,12 +53,13 @@ function buildTooltip(item: ItemDef, note?: string): HTMLElement {
     t.appendChild(stats);
   }
 
-  if (item.descRu) t.appendChild(el('div', 'eb-tt-desc', item.descRu));
+  const desc = lt(item.descRu, item.descEn);
+  if (desc) t.appendChild(el('div', 'eb-tt-desc', desc));
 
-  let foot = 'ПКМ — действие';
-  if (item.type === 'equipment') foot = 'Клик — надеть / снять';
-  else if (item.type === 'consumable') foot = 'Клик — использовать';
-  else if (item.type === 'material') foot = 'Материал';
+  let foot = lt('ПКМ — действие', 'RMB — action');
+  if (item.type === 'equipment') foot = lt('Клик — надеть / снять', 'Click — equip / unequip');
+  else if (item.type === 'consumable') foot = lt('Клик — использовать', 'Click — use');
+  else if (item.type === 'material') foot = lt('Материал', 'Material');
   t.appendChild(el('div', 'eb-tt-foot', foot));
   return t;
 }

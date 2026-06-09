@@ -5,7 +5,7 @@
 import { QuestProgress } from '../types/quests';
 import { BodyQuestProgress } from '../systems/bodyQuestTracker';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
-import { t } from '../i18n';
+import { t, lt } from '../i18n';
 
 interface QuestsData {
   quests: QuestProgress[];
@@ -46,10 +46,10 @@ function buildActiveQuest(q: QuestProgress, tracked: boolean, cb: QuestsCallback
 
   const head = el('div', 'cv-item-row');
   head.appendChild(el('span', 'cv-item-icon', '📜'));
-  head.appendChild(el('span', 'cv-item-name', q.def.nameRu));
+  head.appendChild(el('span', 'cv-item-name', lt(q.def.nameRu, q.def.nameEn)));
   head.appendChild(el('span', 'cv-item-price', `+${q.def.xpReward} XP`));
   const trackBtn = el('button', 'cv-buy-btn', tracked ? '☑' : '☐');
-  trackBtn.title = 'Отслеживать на HUD';
+  trackBtn.title = lt('Отслеживать на HUD', 'Track on HUD');
   trackBtn.addEventListener('click', () => cb.onTrackToggle(q.def.id));
   head.appendChild(trackBtn);
   card.appendChild(head);
@@ -61,7 +61,7 @@ function buildActiveQuest(q: QuestProgress, tracked: boolean, cb: QuestsCallback
     const done = cur >= obj.count;
     const line = el('span', 'cv-mat');
     line.appendChild(el('span', 'cv-mat-icon', objectiveVerb(obj.type)));
-    line.appendChild(document.createTextNode(` ${obj.targetNameRu ?? obj.targetId ?? ''} `));
+    line.appendChild(document.createTextNode(` ${lt(obj.targetNameRu, obj.targetNameEn) || obj.targetId || ''} `));
     line.appendChild(el('span', `cv-mat-count ${done ? 'ok' : 'short'}`, done ? '✓' : `${cur}/${obj.count}`));
     objs.appendChild(line);
   }
@@ -75,7 +75,7 @@ function buildBodyQuest(bq: BodyQuestProgress): HTMLElement {
 
   const head = el('div', 'cv-item-row');
   head.appendChild(el('span', 'cv-item-icon', '★'));
-  head.appendChild(el('span', 'cv-item-name', bq.def.nameRu));
+  head.appendChild(el('span', 'cv-item-name', lt(bq.def.nameRu, bq.def.nameEn)));
   head.appendChild(el('span', 'cv-item-price', `+${bq.def.xpReward} XP`));
   card.appendChild(head);
 
@@ -84,7 +84,7 @@ function buildBodyQuest(bq: BodyQuestProgress): HTMLElement {
     const obj = bq.def.objectives[i];
     const cur = bq.counts[i] ?? 0;
     const done = cur >= obj.count;
-    const label = obj.description || obj.targetNameRu || obj.targetId || '';
+    const label = lt(obj.description, obj.descriptionEn) || lt(obj.targetNameRu, obj.targetNameEn) || obj.targetId || '';
     const line = el('span', 'cv-mat');
 
     let counter: string;
@@ -156,7 +156,7 @@ export function showQuestsDom(data: QuestsData, cb: QuestsCallbacks): void {
   const header = el('header', 'cv-header');
   const title = el('h2', 'cv-title');
   title.appendChild(el('span', 'cv-glyph', '📜'));
-  title.appendChild(document.createTextNode(' Квесты'));
+  title.appendChild(document.createTextNode(' ' + lt('Квесты', 'Quests')));
   header.appendChild(title);
   header.appendChild(el('span', 'cv-header-spacer'));
   const close = el('button', 'cv-close', '×');
@@ -174,16 +174,16 @@ export function showQuestsDom(data: QuestsData, cb: QuestsCallbacks): void {
   for (const q of active) activeRows.push(buildActiveQuest(q, data.trackedQuestIds.includes(q.def.id), cb));
 
   const activeCount = active.length + (bq && !bq.completed ? 1 : 0);
-  if (activeRows.length === 0) activeRows.push(el('div', 'cv-quest-empty', 'Все квесты выполнены!'));
-  body.appendChild(buildSection('Активные', true, activeCount, activeRows));
+  if (activeRows.length === 0) activeRows.push(el('div', 'cv-quest-empty', lt('Все квесты выполнены!', 'All quests completed!')));
+  body.appendChild(buildSection(lt('Активные', 'Active'), true, activeCount, activeRows));
 
   const doneRows = done.map(q => {
     const row = el('div', 'cv-item-row is-learned');
     row.appendChild(el('span', 'cv-item-icon', '✓'));
-    row.appendChild(el('span', 'cv-item-name', q.def.nameRu));
+    row.appendChild(el('span', 'cv-item-name', lt(q.def.nameRu, q.def.nameEn)));
     return row;
   });
-  body.appendChild(buildSection('Завершённые', false, done.length, doneRows));
+  body.appendChild(buildSection(lt('Завершённые', 'Completed'), false, done.length, doneRows));
 
   inner.appendChild(body);
   win.appendChild(inner);

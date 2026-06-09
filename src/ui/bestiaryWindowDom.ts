@@ -18,7 +18,7 @@ import { getBestiaryPreview, applyBestiaryPreview } from '../data/craftpixAssets
 import { BESTIARY_GROUPS, bestiaryTotalCount } from '../data/bestiaryGroups';
 import { loadProgress, isRevealed, BestiaryProgress } from '../data/bestiaryProgress';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
-import { t, getLang } from '../i18n';
+import { t, lt, getLang } from '../i18n';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 const FRAMES_FILE = 'ui/frames.svg';
@@ -113,7 +113,6 @@ function statRow(label: string, value: number, max = 50): HTMLElement {
 function buildSidebar(): HTMLElement {
   const side = el('aside', 'bf-side');
 
-  const lang = getLang();
   for (const g of BESTIARY_GROUPS) {
     const groupEntries = g.ids
       .map(id => getBodyDef(id))
@@ -126,7 +125,7 @@ function buildSidebar(): HTMLElement {
 
     const groupBox = el('div', 'bf-group');
     const head = el('div', 'bf-group-head');
-    head.textContent = lang === 'ru' ? g.titleRu : g.titleEn;
+    head.textContent = lt(g.titleRu, g.titleEn);
     const counts = el('span', 'bf-group-count');
     const revealed = groupEntries.filter(d => isRevealed(state.progress, d.id)).length;
     counts.textContent = `${revealed}/${groupEntries.length}`;
@@ -149,13 +148,13 @@ function buildSidebar(): HTMLElement {
           applyBestiaryPreview(dot, preview, 32);
         } else {
           dot.style.background = colorHex(def.color);
-          const letter = el('span', 'bf-tile-letter', def.nameRu.charAt(0));
+          const letter = el('span', 'bf-tile-letter', lt(def.nameRu, def.name).charAt(0));
           dot.appendChild(letter);
         }
       }
       tile.appendChild(dot);
 
-      const label = el('span', 'bf-tile-label', isRev ? def.nameRu : '???');
+      const label = el('span', 'bf-tile-label', isRev ? lt(def.nameRu, def.name) : '???');
       tile.appendChild(label);
 
       tile.addEventListener('click', () => {
@@ -211,9 +210,11 @@ function buildRevealedCard(def: BodyDefinition): HTMLElement {
   // Header
   const header = el('header', 'bf-card-head');
   const titles = el('div', 'bf-card-titles');
-  titles.appendChild(el('h2', 'bf-card-title', def.nameRu));
-  if (def.nameRu !== def.name) {
-    titles.appendChild(el('div', 'bf-card-subtitle', def.name));
+  const primaryName = lt(def.nameRu, def.name);
+  const secondaryName = getLang() === 'ru' ? def.name : def.nameRu;
+  titles.appendChild(el('h2', 'bf-card-title', primaryName));
+  if (secondaryName !== primaryName) {
+    titles.appendChild(el('div', 'bf-card-subtitle', secondaryName));
   }
   header.appendChild(titles);
 
@@ -241,7 +242,7 @@ function buildRevealedCard(def: BodyDefinition): HTMLElement {
     applyBestiaryPreview(img, preview, 200);
     art.appendChild(img);
   } else {
-    art.appendChild(el('div', 'bf-art-letter', def.nameRu.charAt(0)));
+    art.appendChild(el('div', 'bf-art-letter', lt(def.nameRu, def.name).charAt(0)));
   }
   card.appendChild(art);
 
@@ -290,7 +291,7 @@ function buildRevealedCard(def: BodyDefinition): HTMLElement {
   if (def.signatureSpell) {
     const spellRow = el('div', 'bf-foot-row');
     spellRow.appendChild(el('span', 'bf-foot-key', t('bestiary.field.spell')));
-    const val = el('span', 'bf-foot-val', def.signatureSpell.nameRu);
+    const val = el('span', 'bf-foot-val', lt(def.signatureSpell.nameRu, def.signatureSpell.nameEn));
     if (def.spellXPThreshold) {
       const gem = el('span', 'bf-xp-gem');
       gem.appendChild(sym('bf_xp_gem', 18));

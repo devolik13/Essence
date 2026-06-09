@@ -11,6 +11,7 @@ import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } fro
 import { spriteForItem, createSpriteSvg } from './weaponIcon';
 import { wireItemTooltip, hideItemTooltip } from './itemTooltip';
 import { getDraggedItem, setDraggedItem } from './dragState';
+import { lt } from '../i18n';
 
 const STORAGE_KEY = 'esswin-equipment';
 
@@ -31,24 +32,24 @@ function canDropOn(itemId: string, slotId: string): boolean {
   return false;
 }
 
-interface SlotDef { id: keyof Equipment; label: string; rune?: boolean; }
+interface SlotDef { id: keyof Equipment; label: string; labelEn: string; rune?: boolean; }
 
 const LEFT_COL:   SlotDef[] = [
-  { id: 'weapon',      label: 'Оружие I' },
-  { id: 'shield',      label: 'Щит' },
-  { id: 'ring',        label: 'Кольцо' },
-  { id: 'weapon_rune', label: 'Руна оружия', rune: true },
+  { id: 'weapon',      label: 'Оружие I',    labelEn: 'Weapon I' },
+  { id: 'shield',      label: 'Щит',         labelEn: 'Shield' },
+  { id: 'ring',        label: 'Кольцо',      labelEn: 'Ring' },
+  { id: 'weapon_rune', label: 'Руна оружия', labelEn: 'Weapon rune', rune: true },
 ];
 const CENTER_COL: SlotDef[] = [
-  { id: 'helmet', label: 'Шлем' },
-  { id: 'amulet', label: 'Амулет' },
-  { id: 'chest',  label: 'Нагрудник' },
-  { id: 'gloves', label: 'Перчатки' },
-  { id: 'boots',  label: 'Сапоги' },
+  { id: 'helmet', label: 'Шлем',      labelEn: 'Helmet' },
+  { id: 'amulet', label: 'Амулет',    labelEn: 'Amulet' },
+  { id: 'chest',  label: 'Нагрудник', labelEn: 'Chest' },
+  { id: 'gloves', label: 'Перчатки',  labelEn: 'Gloves' },
+  { id: 'boots',  label: 'Сапоги',    labelEn: 'Boots' },
 ];
 const RIGHT_COL:  SlotDef[] = [
-  { id: 'weapon2',    label: 'Оружие II' },
-  { id: 'armor_rune', label: 'Руна брони', rune: true },
+  { id: 'weapon2',    label: 'Оружие II',  labelEn: 'Weapon II' },
+  { id: 'armor_rune', label: 'Руна брони', labelEn: 'Armor rune', rune: true },
 ];
 
 let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
@@ -80,7 +81,7 @@ function buildSlot(def: SlotDef, dimmed: boolean): HTMLElement {
   const item = itemId ? ITEMS[itemId] : null;
 
   const wrap = el('div', 'eb-slot-wrap');
-  wrap.appendChild(el('span', 'eb-slot-label', def.label));
+  wrap.appendChild(el('span', 'eb-slot-label', lt(def.label, def.labelEn)));
 
   let cls = 'eb-slot';
   if (def.rune) cls += ' is-rune';
@@ -133,15 +134,15 @@ function buildFooter(): HTMLElement {
   const item = activeId ? ITEMS[activeId] : null;
 
   const footer = el('footer', 'eb-footer');
-  footer.title = 'Сменить активное оружие (Tab)';
+  footer.title = lt('Сменить активное оружие (Tab)', 'Switch active weapon (Tab)');
   footer.appendChild(el('span', 'eb-tab-key', 'Tab'));
 
   const icon = el('span', 'eb-active-icon');
   if (item) setIcon(icon, item); else icon.textContent = '—';
   footer.appendChild(icon);
 
-  footer.appendChild(el('span', 'eb-active-name', item ? item.nameRu : '— пусто —'));
-  footer.appendChild(el('span', 'eb-active-label', 'Активно'));
+  footer.appendChild(el('span', 'eb-active-name', item ? lt(item.nameRu, item.nameEn) : lt('— пусто —', '— empty —')));
+  footer.appendChild(el('span', 'eb-active-label', lt('Активно', 'Active')));
 
   footer.addEventListener('click', () => cb!.onSwitchWeapon(activeWpn === 0 ? 1 : 0));
   return footer;
@@ -160,7 +161,7 @@ function render() {
   const header = el('header', 'eb-header');
   const title = el('h2', 'eb-title');
   title.appendChild(el('span', 'eb-glyph', '⬡'));
-  title.appendChild(document.createTextNode(' Экипировка'));
+  title.appendChild(document.createTextNode(' ' + lt('Экипировка', 'Equipment')));
   header.appendChild(title);
   header.appendChild(el('span', 'eb-header-spacer'));
   const close = el('button', 'eb-close', '×');

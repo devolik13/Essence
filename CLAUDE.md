@@ -1029,17 +1029,31 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 |----------|--------|------------|
 | `monkey` | Fists | T2 Кастеты (`fist_strike`) |
 
-## i18n (локализация)
+## i18n (локализация) — ПОЛНАЯ двуязычность EN/RU
 
-- Система `t(key)` в `src/i18n/index.ts`
-- 150+ ключей на EN и RU (включая оружие, эффекты, школы, UI создания)
+### UI-хром
+- Система `t(key)` в `src/i18n/index.ts` — 160+ ключей EN/RU
 - **Окно настроек (⚙)**: кнопка меню после Бестиария + хоткей [O] — `src/ui/settingsWindowDom.ts`
-  - Секция «Язык»: EN/RU, применяется сразу без перезапуска
-  - Статичные тексты HUD (кнопки меню, лейблы скилл-бара) обновляются через `UIScene.refreshLanguageTexts()`
-  - Остальные тексты берут `t()` при следующем рендере сами
-  - Старая угловая кнопка EN/RU удалена
-- Сохраняется в localStorage (`essence_lang`)
-- **Не локализовано (данные)**: nameRu в creatureDB/itemDB/questDB/спеллах — БД контента пока только на русском
+- Язык сохраняется в localStorage (`essence_lang`), дефолт EN
+
+### Контент (БД) — двуязычный, канон полей:
+- `nameRu`/`descRu`/`description`/`targetNameRu` = **русский**
+- `nameEn`/`descEn`/`descriptionEn`/`targetNameEn` = **английский** (опциональные поля)
+- Исключение BodyDefinition: `name` = EN, `nameRu` = RU (исторически)
+- DialogMessage: `speaker`/`text` = **EN-канон**, `speakerRu`/`textRu` = RU
+- Хелпер **`lt(ru, en)`** в `src/i18n/index.ts` — выбор по языку с фолбэком. Все рендер-сайты (сцены, ui/, systems) используют его
+- Одноразовые UI-строки: `lt('рус', 'eng')` инлайн, без ключей
+
+### Покрытие (всё переведено)
+- itemDB: 157 предметов + 100 рецептов + 11 нод; bodyQuests: 33 квеста + 131 сообщение + цели
+- Заклинания: 87 (canonical EN-имена; renames после GW2-фикса: Stonewall, Precise Shot, Blade Spin, Heavy Blow)
+- questDB (RU-имена из концептов), achievements (19), statuses (47), zones/biomes, weapons (15), школы, диалоги NPC + пролог + финал (91 сообщение, RU из концепт-доков)
+- Верстаки: `WORKBENCH_NAMES_RU/EN` в craftpixAssets.ts
+
+### Смена языка в рантайме
+- HUD-тексты: `UIScene.refreshLanguageTexts()` (кнопки меню, лейблы скилл-бара)
+- DOM-окна: пересоздаются при открытии — подхватывают язык сами
+- **Мировые лейблы** (имена мобов, ноды, NPC, верстаки, название зоны) создаются при спавне → смена языка эмитит `language-changed` → GameScene перезапускает текущую зону на месте (state сохраняется как при переходе зон)
 
 ## Оптимизации производительности (большая карта, ~250 мобов)
 
