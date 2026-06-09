@@ -758,24 +758,11 @@ export class UIScene extends Phaser.Scene {
     // ── Tracked quest HUD (right side) ─────────────────────
     {
       const tracked = data.trackedQuestIds ?? [];
-      // Active main quest (first incomplete in chain)
       const activeQuests = data.quests.filter(q => !q.completed);
-      const mainQuest = activeQuests.find(q => q.def.prerequisiteIds !== undefined || q.def.id.startsWith('q'));
-      // Tracked side quests
+      // На HUD — только ОТМЕЧЕННЫЕ квесты (чекбокс в окне квестов рулит видимостью).
       const trackedQuests = activeQuests.filter(q => tracked.includes(q.def.id));
 
       const lines: string[] = [];
-
-      // Main quest always shown
-      if (mainQuest && !trackedQuests.find(q => q.def.id === mainQuest.def.id)) {
-        lines.push(`◆ ${mainQuest.def.nameRu}`);
-        for (let i = 0; i < mainQuest.def.objectives.length; i++) {
-          const obj = mainQuest.def.objectives[i];
-          const cur = mainQuest.counts[i];
-          const isDone = cur >= obj.count;
-          lines.push(`  ${isDone ? '✓' : `${cur}/${obj.count}`} ${obj.targetNameRu ?? ''}`);
-        }
-      }
 
       // Tracked quests
       for (const q of trackedQuests) {
