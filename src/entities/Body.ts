@@ -61,6 +61,8 @@ export class Body extends Phaser.GameObjects.Container {
   public isCasting: boolean = false;
   /** Двигался ли в этом кадре (WASD/клик) — для прерывания захвата тела. */
   public isMoving: boolean = false;
+  /** Полная блокировка перемещения (напр. во время ковки). */
+  public movementLocked: boolean = false;
   public attackCooldown: number = 0;
   /** Активные статус-эффекты игрока */
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
@@ -419,7 +421,8 @@ export class Body extends Phaser.GameObjects.Container {
     let vx = 0;
     let vy = 0;
 
-    const movementBlocked = this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root');
+    const movementBlocked = this.movementLocked || this.hasStatus('stun') || this.hasStatus('sleep') || this.hasStatus('root');
+    if (movementBlocked) this.clickMoveTarget = null; // не возобновлять клик-движение после разблокировки
     // Все касты можно делать в движении — isCasting НЕ блокирует WASD
     if (this.isPlayerControlled && this.keys && !movementBlocked) {
       if (this.keys.A.isDown) vx = -1;

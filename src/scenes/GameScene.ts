@@ -887,7 +887,9 @@ export class GameScene extends Phaser.Scene {
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: this.aoeCasting.spell.nameRu }
         : this.gatheringNode
           ? { elapsed: 3 - this.gatheringTimer, duration: 3, name: `⛏ ${this.gatheringNode.def.nameRu}` }
-          : null,
+          : (this.craftingRecipe && this.craftingTimer > 0)
+            ? { elapsed: this.craftingRecipe.craftTime - this.craftingTimer, duration: this.craftingRecipe.craftTime, name: `⚒ ${this.craftingRecipe.nameRu}` }
+            : null,
       playerPos: this.playerBody ? { x: this.playerBody.x, y: this.playerBody.y }
         : this.sphere.inBody ? null : { x: this.sphere.x, y: this.sphere.y },
       mapDotNpcs: (this.cachedNpcDots ??= this.worldNPCs.map(n => ({ x: n.x, y: n.y }))),
@@ -2173,6 +2175,8 @@ export class GameScene extends Phaser.Scene {
     consumeCraftMaterials(this.sphere, recipe);
     this.craftingTimer = recipe.craftTime;
     this.craftingRecipe = recipe;
+    // Ковка обездвиживает игрока на время craftTime (прогресс-бар сверху).
+    if (this.playerBody) this.playerBody.movementLocked = true;
     this.showMessage(`Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
     this.events.emit('crafting-start', recipe.craftTime);
   }
@@ -2273,6 +2277,7 @@ export class GameScene extends Phaser.Scene {
         this.showMessage(`Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
         sfxLevelUp();
         this.craftingRecipe = null;
+        if (this.playerBody) this.playerBody.movementLocked = false;
         this.persistState();
       }
     }
