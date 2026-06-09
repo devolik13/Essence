@@ -847,12 +847,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.captureProcess && this.captureProcess.state === CaptureState.Casting) {
-      this.captureProcess = updateCapture(this.captureProcess, delta);
-
-      if (this.captureProcess.state === CaptureState.Success && this.captureTarget) {
-        this.completeCaptureCreature(this.captureTarget);
-        this.captureProcess = null;
+      // Захват требует стоять на месте — движение (WASD/клик) прерывает.
+      if (this.playerBody?.isMoving) {
+        this.captureProcess = interruptCapture(this.captureProcess);
         this.captureTarget = null;
+        this.events.emit('capture-interrupt');
+        this.showMessage('Захват прерван — нужно стоять на месте');
+      } else {
+        this.captureProcess = updateCapture(this.captureProcess, delta);
+
+        if (this.captureProcess.state === CaptureState.Success && this.captureTarget) {
+          this.completeCaptureCreature(this.captureTarget);
+          this.captureProcess = null;
+          this.captureTarget = null;
+        }
       }
     }
 

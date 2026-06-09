@@ -59,6 +59,8 @@ export class Body extends Phaser.GameObjects.Container {
   public abilitySlots: AbilitySlot[];
   public isPlayerControlled: boolean = false;
   public isCasting: boolean = false;
+  /** Двигался ли в этом кадре (WASD/клик) — для прерывания захвата тела. */
+  public isMoving: boolean = false;
   public attackCooldown: number = 0;
   /** Активные статус-эффекты игрока */
   public statusEffects: Map<StatusEffectId, ActiveStatusEffect> = new Map();
@@ -460,6 +462,7 @@ export class Body extends Phaser.GameObjects.Container {
     // Compare absolute components so click-to-move with continuous vx/vy
     // doesn't always pick up/down whenever there's any vertical bias.
     const moving = vx !== 0 || vy !== 0;
+    this.isMoving = moving; // для прерывания захвата тела при движении
     if (moving) {
       if (Math.abs(vx) > Math.abs(vy)) this.facingDir = vx > 0 ? 'right' : 'left';
       else                              this.facingDir = vy > 0 ? 'down'  : 'up';

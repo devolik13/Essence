@@ -481,6 +481,7 @@ export class UIScene extends Phaser.Scene {
     });
     gs.events.on('capture-available', (name: string) => this.addLog(`${name} ${t('log.capture_prompt')}`));
     gs.events.on('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
+    gs.events.on('capture-interrupt', () => this.addLog('✖ Захват прерван (движение)'));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`★ Learned: ${spell.nameRu}`);
     });
