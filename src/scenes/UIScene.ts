@@ -271,8 +271,8 @@ export class UIScene extends Phaser.Scene {
       fontSize: '11px', fontFamily: '"Special Elite", monospace', color: TC.ether3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
 
-    // Над барами HP/маны (они на GAME_HEIGHT - SKILL_SLOT_SIZE - 32), чтобы не перекрывать их.
-    const castY = GAME_HEIGHT - SKILL_SLOT_SIZE - 32 - 42;
+    // Заметно выше баров HP/маны (они на GAME_HEIGHT - SKILL_SLOT_SIZE - 32).
+    const castY = GAME_HEIGHT - SKILL_SLOT_SIZE - 32 - 90;
     this.castBarBg = this.add.rectangle(GAME_WIDTH / 2, castY, 160, 10, THEME.ink2)
       .setScrollFactor(0).setDepth(1001).setVisible(false)
       .setStrokeStyle(1, THEME.brass0, 0.6);
