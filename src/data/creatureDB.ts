@@ -55,6 +55,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Dagger, color: 0xbb9966, abilityName: 'Acceleration',
     signatureSpell: MOB_NEUTRAL_T1,
+    displaySizeMultiplier: 0.8,
   },
 
   deer: {
@@ -84,6 +85,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Fists, color: 0xdd6622, abilityName: 'Hook',
     npcSpells: [ABILITY_HOOK],
     signatureSpell: ABILITY_HOOK,
+    displaySizeMultiplier: 0.8,
   },
 
   boar: {
@@ -98,6 +100,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Spear, color: 0x774422, abilityName: 'Ram',
     signatureSpell: ABILITY_RAM,
     npcSpells: [ABILITY_SPEAR_THRUST],
+    displaySizeMultiplier: 1.2,
   },
 
   grouse: {
@@ -211,6 +214,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     canUseAllSpells: true,
     npcSpells: [ABILITY_BOW_SHOT],
     signatureSpell: ABILITY_BOW_SHOT,
+    displaySizeMultiplier: 1.2,
   },
 
   // Монах храма — защитник, обучает Fist Strike (T2 кастеты).
