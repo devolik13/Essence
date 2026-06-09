@@ -238,6 +238,7 @@
 
 .ess-window {
   position: relative;
+  pointer-events: auto;
   width: min(1280px, 96vw);
   height: min(780px, 94vh);
   background: linear-gradient(180deg, #1a1510 0%, #14110c 100%);
