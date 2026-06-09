@@ -418,11 +418,11 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
  * (так делаются уникальные фарм-цели). Монеты начисляются отдельно (currency.ts).
  */
 export const LOOT_BASKETS: Record<string, LootEntry[]> = {
-  animal:    [],
-  humanoid:  [],
-  elemental: [],
-  veteran:   [],
-  boss:      [],
+  // Крафт-материалы по природе существа — роняют ВСЕ мобы категории, поверх
+  // личной LOOT_TABLES (rollLoot аддитивна: личный флавор + корзина-материал).
+  animal:    [{ itemId: 'beast_hide',       chance: 0.7, minQty: 1, maxQty: 2 }],
+  humanoid:  [{ itemId: 'humanoid_relic',   chance: 0.5, minQty: 1, maxQty: 1 }],
+  elemental: [{ itemId: 'elemental_sphere', chance: 0.6, minQty: 1, maxQty: 1 }],
   default:   [],
 };
 
@@ -430,12 +430,12 @@ const ELEMENTAL_IDS = new Set(['spark', 'asher', 'splasher', 'fogger', 'pebble',
 const ANIMAL_IDS = new Set(['hare', 'deer', 'fox', 'boar', 'grouse', 'wolf', 'bear', 'spirit_wolf']);
 const BOSS_IDS = new Set(['ignis', 'aquaris', 'terra', 'aeros']);
 
-/** Подбирает корзину лута по id существа (для фолбэка в rollLoot). */
+/** Категория крафт-корзины по природе существа (видовые ветераны и боссы
+ *  наследуют природу базового вида: bear_veteran → animal, ignis → elemental). */
 export function lootBasketFor(creatureId: string): string {
-  if (BOSS_IDS.has(creatureId)) return 'boss';
-  if (creatureId.endsWith('_veteran')) return 'veteran';
-  if (ELEMENTAL_IDS.has(creatureId)) return 'elemental';
-  if (ANIMAL_IDS.has(creatureId)) return 'animal';
+  const base = creatureId.replace(/_veteran$/, '');
+  if (BOSS_IDS.has(base) || ELEMENTAL_IDS.has(base)) return 'elemental';
+  if (ANIMAL_IDS.has(base)) return 'animal';
   return 'humanoid'; // goblin, orc, scout, shaman, monk, elder, bandits, guards, merchant
 }
 
@@ -607,16 +607,22 @@ export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
 
 /** Roll loot for a creature and return what dropped (may be empty). */
 export function rollLoot(creatureId: string): { itemId: string; qty: number }[] {
-  // Личная таблица моба в приоритете; иначе — корзина его категории.
-  const table = LOOT_TABLES[creatureId]
-    ?? LOOT_BASKETS[lootBasketFor(creatureId)]
-    ?? LOOT_BASKETS.default;
-  if (!table || table.length === 0) return [];
+  // Аддитивно: личная таблица (флавор-дроп) + корзина категории (крафт-материал).
+  // Так КАЖДЫЙ моб роняет крафт-материал своей природы (шкура/сфера/самоцвет),
+  // сохраняя при этом свой уникальный дроп.
+  const tables: LootEntry[][] = [];
+  const personal = LOOT_TABLES[creatureId];
+  if (personal && personal.length) tables.push(personal);
+  const basket = LOOT_BASKETS[lootBasketFor(creatureId)] ?? LOOT_BASKETS.default;
+  if (basket && basket.length) tables.push(basket);
+
   const result: { itemId: string; qty: number }[] = [];
-  for (const entry of table) {
-    if (Math.random() < entry.chance) {
-      const qty = entry.minQty + Math.floor(Math.random() * (entry.maxQty - entry.minQty + 1));
-      result.push({ itemId: entry.itemId, qty });
+  for (const table of tables) {
+    for (const entry of table) {
+      if (Math.random() < entry.chance) {
+        const qty = entry.minQty + Math.floor(Math.random() * (entry.maxQty - entry.minQty + 1));
+        result.push({ itemId: entry.itemId, qty });
+      }
     }
   }
   return result;
