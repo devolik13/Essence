@@ -1063,7 +1063,7 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('spell_meteor',        'assets/spells/earth/meteor_sprite.webp',         { frameWidth: 256, frameHeight: 256 }); // 5×5=25
 
     // WIND
-    this.load.spritesheet('spell_gust',          'assets/spells/wind/gust_spritesheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 3×3=9
+    this.load.spritesheet('spell_gust',          'assets/spells/wind/gust_spritesheet.webp',       { frameWidth: 256, frameHeight: 256 }); // 5×5=25
     this.load.spritesheet('spell_wind_blade',    'assets/spells/wind/wind_blade_spritesheet.webp', { frameWidth: 256, frameHeight: 256 }); // 3×3=9
     this.load.spritesheet('spell_wind_wall',     'assets/spells/wind/wind_wall_spritesheet.webp',  { frameWidth: 153, frameHeight: 384 }); // 5×2=10 (768/5=153, 768/2=384)
     this.load.spritesheet('spell_lightning',      'assets/spells/wind/lightning_spritesheet.webp',  { frameWidth: 153, frameHeight: 384 }); // 5×2=10
@@ -1207,7 +1207,7 @@ export class BootScene extends Phaser.Scene {
     mkSpell('spell_meteor',     'spell_meteor',     24, 14, false);
 
     // WIND
-    mkSpell('spell_gust',          'spell_gust',          8,  12, false);
+    mkSpell('spell_gust',          'spell_gust',          24, 18, true);
     mkSpell('spell_wind_blade',    'spell_wind_blade',    8,  12, false);
     mkSpell('spell_wind_wall',     'spell_wind_wall',     9,  10, true);
     mkSpell('spell_lightning',     'spell_lightning',      9,  14, false);

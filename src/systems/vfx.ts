@@ -25,6 +25,7 @@ export const SPELL_IMPACT_ANIM: Record<string, string> = {
  * its spritesheet is used as the impact explosion instead.
  */
 export const SPELL_PROJECTILE_ANIM: Record<string, string> = {
+  mob_gust:        'spell_gust',           // Порыв ветра — анимированный летящий снаряд
   mob_fire_arrow:  'spell_firebolt',       // Fire Arrow
   mob_ice_shard: 'spell_ice_drop',       // Ice Shard — single drop projectile
   mob_ice_arrow: 'spell_frost_arrow',    // Ice Arrow — distinct frost-arrow shape

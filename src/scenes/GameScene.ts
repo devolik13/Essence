@@ -3799,6 +3799,13 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.playAttackAnim();
     }
 
+    // Летящий снаряд для дальней магии (анимированный спрайт по школе, если есть —
+    // напр. Порыв ветра mob_gust → spell_gust; иначе только трейл частиц).
+    if (spell.damageType === 'magic' && (spell.range ?? 0) > 0 && this.playerBody) {
+      spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.id);
+      spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.school ?? 'neutral');
+    }
+
     // VFX попадания способности
     const spellSchool = spell.school ?? (spell.damageType === 'melee' ? 'neutral' : 'neutral');
     if (spell.damageType === 'melee') {
