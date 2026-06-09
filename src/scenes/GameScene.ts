@@ -39,6 +39,7 @@ import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
+import { buyRecipe as buyRecipeLogic, buyMaterial as buyMaterialLogic, consumeCraftMaterials, completeCraft, disassemble } from '../systems/craftingLogic';
 import { MapEditor } from '../systems/mapEditor';
 import {
   SummonedEnt, FireTsunami, GroundZone, SummonedWall, WindBarrier,
@@ -2135,13 +2136,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startCrafting(recipe: import('../types/items').RecipeDef) {
-    // Consume materials
-    for (const [itemId, qty] of Object.entries(recipe.materials)) {
-      const inv = this.sphere.inventory.find(i => i.itemId === itemId);
-      if (inv) inv.quantity -= qty;
-    }
-    this.sphere.inventory = this.sphere.inventory.filter(i => i.quantity > 0);
-
+    consumeCraftMaterials(this.sphere, recipe);
     this.craftingTimer = recipe.craftTime;
     this.craftingRecipe = recipe;
     this.showMessage(`Crafting ${recipe.nameRu}... (${recipe.craftTime}s)`);
@@ -2164,72 +2159,23 @@ export class GameScene extends Phaser.Scene {
 
   /** Disassemble equipment item — returns 50% of materials */
   public disassembleItem(itemId: string) {
-    const inv = this.sphere.inventory.find(i => i.itemId === itemId);
-    if (!inv || inv.quantity <= 0) return;
-
-    // Find the recipe that produces this item
-    const recipe = RECIPES.find(r => r.resultId === itemId);
-    if (!recipe) {
-      this.showMessage('Cannot disassemble this item');
-      return;
-    }
-
-    // Remove 1 from inventory
-    inv.quantity -= 1;
-    if (inv.quantity <= 0) {
-      this.sphere.inventory = this.sphere.inventory.filter(i => i.quantity > 0);
-    }
-
-    // Unequip if equipped
-    const equip = this.sphere.equipment as Record<string, string | undefined>;
-    for (const key of Object.keys(equip)) {
-      if (equip[key] === itemId) {
-        equip[key] = undefined;
-      }
-    }
-
-    // Return 50% of materials
-    const returned: string[] = [];
-    for (const [matId, qty] of Object.entries(recipe.materials)) {
-      const returnQty = Math.max(1, Math.floor(qty * 0.5));
-      const existing = this.sphere.inventory.find(i => i.itemId === matId);
-      if (existing) existing.quantity += returnQty;
-      else this.sphere.inventory.push({ itemId: matId, quantity: returnQty });
-      returned.push(`${returnQty}x ${ITEMS[matId]?.nameRu ?? matId}`);
-    }
-
-    this.showMessage(`Disassembled! Got: ${returned.join(', ')}`);
-    this.persistState();
+    const r = disassemble(this.sphere, itemId);
+    if (r.msg) this.showMessage(r.msg);
+    if (r.ok) this.persistState();
   }
 
   /** Buy recipe from vendor */
   public buyRecipe(recipeId: string, price: number) {
-    if (this.sphere.copper < price) {
-      this.showMessage(`Not enough coins! Need ${formatCurrency(price)}`);
-      return;
-    }
-    if (this.sphere.learnedRecipes.includes(recipeId)) {
-      this.showMessage('Already known');
-      return;
-    }
-    this.sphere.copper -= price;
-    this.sphere.learnedRecipes.push(recipeId);
-    this.showMessage(`Learned recipe! -${formatCurrency(price)}`);
-    sfxLevelUp();
-    this.persistState();
+    const r = buyRecipeLogic(this.sphere, recipeId, price);
+    this.showMessage(r.msg);
+    if (r.ok) { sfxLevelUp(); this.persistState(); }
   }
 
   /** Купить сырьё у торговца (нитки/заклёпки). */
   public buyMaterial(itemId: string, qty: number, price: number) {
-    if (this.sphere.copper < price) {
-      this.showMessage(`Not enough coins! Need ${formatCurrency(price)}`);
-      return;
-    }
-    this.sphere.copper -= price;
-    this.sphere.addItem(itemId, qty);
-    this.showMessage(`+${qty}× ${ITEMS[itemId]?.nameRu ?? itemId}  -${formatCurrency(price)}`);
-    sfxBuff();
-    this.persistState();
+    const r = buyMaterialLogic(this.sphere, itemId, qty, price);
+    this.showMessage(r.msg);
+    if (r.ok) { sfxBuff(); this.persistState(); }
   }
 
   // ─── Атака ────────────────────────────────────────────
@@ -2288,11 +2234,8 @@ export class GameScene extends Phaser.Scene {
     if (this.craftingTimer > 0 && this.craftingRecipe) {
       this.craftingTimer -= dt;
       if (this.craftingTimer <= 0) {
-        // Complete craft
         const recipe = this.craftingRecipe;
-        const existing = this.sphere.inventory.find(i => i.itemId === recipe.resultId);
-        if (existing) existing.quantity += recipe.resultQty;
-        else this.sphere.inventory.push({ itemId: recipe.resultId, quantity: recipe.resultQty });
+        completeCraft(this.sphere, recipe);
         this.showMessage(`Crafted: ${ITEMS[recipe.resultId]?.nameRu ?? recipe.resultId}!`);
         sfxLevelUp();
         this.craftingRecipe = null;
