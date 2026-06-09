@@ -1087,6 +1087,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('node_copper_vein',   'assets/deco/Rocks/Rock1_1.webp');
     this.load.image('node_copper_vein_2', 'assets/deco/Rocks/Rock2_1.webp');
     this.load.image('node_copper_vein_3', 'assets/deco/Rocks/Rock6_1.webp');
+    // Ива (woodcutting) и Груда шкур (trophy) — раньше были кружками
+    this.load.image('node_willow_tree',  'assets/deco/Top-Down Simple Summer_Prop - Tree Medium.webp');
+    this.load.image('node_hide_pile',    'assets/deco/Top-Down Simple Summer_Prop - Wooden Barrel.webp');
   }
 
   create() {

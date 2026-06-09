@@ -619,12 +619,12 @@ export const RESOURCE_NODES: Record<string, ResourceNodeDef> = {
   willow_tree: {
     id: 'willow_tree', nameRu: 'Ива', profession: 'woodcutting',
     itemId: 'willow_branch', gatherTime: 2, minQty: 1, maxQty: 3,
-    respawnTime: 30, color: 0x558833, icon: '🪓',
+    respawnTime: 30, color: 0x558833, icon: '🪓', sprite: 'node_willow_tree',
   },
   hide_pile: {
     id: 'hide_pile', nameRu: 'Груда шкур', profession: 'trophy',
     itemId: 'wolf_hide', gatherTime: 2, minQty: 1, maxQty: 2,
-    respawnTime: 30, color: 0x886644, icon: '🦴',
+    respawnTime: 30, color: 0x886644, icon: '🦴', sprite: 'node_hide_pile',
   },
   // Куст с волокном — основной источник plant_fiber (Leather/Robe T1). Топор.
   fiber_bush: {
