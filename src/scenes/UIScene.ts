@@ -2403,7 +2403,7 @@ export class UIScene extends Phaser.Scene {
           const prev = equip[slot];
           equip[slot] = itemId;
           sphere.inventory.splice(invIdx, 1);
-          if (prev) sphere.inventory.push({ itemId: prev, quantity: 1 });
+          if (prev && prev !== itemId) sphere.inventory.push({ itemId: prev, quantity: 1 });
           this.refreshInventoryDom();
           this.scene.get('GameScene').events.emit('persist');
         },
@@ -2443,7 +2443,7 @@ export class UIScene extends Phaser.Scene {
           const prev = equip[slot];
           equip[slot] = itemId;
           sphere.inventory.splice(invIdx, 1);
-          if (prev) sphere.inventory.push({ itemId: prev, quantity: 1 });
+          if (prev && prev !== itemId) sphere.inventory.push({ itemId: prev, quantity: 1 });
           this.refreshInventoryDom();
           this.scene.get('GameScene').events.emit('persist');
         },

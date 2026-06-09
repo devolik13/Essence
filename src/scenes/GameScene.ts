@@ -296,17 +296,11 @@ export class GameScene extends Phaser.Scene {
       this.sphere.characterName = this.newGameCharName ?? '';
       if (this.newGameWeapon1) {
         const itemId1 = `starter_${this.newGameWeapon1}`;
-        this.sphere.equipment.weapon = itemId1;
-        if (!this.sphere.inventory.find(i => i.itemId === itemId1)) {
-          this.sphere.inventory.push({ itemId: itemId1, quantity: 1 });
-        }
+        this.sphere.equipment.weapon = itemId1; // только в экипировку (не дублируем в сумку)
       }
       if (this.newGameWeapon2) {
         const itemId2 = `starter_${this.newGameWeapon2}`;
         this.sphere.equipment.weapon2 = itemId2;
-        if (!this.sphere.inventory.find(i => i.itemId === itemId2)) {
-          this.sphere.inventory.push({ itemId: itemId2, quantity: 1 });
-        }
       }
     } else {
       const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
