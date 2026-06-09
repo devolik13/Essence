@@ -3,7 +3,7 @@
  * Two collapsible sections: Активные (with objectives + track checkbox) и Завершённые (names).
  */
 import { QuestProgress } from '../types/quests';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 import { t } from '../i18n';
 
 interface QuestsData {
@@ -142,6 +142,9 @@ export function showQuestsDom(data: QuestsData, cb: QuestsCallbacks): void {
   win.appendChild(inner);
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-quests');
+  restoreWindowPos(win, 'esswin-quests');
 }
 
 export function hideQuestsDom(): void {

@@ -6,7 +6,7 @@ import { AbilityDef } from '../types/abilities';
 import { t } from '../i18n';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from './spellTooltip';
 import { spriteIdForWeapon, createWeaponSvg, spriteForSpell, createSpriteSvg } from './weaponIcon';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 let root: HTMLElement | null = null;
@@ -187,6 +187,9 @@ export function showSpellsWindowDom(allSpells: AbilityDef[], learnedIds: Set<str
 
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-spells');
+  restoreWindowPos(win, 'esswin-spells');
 }
 
 export function hideSpellsWindowDom(): void {

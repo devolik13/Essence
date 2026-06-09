@@ -4,7 +4,7 @@
 import { Sphere } from '../entities/Sphere';
 import { t } from '../i18n';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievementDB';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 let handle: (DOMWindowHandle & { stage: HTMLElement }) | null = null;
 // Legacy alias used by isAchievementsWindowDomOpen
@@ -195,6 +195,9 @@ export function showAchievementsWindowDom(sphere: Sphere, onClose: () => void): 
 
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-achievements');
+  restoreWindowPos(win, 'esswin-achievements');
 }
 
 export function hideAchievementsWindowDom(): void {

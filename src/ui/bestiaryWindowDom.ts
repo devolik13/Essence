@@ -19,7 +19,7 @@ import { BESTIARY_GROUPS, bestiaryTotalCount } from '../data/bestiaryGroups';
 import { loadProgress, isRevealed, BestiaryProgress } from '../data/bestiaryProgress';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
 import { t, getLang } from '../i18n';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 const FRAMES_FILE = 'ui/frames.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -399,7 +399,10 @@ function rerender(): void {
   const stage = root.querySelector('.bf-stage') as HTMLElement | null;
   if (!stage) return;
   stage.innerHTML = '';
-  stage.appendChild(buildHeader(cachedOnClose));
+  const header = buildHeader(cachedOnClose);
+  stage.appendChild(header);
+  // Header is rebuilt on every rerender, so re-wire drag onto the fresh header.
+  makeDraggable(stage, header, 'esswin-bestiary');
 
   const layout = el('div', 'bf-layout');
   layout.appendChild(buildSidebar());
@@ -457,6 +460,7 @@ export function showBestiaryWindowDom(onClose: () => void): void {
   handle.stage.appendChild(stage);
 
   rerender();
+  restoreWindowPos(stage, 'esswin-bestiary');
 }
 
 export function hideBestiaryWindowDom(): void {

@@ -11,7 +11,7 @@ import { StatName } from '../types/stats';
 import { ItemDef, InventoryItem } from '../types/items';
 import { calcRank } from '../systems/progression';
 import { spriteForItem, createSpriteSvg } from './weaponIcon';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 type FilterKind = 'all' | 'equipment' | 'material' | 'consumable';
 
@@ -573,7 +573,9 @@ function renderStatbar(args: RenderArgs): HTMLElement {
 
 /** Build static shell via DOMWindowBase: backdrop, stage, window with corners. */
 function renderShell(onClose: () => void): { win: HTMLElement } {
-  handle = openWindowShell('', 'ess-backdrop', onClose, ['i', 'I', 'ш', 'Ш']);
+  // 'I' toggle is handled by UIScene; only Escape closes via the shell to avoid
+  // a double-fire (DOM onClose + Phaser toggle) re-opening the window.
+  handle = openWindowShell('', 'ess-backdrop', onClose);
   handle.root.id = 'ess-inv-root';
   root = handle.root;
 
@@ -593,7 +595,9 @@ function renderContent(args: RenderArgs, win: HTMLElement): void {
   while (win.children.length > cornerCount) {
     win.removeChild(win.lastChild!);
   }
-  win.appendChild(renderHeader(args));
+  const header = renderHeader(args);
+  win.appendChild(header);
+  makeDraggable(win, header, 'esswin-inventory');
   const main = el('div', 'ess-main');
   main.appendChild(renderEquipColumn(args));
   main.appendChild(renderBagColumn(args));
@@ -617,6 +621,7 @@ export function showInventoryDom(args: RenderArgs): () => void {
   const { win } = renderShell(args.cb.onClose);
   cachedWin = win;
   renderContent(args, win);
+  restoreWindowPos(win, 'esswin-inventory');
 
   return () => hideInventoryDom();
 }

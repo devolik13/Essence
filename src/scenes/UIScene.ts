@@ -457,7 +457,9 @@ export class UIScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-K', () => this.toggleWindow('spells'));
     this.input.keyboard?.on('keydown-B', () => this.toggleWindow('bestiary'));
     this.input.keyboard?.on('keydown-J', () => this.toggleWindow('achievements'));
-    this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow) this.toggleWindow(this.currentWindow); });
+    // DOM windows close themselves on Escape (openWindowShell key handler).
+    // Here we only need to close the Phaser stats window.
+    this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow === 'stats') this.closeSingleWindow('stats'); });
     gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
@@ -517,12 +519,11 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('save-loaded', () => this.addLog(t('log.progress_loaded')));
     gs.events.on('log', (data: { text: string; color?: string }) => this.addLog(data.text));
     gs.events.on('open-vendor', () => {
-      this.currentWindow = 'vendor';
+      // Independent window — does not close inventory/etc.
       this.openVendorDom();
     });
     gs.events.on('open-crafting', (workbenchType: string) => {
       this.craftingWorkbenchType = workbenchType;
-      this.currentWindow = 'crafting';
       this.openCraftingDom(workbenchType);
     });
     gs.events.on('aoe-targeting', (name: string) => {
@@ -1973,8 +1974,8 @@ export class UIScene extends Phaser.Scene {
       const bg = this.add.rectangle(x, y, btnSz, btnSz, THEME.ink0, 0.95)
         .setScrollFactor(0).setDepth(1000)
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink3, 0.97); })
-        .on('pointerout',  () => { if (this.currentWindow !== this.menuBtnTypes[i]) bg.setFillStyle(THEME.ink0, 0.95); })
+        .on('pointerover', () => { if (!this.isWindowOpen(this.menuBtnTypes[i])) bg.setFillStyle(THEME.ink3, 0.97); })
+        .on('pointerout',  () => { if (!this.isWindowOpen(this.menuBtnTypes[i])) bg.setFillStyle(THEME.ink0, 0.95); })
         .on('pointerdown', (ptr: Phaser.Input.Pointer) => {
           ptr.event.stopPropagation();
           this.toggleWindow(this.menuBtnTypes[i]);
@@ -2123,89 +2124,75 @@ export class UIScene extends Phaser.Scene {
     }
   }
 
+  /** Is the given window type currently open? (each window independent) */
+  private isWindowOpen(type: WindowType): boolean {
+    switch (type) {
+      case 'inventory':    return isInventoryDomOpen();
+      case 'spells':       return isSpellsWindowDomOpen();
+      case 'quests':       return isQuestsDomOpen();
+      case 'achievements': return isAchievementsWindowDomOpen();
+      case 'bestiary':     return isBestiaryWindowDomOpen();
+      case 'vendor':       return isVendorDomOpen();
+      case 'crafting':     return isCraftingDomOpen();
+      case 'stats':        return this.currentWindow === 'stats';
+    }
+  }
+
+  /**
+   * Toggle a single window independently — opening one does NOT close any other.
+   * Each window's button highlight reflects only its own open state.
+   */
   private toggleWindow(type: WindowType) {
-    if (this.currentWindow === type) {
-      this.closeWindow();
+    if (this.isWindowOpen(type)) {
+      this.closeSingleWindow(type);
       return;
     }
-    this.currentWindow = type;
+    this.openSingleWindow(type);
+  }
+
+  /** Open exactly one window without touching the others. */
+  private openSingleWindow(type: WindowType) {
+    switch (type) {
+      case 'inventory':
+        this.openInventoryDom();
+        break;
+      case 'spells': {
+        const learnedIds = new Set(this.cachedLearnedSpells.map(s => s.id));
+        showSpellsWindowDom(ALL_KNOWN_SPELLS, learnedIds, () => this.closeSingleWindow('spells'));
+        break;
+      }
+      case 'quests':
+        this.openQuestsDom();
+        break;
+      case 'achievements': {
+        const sphere = this.cachedUIData?.sphere;
+        if (sphere) showAchievementsWindowDom(sphere, () => this.closeSingleWindow('achievements'));
+        break;
+      }
+      case 'bestiary':
+        showBestiaryWindowDom(() => this.closeSingleWindow('bestiary'));
+        break;
+      case 'vendor':
+        this.openVendorDom();
+        break;
+      case 'crafting':
+        this.openCraftingDom(this.craftingWorkbenchType);
+        break;
+      case 'stats':
+        this.openStatsWindow();
+        break;
+    }
+    this.refreshMenuHighlight(type);
+  }
+
+  /** Open the Phaser-rendered floating stats window. */
+  private openStatsWindow() {
+    this.currentWindow = 'stats';
     this._contentScrollY = 0;
     this.windowContentText.setY(WIN_TITLE_H + 8);
 
-    // DOM-based inventory takes over for type 'inventory'
-    if (type === 'inventory') {
-      this.windowContainer.setVisible(false);
-      this.openInventoryDom();
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based spellbook
-    if (type === 'spells') {
-      this.windowContainer.setVisible(false);
-      const learnedIds = new Set(this.cachedLearnedSpells.map(s => s.id));
-      showSpellsWindowDom(ALL_KNOWN_SPELLS, learnedIds, () => this.closeWindow());
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based quests window (collapsible Активные / Завершённые)
-    if (type === 'quests') {
-      this.windowContainer.setVisible(false);
-      this.openQuestsDom();
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based achievements
-    if (type === 'achievements') {
-      this.windowContainer.setVisible(false);
-      const sphere = this.cachedUIData?.sphere;
-      if (sphere) {
-        showAchievementsWindowDom(sphere, () => this.closeWindow());
-      }
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // DOM-based bestiary
-    if (type === 'bestiary') {
-      this.windowContainer.setVisible(false);
-      showBestiaryWindowDom(() => this.closeWindow());
-      for (let i = 0; i < this.menuBtnTypes.length; i++) {
-        const active = this.menuBtnTypes[i] === type;
-        this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-        this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-        this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-      }
-      return;
-    }
-
-    // Default size/position per type, overridden by any saved layout.
-    const def = (type === 'vendor' || type === 'crafting')
-      ? { w: 400, h: 420, x: Math.floor((GAME_WIDTH - 400) / 2), y: 30 }
-      : { w: 320, h: 400, x: Math.floor((GAME_WIDTH - 320) / 2), y: 30 };
-    const saved = this.windowLayouts[type];
+    const def = { w: 320, h: 400, x: Math.floor((GAME_WIDTH - 320) / 2), y: 30 };
+    const saved = this.windowLayouts['stats'];
     this.windowX = saved?.x ?? def.x;
     this.windowY = saved?.y ?? def.y;
     this.resizeWindow(saved?.w ?? def.w, saved?.h ?? def.h);
@@ -2214,18 +2201,48 @@ export class UIScene extends Phaser.Scene {
     this.windowContainer.setVisible(true);
     this.winResizeGrip.setVisible(true);
     this.positionWindowGrip();
-
-    // Create vendor filter/buy buttons (outside container for clickability)
-    this.destroyVendorButtons();
-    if (type === 'vendor') this.createVendorButtons(this.cachedUIData);
-
-    for (let i = 0; i < this.menuBtnTypes.length; i++) {
-      const active = this.menuBtnTypes[i] === type;
-      this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
-      this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
-      this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
-    }
+    this.lastWindowSignature = '';
     if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+  }
+
+  /** Close exactly one window without touching the others. */
+  private closeSingleWindow(type: WindowType) {
+    switch (type) {
+      case 'inventory':    if (isInventoryDomOpen()) hideInventoryDom(); break;
+      case 'spells':       if (isSpellsWindowDomOpen()) hideSpellsWindowDom(); break;
+      case 'quests':       if (isQuestsDomOpen()) hideQuestsDom(); break;
+      case 'achievements': if (isAchievementsWindowDomOpen()) hideAchievementsWindowDom(); break;
+      case 'bestiary':     if (isBestiaryWindowDomOpen()) hideBestiaryWindowDom(); break;
+      case 'vendor':       if (isVendorDomOpen()) hideVendorDom(); break;
+      case 'crafting':     if (isCraftingDomOpen()) hideCraftingDom(); break;
+      case 'stats':        this.closeStatsWindow(); break;
+    }
+    this.refreshMenuHighlight(type);
+  }
+
+  /** Hide the Phaser stats window and its scene-level decorations. */
+  private closeStatsWindow() {
+    this.currentWindow = null;
+    this.lastWindowSignature = '';
+    this.windowContainer.setVisible(false);
+    this.winResizeGrip?.setVisible(false);
+    for (const btn of this.windowInteractables) btn.destroy();
+    this.windowInteractables = [];
+  }
+
+  /** Update a single menu button's highlight to match its own window's state. */
+  private refreshMenuHighlight(type: WindowType) {
+    const i = this.menuBtnTypes.indexOf(type);
+    if (i < 0) return; // vendor/crafting have no menu button
+    const active = this.isWindowOpen(type);
+    this.menuBtnBgs[i].setFillStyle(active ? THEME.ink3 : THEME.ink2, active ? 1.0 : 0.92);
+    this.menuBtnIcons[i].setColor(active ? TC.brass4 : TC.brass3);
+    this.menuBtnTexts[i].setColor(active ? TC.brass4 : TC.text3);
+  }
+
+  /** Refresh every menu button's highlight to match its window's open state. */
+  private refreshAllMenuHighlights() {
+    for (const type of this.menuBtnTypes) this.refreshMenuHighlight(type);
   }
 
   // ── Dialog system ──────────────────────────────────────
@@ -2420,34 +2437,11 @@ export class UIScene extends Phaser.Scene {
     );
   }
 
+  /** Close the Phaser stats window (× button / its own toggle). */
   private closeWindow() {
-    if (this.currentWindow === 'inventory' && isInventoryDomOpen()) {
-      hideInventoryDom();
-    }
-    if (this.currentWindow === 'spells' && isSpellsWindowDomOpen()) {
-      hideSpellsWindowDom();
-    }
-    if (this.currentWindow === 'achievements' && isAchievementsWindowDomOpen()) {
-      hideAchievementsWindowDom();
-    }
-    if (this.currentWindow === 'bestiary' && isBestiaryWindowDomOpen()) {
-      hideBestiaryWindowDom();
-    }
-    if (isVendorDomOpen()) hideVendorDom();
-    if (isCraftingDomOpen()) hideCraftingDom();
-    if (isQuestsDomOpen()) hideQuestsDom();
-    this.currentWindow = null;
-    this.lastWindowSignature = '';
-    this.windowContainer.setVisible(false);
-    this.winResizeGrip?.setVisible(false);
-    for (const btn of this.windowInteractables) btn.destroy();
-    this.windowInteractables = [];
     this.destroyVendorButtons();
-    for (let i = 0; i < this.menuBtnTypes.length; i++) {
-      this.menuBtnBgs[i].setFillStyle(THEME.ink2, 0.92);
-      this.menuBtnIcons[i].setColor(TC.brass3);
-      this.menuBtnTexts[i].setColor(TC.text3);
-    }
+    this.closeStatsWindow();
+    this.refreshMenuHighlight('stats');
   }
 
   private openInventoryDom() {

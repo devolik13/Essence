@@ -5,7 +5,7 @@
 import { RECIPES, ITEMS } from '../data/itemDB';
 import { RecipeDef } from '../types/items';
 import { WORKBENCH_NAMES_RU } from '../data/craftpixAssets';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 interface CraftingData {
   inventory: { itemId: string; quantity: number }[];
@@ -160,6 +160,9 @@ export function showCraftingDom(workbenchType: string, data: CraftingData, cb: C
   win.appendChild(inner);
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-crafting');
+  restoreWindowPos(win, 'esswin-crafting');
 }
 
 export function hideCraftingDom(): void {

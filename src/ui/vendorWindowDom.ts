@@ -4,7 +4,7 @@
  */
 import { RECIPES, VENDOR_MATERIALS, ITEMS } from '../data/itemDB';
 import { RecipeDef } from '../types/items';
-import { openWindowShell, DOMWindowHandle } from './domWindowBase';
+import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 
 interface VendorData {
   copper: number;
@@ -178,6 +178,9 @@ export function showVendorDom(data: VendorData, cb: VendorCallbacks): void {
   win.appendChild(inner);
   stage.appendChild(win);
   handle.stage.appendChild(stage);
+
+  makeDraggable(win, header, 'esswin-vendor');
+  restoreWindowPos(win, 'esswin-vendor');
 }
 
 export function hideVendorDom(): void {
