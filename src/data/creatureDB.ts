@@ -37,11 +37,12 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     ...GOBLIN,
     damageType: 'melee',
     npcStats: {
-      [StatName.Strength]: 4,  
+      [StatName.Strength]: 4,
       [StatName.Health]: 6,   [StatName.Armor]: 1,    [StatName.Luck]: 3,
     },
     signatureSpell: ABILITY_STING,
     npcSpells: [ABILITY_STING],
+    displaySizeMultiplier: 1.1,
   },
 
   hare: {
@@ -56,6 +57,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Dagger, color: 0xbb9966, abilityName: 'Acceleration',
     signatureSpell: MOB_NEUTRAL_T1,
     displaySizeMultiplier: 0.8,
+    npcMaxHp: 40,
   },
 
   deer: {

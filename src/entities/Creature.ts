@@ -119,7 +119,7 @@ export class Creature extends Phaser.GameObjects.Container {
       if (val !== undefined) this.stats[stat as StatName] = val;
     }
 
-    this.currentHP = maxHP(this.stats);
+    this.currentHP = this.definition.npcMaxHp ?? maxHP(this.stats);
 
     // Инициализация кулдаунов заклинаний
     if (definition.npcSpells) {
@@ -171,7 +171,7 @@ export class Creature extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  get maxHP(): number { return maxHP(this.stats); }
+  get maxHP(): number { return this.definition.npcMaxHp ?? maxHP(this.stats); }
   get isDead(): boolean { return this.currentHP <= 0; }
 
   /** Анимация/визуал смерти проигран один раз. */
