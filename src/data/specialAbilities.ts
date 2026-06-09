@@ -100,14 +100,14 @@ export const ABILITY_SLASH: AbilityDef = {
 /** Прицельный выстрел — урон от Ловкости + 20% Уязвимость */
 export const ABILITY_BOW_SHOT: AbilityDef = {
   id: 'bow_shot',
-  nameRu: 'Прицельный выстрел',
+  nameRu: 'Меткий выстрел',
   damageType: 'ranged',
   requiredWeapons: [WeaponType.ShortBow],
   cooldown: 1,
   manaCost: 5,
   range: 240,
   baseDamage: 10,
-  description: 'Прицельный выстрел (урон от Ловкости). Эффект оружия: уязвимость.',
+  description: 'Меткий выстрел (урон от Ловкости). Эффект оружия: уязвимость.',
 };
 
 // ─── Длинный лук (обучает bandit_archer) ──────────────────────────────────
@@ -488,7 +488,7 @@ export const ABILITY_WAR_CRY: AbilityDef = {
 /** Кручение — зона урона вокруг себя 3 сек, следует за игроком */
 export const ABILITY_WHIRLWIND: AbilityDef = {
   id: 'whirlwind',
-  nameRu: 'Вихрь', damageType: 'melee',
+  nameRu: 'Кружение клинка', damageType: 'melee',
   effectType: 'ground_zone',
   cooldown: 15, castTime: 0, manaCost: 10, range: 0, baseDamage: 0,
   isAoe: true, aoeRadius: 60,
@@ -514,7 +514,7 @@ export const ABILITY_COVER: AbilityDef = {
 /** Щитовая стойка: −30% скорость + +15 Armor на 5 сек (только со щитом) */
 export const ABILITY_SHIELD_STANCE: AbilityDef = {
   id: 'shield_stance',
-  nameRu: 'Защитная стойка', damageType: 'melee',
+  nameRu: 'Глухая оборона', damageType: 'melee',
   effectType: 'self_buff',
   statusEffect: 'shield_stance',
   cooldown: 15, manaCost: 10, range: 0, baseDamage: 0,
