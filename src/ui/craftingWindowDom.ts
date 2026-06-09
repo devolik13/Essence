@@ -6,6 +6,7 @@ import { RECIPES, ITEMS } from '../data/itemDB';
 import { RecipeDef } from '../types/items';
 import { WORKBENCH_NAMES_RU } from '../data/craftpixAssets';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
+import { wireItemTooltip } from './itemTooltip';
 
 interface CraftingData {
   inventory: { itemId: string; quantity: number }[];
@@ -75,6 +76,10 @@ function buildRecipeRow(recipe: RecipeDef, data: CraftingData, cb: CraftingCallb
   }
   bottom.appendChild(btn);
   row.appendChild(bottom);
+
+  // Hover tooltip describing the crafted result (name + stat bonuses).
+  const result = ITEMS[recipe.resultId];
+  if (result) wireItemTooltip(row, result);
 
   return row;
 }

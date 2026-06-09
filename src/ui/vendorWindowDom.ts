@@ -5,6 +5,7 @@
 import { RECIPES, VENDOR_MATERIALS, ITEMS } from '../data/itemDB';
 import { RecipeDef } from '../types/items';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
+import { wireItemTooltip } from './itemTooltip';
 
 interface VendorData {
   copper: number;
@@ -83,6 +84,9 @@ function buildRecipeRow(recipe: RecipeDef, data: VendorData, cb: VendorCallbacks
     else btn.addEventListener('click', () => cb.onBuyRecipe(recipe.id, price));
     row.appendChild(btn);
   }
+  // Hover tooltip describing what the recipe produces (name + stat bonuses).
+  const result = ITEMS[recipe.resultId];
+  if (result) wireItemTooltip(row, result);
   return row;
 }
 
@@ -99,6 +103,7 @@ function buildMaterialRow(mat: { itemId: string; price: number; qty: number }, d
   if (!canAfford) btn.setAttribute('disabled', 'true');
   else btn.addEventListener('click', () => cb.onBuyMaterial(mat.itemId, mat.qty, mat.price));
   row.appendChild(btn);
+  if (def) wireItemTooltip(row, def);
   return row;
 }
 
