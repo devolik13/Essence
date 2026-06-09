@@ -10,14 +10,25 @@ import { Body } from '../entities/Body';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 import { spriteForItem, createSpriteSvg } from './weaponIcon';
 import { wireItemTooltip, hideItemTooltip } from './itemTooltip';
+import { getDraggedItem, setDraggedItem } from './dragState';
 
 const STORAGE_KEY = 'esswin-equipment';
 
 export interface EquipData { sphere: Sphere; body: Body | null; }
 export interface EquipCallbacks {
   onUnequip: (slot: string) => void;
+  onEquip: (itemId: string, slot: string) => void;
   onSwitchWeapon: (idx: 0 | 1) => void;
   onClose: () => void;
+}
+
+/** Можно ли надеть предмет в этот слот (оружие принимается и в weapon, и в weapon2). */
+function canDropOn(itemId: string, slotId: string): boolean {
+  const def = ITEMS[itemId];
+  if (!def || def.type !== 'equipment' || !def.equipSlot) return false;
+  if (def.equipSlot === slotId) return true;
+  if (def.equipSlot === 'weapon' && slotId === 'weapon2') return true;
+  return false;
 }
 
 interface SlotDef { id: keyof Equipment; label: string; rune?: boolean; }
@@ -84,6 +95,22 @@ function buildSlot(def: SlotDef, dimmed: boolean): HTMLElement {
   } else {
     slot.textContent = '◇';
   }
+
+  // Слот — цель для перетаскивания предмета из сумки (надеть в конкретный слот).
+  const slotId = def.id as string;
+  slot.addEventListener('dragover', (e) => {
+    const id = getDraggedItem();
+    if (id && canDropOn(id, slotId)) { e.preventDefault(); slot.classList.add('is-drop'); }
+  });
+  slot.addEventListener('dragleave', () => slot.classList.remove('is-drop'));
+  slot.addEventListener('drop', (e) => {
+    e.preventDefault();
+    slot.classList.remove('is-drop');
+    const id = getDraggedItem() || e.dataTransfer?.getData('text/plain') || '';
+    setDraggedItem(null);
+    if (id && canDropOn(id, slotId)) cb!.onEquip(id, slotId);
+  });
+
   wrap.appendChild(slot);
   return wrap;
 }

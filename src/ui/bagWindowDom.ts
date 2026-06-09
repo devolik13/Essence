@@ -10,6 +10,7 @@ import { Sphere } from '../entities/Sphere';
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
 import { spriteForItem, createSpriteSvg } from './weaponIcon';
 import { wireItemTooltip, hideItemTooltip } from './itemTooltip';
+import { setDraggedItem } from './dragState';
 
 const STORAGE_KEY = 'esswin-bag';
 const BAG_CAPACITY = 64;
@@ -70,6 +71,18 @@ function buildCell(item: InventoryItem | undefined): HTMLElement {
   setIcon(cell, def);
   if (item.quantity > 1) cell.appendChild(el('span', 'eb-cell-count', '×' + item.quantity));
   wireItemTooltip(cell, def);
+
+  // Перетаскивание предмета на слот экипировки (можно положить именно в нужный слот).
+  if (def.type === 'equipment') {
+    cell.setAttribute('draggable', 'true');
+    cell.addEventListener('dragstart', (e) => {
+      setDraggedItem(item.itemId);
+      e.dataTransfer?.setData('text/plain', item.itemId);
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      hideItemTooltip();
+    });
+    cell.addEventListener('dragend', () => setDraggedItem(null));
+  }
 
   const sphere = data!.sphere;
   cell.addEventListener('click', () => {

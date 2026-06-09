@@ -211,6 +211,12 @@
   font-size: 18px;
 }
 .eb-slot.is-dim { opacity: 0.55; }
+.eb-slot.is-drop {
+  border-color: var(--eb-brass-lit);
+  background: rgba(201,162,39,0.18);
+  box-shadow: 0 0 14px rgba(201,162,39,0.5);
+}
+.eb-cell[draggable="true"] { cursor: grab; }
 .eb-slot .eb-svg-icon { width: 30px; height: 30px; display: block; }
 
 .eb-silhouette {

@@ -2496,6 +2496,7 @@ export class UIScene extends Phaser.Scene {
   private equipCallbacks() {
     return {
       onUnequip: (slot: string) => this.doUnequip(slot),
+      onEquip: (itemId: string, slot: string) => this.doEquip(itemId, slot),
       onSwitchWeapon: (idx: 0 | 1) => this.doSwitchWeapon(idx),
       onClose: () => this.closeSingleWindow('equipment'),
     };

@@ -745,6 +745,10 @@ T3 заклинания — только NPC-касты боссов. Игрок
   Расходники + пагинация 4×4, 64 ячейки). Отдельные кнопки меню (⬡ Gear / 🎒 Bag),
   хоткеи I=экипировка, G=сумка. Файлы: `equipmentWindowDom.ts`, `bagWindowDom.ts`,
   CSS `equipBag.css` (namespace `eb-*`). Старый `inventoryDom.ts` удалён.
+- **Drag&drop экипировки**: предмет из Сумки можно перетащить на конкретный слот
+  Экипировки (оружие принимается и в weapon, и в weapon2 — так кладётся во 2-й слот).
+  Клик по предмету по-прежнему авто-надевает в первый свободный слот. Общее состояние
+  перетаскивания — `dragState.ts`; слот-цель подсвечивается (`.eb-slot.is-drop`).
 - **Окна**: Stats (Phaser), Equipment, Bag, Quests, Achievements, Spells, Bestiary,
   Vendor, Crafting — все DOM (кроме Stats)
 - **DOM-окна floating/non-modal/multi-open**: backdrop `pointer-events:none`, игра
