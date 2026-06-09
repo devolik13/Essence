@@ -3802,7 +3802,7 @@ export class GameScene extends Phaser.Scene {
     // Летящий снаряд — пока ТОЛЬКО для Порыва ветра (mob_gust → spell_gust).
     // Остальные одиночные заклинания — позже.
     if (spell.id === 'mob_gust' && this.playerBody) {
-      spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.id);
+      spawnSpellProjectile(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.id, 38);
       spawnProjectileVFX(this, this.playerBody.x, this.playerBody.y, target.x, target.y, spell.school ?? 'neutral');
     }
 

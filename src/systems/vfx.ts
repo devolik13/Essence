@@ -16,7 +16,6 @@ export const SPELL_IMPACT_ANIM: Record<string, string> = {
   mob_absolute_zero: 'spell_absolute_zero',    // Absolute Zero
   mob_stone_spike: 'spell_spike',            // Stone Spike
   mob_meteor_shower: 'spell_meteor',           // Meteor Shower (per hit)
-  mob_gust:  'spell_gust',             // Gust
   mob_wind_blade:  'spell_wind_blade',       // Wind Blade (per cone)
 };
 
