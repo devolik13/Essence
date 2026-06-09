@@ -74,8 +74,10 @@ export function weaponDamageType(wt: WeaponType): 'melee' | 'ranged' | 'magic' {
 }
 
 export function getItemWeaponType(itemId: string): WeaponType | undefined {
-  // Strip rarity/tier prefix like "starter_", "basic_", "fine_", "master_"
-  const base = itemId.replace(/^(starter|basic|fine|master|legendary)_/, "");
+  // Strip rarity/tier prefix ("starter_"/"basic_"…) AND crafted tier suffix ("_t1".."_t3").
+  const base = itemId
+    .replace(/^(starter|basic|fine|master|legendary)_/, "")
+    .replace(/_t\d+$/, "");
   switch (base) {
     case "sword":           return WeaponType.Sword;
     case "mace":            return WeaponType.Mace;
