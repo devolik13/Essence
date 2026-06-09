@@ -2761,6 +2761,15 @@ export class GameScene extends Phaser.Scene {
     // Доп. урон от зачарования оружия
     this.applyEnchantDamage(closestCreature, result.hit);
 
+    // Фирменный эффект оружия теперь срабатывает и на обычной атаке
+    // (тот же шанс, что у оружейных умений — 20%). Для зверей/элементалей
+    // природное оружие без weaponEffect ничего не накладывает.
+    if (result.hit && weapon.weaponEffect) {
+      if (Math.random() < (weapon.weaponEffectChance ?? 0.2)) {
+        this.applyStatusToTarget(closestCreature, weapon.weaponEffect);
+      }
+    }
+
     // Кулдаун
     this.playerBody.attackCooldown = weapon.cooldown;
 
