@@ -1653,7 +1653,6 @@ export class GameScene extends Phaser.Scene {
       if (d < interactRange) {
         if (npc.role === 'vendor') {
           this.openVendorUI();
-          this.events.emit('open-vendor');
         } else if (npc.role === 'weapon_vendor') {
           this.openWeaponVendor();
         } else if (npc.role === 'npc') {
@@ -1971,6 +1970,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Arms Dealer: gives all starter weapons for free */
   private openWeaponVendor() {
+    if (!this.isHumanoidBody()) { this.showMessage('Торговать можно только в теле гуманоида'); return; }
     const starterWeapons = [
       'starter_sword', 'starter_mace', 'starter_greatsword', 'starter_spear',
       'starter_hammer', 'starter_dagger', 'starter_fists',
@@ -2079,6 +2079,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startGathering(node: typeof this.resourceNodes[0]) {
+    if (!this.isHumanoidBody()) { this.showMessage('Собирать ресурсы можно только в теле гуманоида'); return; }
     // Check for required tool
     const toolMap: Record<string, string> = { mining: 'pickaxe', woodcutting: 'axe', trophy: 'skinning_knife' };
     const requiredTool = toolMap[node.def.profession];
@@ -2118,7 +2119,13 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Ковать/покупать/собирать можно только в теле гуманоида. */
+  private isHumanoidBody(): boolean {
+    return !!this.playerBody?.definition.canUseAllSpells;
+  }
+
   private openCraftingUI(workbenchType: string) {
+    if (!this.isHumanoidBody()) { this.showMessage('Ковать можно только в теле гуманоида'); return; }
     this.events.emit('open-crafting', workbenchType);
   }
 
@@ -2142,6 +2149,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private openVendorUI() {
+    if (!this.isHumanoidBody()) { this.showMessage('Торговать можно только в теле гуманоида'); return; }
     // Give tools for free (always)
     const tools = ['pickaxe', 'axe', 'skinning_knife'];
     for (const toolId of tools) {
