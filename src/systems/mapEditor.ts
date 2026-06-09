@@ -76,8 +76,10 @@ export class MapEditor {
   private redoStack: string[] = [];
   private readonly MAX_UNDO = 50;
 
-  // Поиск ассетов по имени
-  private searchInput?: HTMLInputElement;
+  // Поиск ассетов по имени — нативный Phaser-инпут внутри панели.
+  private searchBg?: Phaser.GameObjects.Rectangle;
+  private searchTextObj?: Phaser.GameObjects.Text;
+  private searchFocused = false;
   private filterText = '';
 
   // Камера до входа в редактор (для восстановления)
@@ -642,8 +644,22 @@ export class MapEditor {
 
   private handleKey(e: KeyboardEvent): void {
     if (!this.active) return;
-    // Если фокус в поле поиска — пропускаем всю хоткей-логику
-    if (document.activeElement instanceof HTMLInputElement) return;
+
+    // Фокус в поле поиска — печатаем туда, хоткеи не трогаем.
+    if (this.searchFocused) {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        this.searchFocused = false;
+        this.updateSearchBox();
+      } else if (e.key === 'Backspace') {
+        this.filterText = this.filterText.slice(0, -1);
+        this.scrollOffset = 0; this.updateSearchBox(); this.renderThumbs();
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        this.filterText += e.key.toLowerCase();
+        this.scrollOffset = 0; this.updateSearchBox(); this.renderThumbs();
+      }
+      e.preventDefault();
+      return;
+    }
 
     // Undo / Redo
     if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
@@ -827,6 +843,8 @@ export class MapEditor {
   private handleMapClick(p: Phaser.Input.Pointer): void {
     // Клики по панели игнорируем
     if (p.x >= this.scene.cameras.main.width - this.PANEL_W) return;
+    // Клик по карте снимает фокус с поиска.
+    if (this.searchFocused) { this.searchFocused = false; this.updateSearchBox(); }
 
     // Проверяем не попали ли в placed-спрайт (gameobjectdown уже отработал)
     const hits = this.scene.input.hitTestPointer(p);
@@ -995,47 +1013,36 @@ export class MapEditor {
 
   // ── Search input ────────────────────────────────────────
 
+  /** Поиск — нативный Phaser-инпут внутри панели (часть окна, не HTML-оверлей). */
   private createSearchInput(): void {
-    const canvas = (this.scene.sys.game.canvas as HTMLCanvasElement);
-    const rect = canvas.getBoundingClientRect();
-    // Канвас игры масштабируется под окно — переводим игровые координаты панели
-    // в экранные через коэффициент, иначе инпут съезжает на кнопки/миниатюры.
-    const sx = rect.width / canvas.width;
-    const sy = rect.height / canvas.height;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = '🔍 Search...';
-    input.style.position = 'absolute';
-    input.style.left = `${rect.right - (this.PANEL_W - 8) * sx}px`;
-    input.style.top = `${rect.top + 142 * sy}px`;
-    input.style.width = `${(this.PANEL_W - 20) * sx}px`;
-    input.style.padding = '3px 6px';
-    input.style.background = '#1a1a1a';
-    input.style.color = '#ffffff';
-    input.style.border = '1px solid #ffdd55';
-    input.style.fontSize = '12px';
-    input.style.fontFamily = 'monospace';
-    input.style.zIndex = '10000';
-    input.style.outline = 'none';
-    input.value = this.filterText;
-    input.addEventListener('input', () => {
-      this.filterText = input.value.trim().toLowerCase();
-      this.scrollOffset = 0;
-      this.renderThumbs();
-    });
-    input.addEventListener('keydown', e => {
-      e.stopPropagation();
-      if (e.key === 'Escape' || e.key === 'Enter') {
-        input.blur();
-      }
-    });
-    document.body.appendChild(input);
-    this.searchInput = input;
+    if (!this.panel) return;
+    const y = 140;
+    const bg = this.scene.add.rectangle(8, y, this.PANEL_W - 16, 22, 0x1a1a1a)
+      .setOrigin(0, 0).setStrokeStyle(1, 0xffdd55).setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+    bg.on('pointerdown', () => { this.searchFocused = true; this.updateSearchBox(); });
+    const txt = this.scene.add.text(14, y + 5, '', {
+      fontSize: '12px', color: '#888888', fontFamily: 'monospace',
+    } as Phaser.Types.GameObjects.Text.TextStyle).setScrollFactor(0);
+    this.panel.add([bg, txt]);
+    this.searchBg = bg;
+    this.searchTextObj = txt;
+    this.updateSearchBox();
+  }
+
+  /** Обновить текст/рамку поля поиска. */
+  private updateSearchBox(): void {
+    if (!this.searchTextObj || !this.searchBg) return;
+    this.searchTextObj.setText(this.filterText || '🔍 Search...');
+    this.searchTextObj.setColor(this.filterText ? '#ffffff' : '#888888');
+    this.searchBg.setStrokeStyle(1, this.searchFocused ? 0x55ff55 : 0xffdd55);
   }
 
   private removeSearchInput(): void {
-    this.searchInput?.remove();
-    this.searchInput = undefined;
+    // Объекты уничтожаются вместе с панелью; просто сбрасываем ссылки/состояние.
+    this.searchBg = undefined;
+    this.searchTextObj = undefined;
+    this.searchFocused = false;
     this.filterText = '';
   }
 

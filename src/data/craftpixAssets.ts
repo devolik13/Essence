@@ -150,6 +150,14 @@ export const EDITOR_WORKBENCH_ENTRIES: Array<{ key: string }> = [
   { key: 'wb_runemaster' },
 ];
 
+/** Цвета верстаков (чтобы отличать квадратики в редакторе и в игре). */
+export const WORKBENCH_COLORS: Record<string, { fill: number; stroke: number }> = {
+  armorer:     { fill: 0x5a6b7a, stroke: 0x9ab0c5 }, // сталь — серо-синий
+  weaponsmith: { fill: 0x7a3b30, stroke: 0xc8705a }, // железо/огонь — красный
+  jeweler:     { fill: 0x6a5520, stroke: 0xd4af37 }, // золото
+  runemaster:  { fill: 0x4a3a6a, stroke: 0x9a6fd0 }, // магия — фиолетовый
+};
+
 /** Названия верстаков на русском (для отрисовки in-game у editor-placed). */
 export const WORKBENCH_NAMES_RU: Record<string, string> = {
   armorer: 'Бронник',

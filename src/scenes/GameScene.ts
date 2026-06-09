@@ -33,7 +33,7 @@ import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
 import { RESOURCE_NODES, RECIPES } from '../data/itemDB';
-import { WORKBENCH_NAMES_RU } from '../data/craftpixAssets';
+import { WORKBENCH_NAMES_RU, WORKBENCH_COLORS } from '../data/craftpixAssets';
 import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
@@ -1567,7 +1567,8 @@ export class GameScene extends Phaser.Scene {
 
     const addWorkbench = (x: number, y: number, type: string, nameRu: string) => {
       const container = this.add.container(x, y).setDepth(5);
-      const rect = this.add.rectangle(0, 0, 28, 20, 0x664422, 0.8).setStrokeStyle(2, 0x996633);
+      const col = WORKBENCH_COLORS[type] ?? { fill: 0x664422, stroke: 0x996633 };
+      const rect = this.add.rectangle(0, 0, 28, 20, col.fill, 0.85).setStrokeStyle(2, col.stroke);
       const label = this.add.text(0, -18, nameRu, { fontSize: '8px', color: '#ffdd88', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
       const icon = this.add.text(0, 0, '⚒', { fontSize: '14px' }).setOrigin(0.5);
       const eKey = this.add.text(0, 16, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);

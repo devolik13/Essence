@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DECO_CELL, DECO_COLS, DECO_ROWS } from '../data/decorations';
-import { CP_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS } from '../data/craftpixAssets';
+import { CP_ASSETS, MOB_SPRITE_SETS, ANIMAL_SPRITE_SETS, WORKBENCH_COLORS } from '../data/craftpixAssets';
 import { RESOURCE_NODES } from '../data/itemDB';
 import { loadAllSpriteSheets } from '../systems/spriteSheetLoader';
 
@@ -121,12 +121,13 @@ export class BootScene extends Phaser.Scene {
     }
     g.clear();
 
-    // Верстаки — коричневый скруглённый прямоугольник (28×24)
+    // Верстаки — скруглённый прямоугольник своего цвета (28×24)
     for (const type of ['armorer', 'weaponsmith', 'jeweler', 'runemaster']) {
+      const col = WORKBENCH_COLORS[type] ?? { fill: 0x664422, stroke: 0x996633 };
       g.clear();
-      g.fillStyle(0x664422, 1);
+      g.fillStyle(col.fill, 1);
       g.fillRoundedRect(0, 2, 28, 20, 4);
-      g.lineStyle(2, 0x996633, 1);
+      g.lineStyle(2, col.stroke, 1);
       g.strokeRoundedRect(0, 2, 28, 20, 4);
       g.generateTexture('wb_' + type, 28, 24);
     }
