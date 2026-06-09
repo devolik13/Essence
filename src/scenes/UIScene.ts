@@ -2393,7 +2393,7 @@ export class UIScene extends Phaser.Scene {
     showQuestsDom(
       { quests: data.quests, trackedQuestIds: data.trackedQuestIds ?? [] },
       {
-        onClose: () => this.closeWindow(),
+        onClose: () => this.closeSingleWindow('quests'),
         onTrackToggle: (id) => {
           this.scene.get('GameScene').events.emit('track-quest', id);
           this.openQuestsDom(); // re-render with updated tracked state
@@ -2409,7 +2409,7 @@ export class UIScene extends Phaser.Scene {
     showVendorDom(
       { copper: sphere.copper, learnedRecipes: sphere.learnedRecipes ?? [] },
       {
-        onClose: () => this.closeWindow(),
+        onClose: () => this.closeSingleWindow('vendor'),
         onBuyRecipe: (id, price) => {
           gs?.buyRecipe?.(id, price);
           this.openVendorDom(); // re-render with updated copper / learned recipes
@@ -2431,7 +2431,7 @@ export class UIScene extends Phaser.Scene {
       workbenchType,
       { inventory: sphere.inventory, learnedRecipes: sphere.learnedRecipes ?? [] },
       {
-        onClose: () => this.closeWindow(),
+        onClose: () => this.closeSingleWindow('crafting'),
         onCraft: (id) => {
           gs?.startCraftingFromUI?.(RECIPES.find(r => r.id === id));
           this.openCraftingDom(workbenchType); // re-render with consumed materials
