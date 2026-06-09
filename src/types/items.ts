@@ -3,7 +3,9 @@ export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export interface ItemDef {
   id: string;
   nameRu: string;
+  nameEn?: string;
   descRu: string;
+  descEn?: string;
   rarity: ItemRarity;
   type: 'material' | 'consumable' | 'equipment' | 'recipe';
   /** For consumables */
@@ -26,6 +28,7 @@ export type EquipSlot = 'weapon' | 'shield' | 'helmet' | 'chest' | 'gloves' | 'b
 export interface RecipeDef {
   id: string;
   nameRu: string;
+  nameEn?: string;
   /** Which workbench type */
   workbench: 'armorer' | 'weaponsmith' | 'jeweler' | 'runemaster';
   /** Required materials: itemId → quantity */

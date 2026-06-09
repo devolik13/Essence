@@ -588,6 +588,7 @@ export const RECIPES: RecipeDef[] = [
 export interface ResourceNodeDef {
   id: string;
   nameRu: string;
+  nameEn?: string;
   profession: 'mining' | 'woodcutting' | 'trophy';
   itemId: string;
   gatherTime: number; // seconds

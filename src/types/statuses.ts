@@ -64,6 +64,7 @@ export type StatusEffectId =
 export interface StatusEffectDef {
   id: StatusEffectId;
   nameRu: string;
+  nameEn?: string;
   /** Максимальное количество стаков (1 = без стаков) */
   maxStacks: number;
   /** Базовая длительность в секундах (0 = мгновенно) */

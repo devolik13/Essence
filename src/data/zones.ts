@@ -44,6 +44,7 @@ export interface QuestObjectSpawn {
 export interface BiomeRegion {
   id: string;
   nameRu: string;
+  nameEn?: string;
   bounds: { x1: number; y1: number; x2: number; y2: number };
   tint?: number;
 }
@@ -52,6 +53,7 @@ export interface SafeZone {
   x1: number; y1: number; x2: number; y2: number;
   respawnPoint: { x: number; y: number };
   nameRu?: string;
+  nameEn?: string;
 }
 
 /** Live caravan: cart + guards + merchant traveling along a route. */
@@ -71,6 +73,7 @@ export interface CaravanSpawn {
 export interface ZoneConfig {
   id: string;
   nameRu: string;
+  nameEn?: string;
   widthTiles: number;
   heightTiles: number;
   baseTile: string;

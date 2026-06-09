@@ -8,11 +8,13 @@ export interface BodyQuestObjective {
   type: BodyObjectiveType;
   targetId?: string;
   targetNameRu?: string;
+  targetNameEn?: string;
   /** Для 'kill': категория цели (напр. 'elemental'). Убийство засчитывается только
    *  если у убитого совпадает категория. Без targetId и targetCategory — любое убийство. */
   targetCategory?: string;
   count: number;
   description: string;
+  descriptionEn?: string;
   /** For 'protect': max distance (px) the player can stray from the target. Reset on exit. */
   zoneRadius?: number;
   /** For 'meditate': radius (px) within which the timer ticks. Leaving relocates the spot. */
@@ -22,6 +24,7 @@ export interface BodyQuestObjective {
 export interface BodyQuestSpawnObject {
   objectId: string;
   nameRu: string;
+  nameEn?: string;
   icon: string;
   color: number;
   type: 'collectible' | 'waypoint' | 'destructible';
@@ -36,7 +39,9 @@ export interface BodyQuestDef {
   bodyId: string;
   tier: BodyQuestTier;
   nameRu: string;
+  nameEn?: string;
   description: string;
+  descriptionEn?: string;
   introMessages: DialogMessage[];
   completeMessages: DialogMessage[];
   objectives: BodyQuestObjective[];
@@ -57,13 +62,16 @@ export interface ConflictSideDef {
   side: ConflictSide;
   bodyIds: string[];
   objectiveDescription: string;
+  objectiveDescriptionEn?: string;
   npcCount: number;
 }
 
 export interface ConflictQuestDef {
   id: string;
   nameRu: string;
+  nameEn?: string;
   description: string;
+  descriptionEn?: string;
   location: string;
   sides: [ConflictSideDef, ConflictSideDef];
 }

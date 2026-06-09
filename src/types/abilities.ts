@@ -8,6 +8,7 @@ export type DamageType = 'melee' | 'ranged' | 'magic';
 export interface AbilityDef {
   id: string;
   nameRu: string;
+  nameEn?: string;
   /** Школа магии — бонус школы применяется автоматически движком */
   school?: MagicSchool;
   damageType: DamageType;
@@ -135,6 +136,7 @@ export interface AbilityDef {
   targetParty?: boolean;
 
   description: string;
+  descriptionEn?: string;
 }
 
 /** Слот умения у игрока */

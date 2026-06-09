@@ -1,7 +1,9 @@
 export interface AchievementDef {
   id: string;
   nameRu: string;
+  nameEn?: string;
   descRu: string;
+  descEn?: string;
   /** Icon glyph shown in UI */
   icon: string;
   /** Category for grouping */

@@ -21,6 +21,7 @@ import { StatusEffectId } from '../types/statuses';
 export interface WeaponDef {
   type: WeaponType;
   nameRu: string;
+  nameEn?: string;
   cooldown: number;    // сек
   range: number;       // пикс (ближний ~40, дальний ~250)
   isMelee: boolean;

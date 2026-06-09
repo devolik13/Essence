@@ -14,6 +14,7 @@ export type MagicSchool =
 
 export interface SchoolBonus {
   nameRu: string;
+  nameEn?: string;
   /** Статус на цель (огонь → горение, вода → охлаждение) */
   statusEffect?: StatusEffectId;
   /** Шанс наложить статус (0-1) */

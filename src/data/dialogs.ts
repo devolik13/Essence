@@ -3,7 +3,12 @@ import { t } from '../i18n';
 
 export interface DialogMessage {
   speaker: string;
+  /** Имя говорящего на русском (если отличается от speaker) */
+  speakerRu?: string;
+  /** Текст диалога. Канон для NPC-диалогов — английский. */
   text: string;
+  /** Русский вариант текста (для lang=ru) */
+  textRu?: string;
 }
 
 export interface DialogResult {

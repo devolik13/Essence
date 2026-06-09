@@ -27,6 +27,16 @@ export function t(key: string): string {
   return dict[key] ?? STRINGS.en[key] ?? key;
 }
 
+/**
+ * Localized text pick for content data (БД мобов/предметов/квестов и т.д.).
+ * Канон: ru-поле — русский, en-поле — английский. Если английского варианта
+ * ещё нет — фолбэк на русский (и наоборот, если ru пустой).
+ */
+export function lt(ru: string | undefined, en: string | undefined): string {
+  if (currentLang === 'en') return en ?? ru ?? '';
+  return ru ?? en ?? '';
+}
+
 // ── All translatable strings ─────────────────────────────────────────────────
 
 const STRINGS: Record<Lang, Record<string, string>> = {

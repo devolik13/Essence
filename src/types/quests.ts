@@ -4,14 +4,17 @@ export interface QuestObjective {
   type: ObjectiveType;
   targetId?: string;
   targetNameRu?: string;
+  targetNameEn?: string;
   count: number;
 }
 
 export interface QuestDef {
   id: string;
   nameRu: string;
-  /** Quest description / story text */
+  nameEn?: string;
+  /** Quest description / story text (RU) */
   description?: string;
+  descriptionEn?: string;
   objectives: QuestObjective[];
   /** XP awarded on completion */
   xpReward: number;
