@@ -114,6 +114,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.Dagger, color: 0x334455, abilityName: 'Heal',
     signatureSpell: MOB_NEUTRAL_HEAL,
+    displaySizeMultiplier: 0.8,
   },
 
   wolf: {
@@ -128,7 +129,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Sword, color: 0x888888, abilityName: 'Sword Strike',
     npcSpells: [ABILITY_SWORD_STRIKE],
     signatureSpell: ABILITY_SWORD_STRIKE,
-    displaySizeMultiplier: 1.5,
+    displaySizeMultiplier: 1.35,
   },
 
   bear: {

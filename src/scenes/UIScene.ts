@@ -23,6 +23,8 @@ import { spriteForSpell } from '../ui/weaponIcon';
 import { spriteTextureKey } from '../systems/spriteSheetLoader';
 import { showAchievementsWindowDom, hideAchievementsWindowDom, isAchievementsWindowDomOpen } from '../ui/achievementsWindowDom';
 import { showBestiaryWindowDom, hideBestiaryWindowDom, isBestiaryWindowDomOpen, refreshBestiaryWindowDom } from '../ui/bestiaryWindowDom';
+import { showVendorDom, hideVendorDom, isVendorDomOpen } from '../ui/vendorWindowDom';
+import { showCraftingDom, hideCraftingDom, isCraftingDomOpen } from '../ui/craftingWindowDom';
 import { syncPlayerStatusDom, clearPlayerStatusDom, StatusEntry } from '../ui/playerStatusDom';
 import { ALL_KNOWN_SPELLS } from '../data/allSpells';
 
@@ -515,14 +517,12 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('log', (data: { text: string; color?: string }) => this.addLog(data.text));
     gs.events.on('open-vendor', () => {
       this.currentWindow = 'vendor';
-      this.windowContainer.setVisible(true);
-      if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      this.openVendorDom();
     });
     gs.events.on('open-crafting', (workbenchType: string) => {
       this.craftingWorkbenchType = workbenchType;
       this.currentWindow = 'crafting';
-      this.windowContainer.setVisible(true);
-      if (this.cachedUIData) this.buildWindowContent(this.cachedUIData);
+      this.openCraftingDom(workbenchType);
     });
     gs.events.on('aoe-targeting', (name: string) => {
       this.addLog(`◎ Targeting: ${name}  [LMB/RMB]`);
@@ -2365,6 +2365,45 @@ export class UIScene extends Phaser.Scene {
     }
   }
 
+  /** Open (or re-render) the DOM vendor window with fresh sphere data. */
+  private openVendorDom() {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const gs = this.scene.get('GameScene') as any;
+    showVendorDom(
+      { copper: sphere.copper, learnedRecipes: sphere.learnedRecipes ?? [] },
+      {
+        onClose: () => this.closeWindow(),
+        onBuyRecipe: (id, price) => {
+          gs?.buyRecipe?.(id, price);
+          this.openVendorDom(); // re-render with updated copper / learned recipes
+        },
+        onBuyMaterial: (itemId, qty, price) => {
+          gs?.buyMaterial?.(itemId, qty, price);
+          this.openVendorDom();
+        },
+      },
+    );
+  }
+
+  /** Open (or re-render) the DOM crafting window for the given workbench. */
+  private openCraftingDom(workbenchType: string) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const gs = this.scene.get('GameScene') as any;
+    showCraftingDom(
+      workbenchType,
+      { inventory: sphere.inventory, learnedRecipes: sphere.learnedRecipes ?? [] },
+      {
+        onClose: () => this.closeWindow(),
+        onCraft: (id) => {
+          gs?.startCraftingFromUI?.(RECIPES.find(r => r.id === id));
+          this.openCraftingDom(workbenchType); // re-render with consumed materials
+        },
+      },
+    );
+  }
+
   private closeWindow() {
     if (this.currentWindow === 'inventory' && isInventoryDomOpen()) {
       hideInventoryDom();
@@ -2378,6 +2417,8 @@ export class UIScene extends Phaser.Scene {
     if (this.currentWindow === 'bestiary' && isBestiaryWindowDomOpen()) {
       hideBestiaryWindowDom();
     }
+    if (isVendorDomOpen()) hideVendorDom();
+    if (isCraftingDomOpen()) hideCraftingDom();
     this.currentWindow = null;
     this.lastWindowSignature = '';
     this.windowContainer.setVisible(false);
@@ -2499,6 +2540,8 @@ export class UIScene extends Phaser.Scene {
     if (!this.currentWindow) return;
     if (this.currentWindow === 'inventory') return; // handled by DOM overlay
     if (this.currentWindow === 'spells') return;    // handled by DOM overlay
+    if (this.currentWindow === 'vendor') return;    // handled by DOM overlay
+    if (this.currentWindow === 'crafting') return;  // handled by DOM overlay
     for (const btn of this.windowInteractables) btn.destroy();
     this.windowInteractables = [];
 
@@ -2617,123 +2660,7 @@ export class UIScene extends Phaser.Scene {
       case 'achievements':
         break;
 
-      case 'vendor': {
-        const coins = data.sphere?.copper ?? 0;
-        const learned = data.sphere?.learnedRecipes ?? [];
-        const filter = this.vendorFilter;
-
-        // Вкладка Mat — продажа сырья (нитки/заклёпки), а не рецептов.
-        if (filter === 'Mat') {
-          const mlines: string[] = ['', 'Сырьё для крафта:', ''];
-          for (const m of VENDOR_MATERIALS) {
-            const it = ITEMS[m.itemId];
-            const afford = coins >= m.price;
-            mlines.push(`${afford ? '●' : '○'} ${it?.icon ?? '?'} ${it?.nameRu ?? m.itemId} ×${m.qty}  ${formatCurrency(m.price)}`);
-          }
-          this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
-          this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(mlines.join('\n'));
-          break;
-        }
-
-        // Filter recipes
-        let filtered = RECIPES;
-        if (filter === 'Weapon') filtered = RECIPES.filter(r => r.workbench === 'weaponsmith');
-        else if (filter === 'Armor') filtered = RECIPES.filter(r => r.workbench === 'armorer');
-        else if (filter === 'Jewel') filtered = RECIPES.filter(r => r.workbench === 'jeweler');
-        else if (filter === 'Rune') filtered = RECIPES.filter(r => r.workbench === 'runemaster');
-        else if (filter === 'T1') filtered = RECIPES.filter(r => !r.resultId.includes('_t2') && !r.resultId.includes('_t3'));
-        else if (filter === 'T2') filtered = RECIPES.filter(r => r.resultId.includes('_t2'));
-        else if (filter === 'T3') filtered = RECIPES.filter(r => r.resultId.includes('_t3'));
-
-        const notLearned = filtered.filter(r => !learned.includes(r.id));
-
-        const lines: string[] = [];
-        lines.push(''); // space for filter tabs
-        lines.push(`${notLearned.length} recipes available | ${filtered.length - notLearned.length} learned`);
-        lines.push('');
-
-        for (const recipe of notLearned) {
-          const tier = recipe.resultId.includes('_t3') ? 3 : recipe.resultId.includes('_t2') ? 2 : 1;
-          const price = tier === 3 ? 200 : tier === 2 ? 50 : 0;
-          const result = ITEMS[recipe.resultId];
-          const canAfford = coins >= price;
-          const priceStr = price === 0 ? 'Free' : formatCurrency(price);
-          lines.push(`${canAfford ? '●' : '○'} ${result?.icon ?? '?'} ${recipe.nameRu}  ${priceStr}`);
-        }
-        if (notLearned.length === 0) lines.push('✓ All learned!');
-
-        this.windowTitleText.setText(`🏪 Merchant  💰 ${formatCurrency(coins)}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-        break;
-      }
-
-      case 'crafting': {
-        const inv = data.inventory ?? [];
-        const wbType = this.craftingWorkbenchType;
-        const available = RECIPES.filter(r => r.workbench === wbType);
-        const lines: string[] = [];
-
-        lines.push(`═══ ${wbType.toUpperCase()} ═══`);
-        lines.push('');
-
-        if (available.length === 0) {
-          lines.push('No recipes for this workbench.');
-        }
-
-        for (const recipe of available) {
-          const result = ITEMS[recipe.resultId];
-          lines.push(`${result?.icon ?? '?'} ${recipe.nameRu}  (${recipe.craftTime}s)`);
-          if (result?.descRu) lines.push(`   ${result.descRu}`);
-
-          // Ingredients with have/need
-          const matLines: string[] = [];
-          let canCraft = true;
-          for (const [itemId, need] of Object.entries(recipe.materials)) {
-            const have = inv.find(i => i.itemId === itemId)?.quantity ?? 0;
-            const ok = have >= need;
-            if (!ok) canCraft = false;
-            const color = ok ? '' : '!';
-            matLines.push(`   ${color}${ITEMS[itemId]?.icon ?? '?'} ${ITEMS[itemId]?.nameRu ?? itemId}: ${have}/${need}`);
-          }
-          lines.push(...matLines);
-          lines.push(canCraft ? '   ✓ Ready to craft' : '   ✗ Missing materials');
-          lines.push('');
-        }
-
-        this.windowTitleText.setText(`⚒ ${wbType.charAt(0).toUpperCase() + wbType.slice(1)}`);
-        this.windowContentText.setWordWrapWidth(this.windowW - 16, true).setText(lines.join('\n'));
-
-        // Craft buttons
-        this.windowInteractables.forEach(t => t.destroy());
-        this.windowInteractables = [];
-        let btnY = 0;
-        for (const recipe of available) {
-          const canCraft = Object.entries(recipe.materials).every(([itemId, qty]) => {
-            return (inv.find(i => i.itemId === itemId)?.quantity ?? 0) >= qty;
-          });
-          const btn = this.add.text(
-            this.windowX + this.windowW - 60, this.windowY + 60 + btnY,
-            canCraft ? t('quest.craft') : '---',
-            {
-              fontSize: '10px', fontFamily: '"Special Elite", monospace',
-              color: canCraft ? '#6d9a5a' : TC.text3,
-              backgroundColor: canCraft ? '#1d1811' : '#14110c',
-              padding: { x: 6, y: 3 },
-            }
-          ).setDepth(1003).setInteractive();
-          if (canCraft) {
-            btn.on('pointerdown', () => {
-              const gs = this.scene.get('GameScene');
-              if (gs) (gs as any).startCraftingFromUI?.(recipe);
-              this.time.delayedCall(200, () => this.refreshWindow());
-            });
-          }
-          this.windowInteractables.push(btn);
-          btnY += 80; // space per recipe
-        }
-        break;
-      }
-
+      // 'vendor' / 'crafting' are handled by DOM overlays (early-returned above).
     }
   }
 
