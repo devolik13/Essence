@@ -150,6 +150,38 @@ export const ITEMS: Record<string, ItemDef> = {
     descRu: 'Common hide for light armor.', icon: '🦴',
   },
 
+  // ── Crafting Materials T1 (новая схема брони) ────────────────────────────
+  // Дроп со зверей (любых) — основа Heavy/вторичка Leather.
+  beast_hide: {
+    id: 'beast_hide', nameRu: 'Шкура зверя', rarity: 'common', type: 'material',
+    descRu: 'Шкура с убитого зверя. Для брони Heavy/Leather.', icon: '🟤',
+  },
+  // Сбор с кустов (нож) — вторичка Leather/Robe.
+  plant_fiber: {
+    id: 'plant_fiber', nameRu: 'Растительное волокно', rarity: 'common', type: 'material',
+    descRu: 'Волокно из кустов. Для прошивки кожи и ткани.', icon: '🌾',
+  },
+  // Дроп с элементалей (слаймов) — основа Robe.
+  elemental_sphere: {
+    id: 'elemental_sphere', nameRu: 'Сфера стихии', rarity: 'uncommon', type: 'material',
+    descRu: 'Ядро стихийного существа. Основа магической робы.', icon: '🔮',
+  },
+  // Дроп с гуманоидов — на будущее (руны/аксессуары).
+  humanoid_relic: {
+    id: 'humanoid_relic', nameRu: 'Самоцвет гуманоида', rarity: 'uncommon', type: 'material',
+    descRu: 'Трофей с гуманоида. Пригодится для рун и украшений.', icon: '💎',
+  },
+  // Покупается у торговца — прошивка кожи/ткани.
+  thread: {
+    id: 'thread', nameRu: 'Нитки', rarity: 'common', type: 'material',
+    descRu: 'Прочные нитки. Только у торговца.', icon: '🧵',
+  },
+  // Покупается у торговца — скрепить пластины Heavy.
+  rivets: {
+    id: 'rivets', nameRu: 'Заклёпки', rarity: 'common', type: 'material',
+    descRu: 'Металлические заклёпки. Только у торговца.', icon: '🔩',
+  },
+
 // ── Craftable Weapons T1-T3 ──────────────────────────────────────────────
   sword_t1: { id: 'sword_t1', nameRu: 'Стальной меч', rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 13. +1 Strength', icon: '⚔', statBonuses: {"strength":1} },
   sword_t2: { id: 'sword_t2', nameRu: 'Закалённый меч', rarity: 'uncommon', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 14. +2 Strength', icon: '⚔', statBonuses: {"strength":2} },
@@ -410,16 +442,16 @@ export function lootBasketFor(creatureId: string): string {
 // ─── Recipes ─────────────────────────────────────────────────────────────────
 
 export const RECIPES: RecipeDef[] = [
-  { id: 'recipe_helmet_t1', nameRu: 'Стальной шлем', workbench: 'armorer', materials: {"copper_ore":4,"wolf_hide":2}, resultId: 'helmet_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_helmet_t1', nameRu: 'Стальной шлем', workbench: 'armorer', materials: {"copper_ore":4,"beast_hide":2,"rivets":1}, resultId: 'helmet_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_helmet_t2', nameRu: 'Закалённый шлем', workbench: 'armorer', materials: {"copper_ore":7,"wolf_hide":4}, resultId: 'helmet_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_helmet_t3', nameRu: 'Мастерский шлем', workbench: 'armorer', materials: {"copper_ore":10,"wolf_hide":6,"willow_branch":3}, resultId: 'helmet_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_chest_t1', nameRu: 'Стальной нагрудник', workbench: 'armorer', materials: {"copper_ore":6,"wolf_hide":3}, resultId: 'chest_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_chest_t1', nameRu: 'Стальной нагрудник', workbench: 'armorer', materials: {"copper_ore":6,"beast_hide":3,"rivets":2}, resultId: 'chest_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_chest_t2', nameRu: 'Закалённый нагрудник', workbench: 'armorer', materials: {"copper_ore":10,"wolf_hide":6}, resultId: 'chest_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_chest_t3', nameRu: 'Мастерский нагрудник', workbench: 'armorer', materials: {"copper_ore":14,"wolf_hide":8,"willow_branch":4}, resultId: 'chest_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_gloves_t1', nameRu: 'Стальные перчатки', workbench: 'armorer', materials: {"copper_ore":3,"wolf_hide":2}, resultId: 'gloves_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_gloves_t1', nameRu: 'Стальные перчатки', workbench: 'armorer', materials: {"copper_ore":2,"beast_hide":2,"rivets":1}, resultId: 'gloves_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_gloves_t2', nameRu: 'Закалённые перчатки', workbench: 'armorer', materials: {"copper_ore":5,"wolf_hide":3}, resultId: 'gloves_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_gloves_t3', nameRu: 'Мастерские перчатки', workbench: 'armorer', materials: {"copper_ore":8,"wolf_hide":5,"willow_branch":2}, resultId: 'gloves_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_boots_t1', nameRu: 'Стальные сапоги', workbench: 'armorer', materials: {"copper_ore":3,"wolf_hide":2}, resultId: 'boots_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_boots_t1', nameRu: 'Стальные сапоги', workbench: 'armorer', materials: {"copper_ore":3,"beast_hide":2,"rivets":1}, resultId: 'boots_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_boots_t2', nameRu: 'Закалённые сапоги', workbench: 'armorer', materials: {"copper_ore":5,"wolf_hide":4}, resultId: 'boots_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_boots_t3', nameRu: 'Мастерские сапоги', workbench: 'armorer', materials: {"copper_ore":8,"wolf_hide":6,"willow_branch":2}, resultId: 'boots_t3', resultQty: 1, craftTime: 10 },
   { id: 'recipe_ring_t1', nameRu: 'Стальное кольцо', workbench: 'jeweler', materials: {"copper_ore":4,"wolf_hide":1}, resultId: 'ring_t1', resultQty: 1, craftTime: 10 },
@@ -484,30 +516,30 @@ export const RECIPES: RecipeDef[] = [
   { id: 'recipe_shield_t3', nameRu: 'Мастерский щит', workbench: 'armorer', materials: {"copper_ore":12,"willow_branch":8,"wolf_hide":5}, resultId: 'shield_t3', resultQty: 1, craftTime: 10 },
 
   // Leather Armor (armorer — wolf_hide heavy)
-  { id: 'recipe_leather_helmet_t1', nameRu: 'Кожаный капюшон', workbench: 'armorer', materials: {"wolf_hide":4,"copper_ore":2}, resultId: 'leather_helmet_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_helmet_t1', nameRu: 'Кожаный капюшон', workbench: 'armorer', materials: {"beast_hide":4,"plant_fiber":2,"thread":1}, resultId: 'leather_helmet_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_helmet_t2', nameRu: 'Закалённый кожаный капюшон', workbench: 'armorer', materials: {"wolf_hide":7,"copper_ore":4}, resultId: 'leather_helmet_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_helmet_t3', nameRu: 'Мастерский кожаный капюшон', workbench: 'armorer', materials: {"wolf_hide":10,"copper_ore":6,"willow_branch":3}, resultId: 'leather_helmet_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_leather_chest_t1', nameRu: 'Кожаный жилет', workbench: 'armorer', materials: {"wolf_hide":6,"copper_ore":3}, resultId: 'leather_chest_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_chest_t1', nameRu: 'Кожаный жилет', workbench: 'armorer', materials: {"beast_hide":6,"plant_fiber":3,"thread":2}, resultId: 'leather_chest_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_chest_t2', nameRu: 'Закалённый кожаный жилет', workbench: 'armorer', materials: {"wolf_hide":10,"copper_ore":6}, resultId: 'leather_chest_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_chest_t3', nameRu: 'Мастерский кожаный жилет', workbench: 'armorer', materials: {"wolf_hide":14,"copper_ore":8,"willow_branch":4}, resultId: 'leather_chest_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_leather_gloves_t1', nameRu: 'Кожаные наручи', workbench: 'armorer', materials: {"wolf_hide":3,"copper_ore":2}, resultId: 'leather_gloves_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_gloves_t1', nameRu: 'Кожаные наручи', workbench: 'armorer', materials: {"beast_hide":2,"plant_fiber":2,"thread":1}, resultId: 'leather_gloves_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_gloves_t2', nameRu: 'Закалённые кожаные наручи', workbench: 'armorer', materials: {"wolf_hide":5,"copper_ore":3}, resultId: 'leather_gloves_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_gloves_t3', nameRu: 'Мастерские кожаные наручи', workbench: 'armorer', materials: {"wolf_hide":8,"copper_ore":5,"willow_branch":2}, resultId: 'leather_gloves_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_leather_boots_t1', nameRu: 'Кожаные сапоги', workbench: 'armorer', materials: {"wolf_hide":3,"copper_ore":2}, resultId: 'leather_boots_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_leather_boots_t1', nameRu: 'Кожаные сапоги', workbench: 'armorer', materials: {"beast_hide":3,"plant_fiber":2,"thread":1}, resultId: 'leather_boots_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_boots_t2', nameRu: 'Закалённые кожаные сапоги', workbench: 'armorer', materials: {"wolf_hide":5,"copper_ore":4}, resultId: 'leather_boots_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_leather_boots_t3', nameRu: 'Мастерские кожаные сапоги', workbench: 'armorer', materials: {"wolf_hide":8,"copper_ore":6,"willow_branch":2}, resultId: 'leather_boots_t3', resultQty: 1, craftTime: 10 },
 
   // Robe Armor (armorer — willow_branch heavy)
-  { id: 'recipe_robe_helmet_t1', nameRu: 'Тканевая шляпа', workbench: 'armorer', materials: {"willow_branch":4,"wolf_hide":2}, resultId: 'robe_helmet_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_helmet_t1', nameRu: 'Тканевая шляпа', workbench: 'armorer', materials: {"elemental_sphere":4,"plant_fiber":2,"thread":1}, resultId: 'robe_helmet_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_helmet_t2', nameRu: 'Зачарованная шляпа', workbench: 'armorer', materials: {"willow_branch":7,"wolf_hide":4}, resultId: 'robe_helmet_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_helmet_t3', nameRu: 'Чародейская шляпа', workbench: 'armorer', materials: {"willow_branch":10,"wolf_hide":6,"copper_ore":3}, resultId: 'robe_helmet_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_robe_chest_t1', nameRu: 'Тканевая роба', workbench: 'armorer', materials: {"willow_branch":6,"wolf_hide":3}, resultId: 'robe_chest_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_chest_t1', nameRu: 'Тканевая роба', workbench: 'armorer', materials: {"elemental_sphere":6,"plant_fiber":3,"thread":2}, resultId: 'robe_chest_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_chest_t2', nameRu: 'Зачарованная роба', workbench: 'armorer', materials: {"willow_branch":10,"wolf_hide":6}, resultId: 'robe_chest_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_chest_t3', nameRu: 'Чародейская роба', workbench: 'armorer', materials: {"willow_branch":14,"wolf_hide":8,"copper_ore":4}, resultId: 'robe_chest_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_robe_gloves_t1', nameRu: 'Тканевые обмотки', workbench: 'armorer', materials: {"willow_branch":3,"wolf_hide":2}, resultId: 'robe_gloves_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_gloves_t1', nameRu: 'Тканевые обмотки', workbench: 'armorer', materials: {"elemental_sphere":2,"plant_fiber":2,"thread":1}, resultId: 'robe_gloves_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_gloves_t2', nameRu: 'Зачарованные обмотки', workbench: 'armorer', materials: {"willow_branch":5,"wolf_hide":3}, resultId: 'robe_gloves_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_gloves_t3', nameRu: 'Чародейские обмотки', workbench: 'armorer', materials: {"willow_branch":8,"wolf_hide":5,"copper_ore":2}, resultId: 'robe_gloves_t3', resultQty: 1, craftTime: 10 },
-  { id: 'recipe_robe_boots_t1', nameRu: 'Тканевые сандалии', workbench: 'armorer', materials: {"willow_branch":3,"wolf_hide":2}, resultId: 'robe_boots_t1', resultQty: 1, craftTime: 10 },
+  { id: 'recipe_robe_boots_t1', nameRu: 'Тканевые сандалии', workbench: 'armorer', materials: {"elemental_sphere":3,"plant_fiber":2,"thread":1}, resultId: 'robe_boots_t1', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_boots_t2', nameRu: 'Зачарованные сандалии', workbench: 'armorer', materials: {"willow_branch":5,"wolf_hide":4}, resultId: 'robe_boots_t2', resultQty: 1, craftTime: 10 },
   { id: 'recipe_robe_boots_t3', nameRu: 'Чародейские сандалии', workbench: 'armorer', materials: {"willow_branch":8,"wolf_hide":6,"copper_ore":2}, resultId: 'robe_boots_t3', resultQty: 1, craftTime: 10 },
 
