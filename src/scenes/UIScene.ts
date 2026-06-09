@@ -16,7 +16,8 @@ import { formatCurrency } from '../systems/currency';
 import { AchievementDef } from '../data/achievementDB';
 import { STATUS_DEFS } from '../types/statuses';
 import { THEME, TC, drawCorner, drawBrassLineV } from '../ui/theme';
-import { showInventoryDom, hideInventoryDom, refreshInventoryDom, isInventoryDomOpen } from '../ui/inventoryDom';
+import { showEquipmentDom, hideEquipmentDom, refreshEquipmentDom, isEquipmentDomOpen } from '../ui/equipmentWindowDom';
+import { showBagDom, hideBagDom, refreshBagDom, isBagDomOpen } from '../ui/bagWindowDom';
 import { showSpellTooltip, moveSpellTooltip, hideSpellTooltip } from '../ui/spellTooltip';
 import { showSpellsWindowDom, hideSpellsWindowDom, isSpellsWindowDomOpen } from '../ui/spellsWindowDom';
 import { showQuestsDom, hideQuestsDom, isQuestsDomOpen } from '../ui/questsWindowDom';
@@ -39,7 +40,7 @@ const WIN_MIN_H = 160;
 /** Типы плавающего (Phaser) окна — остальные рендерятся через DOM. */
 const FLOATING_TYPES: WindowType[] = ['stats', 'quests', 'vendor', 'crafting'];
 
-type WindowType = 'stats' | 'inventory' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
+type WindowType = 'stats' | 'equipment' | 'bag' | 'quests' | 'achievements' | 'vendor' | 'crafting' | 'spells' | 'bestiary';
 const SKILL_SLOT_SIZE = 48;
 const SKILL_SLOT_GAP = 6;
 const SKILL_SLOTS_COUNT = 8;
@@ -117,7 +118,7 @@ export class UIScene extends Phaser.Scene {
   private menuBtnBgs:   Phaser.GameObjects.Rectangle[] = [];
   private menuBtnIcons: Phaser.GameObjects.Text[]      = [];
   private menuBtnTexts: Phaser.GameObjects.Text[]      = [];
-  private readonly menuBtnTypes: WindowType[] = ['stats', 'inventory', 'quests', 'achievements', 'spells', 'bestiary'];
+  private readonly menuBtnTypes: WindowType[] = ['stats', 'equipment', 'bag', 'quests', 'achievements', 'spells', 'bestiary'];
 
   // Weapon block (active equipped weapon: icon + damage)
   private weaponBlockBg?: Phaser.GameObjects.Rectangle;
@@ -450,8 +451,9 @@ export class UIScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-M',   () => this.toggleMaximap());
     this.input.keyboard?.on('keydown-ESC', () => { if (this.maximapOpen) this.toggleMaximap(); });
 
-    // Window shortcuts: I=inventory, Q=quests, C=stats(char), K=spells, B=bestiary, J=achievements
-    this.input.keyboard?.on('keydown-I', () => this.toggleWindow('inventory'));
+    // Window shortcuts: I=equipment, G=bag, L=quests, C=stats(char), K=spells, B=bestiary, J=achievements
+    this.input.keyboard?.on('keydown-I', () => this.toggleWindow('equipment'));
+    this.input.keyboard?.on('keydown-G', () => this.toggleWindow('bag'));
     this.input.keyboard?.on('keydown-L', () => this.toggleWindow('quests'));
     this.input.keyboard?.on('keydown-C', () => this.toggleWindow('stats'));
     this.input.keyboard?.on('keydown-K', () => this.toggleWindow('spells'));
@@ -1935,8 +1937,8 @@ export class UIScene extends Phaser.Scene {
   // ── Menu buttons ─────────────────────────────────────
 
   private buildMenuButtons() {
-    const labels = [t('menu.stats'), t('menu.inventory'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary')];
-    const icons  = ['✦', '⬡', '❖', '★', '⚡', '⌬'];
+    const labels = [t('menu.stats'), t('menu.equipment'), t('menu.bag'), t('menu.quests'), t('menu.achieve'), t('menu.spells'), t('menu.bestiary')];
+    const icons  = ['✦', '⬡', '🎒', '❖', '★', '⚡', '⌬'];
     const btnSz = SKILL_SLOT_SIZE;
     const gap = SKILL_SLOT_GAP;
 
@@ -1950,9 +1952,9 @@ export class UIScene extends Phaser.Scene {
     const trayLeft = barCx - trayW / 2;
     const trayRight = barCx + trayW / 2;
 
-    // Left group: Stats, Inventory, Quests (3 buttons), weapon block, then tray.
+    // Left group: Stats, Equipment, Bag, Quests (4 buttons), weapon block, then tray.
     // Right group: Achievements, Spells, Bestiary (3 buttons)
-    const leftCount = 3;
+    const leftCount = 4;
     const sideGap = 10;
     // Weapon block sits just to the left of the lock icon.
     const weaponBlockX = trayLeft - 22 - btnSz / 2;
@@ -2127,7 +2129,8 @@ export class UIScene extends Phaser.Scene {
   /** Is the given window type currently open? (each window independent) */
   private isWindowOpen(type: WindowType): boolean {
     switch (type) {
-      case 'inventory':    return isInventoryDomOpen();
+      case 'equipment':    return isEquipmentDomOpen();
+      case 'bag':          return isBagDomOpen();
       case 'spells':       return isSpellsWindowDomOpen();
       case 'quests':       return isQuestsDomOpen();
       case 'achievements': return isAchievementsWindowDomOpen();
@@ -2153,8 +2156,11 @@ export class UIScene extends Phaser.Scene {
   /** Open exactly one window without touching the others. */
   private openSingleWindow(type: WindowType) {
     switch (type) {
-      case 'inventory':
-        this.openInventoryDom();
+      case 'equipment':
+        this.openEquipmentDom();
+        break;
+      case 'bag':
+        this.openBagDom();
         break;
       case 'spells': {
         const learnedIds = new Set(this.cachedLearnedSpells.map(s => s.id));
@@ -2208,7 +2214,8 @@ export class UIScene extends Phaser.Scene {
   /** Close exactly one window without touching the others. */
   private closeSingleWindow(type: WindowType) {
     switch (type) {
-      case 'inventory':    if (isInventoryDomOpen()) hideInventoryDom(); break;
+      case 'equipment':    if (isEquipmentDomOpen()) hideEquipmentDom(); break;
+      case 'bag':          if (isBagDomOpen()) hideBagDom(); break;
       case 'spells':       if (isSpellsWindowDomOpen()) hideSpellsWindowDom(); break;
       case 'quests':       if (isQuestsDomOpen()) hideQuestsDom(); break;
       case 'achievements': if (isAchievementsWindowDomOpen()) hideAchievementsWindowDom(); break;
@@ -2375,11 +2382,7 @@ export class UIScene extends Phaser.Scene {
 
   private refreshWindow() {
     if (this.currentWindow && this.cachedUIData) {
-      if (this.currentWindow === 'inventory' && isInventoryDomOpen()) {
-        this.refreshInventoryDom();
-      } else {
-        this.buildWindowContent(this.cachedUIData);
-      }
+      this.buildWindowContent(this.cachedUIData);
     }
   }
 
@@ -2444,85 +2447,84 @@ export class UIScene extends Phaser.Scene {
     this.refreshMenuHighlight('stats');
   }
 
-  private openInventoryDom() {
-    if (!this.cachedUIData) return;
-    const { sphere, body } = this.cachedUIData;
-    showInventoryDom({
-      sphere,
-      body: body ?? null,
-      cb: {
-        onEquip: (itemId, slot) => {
-          const equip = sphere.equipment as any;
-          // Remove from inventory, put back any existing in slot
-          const invIdx = sphere.inventory.findIndex(i => i.itemId === itemId);
-          if (invIdx < 0) return;
-          const prev = equip[slot];
-          equip[slot] = itemId;
-          sphere.inventory.splice(invIdx, 1);
-          if (prev && prev !== itemId) sphere.inventory.push({ itemId: prev, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUnequip: (slot) => {
-          const equip = sphere.equipment as any;
-          const iid = equip[slot];
-          if (!iid) return;
-          equip[slot] = undefined;
-          sphere.inventory.push({ itemId: iid, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUseConsumable: (itemId) => {
-          this.scene.get('GameScene').events.emit('use-item', itemId);
-          this.refreshInventoryDom();
-        },
-        onSwitchWeapon: (idx) => {
-          sphere.activeWeaponSlot = idx;
-          this.refreshInventoryDom();
-        },
-        onClose: () => this.closeWindow(),
-      },
-    });
+  // ── Equipment + Bag (split inventory) ──────────────────
+  // Two independent, draggable windows sharing the same sphere data.
+  // Equipping/unequipping/using mutates the sphere then refreshes BOTH
+  // windows (whichever are open) plus the stats window.
+
+  private doEquip(itemId: string, slot: string) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const equip = sphere.equipment as any;
+    const invIdx = sphere.inventory.findIndex(i => i.itemId === itemId);
+    if (invIdx < 0) return;
+    const prev = equip[slot];
+    equip[slot] = itemId;
+    sphere.inventory.splice(invIdx, 1);
+    if (prev && prev !== itemId) sphere.inventory.push({ itemId: prev, quantity: 1 });
+    this.refreshInventoryWindows();
+    this.scene.get('GameScene').events.emit('persist');
   }
 
-  private refreshInventoryDom() {
+  private doUnequip(slot: string) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    const equip = sphere.equipment as any;
+    const iid = equip[slot];
+    if (!iid) return;
+    equip[slot] = undefined;
+    sphere.inventory.push({ itemId: iid, quantity: 1 });
+    this.refreshInventoryWindows();
+    this.scene.get('GameScene').events.emit('persist');
+  }
+
+  private doUseConsumable(itemId: string) {
+    this.scene.get('GameScene').events.emit('use-item', itemId);
+    this.refreshInventoryWindows();
+  }
+
+  private doSwitchWeapon(idx: 0 | 1) {
+    const sphere = this.cachedUIData?.sphere;
+    if (!sphere) return;
+    sphere.activeWeaponSlot = idx;
+    this.refreshInventoryWindows();
+    // persist → refreshStats (active-weapon-only stats change on Tab switch).
+    this.scene.get('GameScene').events.emit('persist');
+  }
+
+  private equipCallbacks() {
+    return {
+      onUnequip: (slot: string) => this.doUnequip(slot),
+      onSwitchWeapon: (idx: 0 | 1) => this.doSwitchWeapon(idx),
+      onClose: () => this.closeSingleWindow('equipment'),
+    };
+  }
+
+  private bagCallbacks() {
+    return {
+      onEquip: (itemId: string, slot: string) => this.doEquip(itemId, slot),
+      onUseConsumable: (itemId: string) => this.doUseConsumable(itemId),
+      onClose: () => this.closeSingleWindow('bag'),
+    };
+  }
+
+  private openEquipmentDom() {
     if (!this.cachedUIData) return;
     const { sphere, body } = this.cachedUIData;
-    refreshInventoryDom({
-      sphere,
-      body: body ?? null,
-      cb: {
-        onEquip: (itemId, slot) => {
-          const equip = sphere.equipment as any;
-          const invIdx = sphere.inventory.findIndex(i => i.itemId === itemId);
-          if (invIdx < 0) return;
-          const prev = equip[slot];
-          equip[slot] = itemId;
-          sphere.inventory.splice(invIdx, 1);
-          if (prev && prev !== itemId) sphere.inventory.push({ itemId: prev, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUnequip: (slot) => {
-          const equip = sphere.equipment as any;
-          const iid = equip[slot];
-          if (!iid) return;
-          equip[slot] = undefined;
-          sphere.inventory.push({ itemId: iid, quantity: 1 });
-          this.refreshInventoryDom();
-          this.scene.get('GameScene').events.emit('persist');
-        },
-        onUseConsumable: (itemId) => {
-          this.scene.get('GameScene').events.emit('use-item', itemId);
-          this.refreshInventoryDom();
-        },
-        onSwitchWeapon: (idx) => {
-          sphere.activeWeaponSlot = idx;
-          this.refreshInventoryDom();
-        },
-        onClose: () => this.closeWindow(),
-      },
-    });
+    showEquipmentDom({ sphere, body: body ?? null }, this.equipCallbacks());
+  }
+
+  private openBagDom() {
+    if (!this.cachedUIData) return;
+    showBagDom({ sphere: this.cachedUIData.sphere }, this.bagCallbacks());
+  }
+
+  /** Re-render whichever inventory windows are currently open. */
+  private refreshInventoryWindows() {
+    if (!this.cachedUIData) return;
+    const { sphere, body } = this.cachedUIData;
+    if (isEquipmentDomOpen()) refreshEquipmentDom({ sphere, body: body ?? null }, this.equipCallbacks());
+    if (isBagDomOpen()) refreshBagDom({ sphere }, this.bagCallbacks());
   }
 
   /** Сжатая сигнатура данных, которые отображает текущее окно (для гейта перестройки). */
@@ -2549,7 +2551,6 @@ export class UIScene extends Phaser.Scene {
 
   private buildWindowContent(data: UIData) {
     if (!this.currentWindow) return;
-    if (this.currentWindow === 'inventory') return; // handled by DOM overlay
     if (this.currentWindow === 'spells') return;    // handled by DOM overlay
     if (this.currentWindow === 'vendor') return;    // handled by DOM overlay
     if (this.currentWindow === 'crafting') return;  // handled by DOM overlay

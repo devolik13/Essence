@@ -45,6 +45,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     // Menu buttons
     'menu.stats': 'Stats',
     'menu.inventory': 'Inventory',
+    'menu.equipment': 'Gear',
+    'menu.bag': 'Bag',
     'menu.quests': 'Quests',
     'menu.achieve': 'Achieve',
     'menu.spells': 'Spells',
@@ -276,6 +278,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     // Menu buttons
     'menu.stats': 'Статы',
     'menu.inventory': 'Инвентарь',
+    'menu.equipment': 'Экипировка',
+    'menu.bag': 'Сумка',
     'menu.quests': 'Квесты',
     'menu.achieve': 'Ачивки',
     'menu.spells': 'Заклинания',
