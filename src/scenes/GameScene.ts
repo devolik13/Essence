@@ -1595,6 +1595,14 @@ export class GameScene extends Phaser.Scene {
       for (const wb of this.mapEditor.getWorkbenchSpawns()) {
         addWorkbench(wb.x, wb.y, wb.type, WORKBENCH_NAMES_RU[wb.type] ?? wb.type);
       }
+      // Колодцы — лечебные точки в городе ([E] = полный HP/мана).
+      for (const o of this.mapEditor.getObjects()) {
+        if (o.key !== 'cp_well') continue;
+        const hint = this.add.container(o.x, o.y).setDepth(6);
+        const label = this.add.text(0, -34, '💧 Колодец', { fontSize: '8px', color: '#aaddff', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+        const eKey = this.add.text(0, -22, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
+        hint.add([label, eKey]);
+      }
     }
 
     // NPCs
@@ -1648,6 +1656,17 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // Healing well — restores full HP + mana (placed map fixture `cp_well`).
+    if (this.mapEditor) {
+      for (const o of this.mapEditor.getObjects()) {
+        if (o.key !== 'cp_well') continue;
+        if (distance(px, py, o.x, o.y) < interactRange) {
+          this.useHealingWell();
+          return true;
+        }
+      }
+    }
+
     // NPCs (vendor)
     for (const npc of this.worldNPCs) {
       const d = distance(px, py, npc.x, npc.y);
@@ -1673,6 +1692,21 @@ export class GameScene extends Phaser.Scene {
     }
 
     return false;
+  }
+
+  /** Городской колодец: полностью восстанавливает HP и ману текущего тела. */
+  private useHealingWell(): void {
+    const b = this.playerBody;
+    if (!b) return;
+    if (b.currentHP >= b.maxHP && b.currentMana >= b.maxMana) {
+      this.showMessage('Колодец: здоровье и мана уже полны');
+      return;
+    }
+    b.currentHP = b.maxHP;
+    b.currentMana = b.maxMana;
+    sfxHeal();
+    this.spawnAoeFlash(b.x, b.y, 50);
+    this.showMessage('Колодец восстановил здоровье и ману');
   }
 
   private interactQuestObject(qo: typeof this.questObjects[0]): boolean {
