@@ -54,6 +54,9 @@ export interface BodyQuestDef {
    *  набегают на орка-вождя). Без anchor — вокруг игрока. */
   spawnEnemies?: { creatureId: string; count: number; radius?: number; anchor?: { x: number; y: number } }[];
   friendlyCreatureIds?: string[];
+  /** Повторяемый квест: не помечается завершённым навсегда (можно получить
+   *  снова при повторном захвате тела). Для нарративных «врат» вроде Игниса. */
+  repeatable?: boolean;
 }
 
 export type ConflictSide = 'attacker' | 'defender';

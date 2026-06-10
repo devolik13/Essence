@@ -944,6 +944,7 @@ const QUEST_IGNIS: BodyQuestDef = {
   }],
   rewardSpellId: 'mob_fire_wall',
   xpReward: 150,
+  repeatable: true, // можно снова вселиться в Игниса и опять уйти в лабораторию
 };
 
 export const BODY_QUESTS: BodyQuestDef[] = [

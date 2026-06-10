@@ -2055,12 +2055,18 @@ export class GameScene extends Phaser.Scene {
     if (!this.playerBody) { this.questArrow.setVisible(false); return; }
     let target: { x: number; y: number } | null = null;
     let best = Infinity;
+    // В данже при готовом ритуале стрелка ведёт к разрыву (приоритет над всем).
+    if (this.currentZone.id === 'lab' && this.labRitual === 'ready') {
+      target = { x: this.labRiftX, y: this.labRiftY };
+    }
     // Цели: объекты основной линии + объекты активного квеста тела (поляна оленя
     // и т.п.) — иначе в теле зверя непонятно, куда бежать.
-    for (const q of [...this.questObjects, ...this.bodyQuestObjects]) {
-      if (q.used) continue;
-      const d = distance(this.playerBody.x, this.playerBody.y, q.x, q.y);
-      if (d < best) { best = d; target = q; }
+    if (!target) {
+      for (const q of [...this.questObjects, ...this.bodyQuestObjects]) {
+        if (q.used) continue;
+        const d = distance(this.playerBody.x, this.playerBody.y, q.x, q.y);
+        if (d < best) { best = d; target = q; }
+      }
     }
     if (!target) { this.questArrow.setVisible(false); return; }
 
@@ -3371,7 +3377,7 @@ export class GameScene extends Phaser.Scene {
   private tryShowBodyQuest(bodyId: string) {
     const quests = getBodyQuests(bodyId);
     const bq = quests.find(q => {
-      if (this.sphere.triggeredBodyQuests.includes(q.id)) return false;
+      if (!q.repeatable && this.sphere.triggeredBodyQuests.includes(q.id)) return false;
       if (q.prerequisiteBodyQuestId && !this.sphere.triggeredBodyQuests.includes(q.prerequisiteBodyQuestId)) return false;
       return true;
     });
@@ -3480,14 +3486,29 @@ export class GameScene extends Phaser.Scene {
     const progress = this.bodyQuestTracker.getActive();
     if (!progress) return;
     const bq = progress.def;
-    this.sphere.triggeredBodyQuests.push(bq.id);
+    if (!bq.repeatable) this.sphere.triggeredBodyQuests.push(bq.id);
     this.bodyQuestTracker.clear();
     this.clearBodyQuestObjects();
     this.grantBodyQuestReward(bq);
     this.persistState();
   }
 
+  /** Выучить заклинание по id (идемпотентно): в учёные, на бар, тост. */
+  private learnSpellById(spellId: string): void {
+    if (this.sphere.learnedSpells.some(s => s.id === spellId)) return;
+    const spell = getSpellById(spellId);
+    if (!spell) return;
+    this.sphere.learnedSpells.push(spell);
+    this.sphere.spellProgress[spell.id] = 9999;
+    this.events.emit('spell-learned', spell);
+    if (this.playerBody) this.fillBodySlots(this.playerBody);
+    sfxLevelUp();
+  }
+
   private grantBodyQuestReward(bq: import('../types/bodyQuests').BodyQuestDef): void {
+    // Питч: Игнис учит сразу двум огненным умениям (Стрела + Стена),
+    // чтобы у демо-посоха было 3 огненных скила без поиска золовика.
+    if (this.pitchMode && bq.id === 'bq_ignis') this.learnSpellById('mob_fire_arrow');
     const spellId = bq.rewardSpellId;
     if (spellId && !this.sphere.learnedSpells.some(s => s.id === spellId)) {
       const spell = getSpellById(spellId);
@@ -3533,13 +3554,15 @@ export class GameScene extends Phaser.Scene {
       const names: Record<string, string> = { fire: 'Fire', water: 'Water', earth: 'Earth', wind: 'Wind' };
       this.showMessage(`Seal frequency acquired: ${names[def.element]}!`);
 
-      // Boss reward: auto-learn T2 spell of the Guardian's school
+      // Boss reward: auto-learn T2 spell of the Guardian's school.
+      // ТОЛЬКО В ПИТЧЕ: в обычной игре T2 даёт элементаль-учитель (asher/fogger/
+      // mudder/whistler) — правило «одно умение = один учитель».
       const rewardSpellIds: Record<string, string> = {
         fire: 'mob_fire_arrow', water: 'mob_ice_arrow',
         earth: 'mob_stone_spike', wind: 'mob_wind_blade',
       };
       const rewardId = rewardSpellIds[def.element];
-      if (rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {
+      if (this.pitchMode && rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {
         const spell = getSpellById(rewardId);
         if (spell) {
           this.sphere.learnedSpells.push(spell);
@@ -5136,9 +5159,16 @@ export class GameScene extends Phaser.Scene {
         }
       });
     } else if (this.labRitual === 'none') {
-      // Волны отбиты — разрыв нестабилен, нужно закрыть его вручную
+      // Волны отбиты — разрыв нестабилен, нужно закрыть его вручную.
+      // Разрыв ярко пульсирует + стрелка-указатель ведёт к нему (см. update).
       this.labRitual = 'ready';
       this.showMessage(lt('Разрыв нестабилен! Подойди и закрой его [E]', 'The rift is unstable! Approach and seal it [E]'));
+      this.events.emit('log', { text: lt('▶ Иди к разрыву и нажми [E]', '▶ Go to the rift and press [E]'), color: '#ff88ff' });
+      if (this.labRiftGfx) {
+        this.labRiftGfx.clear();
+        this.labRiftGfx.fillStyle(0x6622aa, 0.95).fillEllipse(this.labRiftX, this.labRiftY, 170, 64);
+        this.labRiftGfx.lineStyle(3, 0xcc66ff, 1).strokeEllipse(this.labRiftX, this.labRiftY, 170, 64);
+      }
     }
   }
 
