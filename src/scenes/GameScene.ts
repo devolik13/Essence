@@ -341,6 +341,14 @@ export class GameScene extends Phaser.Scene {
         const itemId2 = `starter_${this.newGameWeapon2}`;
         this.sphere.equipment.weapon2 = itemId2;
       }
+      // Питч-демо: статы сразу 100 — показываем контент (Игнис, лаборатория),
+      // а не гринд. Заклинания НЕ выдаём: их игрок добывает вселениями —
+      // это и есть демонстрация ядра игры.
+      if (this.pitchMode) {
+        for (const stat of Object.keys(this.sphere.stats) as StatName[]) {
+          this.sphere.stats[stat] = 100;
+        }
+      }
     } else {
       const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
       if (loaded) this.events.emit('save-loaded');
