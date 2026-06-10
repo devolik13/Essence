@@ -766,7 +766,7 @@ export class GameScene extends Phaser.Scene {
         if (!wolfTarget) {
           let nearestDist = 300;
           this.creatureGrid.forEachNear(creature.x, creature.y, 300, (c) => {
-            if (c === creature || c.isDead || c.isSummoned) return;
+            if (c === creature || c.isDead || c.isSummoned || this.isPlayerAlly(c)) return;
             const d = distance(creature.x, creature.y, c.x, c.y);
             if (d < nearestDist) { nearestDist = d; wolfTarget = c; }
           });
@@ -2399,7 +2399,14 @@ export class GameScene extends Phaser.Scene {
     return inCombat;
   }
 
+  /** Свои для игрока (фракция 'lab': Машина Переноса и др.) — их нельзя
+   *  выбрать целью и они не получают урон от игрока и его призывов. */
+  private isPlayerAlly(c: Creature): boolean {
+    return c.definition.faction === 'lab';
+  }
+
   private selectTarget(creature: Creature) {
+    if (this.isPlayerAlly(creature)) return; // своих не таргетим
     this.selectedTarget = creature;
   }
 
@@ -2597,7 +2604,7 @@ export class GameScene extends Phaser.Scene {
         // Wave hits creatures it passes over
         const waveLinePos = t.depth * (1 - t.waveProgress) - t.depth / 2; // relative to center
         for (const c of this.creatures) {
-          if (c.isDead || c.isSummoned || t.waveHit.has(c)) continue;
+          if (c.isDead || c.isSummoned || t.waveHit.has(c) || this.isPlayerAlly(c)) continue;
           // Check if creature is inside the zone rectangle
           const cx = c.x - t.x, cy = c.y - t.y;
           const cos = Math.cos(-t.angle - Math.PI / 2), sin = Math.sin(-t.angle - Math.PI / 2);
@@ -2640,7 +2647,7 @@ export class GameScene extends Phaser.Scene {
         if (t.burnTickTimer <= 0) {
           t.burnTickTimer = 1; // tick every 1 sec
           for (const c of this.creatures) {
-            if (c.isDead || c.isSummoned) continue;
+            if (c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
             const cx = c.x - t.x, cy = c.y - t.y;
             const cos = Math.cos(-t.angle - Math.PI / 2), sin = Math.sin(-t.angle - Math.PI / 2);
             const lx = cx * cos - cy * sin;
@@ -2833,7 +2840,8 @@ export class GameScene extends Phaser.Scene {
     // Приоритет: выбранная цель → ближайшая в радиусе
     let closestCreature: Creature | null = null;
 
-    if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
+    if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active &&
+        !this.isPlayerAlly(this.selectedTarget)) {
       const dist = distance(this.playerBody.x, this.playerBody.y, this.selectedTarget.x, this.selectedTarget.y);
       if (dist <= weapon.range) {
         closestCreature = this.selectedTarget;
@@ -2843,7 +2851,7 @@ export class GameScene extends Phaser.Scene {
     if (!closestCreature) {
       let closestDist = weapon.range;
       for (const creature of this.creatures) {
-        if (creature.isDead) continue;
+        if (creature.isDead || this.isPlayerAlly(creature)) continue;
         const dist = distance(this.playerBody.x, this.playerBody.y, creature.x, creature.y);
         if (dist < closestDist) {
           closestDist = dist;
@@ -3836,14 +3844,14 @@ export class GameScene extends Phaser.Scene {
 
     // Найти цель для атакующих умений (проверка дальности обязательна)
     let target: Creature | null = null;
-    if (this.selectedTarget && !this.selectedTarget.isDead) {
+    if (this.selectedTarget && !this.selectedTarget.isDead && !this.isPlayerAlly(this.selectedTarget)) {
       const d = distance(this.playerBody.x, this.playerBody.y, this.selectedTarget.x, this.selectedTarget.y);
       if (d <= spell.range) target = this.selectedTarget;
     }
     if (!target) {
       let closestDist = spell.range;
       for (const c of this.creatures) {
-        if (c.isDead || c.isSummoned) continue;
+        if (c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
         const d = distance(this.playerBody.x, this.playerBody.y, c.x, c.y);
         if (d < closestDist) { closestDist = d; target = c; }
       }
@@ -4065,7 +4073,7 @@ export class GameScene extends Phaser.Scene {
       );
       for (const c of sorted) {
         if (piercedCount >= maxExtra) break;
-        if (c === target || c.isDead || c.isSummoned) continue;
+        if (c === target || c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
         const cx = c.x - this.playerBody.x;
         const cy = c.y - this.playerBody.y;
         const proj = cx * nx + cy * ny;
@@ -4097,7 +4105,7 @@ export class GameScene extends Phaser.Scene {
         let nearest: Creature | null = null;
         let nearestDist = jumpRadius;
         for (const c of this.creatures) {
-          if (c.isDead || c.isSummoned || hitTargets.has(c)) continue;
+          if (c.isDead || c.isSummoned || hitTargets.has(c) || this.isPlayerAlly(c)) continue;
           const d = distance(currentTarget.x, currentTarget.y, c.x, c.y);
           if (d < nearestDist) { nearestDist = d; nearest = c; }
         }
@@ -4157,7 +4165,7 @@ export class GameScene extends Phaser.Scene {
       const dir = this.playerBody.getFacingVector();
       const coneDir = Math.atan2(dir.y, dir.x);
       for (const c of this.creatures) {
-        if (c === target || c.isDead || c.isSummoned) continue;
+        if (c === target || c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
         const dx = c.x - this.playerBody.x;
         const dy = c.y - this.playerBody.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -4223,7 +4231,7 @@ export class GameScene extends Phaser.Scene {
 
       // Splash по ВСЕМ в радиусе (включая основную цель)
       for (const c of this.creatures) {
-        if (c.isDead || c.isSummoned) continue;
+        if (c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
         if (distance(c.x, c.y, target.x, target.y) > aoeR) continue;
         // Основная цель уже получила baseDamage выше — даём только splash
         const dmgBase = c === target ? 0 : splashBase;
@@ -4274,7 +4282,7 @@ export class GameScene extends Phaser.Scene {
       const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
       for (const dir of dirs) {
         for (const c of this.creatures) {
-          if (c === target || c.isDead || c.isSummoned) continue;
+          if (c === target || c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
           const dx = c.x - target.x;
           const dy = c.y - target.y;
           const proj = dx * dir.x + dy * dir.y;
@@ -4308,7 +4316,7 @@ export class GameScene extends Phaser.Scene {
         const rNx = Math.cos(rayAngle);
         const rNy = Math.sin(rayAngle);
         for (const c of this.creatures) {
-          if (c.isDead || c.isSummoned) continue;
+          if (c.isDead || c.isSummoned || this.isPlayerAlly(c)) continue;
           const dx = c.x - this.playerBody!.x;
           const dy = c.y - this.playerBody!.y;
           const proj = dx * rNx + dy * rNy;
@@ -4728,7 +4736,7 @@ export class GameScene extends Phaser.Scene {
 
         if (zone.ownerIsPlayer) {
           for (const c of this.creatures) {
-            if (c.isDead) continue;
+            if (c.isDead || this.isPlayerAlly(c)) continue;
             if (!inZone(c.x, c.y)) continue;
             const r = calcMagicDamage(zone.casterStats, c.stats, zone.dps);
             c.takeDamage(r.final);
