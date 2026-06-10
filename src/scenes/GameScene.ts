@@ -82,6 +82,7 @@ export class GameScene extends Phaser.Scene {
   private labRitual: 'none' | 'ready' | 'channeling' | 'done' = 'none';
   private labRitualTimer = 0;
   private labRiftGfx: Phaser.GameObjects.Graphics | null = null;
+  private labRiftSpr: Phaser.GameObjects.Sprite | null = null;
   private labRiftX = 0;
   private labRiftY = 0;
   private groundZones: GroundZone[] = [];
@@ -3446,12 +3447,22 @@ export class GameScene extends Phaser.Scene {
         placed.push({ x: ox, y: oy });
 
         const container = this.add.container(ox, oy).setDepth(3);
-        const glow = this.add.circle(0, 0, 14, so.color, 0.3);
-        const icon = this.add.text(0, 0, so.icon, { fontSize: '16px' }).setOrigin(0.5);
         const label = this.add.text(0, -22, lt(so.nameRu, so.nameEn), { fontSize: '8px', color: '#ddddcc', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
         const eKey = this.add.text(0, 18, '[E]', { fontSize: '7px', color: '#888866' }).setOrigin(0.5);
-        container.add([glow, icon, label, eKey]);
-        this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1200, yoyo: true, repeat: -1 });
+        if (so.objectId === 'warp_rift' && this.anims.exists('rift_swirl_anim')) {
+          // Варп-разрыв — настоящий анимированный портал (как в лаборатории)
+          const rift = this.add.sprite(0, 0, 'rift_swirl');
+          rift.play('rift_swirl_anim').setDisplaySize(120, 120);
+          label.setY(-66);
+          eKey.setY(52);
+          container.add([rift, label, eKey]);
+          this.tweens.add({ targets: rift, alpha: { from: 0.75, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+        } else {
+          const glow = this.add.circle(0, 0, 14, so.color, 0.3);
+          const icon = this.add.text(0, 0, so.icon, { fontSize: '16px' }).setOrigin(0.5);
+          container.add([glow, icon, label, eKey]);
+          this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1200, yoyo: true, repeat: -1 });
+        }
 
         const obj = { x: ox, y: oy, objectId: so.objectId, nameRu: lt(so.nameRu, so.nameEn), objType: so.type, gfx: container, used: false };
         this.questObjects.push(obj);
@@ -5083,16 +5094,24 @@ export class GameScene extends Phaser.Scene {
     this.labSpawnPending = false;
     this.labRitual = 'none';
     this.labRitualTimer = 0;
+    this.labRiftSpr = null;
+    this.labRiftGfx = null;
     this.labMachine = this.creatures.find(c => c.definition.id === 'transfer_machine') ?? null;
 
-    // Разрыв Пустоты на севере — пульсирующий тёмный овал
+    // Разрыв Пустоты на севере — анимированный спрайт (фоллбек: овал)
     const zw = this.currentZone.widthTiles * TILE_SIZE;
     this.labRiftX = zw / 2;
     this.labRiftY = 220;
-    this.labRiftGfx = this.add.graphics().setDepth(5);
-    this.labRiftGfx.fillStyle(0x2a1040, 0.85).fillEllipse(this.labRiftX, this.labRiftY, 150, 56);
-    this.labRiftGfx.lineStyle(2, 0x8844cc, 0.8).strokeEllipse(this.labRiftX, this.labRiftY, 150, 56);
-    this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    if (this.anims.exists('rift_swirl_anim')) {
+      this.labRiftSpr = this.add.sprite(this.labRiftX, this.labRiftY, 'rift_swirl');
+      this.labRiftSpr.play('rift_swirl_anim').setDisplaySize(170, 170).setDepth(5);
+      this.tweens.add({ targets: this.labRiftSpr, alpha: { from: 0.75, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    } else {
+      this.labRiftGfx = this.add.graphics().setDepth(5);
+      this.labRiftGfx.fillStyle(0x2a1040, 0.85).fillEllipse(this.labRiftX, this.labRiftY, 150, 56);
+      this.labRiftGfx.lineStyle(2, 0x8844cc, 0.8).strokeEllipse(this.labRiftX, this.labRiftY, 150, 56);
+      this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    }
 
     // Тесла и Кюри БУДЯТ игрока у Машины (стоят вплотную). После вводного
     // диалога — разрыв вспыхивает, и они в страхе отбегают за Машину.
@@ -5118,8 +5137,9 @@ export class GameScene extends Phaser.Scene {
       onEnd: () => {
         if (this.currentZone.id !== 'lab') return;
         // Разрыв «открывается» — яркая вспышка
-        if (this.labRiftGfx) {
-          this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 1, to: 0.65 }, scaleX: { from: 1.5, to: 1 }, scaleY: { from: 1.5, to: 1 }, duration: 700 });
+        const riftObj = this.labRiftSpr ?? this.labRiftGfx;
+        if (riftObj) {
+          this.tweens.add({ targets: riftObj, alpha: { from: 1, to: 0.8 }, scaleX: { from: 1.5, to: 1 }, scaleY: { from: 1.5, to: 1 }, duration: 700 });
         }
         this.showMessage(lt('Разрыв открывается!', 'The rift is opening!'));
         // Учёные в страхе отбегают за Машину
@@ -5204,7 +5224,10 @@ export class GameScene extends Phaser.Scene {
       this.labRitual = 'ready';
       this.showMessage(lt('Разрыв нестабилен! Подойди и закрой его [E]', 'The rift is unstable! Approach and seal it [E]'));
       this.events.emit('log', { text: lt('▶ Иди к разрыву и нажми [E]', '▶ Go to the rift and press [E]'), color: '#ff88ff' });
-      if (this.labRiftGfx) {
+      if (this.labRiftSpr) {
+        this.labRiftSpr.setTint(0xff99ff);
+        this.tweens.add({ targets: this.labRiftSpr, scaleX: this.labRiftSpr.scaleX * 1.25, scaleY: this.labRiftSpr.scaleY * 1.25, duration: 600, ease: 'Sine.easeOut' });
+      } else if (this.labRiftGfx) {
         this.labRiftGfx.clear();
         this.labRiftGfx.fillStyle(0x6622aa, 0.95).fillEllipse(this.labRiftX, this.labRiftY, 170, 64);
         this.labRiftGfx.lineStyle(3, 0xcc66ff, 1).strokeEllipse(this.labRiftX, this.labRiftY, 170, 64);
@@ -5227,8 +5250,9 @@ export class GameScene extends Phaser.Scene {
     // Разрыв закрыт — победа
     this.labRitual = 'done';
     this.labState = 'victory';
-    if (this.labRiftGfx) {
-      this.tweens.add({ targets: this.labRiftGfx, alpha: 0, scaleX: 0.1, scaleY: 0.1, duration: 1200 });
+    const riftClose = this.labRiftSpr ?? this.labRiftGfx;
+    if (riftClose) {
+      this.tweens.add({ targets: riftClose, alpha: 0, scaleX: 0.05, scaleY: 0.05, duration: 1200, ease: 'Cubic.easeIn' });
     }
     this.showMessage(lt('Разрыв закрыт. Лаборатория устояла.', 'The rift is sealed. The laboratory stands.'));
     this.events.emit('show-dialog', {

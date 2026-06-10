@@ -1075,20 +1075,7 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture('body_void_colossus', 28, 28);
     g.clear();
 
-    // ── Transfer Machine (body_transfer_machine) — стимпанк-аппарат ──
-    g.fillStyle(0x3a2e1a, 1);           // тёмная латунная база
-    g.fillRect(2, 14, 24, 12);
-    g.fillStyle(0x6b5226, 1);           // корпус
-    g.fillRect(5, 6, 18, 14);
-    g.fillStyle(0x2a2218, 1);           // окно камеры
-    g.fillRect(9, 9, 10, 9);
-    g.fillStyle(0x66ccff, 0.9);         // эфирное свечение внутри (как Сфера)
-    g.fillCircle(14, 13, 4);
-    g.fillStyle(0xc9a227, 1);           // латунные заклёпки/трубы
-    g.fillRect(3, 4, 3, 18); g.fillRect(22, 4, 3, 18);
-    g.fillCircle(5, 6, 2); g.fillCircle(23, 6, 2);
-    g.generateTexture('body_transfer_machine', 28, 28);
-    g.clear();
+    // Transfer Machine теперь арт-файл assets/lab/transfer_machine.webp (load.image выше)
 
     // ── Lab Assistant (body_lab_assistant) — стимпанк-человек ──
     g.fillStyle(0x4a3b28, 1);           // ноги/брюки
@@ -1141,6 +1128,15 @@ export class BootScene extends Phaser.Scene {
       this.load.spritesheet(`scientist_woman_${dir}`, `assets/lab/scientist_woman_idle_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
     }
     this.load.spritesheet('sphere_swirl', 'assets/lab/sphere_swirl.webp', { frameWidth: 256, frameHeight: 256 });
+    for (const dir of ['down', 'right', 'up']) {
+      this.load.spritesheet(`void_stalker_walk_${dir}_sheet`, `assets/lab/void_stalker_walk_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
+      this.load.spritesheet(`void_stalker_atk_${dir}_sheet`,  `assets/lab/void_stalker_atk_${dir}.webp`,  { frameWidth: 256, frameHeight: 256 });
+      this.load.spritesheet(`void_colossus_walk_${dir}_sheet`, `assets/lab/void_colossus_walk_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
+      this.load.spritesheet(`void_colossus_atk_${dir}_sheet`,  `assets/lab/void_colossus_atk_${dir}.webp`,  { frameWidth: 256, frameHeight: 256 });
+    }
+    this.load.spritesheet('rift_swirl', 'assets/lab/rift_swirl.webp', { frameWidth: 256, frameHeight: 256 });
+    // Машина Переноса — статичная картинка (заменяет процедурный спрайт)
+    this.load.image('body_transfer_machine', 'assets/lab/transfer_machine.webp');
 
     // ── Spell spritesheets ──────────────────────────────────────────────────
     // FIRE
@@ -1298,6 +1294,18 @@ export class BootScene extends Phaser.Scene {
       mk('lab_assistant_walk_left', 'lab_hero_walk_right', 16, -1);
       mk('lab_assistant_atk_left',  'lab_hero_cast_right', 24, 0);
       mk('sphere_swirl_anim', 'sphere_swirl', 14, -1);
+      mk('rift_swirl_anim', 'rift_swirl', 12, -1);
+      // Твари Пустоты: idle = первые кадры walk (медленно), left = flip right
+      for (const vid of ['void_stalker', 'void_colossus']) {
+        for (const dir of ['down', 'right', 'up']) {
+          mk(`${vid}_idle_${dir}`, `${vid}_walk_${dir}_sheet`, 4, -1, [0, 1, 2]);
+          mk(`${vid}_walk_${dir}`, `${vid}_walk_${dir}_sheet`, 14, -1);
+          mk(`${vid}_atk_${dir}`,  `${vid}_atk_${dir}_sheet`,  18, 0);
+        }
+        mk(`${vid}_idle_left`, `${vid}_walk_right_sheet`, 4, -1, [0, 1, 2]);
+        mk(`${vid}_walk_left`, `${vid}_walk_right_sheet`, 14, -1);
+        mk(`${vid}_atk_left`,  `${vid}_atk_right_sheet`,  18, 0);
+      }
     }
 
     // ── Cart animations (caravan) ────────────────────────────────────────────

@@ -836,7 +836,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     npcMaxHp: 600,
     npcStats: { [StatName.Health]: 30, [StatName.Armor]: 10 },
     weapon: WeaponType.Fists, color: 0xbb8833, abilityName: '—',
-    displaySizeMultiplier: 1.6,
+    displaySizeMultiplier: 3.4, // арт transfer_machine.webp ~82px на экране
   },
 
   // Родной персонаж в паровом мире — ассистент (тело игрока в данже лаборатории).
