@@ -99,6 +99,16 @@ export class Sphere extends Phaser.GameObjects.Container {
     this.innerOrb = scene.add.arc(0, 0, 10, 0, 360, false, 0xaaeeff, 0.9);
     this.add(this.innerOrb);
 
+    // Спрайт-вихрь (если ассет загружен) — заменяет процедурный шар,
+    // свечение остаётся подложкой. Фоллбек — прежние круги.
+    if (scene.anims.exists('sphere_swirl_anim')) {
+      this.innerOrb.setVisible(false);
+      const swirl = scene.add.sprite(0, 0, 'sphere_swirl');
+      swirl.play('sphere_swirl_anim');
+      swirl.setDisplaySize(34, 34);
+      this.add(swirl);
+    }
+
     scene.add.existing(this);
 
     // Клавиатура

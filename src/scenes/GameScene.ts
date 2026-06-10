@@ -5094,6 +5094,19 @@ export class GameScene extends Phaser.Scene {
     this.labRiftGfx.lineStyle(2, 0x8844cc, 0.8).strokeEllipse(this.labRiftX, this.labRiftY, 150, 56);
     this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
 
+    // Тесла и Кюри у Машины — анимированные спрайты (декор, без интеракции)
+    if (this.labMachine && this.anims.exists('scientist_man_idle_down')) {
+      const mx = this.labMachine.x, my = this.labMachine.y;
+      const tesla = this.add.sprite(mx - 70, my + 30, 'scientist_man_down');
+      tesla.play('scientist_man_idle_down').setDisplaySize(44, 44).setDepth(4);
+      this.add.text(mx - 70, my + 4, lt('Тесла', 'Tesla'),
+        { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
+      const curie = this.add.sprite(mx + 70, my + 30, 'scientist_woman_down');
+      curie.play('scientist_woman_idle_down').setDisplaySize(44, 44).setDepth(4);
+      this.add.text(mx + 70, my + 4, lt('Кюри', 'Curie'),
+        { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
+    }
+
     // Вводный диалог близких → после него стартуют волны
     this.events.emit('show-dialog', {
       messages: LAB_INTRO_DIALOG,

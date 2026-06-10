@@ -1133,6 +1133,15 @@ export class BootScene extends Phaser.Scene {
 
     // Old warrior/mage directional spritesheets removed — replaced by swordsman/archer/wizard in MOB_SPRITE_SETS
 
+    // ── Данж лаборатории: герой-ассистент, учёные, Сфера (листы 5×5, кадр 256) ──
+    for (const dir of ['down', 'right', 'up']) {
+      this.load.spritesheet(`lab_hero_walk_${dir}`, `assets/lab/hero_walk_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
+      this.load.spritesheet(`lab_hero_cast_${dir}`, `assets/lab/hero_cast_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
+      this.load.spritesheet(`scientist_man_${dir}`, `assets/lab/scientist_man_idle_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
+      this.load.spritesheet(`scientist_woman_${dir}`, `assets/lab/scientist_woman_idle_${dir}.webp`, { frameWidth: 256, frameHeight: 256 });
+    }
+    this.load.spritesheet('sphere_swirl', 'assets/lab/sphere_swirl.webp', { frameWidth: 256, frameHeight: 256 });
+
     // ── Spell spritesheets ──────────────────────────────────────────────────
     // FIRE
     this.load.spritesheet('spell_fireball',       'assets/spells/fire/fireball_sheet.webp',        { frameWidth: 341, frameHeight: 341 }); // 3×3=9
@@ -1259,6 +1268,36 @@ export class BootScene extends Phaser.Scene {
           });
         }
       }
+    }
+
+    // ── Данж лаборатории: анимации героя/учёных/Сферы ───────────────────────
+    // Герой = тело lab_assistant (Body подхватывает по ключам lab_assistant_*).
+    // Направления в листах: down/right/up; left = right с флипом (регистрируем
+    // left-анимацию на right-текстуре — flip-детект в Body/Creature сработает).
+    {
+      const mk = (key: string, sheet: string, fps: number, repeat: number, frames?: number[]) => {
+        if (this.anims.exists(key) || !this.textures.exists(sheet)) return;
+        this.anims.create({
+          key,
+          frames: frames
+            ? frames.map(f => ({ key: sheet, frame: f }))
+            : this.anims.generateFrameNumbers(sheet, { start: 0, end: 24 }),
+          frameRate: fps,
+          repeat,
+        });
+      };
+      for (const dir of ['down', 'right', 'up']) {
+        mk(`lab_assistant_idle_${dir}`, `lab_hero_walk_${dir}`, 4, -1, [0, 1, 2]); // лёгкое «дыхание»
+        mk(`lab_assistant_walk_${dir}`, `lab_hero_walk_${dir}`, 16, -1);
+        mk(`lab_assistant_atk_${dir}`,  `lab_hero_cast_${dir}`, 24, 0);
+        mk(`scientist_man_idle_${dir}`,   `scientist_man_${dir}`,   6, -1);
+        mk(`scientist_woman_idle_${dir}`, `scientist_woman_${dir}`, 6, -1);
+      }
+      // left = right (флип сработает по совпадению текстуры)
+      mk('lab_assistant_idle_left', 'lab_hero_walk_right', 4, -1, [0, 1, 2]);
+      mk('lab_assistant_walk_left', 'lab_hero_walk_right', 16, -1);
+      mk('lab_assistant_atk_left',  'lab_hero_cast_right', 24, 0);
+      mk('sphere_swirl_anim', 'sphere_swirl', 14, -1);
     }
 
     // ── Cart animations (caravan) ────────────────────────────────────────────

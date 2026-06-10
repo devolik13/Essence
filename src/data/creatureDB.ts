@@ -852,6 +852,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Fists, // гуманоид — реально использует оружие Сферы
     color: 0xd9b48f, abilityName: 'Strike',
     canUseAllSpells: true,
+    displaySizeMultiplier: 1.4, // спрайт героя (lab_hero_*): 34px → ~48px как у воина
   },
 };
 
