@@ -70,7 +70,9 @@ export class GameScene extends Phaser.Scene {
   } | null = null;
   private damageTexts: DamageText[] = [];
   // ── Данж «Защита лаборатории» (зона lab) ──────────────────────────────────
-  private labState: 'idle' | 'running' | 'victory' | 'defeat' = 'idle';
+  private labState: 'idle' | 'ready_to_start' | 'running' | 'victory' | 'defeat' = 'idle';
+  /** HUD-подсказка «нажми F чтобы начать оборону». */
+  private labStartPrompt: Phaser.GameObjects.Text | null = null;
   private labWave = 0;
   private labMachine: Creature | null = null;
   private labCheckTimer = 0;
@@ -180,6 +182,7 @@ export class GameScene extends Phaser.Scene {
 
   // Клавиши
   private keyQ!: Phaser.Input.Keyboard.Key;
+  private keyF!: Phaser.Input.Keyboard.Key;
   private keyE!: Phaser.Input.Keyboard.Key;
   private keyEsc!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
@@ -477,6 +480,7 @@ export class GameScene extends Phaser.Scene {
     // ─── Клавиши ─────────────────────────────────────
     if (this.input.keyboard) {
       this.keyQ     = this.input.keyboard.addKey('Q');
+      this.keyF     = this.input.keyboard.addKey('F');
       this.keyE     = this.input.keyboard.addKey('E');
       this.keyEsc   = this.input.keyboard.addKey('ESC');
       this.keySpace = this.input.keyboard.addKey('SPACE');
@@ -682,6 +686,10 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
+      // [F] — начать оборону лаборатории (когда умения расставлены)
+      if (Phaser.Input.Keyboard.JustDown(this.keyF)) {
+        this.startLabBattle();
+      }
       // Слот 1 [1] — базовая атака
       if (Phaser.Input.Keyboard.JustDown(this.key1)) {
         this.handleAttack();
@@ -2308,9 +2316,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Show floating message above player */
-  private showMessage(text: string) {
-    if (!this.playerBody) return;
-    this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 30, 0, false, false, text));
+  private showMessage(text: string, at?: { x: number; y: number }) {
+    const px = at?.x ?? this.playerBody?.x;
+    const py = at?.y ?? this.playerBody?.y;
+    if (px === undefined || py === undefined) return;
+    this.damageTexts.push(new DamageText(this, px, py - 30, 0, false, false, text));
   }
 
   private startGathering(node: typeof this.resourceNodes[0]) {
@@ -3238,6 +3248,10 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Твари Пустоты тел не оставляют (полуматериальны): выдаём XP/лог,
+    // затем эффект растворения и убираем из мира — без захватываемого трупа.
+    const isVoid = creature.definition.voidResistant;
+
     const xpTotal = creature.definition.xpReward;
 
     if (this.playerBody) {
@@ -3292,6 +3306,19 @@ export class GameScene extends Phaser.Scene {
 
     // Автосохранение
     this.persistState();
+
+    // Твари Пустоты: эффект растворения в дым → удаление, без трупа и респауна
+    if (isVoid) {
+      spawnHitVFX(this, creature.x, creature.y, 'neutral', true);
+      this.tweens.add({
+        targets: creature, alpha: 0, scaleX: 1.3, scaleY: 1.3, duration: 500,
+        onComplete: () => {
+          creature.destroy();
+          this.creatures = this.creatures.filter(c => c !== creature);
+        },
+      });
+      return;
+    }
 
     // Пульсация — тело доступно для захвата (твари Пустоты тел не оставляют)
     if (!creature.definition.voidResistant && !creature.definition.immobile) {
@@ -5035,6 +5062,7 @@ export class GameScene extends Phaser.Scene {
       const z = this.groundZones[i];
       if (z.spellId === spellId && z.ownerIsPlayer) {
         z.gfx.destroy();
+        if (z.sprite) z.sprite.destroy(); // иначе анимированный огонь висел вечно
         this.groundZones.splice(i, 1);
         return true;
       }
@@ -5154,6 +5182,7 @@ export class GameScene extends Phaser.Scene {
     this.labRitualTimer = 0;
     this.labRiftSpr = null;
     this.labRiftGfx = null;
+    this.labStartPrompt = null;
     this.labMachine = this.creatures.find(c => c.definition.id === 'transfer_machine') ?? null;
 
     // Разрыв Пустоты на севере — анимированный спрайт (фоллбек: овал)
@@ -5205,13 +5234,36 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: sc.spr, x: sc.toX, y: sc.toY, duration: 1100, ease: 'Cubic.easeIn' });
           this.tweens.add({ targets: sc.label, x: sc.toX, y: sc.toY - 26, duration: 1100, ease: 'Cubic.easeIn' });
         }
-        this.time.delayedCall(2000, () => {
+        // Не запускаем волны сразу: даём поставить умения, начать по [F].
+        this.time.delayedCall(1500, () => {
           if (this.currentZone.id !== 'lab' || this.labState !== 'idle') return;
-          this.labState = 'running';
-          this.spawnLabWave(1);
+          this.labState = 'ready_to_start';
+          this.showLabStartPrompt();
         });
       },
     });
+  }
+
+  /** Подсказка «[F] Начать оборону» — игрок ставит умения, потом сам стартует. */
+  private showLabStartPrompt() {
+    this.events.emit('log', { text: lt('Расставь умения на панели. [F] — начать оборону.', 'Set your abilities on the bar. [F] — begin the defense.'), color: '#ffdd66' });
+    if (this.labStartPrompt) this.labStartPrompt.destroy();
+    const cam = this.cameras.main;
+    this.labStartPrompt = this.add.text(cam.width / 2, cam.height - 150,
+      lt('▶ [F] Начать оборону', '▶ [F] Begin the defense'),
+      { fontSize: '20px', fontFamily: '"Cormorant Garamond", serif', color: '#ffe08a',
+        stroke: '#1a1208', strokeThickness: 4, align: 'center' })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(2000);
+    this.tweens.add({ targets: this.labStartPrompt, alpha: { from: 0.55, to: 1 }, duration: 700, yoyo: true, repeat: -1 });
+  }
+
+  /** [F] в режиме ready_to_start — запускает первую волну. */
+  private startLabBattle(): void {
+    if (this.currentZone.id !== 'lab' || this.labState !== 'ready_to_start') return;
+    this.labState = 'running';
+    this.labStartPrompt?.destroy();
+    this.labStartPrompt = null;
+    this.spawnLabWave(1);
   }
 
   /** [E] у разрыва после зачистки волн — начать ритуал закрытия (канал 6 сек). */
@@ -5351,7 +5403,7 @@ export class GameScene extends Phaser.Scene {
       c.npcCooldownMult = 0.8;
       spawnCastVFX(this, c.x, c.y, 'fire');
       this.cameras.main.shake(150, 0.004);
-      this.showMessage(lt('Игнис: «Ты не первый, кто приходит за моим огнём.»', 'Ignis: "You are not the first to come for my fire."'));
+      this.showMessage(lt('Ты не первый, кто приходит за моим огнём.', 'You are not the first to come for my fire.'), { x: c.x, y: c.y });
       this.events.emit('log', { text: lt('Игнис воздвигает стены огня!', 'Ignis raises walls of fire!'), color: '#ff8844' });
       return;
     }
@@ -5359,7 +5411,7 @@ export class GameScene extends Phaser.Scene {
     c.npcCooldownMult = 0.45;
     this.cameras.main.shake(350, 0.01);
     spawnCastVFX(this, c.x, c.y, 'fire');
-    this.showMessage(lt('Игнис: «ГОРИ!»', 'Ignis: "BURN!"'));
+    this.showMessage(lt('ГОРИ!', 'BURN!'), { x: c.x, y: c.y });
     this.events.emit('log', { text: lt('Игнис в ярости! Он призывает искр!', 'Ignis is enraged! He summons sparks!'), color: '#ff5522' });
     // Две искры-миньона из пламени босса (их тела можно захватить — учитель Искры)
     const sparkDef = CREATURE_DB['spark'];
