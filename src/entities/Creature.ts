@@ -54,6 +54,9 @@ export class Creature extends Phaser.GameObjects.Container {
   public aiState: CreatureAIState = 'idle';
   /** Накопленная дельта (мс) для троттлинга AI дальних мобов (см. GameScene.update). */
   public aiAccumMs = 0;
+  /** Пока > 0 — существо переключило внимание на игрока (получило от него урон).
+   *  Для фракционных тварей (void) подавляет factionTarget в GameScene. */
+  public playerAggroTimer = 0;
   /** Огрызается на атаковавшего: перебивает skipAggro (свои/safe), пока не уйдёт
    *  за поводок. Иначе моб одного вида с игроком убегал бы и лечился на спавне. */
   public retaliating: boolean = false;
@@ -204,6 +207,7 @@ export class Creature extends Phaser.GameObjects.Container {
       this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     }
     if (this.spookedTimer > 0) this.spookedTimer = Math.max(0, this.spookedTimer - dt);
+    if (this.playerAggroTimer > 0) this.playerAggroTimer = Math.max(0, this.playerAggroTimer - dt);
     for (let i = 0; i < this.spellCooldowns.length; i++) {
       if (this.spellCooldowns[i] > 0) this.spellCooldowns[i] = Math.max(0, this.spellCooldowns[i] - dt);
     }
@@ -536,6 +540,7 @@ export class Creature extends Phaser.GameObjects.Container {
     // моб того же вида, что и игрок, убегал бы к спавну и лечился.
     if (actual > 0 && this.definition.type !== BodyType.Fleeing && this.aiState !== 'dead') {
       this.retaliating = true;
+      this.playerAggroTimer = 6; // 6 сек внимания атаковавшему (для void: бросают Машину)
       if (this.aiState === 'idle' || this.aiState === 'wander' || this.aiState === 'return') {
         this.aiState = 'chase';
       }

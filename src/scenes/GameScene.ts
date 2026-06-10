@@ -811,7 +811,11 @@ export class GameScene extends Phaser.Scene {
       // (NPC-животные между собой не дерутся: predator-prey aggro срабатывает
       // через стандартный 200px-радиус на playerBody — то есть только когда
       // игрок в теле жертвы.)
-      creature.factionTarget = this.findFactionEnemy(creature);
+      // Твари Пустоты, получившие урон от игрока, на время бросают Машину
+      // и идут за обидчиком (босс — так же).
+      creature.factionTarget = (creature.definition.faction === 'void' && creature.playerAggroTimer > 0)
+        ? null
+        : this.findFactionEnemy(creature);
       let targetX = px, targetY = py;
       if (creature.factionTarget) {
         targetX = creature.factionTarget.x;
@@ -5090,25 +5094,15 @@ export class GameScene extends Phaser.Scene {
       this.creatures.push(c);
     };
     if (n === 1) {
-      // 3 сталкера от разрыва — расходятся к игроку
+      // 3 сталкера от разрыва
       spawnVoid('void_stalker', riftX - 120, riftY);
       spawnVoid('void_stalker', riftX, riftY + 40);
       spawnVoid('void_stalker', riftX + 120, riftY);
       this.events.emit('log', { text: lt('Волна 1: твари Пустоты!', 'Wave 1: Void creatures!'), color: '#bb88ff' });
-    } else if (n === 2) {
-      // громила идёт на Машину + 2 сталкера на игрока
-      spawnVoid('void_brute', riftX, riftY);
-      spawnVoid('void_stalker', riftX - 160, riftY + 30);
-      spawnVoid('void_stalker', riftX + 160, riftY + 30);
-      this.events.emit('log', { text: lt('Волна 2: они идут к Машине!', 'Wave 2: they are coming for the Machine!'), color: '#bb88ff' });
     } else {
-      // финальная: 2 громилы + 3 сталкера
-      spawnVoid('void_brute', riftX - 100, riftY);
-      spawnVoid('void_brute', riftX + 100, riftY);
-      spawnVoid('void_stalker', riftX - 200, riftY + 40);
-      spawnVoid('void_stalker', riftX, riftY + 60);
-      spawnVoid('void_stalker', riftX + 200, riftY + 40);
-      this.events.emit('log', { text: lt('Последняя волна! Защити Машину!', 'Final wave! Protect the Machine!'), color: '#ff88ff' });
+      // Финал: один, но огромный
+      spawnVoid('void_colossus', riftX, riftY + 20);
+      this.events.emit('log', { text: lt('Из разрыва выходит что-то ОГРОМНОЕ...', 'Something HUGE is coming through the rift...'), color: '#ff88ff' });
     }
   }
 
@@ -5129,7 +5123,7 @@ export class GameScene extends Phaser.Scene {
     this.labCheckTimer = 0;
     const aliveVoid = this.creatures.some(c => !c.isDead && c.definition.voidResistant);
     if (aliveVoid || this.labSpawnPending) return;
-    if (this.labWave < 3) {
+    if (this.labWave < 2) {
       this.labSpawnPending = true;
       this.events.emit('log', { text: lt(`Волна ${this.labWave} отбита.`, `Wave ${this.labWave} repelled.`), color: '#88ff88' });
       this.time.delayedCall(3000, () => {

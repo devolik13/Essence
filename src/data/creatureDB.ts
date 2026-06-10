@@ -787,11 +787,29 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     type: BodyType.Combat, damageType: 'melee',
     caps: { [StatName.Agility]: 20, [StatName.Health]: 12 },
     xpReward: 60,
+    npcMaxHp: 300, // ×3 по фидбеку: умирали с одного тика Стены огня
     npcStats: {
       [StatName.Agility]: 12,
       [StatName.Health]: 10, [StatName.Armor]: 2, [StatName.Luck]: 4,
     },
     weapon: WeaponType.Dagger, color: 0x221133, abilityName: 'Void Claws',
+  },
+
+  // Босс 2-й волны данжа: один, но огромный. Ломает Машину, при атаке
+  // переключается на игрока (playerAggroTimer, как все твари Пустоты).
+  void_colossus: {
+    id: 'void_colossus', name: 'Void Colossus', nameRu: 'Колосс Пустоты',
+    faction: 'void', voidResistant: true, isBoss: true,
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 40, [StatName.Health]: 40 },
+    xpReward: 250,
+    npcMaxHp: 900,
+    npcStats: {
+      [StatName.Strength]: 22,
+      [StatName.Health]: 36, [StatName.Armor]: 10, [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Hammer, color: 0x441155, abilityName: 'Void Crush',
+    displaySizeMultiplier: 2.4,
   },
 
   void_brute: {
