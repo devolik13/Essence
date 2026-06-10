@@ -117,7 +117,7 @@ const QUEST_SCOUT: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'checkpoint', nameRu: 'Контрольная точка', nameEn: 'Checkpoint', icon: '🔍', color: 0x55aaff,
-    type: 'waypoint', count: 3, radius: 500,
+    type: 'waypoint', count: 3, radius: 2000, // ×4: настоящая разведка дороги, а не прогулка
   }],
   rewardSpellId: 'bow_shot',
   xpReward: 50,

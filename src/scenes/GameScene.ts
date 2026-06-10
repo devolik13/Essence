@@ -3386,10 +3386,16 @@ export class GameScene extends Phaser.Scene {
       // packed into the (0.4–1.0)·radius annulus.
       const minSpacing = Math.max(60, so.radius / Math.sqrt(so.count) * 0.7);
       const placed: Array<{ x: number; y: number }> = [];
+      // Равномерная «роза» направлений: i-й объект в своём секторе круга
+      // (со случайным поворотом всей розы и джиттером внутри сектора) —
+      // объекты гарантированно в разные стороны, а не кучей с одного бока.
+      const roseOffset = Math.random() * Math.PI * 2;
       for (let i = 0; i < so.count; i++) {
         let ox = 0, oy = 0;
         for (let attempt = 0; attempt < 30; attempt++) {
-          const angle = Math.random() * Math.PI * 2;
+          const sector = (i / so.count) * Math.PI * 2;
+          const jitter = (Math.random() - 0.5) * (Math.PI * 2 / so.count) * 0.6;
+          const angle = roseOffset + sector + jitter;
           const dist = so.radius * 0.4 + Math.random() * so.radius * 0.6;
           ox = Math.max(40, Math.min(mapW - 40, ax + Math.cos(angle) * dist));
           oy = Math.max(40, Math.min(mapH - 40, ay + Math.sin(angle) * dist));
