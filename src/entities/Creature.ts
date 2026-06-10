@@ -282,10 +282,13 @@ export class Creature extends Phaser.GameObjects.Container {
         this.aiState = 'idle';
       }
 
+      // Твари Пустоты в данже не «привязаны» к спавну: цель — Машина/игрок,
+      // их нельзя сбросить с боя возвратом (а возврат ещё и лечил до полного).
+      const noLeash = this.definition.voidResistant;
       if (this.aiState === 'chase' || this.aiState === 'attack') {
         if (this.skipAggro && !this.factionTarget && !this.retaliating) {
           this.aiState = 'return';
-        } else if (distFromSpawn > LEASH_RANGE) {
+        } else if (!noLeash && distFromSpawn > LEASH_RANGE) {
           this.aiState = 'return';
           this.retaliating = false; // ушёл за поводок — перестаёт огрызаться
         } else if (dist <= attackRange) {

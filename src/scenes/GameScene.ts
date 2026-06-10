@@ -871,7 +871,7 @@ export class GameScene extends Phaser.Scene {
       const pb = this.playerBody;
       const minDist = 26; // 14 + 12 — радиусы тела и моба
       this.creatureGrid.forEachNear(pb.x, pb.y, minDist + 16, (c) => {
-        if (c.isDead) return;
+        if (c.isDead || c.definition.immobile) return; // Машину не двигаем
         const dx = pb.x - c.x;
         const dy = pb.y - c.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -5024,6 +5024,9 @@ export class GameScene extends Phaser.Scene {
   // ─── Респаун ──────────────────────────────────────────
 
   private scheduleRespawn(creature: Creature) {
+    // Твари данжа (Пустота) и неподвижные объекты не респавнятся — иначе
+    // волны зацикливались: убитые сталкеры/Колосс возвращались через 30с.
+    if (creature.definition.voidResistant || creature.definition.immobile) return;
     this.respawnQueue.push({
       id: creature.definition.id,
       x: creature.spawnX,
