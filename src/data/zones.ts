@@ -634,7 +634,21 @@ export const ZONE_FIRE: ZoneConfig = {
   tint: 0xff7733,
   respawnPoint: { x: PW / 2, y: 200 },
   safeBounds: { x1: PW / 2 - 150, y1: 80, x2: PW / 2 + 150, y2: 320 },
-  spawnGroups: [],
+  spawnGroups: [
+    // Босс Игнис — в глубине рощи (юг). isBoss: HP-баннер, частота Печати.
+    { x: PW / 2, y: PH - 500, creatureId: 'ignis', count: 1 },
+    // Искры — малые огненные элементали (учитель Искры через квест тела)
+    { x: 700,  y: 900,  creatureId: 'spark', count: 1 },
+    { x: 1600, y: 1200, creatureId: 'spark', count: 1 },
+    { x: 2600, y: 800,  creatureId: 'spark', count: 1 },
+    { x: 3200, y: 1500, creatureId: 'spark', count: 1 },
+    { x: 1100, y: 2000, creatureId: 'spark', count: 1 },
+    { x: 2300, y: 2200, creatureId: 'spark', count: 1 },
+    // Золовики — T2 огня
+    { x: 900,  y: 2700, creatureId: 'asher', count: 1 },
+    { x: 2000, y: 2900, creatureId: 'asher', count: 1 },
+    { x: 3000, y: 2600, creatureId: 'asher', count: 1 },
+  ],
   exits: [
     { edge: 'north', targetZone: 'village', spawnX: PW / 2, spawnY: PH - 80 },
   ],

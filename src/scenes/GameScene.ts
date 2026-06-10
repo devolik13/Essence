@@ -2593,7 +2593,7 @@ export class GameScene extends Phaser.Scene {
             const r = calcMagicDamage(t.casterStats, c.stats, t.baseDamage);
             c.takeDamage(r.final);
             this.aggroCreature(c);
-            spawnSpellImpact(this, c.x, c.y, 'mob_fire_spark'); // spark explosion
+            spawnSpellImpact(this, c.x, c.y, 'mob_fire_spark', 80, c); // spark explosion
             this.damageTexts.push(new DamageText(this, c.x, c.y - 10, r.final, r.crit, false));
             if (c.isDead) this.onCreatureKilled(c);
           }
@@ -3948,7 +3948,7 @@ export class GameScene extends Phaser.Scene {
         spell.school === 'fire' ? 0xff5500 : spell.school === 'water' ? 0x4499ff : 0xffffff);
     }
     spawnHitVFX(this, target.x, target.y, spellSchool, result.crit || !!isDouble);
-    spawnSpellImpact(this, target.x, target.y, spell.id);
+    spawnSpellImpact(this, target.x, target.y, spell.id, 80, target);
     if (result.crit || isDouble) sfxCritHit(); else if (spell.damageType === 'magic') sfxMagicHit(); else sfxMeleeHit();
 
     // ── Лайфстил (Кровавый размах: 30% от урона лечит) ──────────────────

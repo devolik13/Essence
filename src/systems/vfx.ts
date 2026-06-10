@@ -42,13 +42,22 @@ export const SPELL_ZONE_ANIM: Record<string, string> = {
 };
 
 /** Spawn animated impact sprite at position */
-export function spawnSpellImpact(scene: Phaser.Scene, x: number, y: number, spellId: string, size: number = 80) {
+export function spawnSpellImpact(
+  scene: Phaser.Scene, x: number, y: number, spellId: string, size: number = 80,
+  /** Контейнер цели (Creature): взрыв добавляется ребёнком и едет вместе с ней */
+  follow?: Phaser.GameObjects.Container,
+) {
   const animKey = SPELL_IMPACT_ANIM[spellId];
   if (!animKey || !scene.anims.exists(animKey)) return;
-  const sprite = scene.add.sprite(x, y, animKey).setDepth(55);
+  if (spellId === 'mob_fire_spark') size *= 0.8; // Искра — компактный взрыв
+  const attach = !!follow && follow.active;
+  const sprite = scene.add.sprite(attach ? 0 : x, attach ? 0 : y, animKey).setDepth(55);
   sprite.setDisplaySize(size, size);
+  if (attach) follow!.add(sprite); // относительно центра существа
   sprite.play(animKey);
-  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
+  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+    if (sprite.active) sprite.destroy();
+  });
 }
 
 /** Spawn animated projectile flying to target */
