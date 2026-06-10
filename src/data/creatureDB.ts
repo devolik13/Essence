@@ -819,6 +819,21 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.Fists, color: 0xbb8833, abilityName: '—',
     displaySizeMultiplier: 1.6,
   },
+
+  // Родной персонаж в паровом мире — ассистент (тело игрока в данже лаборатории).
+  // Не спавнится в мире; назначается автоматически при входе в зону lab.
+  lab_assistant: {
+    id: 'lab_assistant', name: 'Assistant', nameRu: 'Ассистент',
+    type: BodyType.Combat, damageType: 'melee',
+    caps: {
+      [StatName.Strength]: 30, [StatName.Agility]: 30, [StatName.Intellect]: 30,
+      [StatName.Health]: 15, [StatName.Armor]: 10, [StatName.Will]: 10,
+    },
+    xpReward: 0,
+    weapon: WeaponType.Fists, // гуманоид — реально использует оружие Сферы
+    color: 0xd9b48f, abilityName: 'Strike',
+    canUseAllSpells: true,
+  },
 };
 
 export function getCreature(id: string): BodyDefinition | undefined {

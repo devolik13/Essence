@@ -50,6 +50,10 @@ export class Sphere extends Phaser.GameObjects.Container {
   /** ID последнего тела (для восстановления при переходе между зонами) */
   public lastBodyId: string | null = null;
 
+  /** Тело, в которое вернуться после данжа лаборатории ('' = был в астрале).
+   *  null = не в данже. Не персистится (v1). */
+  public labReturnBodyId: string | null = null;
+
   /** Экипированные предметы */
   public equipment: import('../types/items').Equipment = {};
 

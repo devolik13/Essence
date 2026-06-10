@@ -28,7 +28,7 @@ import { rollLoot, ITEMS, equipmentStatBonuses } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t, lt } from '../i18n';
-import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG } from '../data/dialogs';
+import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG, LAB_INTRO_DIALOG, LAB_VICTORY_DIALOG } from '../data/dialogs';
 import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
 import { reveal as bestiaryReveal } from '../data/bestiaryProgress';
@@ -75,6 +75,13 @@ export class GameScene extends Phaser.Scene {
   private labMachine: Creature | null = null;
   private labCheckTimer = 0;
   private labSpawnPending = false;
+  /** Ритуал закрытия разрыва: появляется после 3-й волны. */
+  private labRitual: 'none' | 'ready' | 'channeling' | 'done' = 'none';
+  private labRitualTimer = 0;
+  private labRitualReinforced = false;
+  private labRiftGfx: Phaser.GameObjects.Graphics | null = null;
+  private labRiftX = 0;
+  private labRiftY = 0;
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
   private windBarriers: WindBarrier[] = [];
@@ -379,7 +386,22 @@ export class GameScene extends Phaser.Scene {
     });
 
     // ─── Восстановление тела (загрузка) или авто-вселение (новая игра) ─────
-    const autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
+    let autoBodyId = this.isNewGame ? this.newGameBodyId : this.sphere.lastBodyId;
+    // Данж лаборатории: в паровом мире игрок ВСЕГДА в родном теле ассистента.
+    // Прежнее тело запоминаем и возвращаем при выходе ('' = был в астрале).
+    if (this.currentZone.id === 'lab') {
+      if (autoBodyId !== 'lab_assistant') this.sphere.labReturnBodyId = autoBodyId ?? '';
+      autoBodyId = 'lab_assistant';
+    } else if (this.sphere.labReturnBodyId !== null) {
+      autoBodyId = this.sphere.labReturnBodyId || null;
+      this.sphere.labReturnBodyId = null;
+      this.sphere.lastBodyId = autoBodyId;
+    } else if (autoBodyId === 'lab_assistant') {
+      // Сейв сделан внутри данжа: ассистент не существует в фэнтези-мире —
+      // возвращаемся в астрал у камня возрождения.
+      autoBodyId = null;
+      this.sphere.lastBodyId = null;
+    }
     if (autoBodyId) {
       const bodyDef = CREATURE_DB[autoBodyId] ?? lookupStarterBody(autoBodyId);
       if (bodyDef) {
@@ -396,8 +418,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // ─── Стартовые тела (визуальные маркеры) ─────────
-    this.createStarterMarkers();
+    // ─── Стартовые тела (визуальные маркеры; в паровом мире их нет) ─────────
+    if (this.currentZone.id !== 'lab') this.createStarterMarkers();
 
     // ─── Мобы ────────────────────────────────────────
     this.spawnCreatures();
@@ -632,7 +654,7 @@ export class GameScene extends Phaser.Scene {
       }
       // [E] в теле — лут, квестодатель, ноды, верстаки, NPC, захват
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        if (!this.tryPickupLoot() && !this.tryTalkToQuestGiver() && !this.tryInteractWorldObject()) {
+        if (!this.tryStartLabRitual() && !this.tryPickupLoot() && !this.tryTalkToQuestGiver() && !this.tryInteractWorldObject()) {
           this.tryCaptureDead();
         }
       }
@@ -851,7 +873,7 @@ export class GameScene extends Phaser.Scene {
     this.updateExitArrows();
     this.updateBossBanner();
     this.updateStarterWander(delta);
-    if (this.currentZone.id === 'lab') this.updateLabDungeon(delta);
+    if (this.currentZone.id === 'lab') { this.updateLabDungeon(delta); this.updateLabRitual(delta); }
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -990,7 +1012,9 @@ export class GameScene extends Phaser.Scene {
       deathDebuff: this.sphere.deathDebuffRemaining,
       activeEnchantId: this.sphere.activeEnchant?.id ?? null,
       inCombat: this.isInCombat,
-      aoeCast: this.aoeCasting
+      aoeCast: this.labRitual === 'channeling'
+        ? { elapsed: 6 - this.labRitualTimer, duration: 6, name: lt('Закрытие разрыва', 'Sealing the rift') }
+        : this.aoeCasting
         ? { elapsed: this.aoeCasting.elapsed, duration: this.aoeCasting.duration, name: lt(this.aoeCasting.spell.nameRu, this.aoeCasting.spell.nameEn) }
         : this.gatheringNode
           ? { elapsed: 3 - this.gatheringTimer, duration: 3, name: `⛏ ${lt(this.gatheringNode.def.nameRu, this.gatheringNode.def.nameEn)}` }
@@ -4958,13 +4982,43 @@ export class GameScene extends Phaser.Scene {
     this.labWave = 0;
     this.labCheckTimer = 0;
     this.labSpawnPending = false;
+    this.labRitual = 'none';
+    this.labRitualTimer = 0;
+    this.labRitualReinforced = false;
     this.labMachine = this.creatures.find(c => c.definition.id === 'transfer_machine') ?? null;
-    this.showMessage(lt('Лаборатория. Что-то приближается...', 'The laboratory. Something is coming...'));
-    this.time.delayedCall(4000, () => {
-      if (this.currentZone.id !== 'lab') return;
-      this.labState = 'running';
-      this.spawnLabWave(1);
+
+    // Разрыв Пустоты на севере — пульсирующий тёмный овал
+    const zw = this.currentZone.widthTiles * TILE_SIZE;
+    this.labRiftX = zw / 2;
+    this.labRiftY = 220;
+    this.labRiftGfx = this.add.graphics().setDepth(5);
+    this.labRiftGfx.fillStyle(0x2a1040, 0.85).fillEllipse(this.labRiftX, this.labRiftY, 150, 56);
+    this.labRiftGfx.lineStyle(2, 0x8844cc, 0.8).strokeEllipse(this.labRiftX, this.labRiftY, 150, 56);
+    this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+
+    // Вводный диалог близких → после него стартуют волны
+    this.events.emit('show-dialog', {
+      messages: LAB_INTRO_DIALOG,
+      onEnd: () => {
+        this.time.delayedCall(2000, () => {
+          if (this.currentZone.id !== 'lab' || this.labState !== 'idle') return;
+          this.labState = 'running';
+          this.spawnLabWave(1);
+        });
+      },
     });
+  }
+
+  /** [E] у разрыва после зачистки волн — начать ритуал закрытия (канал 6 сек). */
+  private tryStartLabRitual(): boolean {
+    if (this.currentZone.id !== 'lab' || this.labRitual !== 'ready' || !this.playerBody) return false;
+    const d = distance(this.playerBody.x, this.playerBody.y, this.labRiftX, this.labRiftY);
+    if (d > 110) return false;
+    this.labRitual = 'channeling';
+    this.labRitualTimer = 6;
+    this.labRitualReinforced = false;
+    this.events.emit('log', { text: lt('Ритуал начат. Не двигайся!', 'The ritual has begun. Hold still!'), color: '#bb88ff' });
+    return true;
   }
 
   /** Состав волн: сталкеры охотятся на игрока, громилы ломают Машину. */
@@ -5028,15 +5082,52 @@ export class GameScene extends Phaser.Scene {
           this.spawnLabWave(this.labWave + 1);
         }
       });
-    } else {
-      // Победа. TODO: ритуал закрытия разрыва (длинный каст) + диалоги близких
-      this.labState = 'victory';
-      this.showMessage(lt('Разрыв закрыт. Лаборатория устояла.', 'The rift is sealed. The laboratory stands.'));
-      this.events.emit('log', { text: lt('✦ Лаборатория защищена!', '✦ The laboratory is safe!'), color: '#ffdd66' });
-      this.time.delayedCall(6000, () => {
-        this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
-      });
+    } else if (this.labRitual === 'none') {
+      // Волны отбиты — разрыв нестабилен, нужно закрыть его вручную
+      this.labRitual = 'ready';
+      this.showMessage(lt('Разрыв нестабилен! Подойди и закрой его [E]', 'The rift is unstable! Approach and seal it [E]'));
     }
+  }
+
+  /** Тик ритуала закрытия разрыва (вызывается из updateLabDungeonRitual). */
+  private updateLabRitual(delta: number) {
+    if (this.labRitual !== 'channeling' || !this.playerBody) return;
+    // Движение прерывает канал (как захват тела)
+    if (this.playerBody.isMoving) {
+      this.labRitual = 'ready';
+      this.showMessage(lt('Ритуал прерван — нужно стоять у разрыва', 'Ritual interrupted — you must hold still at the rift'));
+      return;
+    }
+    const total = 6;
+    this.labRitualTimer -= delta / 1000;
+    // На середине канала разрыв «огрызается» — последний сталкер
+    if (!this.labRitualReinforced && this.labRitualTimer <= total / 2) {
+      this.labRitualReinforced = true;
+      const def = CREATURE_DB['void_stalker'];
+      if (def) {
+        const c = new Creature(this, this.labRiftX, this.labRiftY + 30, def);
+        this.applyCreatureEnv(c);
+        this.creatures.push(c);
+        this.events.emit('log', { text: lt('Разрыв сопротивляется!', 'The rift fights back!'), color: '#ff88ff' });
+      }
+    }
+    if (this.labRitualTimer > 0) return;
+
+    // Разрыв закрыт — победа
+    this.labRitual = 'done';
+    this.labState = 'victory';
+    if (this.labRiftGfx) {
+      this.tweens.add({ targets: this.labRiftGfx, alpha: 0, scaleX: 0.1, scaleY: 0.1, duration: 1200 });
+    }
+    this.showMessage(lt('Разрыв закрыт. Лаборатория устояла.', 'The rift is sealed. The laboratory stands.'));
+    this.events.emit('show-dialog', {
+      messages: LAB_VICTORY_DIALOG,
+      onEnd: () => {
+        this.time.delayedCall(1500, () => {
+          this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
+        });
+      },
+    });
   }
 
   private tickRespawn(delta: number) {

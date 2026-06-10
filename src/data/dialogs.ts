@@ -399,3 +399,18 @@ export const PROLOGUE_DIALOG: DialogMessage[] = [
   { speaker: '', text: "Below — a village. Living people. The smell of smoke and bread. Near the resurrection stone stand bodies — as if waiting.", textRu: 'Внизу — деревня. Живые люди. Запах дыма и хлеба. У камня возрождения стоят тела — словно ждут.' },
   { speaker: '', text: "You are the Essence. Find a body. Press [E] to possess it.", textRu: 'Ты — Сущность. Найди тело. Нажми [E], чтобы вселиться.' },
 ];
+
+// ─── Данж «Защита лаборатории» (паровой мир) ─────────────────────────────────
+
+export const LAB_INTRO_DIALOG: DialogMessage[] = [
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "You're back in your body — and just in time. The rift is opening from THEIR side. They found us.", textRu: 'Ты снова в своём теле — и как раз вовремя. Разрыв открывается с ИХ стороны. Они нашли нас.' },
+  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "If the Machine is destroyed, no one returns — not you, not the others. Protect it.", textRu: 'Если Машина будет уничтожена — никто не вернётся. Ни ты, ни остальные. Защити её.' },
+  { speaker: 'Anna', speakerRu: 'Анна', text: "Brother... your hands are shaking. Please come back to me alive. Again.", textRu: 'Брат... у тебя дрожат руки. Пожалуйста, вернись ко мне живым. Снова.' },
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Bullets pass through them. Use what you learned THERE. It works — you proved it yourself.", textRu: 'Пули проходят сквозь них. Используй то, чему научился ТАМ. Это работает — ты сам доказал.' },
+];
+
+export const LAB_VICTORY_DIALOG: DialogMessage[] = [
+  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "The rift is sealed. The frequencies... they obeyed you.", textRu: 'Разрыв закрыт. Частоты... они подчинились тебе.' },
+  { speaker: 'Anna', speakerRu: 'Анна', text: "You did it. You really did it. Now rest — even heroes need supper.", textRu: 'Ты справился. Ты правда справился. А теперь отдыхай — даже героям нужен ужин.' },
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "This was only the first breach. Go back. Learn more. We'll hold the line here.", textRu: 'Это был только первый прорыв. Возвращайся туда. Учись дальше. Здесь мы удержим рубеж.' },
+];
