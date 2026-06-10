@@ -57,6 +57,12 @@ export class Creature extends Phaser.GameObjects.Container {
   /** Пока > 0 — существо переключило внимание на игрока (получило от него урон).
    *  Для фракционных тварей (void) подавляет factionTarget в GameScene. */
   public playerAggroTimer = 0;
+  /** Фаза босса (0 = не инициализирована; ставит GameScene.updateBossPhases). */
+  public bossPhase = 0;
+  /** Босс-фазы: доступно только N первых npcSpells (undefined = все). */
+  public npcSpellLimit?: number;
+  /** Босс-фазы: множитель кулдаунов заклинаний (<1 = ярость, кастует чаще). */
+  public npcCooldownMult = 1;
   /** Огрызается на атаковавшего: перебивает skipAggro (свои/safe), пока не уйдёт
    *  за поводок. Иначе моб одного вида с игроком убегал бы и лечился на спавне. */
   public retaliating: boolean = false;
@@ -636,9 +642,10 @@ export class Creature extends Phaser.GameObjects.Container {
     if (this.castTimer > 0) return null; // идёт каст
 
     // Собираем готовые заклинания (кулдаун = 0)
+    const limit = this.npcSpellLimit ?? spells.length;
     const ready = spells
       .map((s, i) => ({ spell: s, index: i }))
-      .filter(({ index }) => this.spellCooldowns[index] <= 0);
+      .filter(({ index }) => index < limit && this.spellCooldowns[index] <= 0);
 
     if (ready.length === 0) return null;
 
@@ -651,7 +658,7 @@ export class Creature extends Phaser.GameObjects.Container {
       extraCD = concDef.addCooldownToNextAbility ?? 10;
       this.statusEffects.delete('concussion');
     }
-    this.spellCooldowns[chosen.index] = chosen.spell.cooldown + extraCD;
+    this.spellCooldowns[chosen.index] = chosen.spell.cooldown * this.npcCooldownMult + extraCD;
 
     if (chosen.spell.castTime && chosen.spell.castTime > 0) {
       // Начинаем каст — GameScene проверит castingSpell когда castTimer упадёт до 0

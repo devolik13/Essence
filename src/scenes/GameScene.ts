@@ -898,6 +898,7 @@ export class GameScene extends Phaser.Scene {
     this.updateFireTsunamis(delta);
     this.updateEnts(delta);
     this.updateExitArrows();
+    this.updateBossPhases();
     this.updateBossBanner();
     this.updateStarterWander(delta);
     if (this.currentZone.id === 'lab') { this.updateLabDungeon(delta); this.updateLabRitual(delta); }
@@ -5320,6 +5321,56 @@ export class GameScene extends Phaser.Scene {
         });
       },
     });
+  }
+
+  // ═══ REGION: Boss Phases ════════════════════════════════════════════════
+  // Фазы по порогам HP (66% / 33%). Пока реализован только Игнис:
+  //   Фаза 1 (>66%): Искра + Огн. стрела
+  //   Фаза 2 (≤66%): + Стена огня, кулдауны ×0.8, реплика
+  //   Фаза 3 (≤33%): ЯРОСТЬ — кулдауны ×0.45, призывает 2 искры, тряска
+  private updateBossPhases() {
+    for (const c of this.creatures) {
+      if (!c.definition.isBoss || c.isDead) continue;
+      if (c.definition.id !== 'ignis') continue;
+      const pct = c.currentHP / c.maxHP;
+      const phase = pct > 0.66 ? 1 : pct > 0.33 ? 2 : 3;
+      if (phase <= c.bossPhase) continue; // фазы только вперёд
+      c.bossPhase = phase;
+      this.applyIgnisPhase(c, phase);
+    }
+  }
+
+  private applyIgnisPhase(c: Creature, phase: number) {
+    if (phase === 1) {
+      c.npcSpellLimit = 2; // Искра + Стрела; Стена огня откроется во 2-й фазе
+      c.npcCooldownMult = 1;
+      return;
+    }
+    if (phase === 2) {
+      c.npcSpellLimit = 3; // + Стена огня
+      c.npcCooldownMult = 0.8;
+      spawnCastVFX(this, c.x, c.y, 'fire');
+      this.cameras.main.shake(150, 0.004);
+      this.showMessage(lt('Игнис: «Ты не первый, кто приходит за моим огнём.»', 'Ignis: "You are not the first to come for my fire."'));
+      this.events.emit('log', { text: lt('Игнис воздвигает стены огня!', 'Ignis raises walls of fire!'), color: '#ff8844' });
+      return;
+    }
+    // Фаза 3 — ярость
+    c.npcCooldownMult = 0.45;
+    this.cameras.main.shake(350, 0.01);
+    spawnCastVFX(this, c.x, c.y, 'fire');
+    this.showMessage(lt('Игнис: «ГОРИ!»', 'Ignis: "BURN!"'));
+    this.events.emit('log', { text: lt('Игнис в ярости! Он призывает искр!', 'Ignis is enraged! He summons sparks!'), color: '#ff5522' });
+    // Две искры-миньона из пламени босса (их тела можно захватить — учитель Искры)
+    const sparkDef = CREATURE_DB['spark'];
+    if (sparkDef) {
+      for (const off of [-60, 60]) {
+        const minion = new Creature(this, c.x + off, c.y + 30, sparkDef);
+        this.applyCreatureEnv(minion);
+        minion.aiState = 'chase';
+        this.creatures.push(minion);
+      }
+    }
   }
 
   private tickRespawn(delta: number) {
