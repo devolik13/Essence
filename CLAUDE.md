@@ -670,7 +670,12 @@ T3 заклинания — только NPC-касты боссов. Игрок
 | Robe | +1 WILL | +1 INT, +1 WILL | +1 INT | +1 MNA |
 
 ### Аксессуары и руны
-- Shield T1-T3: +2/+4/+6 ARM, +1/+2/+3 HP (только Sword/Mace)
+- **Shield T1-T3: Блок 2/4/6** — плоское поглощение КАЖДОГО прямого попадания
+  (физ/маг разовый удар; DoT-тики не режет). Статов не даёт. Активен только
+  когда в руках Sword/Mace (Tab на другое оружие → блок 0, предмет остаётся).
+  Реализация: `ItemDef.shieldBlock` → `Body.shieldBlock` (ставит GameScene
+  через `computeShieldBlock()` при экипировке/Tab/вселении) → вычет в
+  `Body.takeDamage` (DoT идёт мимо takeDamage)
 - Ring: +2/+3/+4 LCK, +1/+1/+2 MNA
 - Amulet: +1/+2/+3 INT, +1/+1/+2 WIL
 - Runes: offensive STR+AGI, defensive ARM+WIL

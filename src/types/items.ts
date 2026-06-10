@@ -19,6 +19,9 @@ export interface ItemDef {
   armorBonus?: number;
   /** For equipment: mana bonus */
   manaBonus?: number;
+  /** Щит: плоское поглощение каждого ПРЯМОГО попадания (физ/маг разовый удар).
+   *  DoT-тики (яд/горение/кровь) не режет. Работает только с мечом/булавой. */
+  shieldBlock?: number;
   /** Icon glyph */
   icon: string;
 }

@@ -523,7 +523,15 @@ export class Body extends Phaser.GameObjects.Container {
     return false;
   }
 
+  /** Плоский блок щита: −N с каждого прямого попадания (ставит GameScene
+   *  по экипировке; 0 если щита нет или в руках не меч/булава). DoT-тики
+   *  идут мимо takeDamage и щитом не режутся. */
+  public shieldBlock = 0;
+
   takeDamage(amount: number): number {
+    if (this.shieldBlock > 0 && amount > 0) {
+      amount = Math.max(0, amount - this.shieldBlock);
+    }
     let remaining = amount;
     // Сначала поглощается временными HP
     if (this.tempHP > 0) {

@@ -24,7 +24,7 @@ import { QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS, getSpellById } from '../data/allSpells';
 import { ALL_ZONES, ZoneConfig } from '../data/zones';
-import { rollLoot, ITEMS, equipmentStatBonuses } from '../data/itemDB';
+import { rollLoot, ITEMS, isShieldCompatibleWeapon, equipmentStatBonuses } from '../data/itemDB';
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t, lt } from '../i18n';
@@ -422,6 +422,7 @@ export class GameScene extends Phaser.Scene {
         this.playerBody.mapW = zoneW; this.playerBody.mapH = zoneH;
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
         this.playerBody.possess(this);
+        this.playerBody.shieldBlock = this.computeShieldBlock();
         this.fillBodySlots(this.playerBody);
         this.sphere.enterBody();
         this.sphere.lastBodyId = bodyDef.id;
@@ -624,7 +625,10 @@ export class GameScene extends Phaser.Scene {
   private persistState() {
     // Пересчёт «постоянных» статов тела от текущей экипировки (maxHP/maxMana/база брони).
     // persistState вызывается при любой смене снаряжения (equip/unequip/disassemble/use-item).
-    if (this.playerBody) this.playerBody.refreshStats(this.getEquippedStats());
+    if (this.playerBody) {
+      this.playerBody.refreshStats(this.getEquippedStats());
+      this.playerBody.shieldBlock = this.computeShieldBlock();
+    }
     saveSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);
   }
 
@@ -1443,6 +1447,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
       this.playerBody.possess(this);
+      this.playerBody.shieldBlock = this.computeShieldBlock();
       this.fillBodySlots(this.playerBody);
       this.sphere.enterBody();
       this.sphere.lastBodyId = def.id;
@@ -2273,6 +2278,7 @@ export class GameScene extends Phaser.Scene {
 
     // Пересчёт статов: активно только новое оружие (мгновенно, клампит HP/ману).
     this.playerBody.refreshStats(this.getEquippedStats());
+    this.playerBody.shieldBlock = this.computeShieldBlock(); // щит активен только с мечом/булавой
 
     this.showMessage(`${t('weapon.switched')} ${ITEMS[newWeaponId!] ? lt(ITEMS[newWeaponId!].nameRu, ITEMS[newWeaponId!].nameEn) : 'weapon'}`);
     sfxBuff();
@@ -2815,6 +2821,17 @@ export class GameScene extends Phaser.Scene {
    * БЕЗ статус-эффектов — это «постоянные» статы тела (maxHP/maxMana/база брони).
    * Пересчитываются при каждой смене экипировки (см. persistState → refreshStats).
    */
+  /** Блок щита: значение shieldBlock надетого щита, если в активной руке
+   *  меч/булава (иначе 0 — щит «за спиной»). */
+  private computeShieldBlock(): number {
+    const shieldId = this.sphere.equipment.shield;
+    if (!shieldId) return 0;
+    const activeWeaponId = this.sphere.activeWeaponSlot === 1
+      ? this.sphere.equipment.weapon2 : this.sphere.equipment.weapon;
+    if (!isShieldCompatibleWeapon(activeWeaponId)) return 0;
+    return ITEMS[shieldId]?.shieldBlock ?? 0;
+  }
+
   private getEquippedStats(): Stats {
     const s = { ...this.sphere.stats };
     const bonuses = equipmentStatBonuses(
@@ -3368,6 +3385,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
       this.playerBody.possess(this);
+      this.playerBody.shieldBlock = this.computeShieldBlock();
       this.fillBodySlots(this.playerBody);
       this.sphere.enterBody();
       this.sphere.lastBodyId = def.id;
