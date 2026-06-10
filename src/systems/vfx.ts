@@ -50,6 +50,7 @@ export function spawnSpellImpact(
   const animKey = SPELL_IMPACT_ANIM[spellId];
   if (!animKey || !scene.anims.exists(animKey)) return;
   if (spellId === 'mob_fire_spark') size *= 0.64; // Искра — компактный взрыв (−20% дважды по фидбеку)
+  if (spellId === 'mob_ice_shard') size *= 0.8;  // Ледышка — компактный взрыв (−20% по фидбеку)
   const attach = !!follow && follow.active;
   const sprite = scene.add.sprite(attach ? 0 : x, attach ? 0 : y, animKey).setDepth(55);
   sprite.setDisplaySize(size, size);

@@ -196,7 +196,7 @@ const QUEST_SPLASHER: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'burning_tree', nameRu: 'Горящее дерево', nameEn: 'Burning Tree', icon: '🔥', color: 0xff7733,
-    type: 'destructible', count: 7, radius: 400,
+    type: 'destructible', count: 7, radius: 800, // ×2: пожар разбросан по роще
   }],
   rewardSpellId: 'mob_ice_shard',
   xpReward: 50,
