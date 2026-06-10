@@ -403,7 +403,9 @@ export const PROLOGUE_DIALOG: DialogMessage[] = [
 // ─── Данж «Защита лаборатории» (паровой мир) ─────────────────────────────────
 
 export const LAB_INTRO_DIALOG: DialogMessage[] = [
-  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "You're back in your body — and just in time. The rift is opening from THEIR side. They found us.", textRu: 'Ты снова в своём теле — и как раз вовремя. Разрыв открывается с ИХ стороны. Они нашли нас.' },
+  { speaker: 'Anna', speakerRu: 'Анна', text: "He's waking up! Brother — can you hear me? Open your eyes!", textRu: 'Он приходит в себя! Брат — ты слышишь меня? Открой глаза!' },
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Easy. The transfer back is rough — your body forgot it had weight. Breathe.", textRu: 'Спокойно. Обратный перенос тяжёлый — тело забыло, что у него есть вес. Дыши.' },
+  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "Nikola... the gauges. The frequency is spiking. That's not us — something is opening the rift from THEIR side.", textRu: 'Никола... приборы. Частота зашкаливает. Это не мы — что-то открывает разрыв с ИХ стороны.' },
   { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "They're not here by accident. They came straight for the Machine — they know exactly what it is.", textRu: 'Они здесь не случайно. Они шли прямо к Машине — они точно знают, что это.' },
   { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Of course they know. Every soul we send through comes back able to fight them. We've been winning. They feel it.", textRu: 'Конечно знают. Каждая душа, что мы отправляем, возвращается способной их бить. Мы побеждали. Они это чувствуют.' },
   { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "So they're afraid. The Machine is the one weapon that works against them — and they came to break it before it breaks them.", textRu: 'Значит, они боятся. Машина — единственное оружие, что работает против них, и они пришли сломать её, пока она не сломала их.' },

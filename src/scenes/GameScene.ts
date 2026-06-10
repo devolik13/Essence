@@ -5094,23 +5094,39 @@ export class GameScene extends Phaser.Scene {
     this.labRiftGfx.lineStyle(2, 0x8844cc, 0.8).strokeEllipse(this.labRiftX, this.labRiftY, 150, 56);
     this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
 
-    // Тесла и Кюри у Машины — анимированные спрайты (декор, без интеракции)
+    // Тесла и Кюри БУДЯТ игрока у Машины (стоят вплотную). После вводного
+    // диалога — разрыв вспыхивает, и они в страхе отбегают за Машину.
+    let scientists: { spr: Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; toX: number; toY: number }[] = [];
     if (this.labMachine && this.anims.exists('scientist_man_idle_down')) {
       const mx = this.labMachine.x, my = this.labMachine.y;
-      const tesla = this.add.sprite(mx - 70, my + 30, 'scientist_man_down');
-      tesla.play('scientist_man_idle_down').setDisplaySize(44, 44).setDepth(4);
-      this.add.text(mx - 70, my + 4, lt('Тесла', 'Tesla'),
-        { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
-      const curie = this.add.sprite(mx + 70, my + 30, 'scientist_woman_down');
-      curie.play('scientist_woman_idle_down').setDisplaySize(44, 44).setDepth(4);
-      this.add.text(mx + 70, my + 4, lt('Кюри', 'Curie'),
-        { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
+      const px = this.currentZone.respawnPoint.x, py = this.currentZone.respawnPoint.y;
+      const mk = (sheet: string, anim: string, sx: number, sy: number, name: string, toX: number, toY: number) => {
+        const spr = this.add.sprite(sx, sy, sheet);
+        spr.play(anim).setDisplaySize(44, 44).setDepth(4);
+        const label = this.add.text(sx, sy - 26, name,
+          { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
+        scientists.push({ spr, label, toX, toY });
+      };
+      // Стоят у изголовья — будят; отбегут вниз за Машину (подальше от разрыва)
+      mk('scientist_man_down', 'scientist_man_idle_down', px - 40, py - 10, lt('Тесла', 'Tesla'), mx - 190, my + 200);
+      mk('scientist_woman_down', 'scientist_woman_idle_down', px + 40, py - 10, lt('Кюри', 'Curie'), mx + 190, my + 200);
     }
 
-    // Вводный диалог близких → после него стартуют волны
+    // Вводный диалог (пробуждение) → разрыв вспыхивает, учёные отбегают → волны
     this.events.emit('show-dialog', {
       messages: LAB_INTRO_DIALOG,
       onEnd: () => {
+        if (this.currentZone.id !== 'lab') return;
+        // Разрыв «открывается» — яркая вспышка
+        if (this.labRiftGfx) {
+          this.tweens.add({ targets: this.labRiftGfx, alpha: { from: 1, to: 0.65 }, scaleX: { from: 1.5, to: 1 }, scaleY: { from: 1.5, to: 1 }, duration: 700 });
+        }
+        this.showMessage(lt('Разрыв открывается!', 'The rift is opening!'));
+        // Учёные в страхе отбегают за Машину
+        for (const sc of scientists) {
+          this.tweens.add({ targets: sc.spr, x: sc.toX, y: sc.toY, duration: 1100, ease: 'Cubic.easeIn' });
+          this.tweens.add({ targets: sc.label, x: sc.toX, y: sc.toY - 26, duration: 1100, ease: 'Cubic.easeIn' });
+        }
         this.time.delayedCall(2000, () => {
           if (this.currentZone.id !== 'lab' || this.labState !== 'idle') return;
           this.labState = 'running';

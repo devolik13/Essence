@@ -711,7 +711,8 @@ export const ZONE_LAB: ZoneConfig = {
   heightTiles: LAB_H,
   baseTile: 'tile_stone',
   tint: 0x55585f, // холодный металл/камень
-  respawnPoint: { x: LPW / 2, y: LPH - 240 },
+  // Игрок просыпается ВОЗЛЕ Машины (учёные будят его) — не у южной стены
+  respawnPoint: { x: LPW / 2, y: LPH / 2 + 110 },
   spawnGroups: [
     // Машина Переноса — защищаемый объект (immobile, фракция 'lab')
     { x: LPW / 2, y: LPH / 2, creatureId: 'transfer_machine', count: 1 },
