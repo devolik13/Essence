@@ -251,6 +251,13 @@ export class Creature extends Phaser.GameObjects.Container {
       this.setAlpha(0.3);
     }
 
+    // Неподвижный объект (Машина Переноса): статусы/таймеры тикают выше,
+    // но AI, движение и атаки полностью пропускаются.
+    if (this.definition.immobile) {
+      this.updateStatusIcons();
+      return;
+    }
+
     // AI (блокируется оглушением/сном)
     if (!this.isActionBlocked() && playerX !== undefined && playerY !== undefined) {
       const dist = distance(this.x, this.y, playerX, playerY);
@@ -511,7 +518,15 @@ export class Creature extends Phaser.GameObjects.Container {
     this.animState = newState;
   }
 
-  takeDamage(amount: number): number {
+  /**
+   * @param mundane — «обычный» (нерезонансный) урон: базовая атака оружием.
+   *   Твари Пустоты (voidResistant) получают от него только 30% —
+   *   полуматериальность; умения/заклинания (резонанс) проходят полностью.
+   */
+  takeDamage(amount: number, mundane = false): number {
+    if (mundane && this.definition.voidResistant) {
+      amount = Math.round(amount * 0.3);
+    }
     const actual = Math.min(this.currentHP, amount);
     this.currentHP -= actual;
     // Сон снимается при получении урона

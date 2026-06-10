@@ -69,6 +69,12 @@ export class GameScene extends Phaser.Scene {
     creatures: { x: number; y: number; isDead: boolean; isPassive: boolean; isAggro: boolean }[];
   } | null = null;
   private damageTexts: DamageText[] = [];
+  // ── Данж «Защита лаборатории» (зона lab) ──────────────────────────────────
+  private labState: 'idle' | 'running' | 'victory' | 'defeat' = 'idle';
+  private labWave = 0;
+  private labMachine: Creature | null = null;
+  private labCheckTimer = 0;
+  private labSpawnPending = false;
   private groundZones: GroundZone[] = [];
   private summonedWalls: SummonedWall[] = [];
   private windBarriers: WindBarrier[] = [];
@@ -293,6 +299,12 @@ export class GameScene extends Phaser.Scene {
           e.preventDefault();
           toggle();
         }
+        // Dev-вход в данж лаборатории (TODO: нарративный вход после Игниса)
+        if (e.key === 'F8') {
+          e.preventDefault();
+          const target = this.currentZone.id === 'lab' ? 'village' : 'lab';
+          this.scene.restart({ zoneId: target, spawnX: undefined, spawnY: undefined });
+        }
       };
       window.addEventListener('keydown', domHandler);
       this.teardownFns.push(() => window.removeEventListener('keydown', domHandler));
@@ -389,6 +401,9 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Мобы ────────────────────────────────────────
     this.spawnCreatures();
+
+    // ─── Данж «Защита лаборатории» ───────────────────
+    if (this.currentZone.id === 'lab') this.initLabDungeon();
 
     // ─── Ресурсные ноды, верстаки, NPC ───────────────
     this.spawnWorldObjects();
@@ -836,6 +851,7 @@ export class GameScene extends Phaser.Scene {
     this.updateExitArrows();
     this.updateBossBanner();
     this.updateStarterWander(delta);
+    if (this.currentZone.id === 'lab') this.updateLabDungeon(delta);
 
     // Индикатор выбранной цели
     if (this.selectedTarget && !this.selectedTarget.isDead && this.selectedTarget.active) {
@@ -1023,6 +1039,7 @@ export class GameScene extends Phaser.Scene {
         case 'water': return 7;
         case 'earth': return 10;
         case 'wind':  return 9;
+        case 'lab':   return STONE; // лаборатория — каменный/металлический пол
         default:      return 1;
       }
     };
@@ -1336,6 +1353,8 @@ export class GameScene extends Phaser.Scene {
     const py = this.playerBody?.y ?? this.sphere.y;
 
     for (const creature of this.creatures) {
+      // Твари Пустоты полуматериальны — тела не остаётся; Машина — не тело.
+      if (creature.definition.voidResistant || creature.definition.immobile) continue;
       // Passive (hare/grouse) — capturable alive when out of combat.
       // Fleeing (deer/merchant) and Combat — must be killed first.
       const canCapturAlive = creature.definition.type === BodyType.Passive;
@@ -2849,7 +2868,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (result.hit) {
-      closestCreature.takeDamage(finalDmg);
+      // Обычная атака — нерезонансная: твари Пустоты получают 30% (см. Creature.takeDamage)
+      closestCreature.takeDamage(finalDmg, true);
       if (closestCreature.aiState === 'idle' || closestCreature.aiState === 'wander') {
         closestCreature.aiState = 'chase';
       }
@@ -3064,6 +3084,9 @@ export class GameScene extends Phaser.Scene {
     // DoT-тик в update) — награду выдаём один раз.
     if (creature.killProcessed) return;
     creature.killProcessed = true;
+    // Неподвижные объекты (Машина Переноса): без лога «killed», XP, лута и
+    // бестиария — их гибель обрабатывает скрипт данжа (labState=defeat).
+    if (creature.definition.immobile) return;
     sfxDeath();
     // Призванный союзник: убрать из мира, без XP, без захвата, без респауна
     if (creature.isSummoned) {
@@ -3127,15 +3150,17 @@ export class GameScene extends Phaser.Scene {
     // Автосохранение
     this.persistState();
 
-    // Пульсация — тело доступно для захвата
-    this.tweens.add({
-      targets: creature,
-      alpha: { from: 0.4, to: 0.7 },
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-    });
-    this.events.emit('capture-available', lt(creature.definition.nameRu, creature.definition.name));
+    // Пульсация — тело доступно для захвата (твари Пустоты тел не оставляют)
+    if (!creature.definition.voidResistant && !creature.definition.immobile) {
+      this.tweens.add({
+        targets: creature,
+        alpha: { from: 0.4, to: 0.7 },
+        duration: 800,
+        yoyo: true,
+        repeat: -1,
+      });
+      this.events.emit('capture-available', lt(creature.definition.nameRu, creature.definition.name));
+    }
 
     // Через 30 сек тело само исчезает и встаёт в очередь респауна
     this.time.delayedCall(30000, () => {
@@ -4923,6 +4948,97 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // ═══ REGION: Lab Defense Dungeon (зона lab) ════════════════════════════════
+  // Прототип данжа парового мира: волны тварей Пустоты атакуют игрока
+  // (сталкеры) и Машину Переноса (громилы, фракция void→lab).
+  // Вход (dev): F8 из любой зоны. TODO: нарративный вход после Игниса.
+
+  private initLabDungeon() {
+    this.labState = 'idle';
+    this.labWave = 0;
+    this.labCheckTimer = 0;
+    this.labSpawnPending = false;
+    this.labMachine = this.creatures.find(c => c.definition.id === 'transfer_machine') ?? null;
+    this.showMessage(lt('Лаборатория. Что-то приближается...', 'The laboratory. Something is coming...'));
+    this.time.delayedCall(4000, () => {
+      if (this.currentZone.id !== 'lab') return;
+      this.labState = 'running';
+      this.spawnLabWave(1);
+    });
+  }
+
+  /** Состав волн: сталкеры охотятся на игрока, громилы ломают Машину. */
+  private spawnLabWave(n: number) {
+    this.labWave = n;
+    const zw = this.currentZone.widthTiles * TILE_SIZE;
+    const riftX = zw / 2, riftY = 220; // разрыв на севере
+    const spawnVoid = (id: string, x: number, y: number) => {
+      const def = CREATURE_DB[id];
+      if (!def) return;
+      const c = new Creature(this, x, y, def);
+      this.applyCreatureEnv(c);
+      this.creatures.push(c);
+    };
+    if (n === 1) {
+      // 3 сталкера от разрыва — расходятся к игроку
+      spawnVoid('void_stalker', riftX - 120, riftY);
+      spawnVoid('void_stalker', riftX, riftY + 40);
+      spawnVoid('void_stalker', riftX + 120, riftY);
+      this.events.emit('log', { text: lt('Волна 1: твари Пустоты!', 'Wave 1: Void creatures!'), color: '#bb88ff' });
+    } else if (n === 2) {
+      // громила идёт на Машину + 2 сталкера на игрока
+      spawnVoid('void_brute', riftX, riftY);
+      spawnVoid('void_stalker', riftX - 160, riftY + 30);
+      spawnVoid('void_stalker', riftX + 160, riftY + 30);
+      this.events.emit('log', { text: lt('Волна 2: они идут к Машине!', 'Wave 2: they are coming for the Machine!'), color: '#bb88ff' });
+    } else {
+      // финальная: 2 громилы + 3 сталкера
+      spawnVoid('void_brute', riftX - 100, riftY);
+      spawnVoid('void_brute', riftX + 100, riftY);
+      spawnVoid('void_stalker', riftX - 200, riftY + 40);
+      spawnVoid('void_stalker', riftX, riftY + 60);
+      spawnVoid('void_stalker', riftX + 200, riftY + 40);
+      this.events.emit('log', { text: lt('Последняя волна! Защити Машину!', 'Final wave! Protect the Machine!'), color: '#ff88ff' });
+    }
+  }
+
+  private updateLabDungeon(delta: number) {
+    if (this.labState !== 'running') return;
+    // Поражение: Машина уничтожена
+    if (this.labMachine && this.labMachine.isDead) {
+      this.labState = 'defeat';
+      this.showMessage(lt('Машина Переноса уничтожена. Путь между мирами потерян...', 'The Transfer Machine is destroyed. The way between worlds is lost...'));
+      this.time.delayedCall(4000, () => {
+        this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
+      });
+      return;
+    }
+    // Проверка зачистки волны — раз в 500мс
+    this.labCheckTimer += delta;
+    if (this.labCheckTimer < 500) return;
+    this.labCheckTimer = 0;
+    const aliveVoid = this.creatures.some(c => !c.isDead && c.definition.voidResistant);
+    if (aliveVoid || this.labSpawnPending) return;
+    if (this.labWave < 3) {
+      this.labSpawnPending = true;
+      this.events.emit('log', { text: lt(`Волна ${this.labWave} отбита.`, `Wave ${this.labWave} repelled.`), color: '#88ff88' });
+      this.time.delayedCall(3000, () => {
+        this.labSpawnPending = false;
+        if (this.currentZone.id === 'lab' && this.labState === 'running') {
+          this.spawnLabWave(this.labWave + 1);
+        }
+      });
+    } else {
+      // Победа. TODO: ритуал закрытия разрыва (длинный каст) + диалоги близких
+      this.labState = 'victory';
+      this.showMessage(lt('Разрыв закрыт. Лаборатория устояла.', 'The rift is sealed. The laboratory stands.'));
+      this.events.emit('log', { text: lt('✦ Лаборатория защищена!', '✦ The laboratory is safe!'), color: '#ffdd66' });
+      this.time.delayedCall(6000, () => {
+        this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
+      });
+    }
+  }
+
   private tickRespawn(delta: number) {
     for (const entry of this.respawnQueue) {
       entry.timer -= delta;
@@ -4997,6 +5113,7 @@ export class GameScene extends Phaser.Scene {
   private findFactionEnemy(creature: Creature): Creature | null {
     const selfFaction = creature.definition.faction;
     if (!selfFaction) return null;
+    if (creature.definition.immobile) return null; // Машина не ищет врагов
     if (creature.definition.type !== BodyType.Combat) return null;
     let best: Creature | null = null;
     let bestDist = GameScene.FACTION_SIGHT;

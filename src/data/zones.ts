@@ -680,6 +680,32 @@ export const ZONE_EARTH: ZoneConfig = {
   questObjects: [],
 };
 
+// ── 6. Лаборатория (паровой мир) — данж «Защита лаборатории» ────────────────
+// Маленькая арена: Машина Переноса в центре, разрыв Пустоты на севере.
+// Волны тварей спавнятся скриптом данжа в GameScene (labDungeon).
+
+const LAB_W = 60;
+const LAB_H = 46;
+const LPW = LAB_W * T; // 1920 px
+const LPH = LAB_H * T; // 1472 px
+
+export const ZONE_LAB: ZoneConfig = {
+  id: 'lab',
+  nameRu: 'Лаборатория — паровой мир',
+  nameEn: 'The Laboratory — Steam World',
+  widthTiles: LAB_W,
+  heightTiles: LAB_H,
+  baseTile: 'tile_stone',
+  tint: 0x55585f, // холодный металл/камень
+  respawnPoint: { x: LPW / 2, y: LPH - 240 },
+  spawnGroups: [
+    // Машина Переноса — защищаемый объект (immobile, фракция 'lab')
+    { x: LPW / 2, y: LPH / 2, creatureId: 'transfer_machine', count: 1 },
+  ],
+  exits: [], // выход — скриптом по победе/поражению
+  questObjects: [],
+};
+
 // ── Реестр зон ───────────────────────────────────────────────────────────────
 
 export const ALL_ZONES: Record<string, ZoneConfig> = {
@@ -688,4 +714,5 @@ export const ALL_ZONES: Record<string, ZoneConfig> = {
   fire:       ZONE_FIRE,
   wind:       ZONE_WIND,
   earth:      ZONE_EARTH,
+  lab:        ZONE_LAB,
 };

@@ -772,6 +772,53 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     signatureSpell: ABILITY_ALLY_HEAL,
     faction: 'caravan',
   },
+
+  // ─── Данж «Защита лаборатории» (паровой мир) ────────────────────────────────
+  // Твари Пустоты: полуматериальны (voidResistant) — обычная атака даёт 30%
+  // урона, резонансные умения — полный. Фракция 'void' охотится на 'lab'.
+
+  // v1 = tower defense: ВСЕ твари (фракция 'void') идут ломать Машину
+  // (фракция 'lab'); на игрока огрызаются через ретализацию.
+  // TODO: сталкеры-охотники на игрока — отдельный AI-режим позже.
+  void_stalker: {
+    id: 'void_stalker', name: 'Void Stalker', nameRu: 'Сталкер Пустоты',
+    faction: 'void', voidResistant: true,
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Agility]: 20, [StatName.Health]: 12 },
+    xpReward: 60,
+    npcStats: {
+      [StatName.Agility]: 12,
+      [StatName.Health]: 10, [StatName.Armor]: 2, [StatName.Luck]: 4,
+    },
+    weapon: WeaponType.Dagger, color: 0x221133, abilityName: 'Void Claws',
+  },
+
+  void_brute: {
+    id: 'void_brute', name: 'Void Brute', nameRu: 'Громила Пустоты',
+    faction: 'void', voidResistant: true,
+    type: BodyType.Combat, damageType: 'melee',
+    caps: { [StatName.Strength]: 24, [StatName.Health]: 20 },
+    xpReward: 90,
+    npcMaxHp: 160,
+    npcStats: {
+      [StatName.Strength]: 14,
+      [StatName.Health]: 18, [StatName.Armor]: 6, [StatName.Luck]: 2,
+    },
+    weapon: WeaponType.Hammer, color: 0x331144, abilityName: 'Void Smash',
+    displaySizeMultiplier: 1.4,
+  },
+
+  transfer_machine: {
+    id: 'transfer_machine', name: 'Transfer Machine', nameRu: 'Машина Переноса',
+    faction: 'lab', immobile: true,
+    type: BodyType.Combat, damageType: 'melee', // Combat — чтобы фракция 'void' видела цель
+    caps: { [StatName.Health]: 30 },
+    xpReward: 0,
+    npcMaxHp: 600,
+    npcStats: { [StatName.Health]: 30, [StatName.Armor]: 10 },
+    weapon: WeaponType.Fists, color: 0xbb8833, abilityName: '—',
+    displaySizeMultiplier: 1.6,
+  },
 };
 
 export function getCreature(id: string): BodyDefinition | undefined {
