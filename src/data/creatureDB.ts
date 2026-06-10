@@ -27,6 +27,7 @@ import {
   ABILITY_SPEAR_BUTT,
   ABILITY_HAMMER_STRIKE,
   ABILITY_HAMMER_SMASH,
+  ABILITY_EARTHQUAKE,
   ABILITY_FIST_STRIKE,
   ABILITY_HOOK,
 } from './specialAbilities';
@@ -809,6 +810,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Health]: 36, [StatName.Armor]: 10, [StatName.Luck]: 2,
     },
     weapon: WeaponType.Hammer, color: 0x441155, abilityName: 'Void Crush',
+    // Первые 3 умения Молота: Crushing Strike (AoE+сокруш. брони),
+    // Heavy Smash (пробитие брони), Earthquake (AoE r80 + slow).
+    // NPC кастует их только по игроку (на Машину — базовые удары).
+    npcSpells: [ABILITY_HAMMER_STRIKE, ABILITY_HAMMER_SMASH, ABILITY_EARTHQUAKE],
     displaySizeMultiplier: 2.4,
   },
 
