@@ -3097,6 +3097,45 @@ export class GameScene extends Phaser.Scene {
 
     const result = calcMagicDamage(creature.stats, this.sphere.stats, spell.baseDamage);
 
+    // Прыжок-удар от NPC (Землетрясение Колосса): прыгает к игроку,
+    // урон + статус при приземлении, тряска камеры.
+    if (spell.leapDistance && spell.isAoe) {
+      const pb = this.playerBody;
+      const dx = pb.x - creature.x;
+      const dy = pb.y - creature.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const leap = Math.min(spell.leapDistance, d);
+      const tx = creature.x + (dx / d) * leap;
+      const ty = creature.y + (dy / d) * leap;
+      this.tweens.add({
+        targets: creature, x: tx, y: ty, duration: 380, ease: 'Quad.easeIn',
+        onComplete: () => {
+          if (creature.isDead) return;
+          this.cameras.main.shake(220, 0.008);
+          spawnHitVFX(this, tx, ty, 'earth', true);
+          if (!this.playerBody || this.playerBody.isDead) return;
+          const dd = distance(tx, ty, this.playerBody.x, this.playerBody.y);
+          if (dd > (spell.aoeRadius ?? 80)) return; // увернулся
+          const r2 = calcMagicDamage(creature.stats, this.sphere.stats, spell.baseDamage);
+          if (!r2.hit) {
+            this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, 0, false, true));
+            return;
+          }
+          let dmg = this.applyPlayerVulnerability(r2.final, true);
+          dmg = this.getWindBarrierReduction(tx, ty, this.playerBody.x, this.playerBody.y, true) > 0
+            ? Math.round(dmg * 0.75) : dmg;
+          this.playerBody.takeDamage(dmg);
+          if (spell.statusEffect && Math.random() < (spell.statusChance ?? 1)) {
+            this.playerBody.applyStatus(spell.statusEffect);
+          }
+          this.damageTexts.push(new DamageText(this, this.playerBody.x, this.playerBody.y - 10, dmg, r2.crit, false));
+          this.logIncomingDamage(lt(creature.definition.nameRu, creature.definition.name), dmg, r2.crit, lt(spell.nameRu, spell.nameEn));
+          if (this.playerBody.isDead) this.onPlayerDeath();
+        },
+      });
+      return;
+    }
+
     // Ground zone от NPC: создаёт зону на позиции игрока
     if (spell.effectType === 'ground_zone') {
       this.spawnGroundZone(this.playerBody.x, this.playerBody.y, spell.aoeRadius ?? 60, spell, false, { ...creature.stats });
