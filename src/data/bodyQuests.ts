@@ -940,7 +940,7 @@ const QUEST_IGNIS: BodyQuestDef = {
   ],
   spawnObjects: [{
     objectId: 'warp_rift', nameRu: 'Варп-разрыв', nameEn: 'Warp Rift', icon: '🌀', color: 0x8844cc,
-    type: 'waypoint', count: 1, radius: 1400,
+    type: 'waypoint', count: 1, radius: 4200, // ×3: путь к разрыву — маленькое путешествие в теле Стража
   }],
   rewardSpellId: 'mob_fire_wall',
   xpReward: 150,

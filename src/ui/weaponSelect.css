@@ -435,6 +435,7 @@
   font-size: 15px;
   color: var(--ess-text);
   line-height: 1.2;
+  min-height: calc(2 * 1.2em); /* резерв под 2 строки — без скачков высоты */
 }
 
 .ws-scaling { display: flex; flex-direction: column; gap: 6px; }
@@ -485,6 +486,9 @@
   text-align: center;
   margin: 0;
   text-wrap: pretty;
+  /* Резерв под 2 строки: высота панели не зависит от длины текста,
+     окно не «дышит» при наведении на разные оружия */
+  min-height: calc(2 * 1.35em);
 }
 
 /* ============================================================
