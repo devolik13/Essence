@@ -1611,11 +1611,15 @@ export class GameScene extends Phaser.Scene {
     // Спавним мобов текущей зоны (из конфига)
     spawnGroup(this.currentZone.spawnGroups);
 
-    // Питч-демо: дополнительный Игнис сразу слева от деревни — показать босса
-    // без пробежки через всю карту. В обычной игре его здесь нет.
+    // Питч-демо: учителя демо-маршрута прямо у деревни, чтобы не бегать
+    // через всю карту. В обычной игре их здесь нет.
+    // — Игнис слева (босс + тело-проводник в лабораторию)
+    // — Искра у южного выхода (учитель заклинания Искра)
     if (this.pitchMode && this.currentZone.id === 'village') {
-      const def = CREATURE_DB['ignis'];
-      if (def) this.creatures.push(new Creature(this, 2350, 2800, def));
+      const ignisDef = CREATURE_DB['ignis'];
+      if (ignisDef) this.creatures.push(new Creature(this, 2350, 2800, ignisDef));
+      const sparkDef = CREATURE_DB['spark'];
+      if (sparkDef) this.creatures.push(new Creature(this, 3200, 3320, sparkDef));
     }
 
     // Разброс: существа рандомно по всей карте, мимо сейф-зон (ветераны и т.п.)
