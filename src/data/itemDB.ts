@@ -1,5 +1,7 @@
 import { ItemDef, LootEntry, RecipeDef } from '../types/items';
 import { StatName } from '../types/stats';
+import { getItemWeaponType } from './weapons';
+import { WeaponType } from '../types/bodies';
 
 // data/itemDB.ts ↔ имя поля статбонуса предмета → StatName
 const EQUIP_STAT_MAP: Record<string, StatName> = {
@@ -15,6 +17,13 @@ const EQUIP_STAT_MAP: Record<string, StatName> = {
  * manaBonus). Единый источник — раньше эта логика дублировалась в GameScene
  * и UIScene.
  */
+/** Щит работает только с одноручным оружием щитовой группы: меч или булава. */
+export function isShieldCompatibleWeapon(itemId: string | undefined): boolean {
+  if (!itemId) return false;
+  const wt = getItemWeaponType(itemId);
+  return wt === WeaponType.Sword || wt === WeaponType.Mace;
+}
+
 export function equipmentStatBonuses(
   equipment: Record<string, string | undefined>,
   /** Активный оружейный слот (0 = weapon, 1 = weapon2). Неактивное оружие
@@ -25,8 +34,13 @@ export function equipmentStatBonuses(
   const add = (s: StatName, v: number) => { bonuses[s] = (bonuses[s] ?? 0) + v; };
   // Слот неактивного оружия пропускаем (бонусы только от активного).
   const inactiveWeaponSlot = activeWeaponSlot === 0 ? 'weapon2' : 'weapon';
+  // Щит активен только с мечом/булавой В РУКАХ (правило дизайна): с двуручником/
+  // луком/посохом его бонусы отключаются (сам предмет остаётся надетым).
+  const activeWeaponId = equipment[activeWeaponSlot === 0 ? 'weapon' : 'weapon2'];
+  const shieldActive = isShieldCompatibleWeapon(activeWeaponId);
   for (const slotKey of Object.keys(equipment)) {
     if (slotKey === inactiveWeaponSlot) continue;
+    if (slotKey === 'shield' && !shieldActive) continue;
     const itemId = equipment[slotKey];
     if (!itemId) continue;
     const def = ITEMS[itemId];
@@ -233,8 +247,8 @@ export const ITEMS: Record<string, ItemDef> = {
   staff_nature_t1: { id: 'staff_nature_t1', nameRu: 'Стальной посох природы', nameEn: 'Steel Nature Staff', rarity: 'common', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 10. +1 Intellect', descEn: 'baseDmg 10. +1 Intellect', icon: '🌿', statBonuses: {"intellect":1} },
   staff_nature_t2: { id: 'staff_nature_t2', nameRu: 'Закалённый посох природы', nameEn: 'Tempered Nature Staff', rarity: 'uncommon', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 11. +2 Intellect', descEn: 'baseDmg 11. +2 Intellect', icon: '🌿', statBonuses: {"intellect":2} },
   staff_nature_t3: { id: 'staff_nature_t3', nameRu: 'Мастерский посох природы', nameEn: 'Masterwork Nature Staff', rarity: 'rare', type: 'equipment', equipSlot: 'weapon', descRu: 'baseDmg 12. +3 Intellect', descEn: 'baseDmg 12. +3 Intellect', icon: '🌿', statBonuses: {"intellect":3} },
-  shield_t1: { id: 'shield_t1', nameRu: 'Стальной щит', nameEn: 'Steel Shield', rarity: 'common', type: 'equipment', equipSlot: 'shield', descRu: '+2 Armor, +1 Health', descEn: '+2 Armor, +1 Health', icon: '🛡', statBonuses: {"armor":2,"health":1} },
-  shield_t2: { id: 'shield_t2', nameRu: 'Закалённый щит', nameEn: 'Tempered Shield', rarity: 'uncommon', type: 'equipment', equipSlot: 'shield', descRu: '+4 Armor, +2 Health', descEn: '+4 Armor, +2 Health', icon: '🛡', statBonuses: {"armor":4,"health":2} },
+  shield_t1: { id: 'shield_t1', nameRu: 'Стальной щит', nameEn: 'Steel Shield', rarity: 'common', type: 'equipment', equipSlot: 'shield', descRu: '+2 Armor, +1 Health · только меч/булава', descEn: '+2 Armor, +1 Health · Sword/Mace only', icon: '🛡', statBonuses: {"armor":2,"health":1} },
+  shield_t2: { id: 'shield_t2', nameRu: 'Закалённый щит', nameEn: 'Tempered Shield', rarity: 'uncommon', type: 'equipment', equipSlot: 'shield', descRu: '+4 Armor, +2 Health · только меч/булава', descEn: '+4 Armor, +2 Health · Sword/Mace only', icon: '🛡', statBonuses: {"armor":4,"health":2} },
 
   // ── Starter Armor — Heavy (STR) ──────────────────────────────────────────
   starter_heavy_helmet: { id: 'starter_heavy_helmet', nameRu: 'Старый железный шлем', nameEn: 'Old Iron Helmet',   rarity: 'common', type: 'equipment', equipSlot: 'helmet', descRu: '+1 Armor. +1 Health', descEn: '+1 Armor. +1 Health', icon: '⛑', armorBonus: 1, statBonuses: {"health":1} },
@@ -307,7 +321,7 @@ export const ITEMS: Record<string, ItemDef> = {
   armor_rune_t1: { id: 'armor_rune_t1', nameRu: 'Стальная руна брони', nameEn: 'Steel Armor Rune', rarity: 'common', type: 'equipment', equipSlot: 'armor_rune', descRu: '+1 Armor, +1 Will', descEn: '+1 Armor, +1 Will', icon: '✦', armorBonus: 0, statBonuses: {"armor":1,"will":1} },
   armor_rune_t2: { id: 'armor_rune_t2', nameRu: 'Закалённая руна брони', nameEn: 'Tempered Armor Rune', rarity: 'uncommon', type: 'equipment', equipSlot: 'armor_rune', descRu: '+2 Armor, +2 Will', descEn: '+2 Armor, +2 Will', icon: '✦', armorBonus: 0, statBonuses: {"armor":2,"will":2} },
   armor_rune_t3: { id: 'armor_rune_t3', nameRu: 'Мастерская руна брони', nameEn: 'Masterwork Armor Rune', rarity: 'rare', type: 'equipment', equipSlot: 'armor_rune', descRu: '+3 Armor, +3 Will', descEn: '+3 Armor, +3 Will', icon: '✦', armorBonus: 0, statBonuses: {"armor":3,"will":3} },
-  shield_t3: { id: 'shield_t3', nameRu: 'Мастерский щит', nameEn: 'Masterwork Shield', rarity: 'rare', type: 'equipment', equipSlot: 'shield', descRu: '+6 Armor, +3 Health', descEn: '+6 Armor, +3 Health', icon: '🛡', statBonuses: {"armor":6,"health":3} },
+  shield_t3: { id: 'shield_t3', nameRu: 'Мастерский щит', nameEn: 'Masterwork Shield', rarity: 'rare', type: 'equipment', equipSlot: 'shield', descRu: '+6 Armor, +3 Health · только меч/булава', descEn: '+6 Armor, +3 Health · Sword/Mace only', icon: '🛡', statBonuses: {"armor":6,"health":3} },
 
 
   // ── Equipment T1 ───────────────────────────────────────────────────────────
