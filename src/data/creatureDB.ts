@@ -793,7 +793,10 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
       [StatName.Agility]: 12,
       [StatName.Health]: 10, [StatName.Armor]: 2, [StatName.Luck]: 4,
     },
-    weapon: WeaponType.Dagger, color: 0x221133, abilityName: 'Void Claws',
+    // Меч: базовая атака с эффектом замедления (как у мечника) + первые
+    // 2 умения меча. Оружие NPC = реальные свойства, не декорация.
+    weapon: WeaponType.Sword, color: 0x221133, abilityName: 'Void Blade',
+    npcSpells: [ABILITY_SWORD_STRIKE, ABILITY_DOUBLE_STRIKE],
   },
 
   // Босс 2-й волны данжа: один, но огромный. Ломает Машину, при атаке
