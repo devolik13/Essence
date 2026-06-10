@@ -1297,14 +1297,17 @@ export class BootScene extends Phaser.Scene {
       mk('rift_swirl_anim', 'rift_swirl', 12, -1);
       // Твари Пустоты: idle = первые кадры walk (медленно), left = flip right
       for (const vid of ['void_stalker', 'void_colossus']) {
+        // 25 кадров атаки: сталкер бьёт часто (КД 0.8с) — 30fps (~0.83с),
+        // Колосс — тяжёлый замах 16fps (~1.6с) под КД молота 2.2с
+        const atkFps = vid === 'void_stalker' ? 30 : 16;
         for (const dir of ['down', 'right', 'up']) {
           mk(`${vid}_idle_${dir}`, `${vid}_walk_${dir}_sheet`, 4, -1, [0, 1, 2]);
           mk(`${vid}_walk_${dir}`, `${vid}_walk_${dir}_sheet`, 14, -1);
-          mk(`${vid}_atk_${dir}`,  `${vid}_atk_${dir}_sheet`,  18, 0);
+          mk(`${vid}_atk_${dir}`,  `${vid}_atk_${dir}_sheet`,  atkFps, 0);
         }
         mk(`${vid}_idle_left`, `${vid}_walk_right_sheet`, 4, -1, [0, 1, 2]);
         mk(`${vid}_walk_left`, `${vid}_walk_right_sheet`, 14, -1);
-        mk(`${vid}_atk_left`,  `${vid}_atk_right_sheet`,  18, 0);
+        mk(`${vid}_atk_left`,  `${vid}_atk_right_sheet`,  atkFps, 0);
       }
     }
 

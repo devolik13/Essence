@@ -100,6 +100,9 @@ export class Creature extends Phaser.GameObjects.Container {
   private animPrefix: string | null = null;
   private facingDir: 'down' | 'up' | 'left' | 'right' = 'down';
   private animState: 'idle' | 'walk' | 'atk' | 'dying' = 'idle';
+  /** Анимация удара проигрывается до конца — не обрывается сменой состояния
+   *  на следующем кадре (кулдаун > 0 → idle), иначе удар мелькал 1 кадр. */
+  private atkAnimPlaying = false;
 
   /** Внешний callback для проверки блокировки движения стенами */
   public wallCheckFn?: (x: number, y: number) => boolean;
@@ -484,6 +487,8 @@ export class Creature extends Phaser.GameObjects.Container {
 
   private updateSpriteAnim(): void {
     const spr = this.bodySprite as Phaser.GameObjects.Sprite;
+    // Даём удару доиграть (кроме смерти)
+    if (this.atkAnimPlaying && !this.isDead) return;
     let newState: 'idle' | 'walk' | 'atk' | 'dying' = 'idle';
 
     if (this.isDead) {
@@ -522,6 +527,10 @@ export class Creature extends Phaser.GameObjects.Container {
       const sz = baseSize * (this.definition.displaySizeMultiplier ?? 1);
       spr.play(key);
       spr.setDisplaySize(sz, sz);
+      if (newState === 'atk') {
+        this.atkAnimPlaying = true;
+        spr.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.atkAnimPlaying = false; });
+      }
     }
     this.animState = newState;
   }
