@@ -3470,6 +3470,7 @@ export class GameScene extends Phaser.Scene {
           this.sphere.learnedSpells.push(spell);
           this.sphere.spellProgress[spell.id] = 9999;
           this.events.emit('spell-learned', spell);
+          if (this.playerBody) this.fillBodySlots(this.playerBody); // сразу в скилл-бар
           sfxLevelUp();
         }
       }
@@ -3506,6 +3507,7 @@ export class GameScene extends Phaser.Scene {
           this.sphere.learnedSpells.push(spell);
           this.sphere.spellProgress[spell.id] = 9999;
           this.events.emit('spell-learned', spell);
+          if (this.playerBody) this.fillBodySlots(this.playerBody); // сразу в скилл-бар
           sfxLevelUp();
         }
       }

@@ -201,6 +201,12 @@ export class UIScene extends Phaser.Scene {
   private achievementNotifText!: Phaser.GameObjects.Text;
   private achievementNotifTimer: number = 0;
   private achievementNotifQueue: AchievementDef[] = [];
+  // Тост «новое умение открыто» (иконка + имя, исчезает через ~1.6с)
+  private spellToastBg!:   Phaser.GameObjects.Rectangle;
+  private spellToastIcon!: Phaser.GameObjects.Text;
+  private spellToastText!: Phaser.GameObjects.Text;
+  private spellToastTimer = 0;
+  private spellToastQueue: import('../types/abilities').AbilityDef[] = [];
 
   // ── Panel state (position, size, collapsed) ───────────
   private panelStates: Record<string, PanelState> = {
@@ -392,6 +398,17 @@ export class UIScene extends Phaser.Scene {
       stroke: '#0d0b08', strokeThickness: 2,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1201).setVisible(false);
 
+    // Тост «новое умение» — ниже ачивки, крупнее, с иконкой школы
+    this.spellToastBg = this.add.rectangle(GAME_WIDTH / 2, 116, 340, 52, THEME.ink1, 0.95)
+      .setScrollFactor(0).setDepth(1200).setStrokeStyle(2, THEME.brass3, 0.95).setVisible(false);
+    this.spellToastIcon = this.add.text(GAME_WIDTH / 2 - 150, 116, '✨', {
+      fontSize: '26px',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1201).setVisible(false);
+    this.spellToastText = this.add.text(GAME_WIDTH / 2 + 14, 116, '', {
+      fontSize: '13px', fontFamily: '"Cormorant Garamond", serif', color: TC.brass4, align: 'center',
+      stroke: '#0d0b08', strokeThickness: 2,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1201).setVisible(false);
+
     // ── Mini-map ──────────────────────────────────────────
     const mm = this.panelStates.minimap;
     this.minimapBorder = this.add.rectangle(mm.x, mm.y + HEADER_H, mm.w, mm.h, THEME.ink1, 0.9)
@@ -492,6 +509,7 @@ export class UIScene extends Phaser.Scene {
     gs.events.on('capture-interrupt', () => this.addLog('✖ Захват прерван (движение)'));
     gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`${t('log.learned')} ${lt(spell.nameRu, spell.nameEn)}`);
+      this.spellToastQueue.push(spell);
     });
     gs.events.on('spell-locked', (data: { spell: import('../types/abilities').AbilityDef; prereqId: string }) => {
       this.addLog(`✗ ${lt(data.spell.nameRu, data.spell.nameEn)} ${t('log.prereq')}`);
@@ -2692,7 +2710,48 @@ export class UIScene extends Phaser.Scene {
   }
 
   // ── Achievement notification ticker (called every 50ms) ──
+  /** Глиф для тоста умения: по школе или ⚔ для оружейных. */
+  private spellGlyph(spell: import('../types/abilities').AbilityDef): string {
+    if (spell.requiredWeapons?.length) return '⚔';
+    switch (spell.school) {
+      case 'fire':   return '🔥';
+      case 'water':  return '❄';
+      case 'earth':  return '🪨';
+      case 'wind':   return '🌪';
+      case 'nature': return '🌿';
+      default:       return '✨';
+    }
+  }
+
+  private tickSpellToast() {
+    if (this.spellToastTimer > 0) {
+      this.spellToastTimer -= 50;
+      if (this.spellToastTimer <= 0) {
+        this.tweens.add({
+          targets: [this.spellToastBg, this.spellToastIcon, this.spellToastText],
+          alpha: 0,
+          duration: 350,
+          onComplete: () => {
+            this.spellToastBg.setVisible(false);
+            this.spellToastIcon.setVisible(false);
+            this.spellToastText.setVisible(false);
+          },
+        });
+      }
+    } else if (this.spellToastQueue.length > 0) {
+      const spell = this.spellToastQueue.shift()!;
+      this.spellToastBg.setAlpha(0.95).setVisible(true);
+      this.spellToastIcon.setText(this.spellGlyph(spell)).setAlpha(1).setVisible(true);
+      this.spellToastText
+        .setText(`${lt('НОВОЕ УМЕНИЕ ОТКРЫТО', 'NEW ABILITY UNLOCKED')}
+${lt(spell.nameRu, spell.nameEn)}`)
+        .setAlpha(1).setVisible(true);
+      this.spellToastTimer = 1700;
+    }
+  }
+
   private tickAchievementNotif() {
+    this.tickSpellToast();
     if (this.achievementNotifTimer > 0) {
       this.achievementNotifTimer -= 50;
       if (this.achievementNotifTimer <= 0) {

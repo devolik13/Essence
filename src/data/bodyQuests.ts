@@ -604,7 +604,8 @@ const QUEST_BEAR_VETERAN: BodyQuestDef = {
   ],
   rewardSpellId: 'mace_bash',
   xpReward: 100,
-  prerequisiteBodyQuestId: 'bq_bear',
+  // prerequisiteBodyQuestId убран: пререквизиты только при нарративной причине
+  // (правило CLAUDE.md, пример — волк → альфа). Старый медведь самостоятелен.
 };
 
 // ── ПАРА: Защита каравана (bandit_spear атакует ↔ caravan_guard защищает) ──
