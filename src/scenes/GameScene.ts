@@ -428,6 +428,12 @@ export class GameScene extends Phaser.Scene {
         if (this.isNewGame) {
           this.persistState();
         }
+        // Квест тела предлагается и при восстановлении тела (переход зоны /
+        // загрузка): активный квест не переживает restart сцены, поэтому без
+        // этого вызова квест был доступен только в зоне первого захвата.
+        if (this.currentZone.id !== 'lab') {
+          this.time.delayedCall(600, () => this.tryShowBodyQuest(bodyDef.id));
+        }
       }
     }
 
@@ -3487,7 +3493,17 @@ export class GameScene extends Phaser.Scene {
         this.events.emit('stat-up', levelUp);
       }
     }
-    this.events.emit('show-dialog', { messages: bq.completeMessages });
+    // Квест Игниса: разрыв ведёт в паровой мир — после финального диалога
+    // переходим в данж лаборатории (нарративный вход вместо dev-клавиши F8).
+    const onEnd = bq.id === 'bq_ignis'
+      ? () => {
+          this.showMessage(lt('Разрыв затягивает тебя...', 'The rift pulls you in...'));
+          this.time.delayedCall(1200, () => {
+            this.scene.restart({ zoneId: 'lab', spawnX: undefined, spawnY: undefined });
+          });
+        }
+      : undefined;
+    this.events.emit('show-dialog', { messages: bq.completeMessages, onEnd });
   }
 
   private handleBossKill(def: import('../types/bodies').BodyDefinition) {

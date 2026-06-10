@@ -917,7 +917,37 @@ const QUEST_GROUSE: BodyQuestDef = {
 // Registry
 // ═══════════════════════════════════════════════════════════════
 
+// ── Босс: Игнис — нарративный вход в данж лаборатории ───────────────────────
+// Захватив тело Стража, Сфера чувствует чужую частоту — варп-разрыв.
+// Дойти до разрыва → переход в паровой мир (зона lab). Награда — Стена огня.
+const QUEST_IGNIS: BodyQuestDef = {
+  id: 'bq_ignis', bodyId: 'ignis', tier: 3,
+  nameRu: 'Зов разрыва',
+  nameEn: 'The Call of the Rift',
+  description: 'Тело Стража чувствует чужую частоту. Найди её источник.',
+  descriptionEn: "The Guardian's body senses an alien frequency. Find its source.",
+  introMessages: [
+    { speaker: '', text: 'A thousand years of fire. Stone. Patience.', textRu: 'Тысяча лет огня. Камень. Терпение.' },
+    { speaker: '', text: 'But now this body hears something new. A frequency that does not belong to this world.', textRu: 'Но теперь это тело слышит новое. Частоту, которой нет в этом мире.' },
+    { speaker: '', text: 'It calls. Follow it.', textRu: 'Она зовёт. Иди за ней.' },
+  ],
+  completeMessages: [
+    { speaker: '', text: 'A tear in the world. The Guardian has never seen its like.', textRu: 'Разрыв в ткани мира. Страж такого не видел никогда.' },
+    { speaker: '', text: 'But you have. It leads home. And home is in danger.', textRu: 'А ты — видел. Он ведёт домой. И дома беда.' },
+  ],
+  objectives: [
+    { type: 'reach', count: 1, targetId: 'warp_rift', targetNameRu: 'Варп-разрыв', targetNameEn: 'Warp Rift', description: 'Дойди до варп-разрыва', descriptionEn: 'Reach the warp rift' },
+  ],
+  spawnObjects: [{
+    objectId: 'warp_rift', nameRu: 'Варп-разрыв', nameEn: 'Warp Rift', icon: '🌀', color: 0x8844cc,
+    type: 'waypoint', count: 1, radius: 1400,
+  }],
+  rewardSpellId: 'mob_fire_wall',
+  xpReward: 150,
+};
+
 export const BODY_QUESTS: BodyQuestDef[] = [
+  QUEST_IGNIS,
   // T1 Animals
   QUEST_WOLF, QUEST_BEAR,
   QUEST_HARE, QUEST_DEER, QUEST_FOX, QUEST_BOAR, QUEST_GROUSE,

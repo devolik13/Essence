@@ -585,6 +585,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     },
     weapon: WeaponType.StaffFire, color: 0xff3300, abilityName: 'Fire Wall',
     npcSpells: [MOB_FIRE_T1, MOB_FIRE_T2, MOB_FIRE_T3],
+    signatureSpell: MOB_FIRE_T3, // родной скил в захваченном теле; учится через bq_ignis
     isBoss: true,
     displaySizeMultiplier: 3.5,
   },
