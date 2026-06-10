@@ -1036,6 +1036,101 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture('body_bandit_brute', 28, 28);
     g.clear();
 
+    // ═══ Данж лаборатории — твари Пустоты, Машина, ассистент ═══════════════════
+
+    // ── Void Stalker (body_void_stalker) — быстрый, тёмно-фиолетовый ──
+    g.clear();
+    g.fillStyle(0x1a0f2e, 1);           // тело — почти чёрный пурпур
+    g.fillEllipse(14, 15, 16, 20);
+    g.fillStyle(0x3a1d66, 1);           // рваная «дымка» по краям
+    g.fillRect(3, 8, 4, 12); g.fillRect(21, 8, 4, 12);
+    g.fillStyle(0xcc66ff, 1);           // два светящихся глаза
+    g.fillCircle(10, 12, 2); g.fillCircle(18, 12, 2);
+    g.fillStyle(0x8844cc, 0.6);         // ореол
+    g.fillCircle(14, 14, 13);
+    g.generateTexture('body_void_stalker', 28, 28);
+    g.clear();
+
+    // ── Void Brute (body_void_brute) — массивный танк ──
+    g.fillStyle(0x140a24, 1);
+    g.fillRect(4, 6, 20, 20);
+    g.fillStyle(0x2e1550, 1);           // плечевые наросты
+    g.fillRect(1, 8, 5, 10); g.fillRect(22, 8, 5, 10);
+    g.fillStyle(0xaa44ee, 1);           // глаза-щели
+    g.fillRect(8, 12, 4, 2); g.fillRect(16, 12, 4, 2);
+    g.fillStyle(0x6622aa, 0.5);
+    g.fillCircle(14, 15, 14);
+    g.generateTexture('body_void_brute', 28, 28);
+    g.clear();
+
+    // ── Void Colossus (body_void_colossus) — босс, ядро светится ──
+    g.fillStyle(0x0e0620, 1);
+    g.fillCircle(14, 14, 13);
+    g.fillStyle(0x33156b, 1);           // кольцо
+    g.fillCircle(14, 14, 9);
+    g.fillStyle(0xff66ff, 1);           // пульсирующее ядро
+    g.fillCircle(14, 14, 5);
+    g.fillStyle(0xffffff, 0.8);
+    g.fillCircle(14, 14, 2);
+    g.generateTexture('body_void_colossus', 28, 28);
+    g.clear();
+
+    // ── Transfer Machine (body_transfer_machine) — стимпанк-аппарат ──
+    g.fillStyle(0x3a2e1a, 1);           // тёмная латунная база
+    g.fillRect(2, 14, 24, 12);
+    g.fillStyle(0x6b5226, 1);           // корпус
+    g.fillRect(5, 6, 18, 14);
+    g.fillStyle(0x2a2218, 1);           // окно камеры
+    g.fillRect(9, 9, 10, 9);
+    g.fillStyle(0x66ccff, 0.9);         // эфирное свечение внутри (как Сфера)
+    g.fillCircle(14, 13, 4);
+    g.fillStyle(0xc9a227, 1);           // латунные заклёпки/трубы
+    g.fillRect(3, 4, 3, 18); g.fillRect(22, 4, 3, 18);
+    g.fillCircle(5, 6, 2); g.fillCircle(23, 6, 2);
+    g.generateTexture('body_transfer_machine', 28, 28);
+    g.clear();
+
+    // ── Lab Assistant (body_lab_assistant) — стимпанк-человек ──
+    g.fillStyle(0x4a3b28, 1);           // ноги/брюки
+    g.fillRect(9, 20, 4, 7); g.fillRect(15, 20, 4, 7);
+    g.fillStyle(0x6b5642, 1);           // жилет/тело
+    g.fillRect(8, 11, 12, 11);
+    g.fillStyle(0xc9a227, 0.8);         // латунные пуговицы/детали
+    g.fillRect(13, 12, 2, 8);
+    g.fillStyle(0xffccaa, 1);           // голова
+    g.fillCircle(14, 7, 5);
+    g.fillStyle(0x2a2218, 1);           // защитные очки (стимпанк)
+    g.fillRect(10, 6, 8, 2);
+    g.fillStyle(0x66ccff, 0.7);         // линзы
+    g.fillCircle(11, 7, 1); g.fillCircle(17, 7, 1);
+    g.generateTexture('body_lab_assistant', 28, 28);
+    g.clear();
+
+    // ── Тайл пола лаборатории (tile_lab) — металлическая плита с заклёпками ──
+    g.fillStyle(0x2b2f38, 1);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x363b46, 1);           // плита
+    g.fillRect(2, 2, 28, 28);
+    g.fillStyle(0x232730, 1);           // швы
+    g.fillRect(0, 15, 32, 2); g.fillRect(15, 0, 2, 32);
+    g.fillStyle(0x55606e, 1);           // заклёпки по углам плиты
+    g.fillCircle(5, 5, 1.5); g.fillCircle(27, 5, 1.5);
+    g.fillCircle(5, 27, 1.5); g.fillCircle(27, 27, 1.5);
+    g.generateTexture('tile_lab', 32, 32);
+    g.clear();
+
+    // ── Стена лаборатории (tile_lab_wall) — тёмный металл с трубой ──
+    g.fillStyle(0x1a1d24, 1);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x3a2e1a, 1);           // латунная труба
+    g.fillRect(0, 12, 32, 8);
+    g.fillStyle(0xc9a227, 0.7);
+    g.fillRect(0, 13, 32, 1);
+    g.fillStyle(0x2a2d34, 1);           // болты
+    g.fillCircle(8, 16, 2); g.fillCircle(24, 16, 2);
+    g.generateTexture('tile_lab_wall', 32, 32);
+    g.clear();
+
     // Old warrior/mage directional spritesheets removed — replaced by swordsman/archer/wizard in MOB_SPRITE_SETS
 
     // ── Spell spritesheets ──────────────────────────────────────────────────

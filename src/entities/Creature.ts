@@ -157,7 +157,8 @@ export class Creature extends Phaser.GameObjects.Container {
       const textureKey = `body_${definition.id}`;
       const hasTexture = scene.textures.exists(textureKey);
       this.bodySprite = scene.add.image(0, 0, hasTexture ? textureKey : '__DEFAULT');
-      this.bodySprite.setDisplaySize(24, 24);
+      const sz = 24 * (definition.displaySizeMultiplier ?? 1); // Колосс ×2.4 и т.п.
+      this.bodySprite.setDisplaySize(sz, sz);
       if (!hasTexture) this.bodySprite.setTint(definition.color);
     }
     this.add(this.bodySprite);

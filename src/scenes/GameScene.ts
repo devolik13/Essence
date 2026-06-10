@@ -81,7 +81,6 @@ export class GameScene extends Phaser.Scene {
   /** Ритуал закрытия разрыва: появляется после 3-й волны. */
   private labRitual: 'none' | 'ready' | 'channeling' | 'done' = 'none';
   private labRitualTimer = 0;
-  private labRitualReinforced = false;
   private labRiftGfx: Phaser.GameObjects.Graphics | null = null;
   private labRiftX = 0;
   private labRiftY = 0;
@@ -1135,6 +1134,20 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0, 0).setDepth(-11);
       ts.tileScaleX = 0.3;
       ts.tileScaleY = 0.3;
+    }
+
+    // Лаборатория: металлический пол (TileSprite) + рамка-стена по периметру.
+    if (zone.id === 'lab') {
+      const zw = wt * TILE_SIZE;
+      const zh = ht * TILE_SIZE;
+      this.add.tileSprite(0, 0, zw, zh, 'tile_lab').setOrigin(0, 0).setDepth(-10);
+      // Стена по краю арены (2 тайла толщиной)
+      const wallT = TILE_SIZE * 2;
+      const wallDepth = -9;
+      this.add.tileSprite(0, 0, zw, wallT, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
+      this.add.tileSprite(0, zh - wallT, zw, wallT, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
+      this.add.tileSprite(0, 0, wallT, zh, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
+      this.add.tileSprite(zw - wallT, 0, wallT, zh, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
     }
 
     // Emit minimap terrain colors for UIScene
@@ -5070,7 +5083,6 @@ export class GameScene extends Phaser.Scene {
     this.labSpawnPending = false;
     this.labRitual = 'none';
     this.labRitualTimer = 0;
-    this.labRitualReinforced = false;
     this.labMachine = this.creatures.find(c => c.definition.id === 'transfer_machine') ?? null;
 
     // Разрыв Пустоты на севере — пульсирующий тёмный овал
@@ -5102,7 +5114,6 @@ export class GameScene extends Phaser.Scene {
     if (d > 110) return false;
     this.labRitual = 'channeling';
     this.labRitualTimer = 6;
-    this.labRitualReinforced = false;
     this.events.emit('log', { text: lt('Ритуал начат. Не двигайся!', 'The ritual has begun. Hold still!'), color: '#bb88ff' });
     return true;
   }
@@ -5181,19 +5192,7 @@ export class GameScene extends Phaser.Scene {
       this.showMessage(lt('Ритуал прерван — нужно стоять у разрыва', 'Ritual interrupted — you must hold still at the rift'));
       return;
     }
-    const total = 6;
     this.labRitualTimer -= delta / 1000;
-    // На середине канала разрыв «огрызается» — последний сталкер
-    if (!this.labRitualReinforced && this.labRitualTimer <= total / 2) {
-      this.labRitualReinforced = true;
-      const def = CREATURE_DB['void_stalker'];
-      if (def) {
-        const c = new Creature(this, this.labRiftX, this.labRiftY + 30, def);
-        this.applyCreatureEnv(c);
-        this.creatures.push(c);
-        this.events.emit('log', { text: lt('Разрыв сопротивляется!', 'The rift fights back!'), color: '#ff88ff' });
-      }
-    }
     if (this.labRitualTimer > 0) return;
 
     // Разрыв закрыт — победа

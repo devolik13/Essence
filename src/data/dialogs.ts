@@ -404,6 +404,9 @@ export const PROLOGUE_DIALOG: DialogMessage[] = [
 
 export const LAB_INTRO_DIALOG: DialogMessage[] = [
   { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "You're back in your body — and just in time. The rift is opening from THEIR side. They found us.", textRu: 'Ты снова в своём теле — и как раз вовремя. Разрыв открывается с ИХ стороны. Они нашли нас.' },
+  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "They're not here by accident. They came straight for the Machine — they know exactly what it is.", textRu: 'Они здесь не случайно. Они шли прямо к Машине — они точно знают, что это.' },
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Of course they know. Every soul we send through comes back able to fight them. We've been winning. They feel it.", textRu: 'Конечно знают. Каждая душа, что мы отправляем, возвращается способной их бить. Мы побеждали. Они это чувствуют.' },
+  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "So they're afraid. The Machine is the one weapon that works against them — and they came to break it before it breaks them.", textRu: 'Значит, они боятся. Машина — единственное оружие, что работает против них, и они пришли сломать её, пока она не сломала их.' },
   { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "If the Machine is destroyed, no one returns — not you, not the others. Protect it.", textRu: 'Если Машина будет уничтожена — никто не вернётся. Ни ты, ни остальные. Защити её.' },
   { speaker: 'Anna', speakerRu: 'Анна', text: "Brother... your hands are shaking. Please come back to me alive. Again.", textRu: 'Брат... у тебя дрожат руки. Пожалуйста, вернись ко мне живым. Снова.' },
   { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Bullets pass through them. Use what you learned THERE. It works — you proved it yourself.", textRu: 'Пули проходят сквозь них. Используй то, чему научился ТАМ. Это работает — ты сам доказал.' },
