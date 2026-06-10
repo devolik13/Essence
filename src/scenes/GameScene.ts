@@ -75,6 +75,9 @@ export class GameScene extends Phaser.Scene {
   private labMachine: Creature | null = null;
   private labCheckTimer = 0;
   private labSpawnPending = false;
+  /** Режим питч-демо (вертикальный срез, запуск с титула): сцены идут по
+   *  порядку пролог → деревня → Игнис → лаборатория. Флаг живёт в registry. */
+  private pitchMode = false;
   /** Ритуал закрытия разрыва: появляется после 3-й волны. */
   private labRitual: 'none' | 'ready' | 'channeling' | 'done' = 'none';
   private labRitualTimer = 0;
@@ -289,6 +292,8 @@ export class GameScene extends Phaser.Scene {
       for (const fn of this.teardownFns) fn();
       this.teardownFns = [];
     });
+    this.pitchMode = this.registry.get('pitchMode') === true;
+
     // ─── Квесты ──────────────────────────────────────
     this.questTracker = new QuestTracker(QUESTS);
 

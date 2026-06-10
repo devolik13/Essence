@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../utils/constants';
 import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, findFreeSlot } from '../systems/saveLoad';
-import { t, initLang } from '../i18n/index';
+import { t, lt, initLang } from '../i18n/index';
+import { WeaponType } from '../types/bodies';
 import { THEME, TC } from '../ui/theme';
 
 export class TitleScene extends Phaser.Scene {
@@ -67,6 +68,7 @@ export class TitleScene extends Phaser.Scene {
     // New Game button
     const slotsFull = findFreeSlot() === null;
     this.addButton(cx, 360, t('title.new_game'), () => {
+      this.registry.set('pitchMode', false);
       this.scene.start('CharCreateScene');
       this.scene.stop();
     }, this.menuContainer, slotsFull);
@@ -77,9 +79,20 @@ export class TitleScene extends Phaser.Scene {
       this.showLoad();
     }, this.menuContainer, noChars);
 
-    // Test Map button (Tiled integration)
-    this.addButton(cx, 480, 'Test Map', () => {
-      this.scene.start('TestMapScene');
+    // Питч-демо: вертикальный срез одним прогоном (пролог → деревня → Игнис →
+    // лаборатория). Свежий старт на скрытом слоте 99 — не занимает слоты игрока.
+    this.addButton(cx, 480, t('title.pitch'), () => {
+      localStorage.removeItem('essence_slot_99');
+      setActiveSlot(99);
+      this.registry.set('pitchMode', true);
+      this.scene.start('GameScene', {
+        isNewGame: true,
+        starterBodyId: 'starter_sword',
+        starterWeapon1: WeaponType.Sword,
+        starterWeapon2: WeaponType.StaffFire,
+        characterName: lt('Доброволец', 'Volunteer'),
+      });
+      this.scene.start('UIScene');
       this.scene.stop();
     }, this.menuContainer, false, 180, 36);
 
@@ -128,6 +141,7 @@ export class TitleScene extends Phaser.Scene {
 
         // Play
         this.addButton(cx + 130, y, t('title.play'), () => {
+          this.registry.set('pitchMode', false);
           this.startGame(meta.slotIndex);
         }, this.loadContainer, false, 90, 36);
 

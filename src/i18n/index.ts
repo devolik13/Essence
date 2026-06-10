@@ -143,6 +143,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
 
     // Title / Character creation
     'title.new_game': 'New Game',
+    'title.pitch': 'Pitch Demo',
     'title.load': 'Load Game',
     'title.play': 'Play',
     'title.delete': 'Delete',
@@ -384,6 +385,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
 
     // Title / Character creation
     'title.new_game': 'Новая игра',
+    'title.pitch': 'Демо (питч)',
     'title.load': 'Загрузить',
     'title.play': 'Играть',
     'title.delete': 'Удалить',
