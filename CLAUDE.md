@@ -742,7 +742,8 @@ T3 заклинания — только NPC-касты боссов. Игрок
 - **Фоновая музыка** (`src/systems/music.ts`, треки в `public/assets/music/`,
   лицензии — `LICENSES.md` там же): HTMLAudio-стриминг (НЕ через BootScene),
   кроссфейд 1.2с, авторазлочка по первому жесту (autoplay policy).
-  Раскладка: village → First Light; water → PeriTune Glistening Ripples;
+  Раскладка: village → ВРЕМЕННО Glistening Ripples (First Light/Megollyen убран —
+  нужно личное разрешение автора, см. LICENSES.md); water → PeriTune Glistening Ripples;
   бой в фэнтези (isInCombat, гистерезис 6с) → Eclipzodiac Eleuxelier;
   lab → Eclipzodiac Era Machine. TitleScene глушит музыку. Кредит в титрах
   среза: «Music — Eclipzodiac · PeriTune»

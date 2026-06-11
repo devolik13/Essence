@@ -3,7 +3,9 @@
  * HTMLAudio со стримингом — НЕ грузим мегабайты в BootScene.
  *
  * Раскладка (треки в public/assets/music/, лицензии — LICENSES.md там же):
- *  - village  — спокойный мир/старт (First Light)
+ *  - village  — спокойный мир/старт (ВРЕМЕННО PeriTune Glistening Ripples:
+ *               First Light (Megollyen) убран — автор требует личного
+ *               разрешения на использование в проектах, ждём ответа)
  *  - water    — Туманное озеро (PeriTune — Glistening Ripples)
  *  - battle   — бой в фэнтези-мире (Eclipzodiac — Eleuxelier)
  *  - lab      — лаборатория/данж (Eclipzodiac — Era Machine)
@@ -12,7 +14,7 @@
 export type MusicKey = 'village' | 'water' | 'battle' | 'lab';
 
 const SRC: Record<MusicKey, string> = {
-  village: 'assets/music/village_first_light.mp3',
+  village: 'assets/music/water_glistening_ripples.ogg',
   water: 'assets/music/water_glistening_ripples.ogg',
   battle: 'assets/music/battle_eleuxelier.ogg',
   lab: 'assets/music/lab_era_machine.ogg',
