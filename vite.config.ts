@@ -4,7 +4,7 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // питч-билд: меньше вес, исходники не выкладываем
   },
   server: {
     port: 3000,
