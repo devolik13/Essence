@@ -133,6 +133,28 @@ export function sfxCapture() {
   });
 }
 
+/** Soul rip — тёмный whoosh вытяжки души при захвате тела (слоумо-момент):
+ *  низкий суб-тон скользит вниз + фильтрованный шум нарастает вверх. */
+export function sfxSoulRip() {
+  const ctx = getCtx();
+  const now = ctx.currentTime;
+  // Суб-тон: 160 → 45 Гц
+  const env = envelope(ctx, 0.03, 0.55, 0.22);
+  const osc = tone(ctx, 160, 'sine');
+  osc.frequency.exponentialRampToValueAtTime(45, now + 0.5);
+  osc.connect(env).connect(ctx.destination);
+  osc.start(); osc.stop(now + 0.6);
+  // Восходящий шум через band-pass (свист "втягивания")
+  const n = noise(ctx, 0.55, 0.7);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.Q.value = 6;
+  bp.frequency.setValueAtTime(300, now);
+  bp.frequency.exponentialRampToValueAtTime(2400, now + 0.45);
+  const nEnv = envelope(ctx, 0.12, 0.4, 0.16);
+  n.connect(bp).connect(nEnv).connect(ctx.destination);
+  n.start(); n.stop(now + 0.55);
+}
+
 /** Heal — soft high shimmer */
 export function sfxHeal() {
   const ctx = getCtx();

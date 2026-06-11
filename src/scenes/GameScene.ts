@@ -37,7 +37,7 @@ import { WORKBENCH_NAMES_RU, WORKBENCH_NAMES_EN, WORKBENCH_COLORS } from '../dat
 import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
-import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
+import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxSoulRip, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 import { buyRecipe as buyRecipeLogic, buyMaterial as buyMaterialLogic, consumeCraftMaterials, completeCraft, disassemble } from '../systems/craftingLogic';
 import { MapEditor } from '../systems/mapEditor';
@@ -219,6 +219,9 @@ export class GameScene extends Phaser.Scene {
   /** Текущая цель слежения камеры — чтобы не дёргать startFollow каждый кадр. */
   private cameraFollowTarget?: Phaser.GameObjects.GameObject;
 
+  /** Множитель геймплейного времени (слоумо вау-захвата). 1 = норма. */
+  private worldTimeScale = 1;
+
   // New game flow
   private isNewGame = false;
   private newGameBodyId?: string;
@@ -253,6 +256,7 @@ export class GameScene extends Phaser.Scene {
     this.selectedStarterDef = null;
     this.captureProcess = null;
     this.captureTarget = null;
+    this.worldTimeScale = 1; // сброс слоумо при рестарте сцены (смена зоны мид-полёта)
     this.starterBodies = [];
     this.resourceNodes = [];
     this.workbenches = [];
@@ -661,6 +665,10 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     // ── Editor mode: всё замирает, только редактор работает ──
     if (this.editorMode) return;
+
+    // Слоумо (вау-захват тела): геймплейная дельта масштабируется, твины/VFX
+    // идут в реальном времени — мир замирает, а кинематика остаётся плавной.
+    delta *= this.worldTimeScale;
 
     // ── Проверка перехода между зонами ──────────────────
     this.checkZoneTransition();
@@ -2768,6 +2776,70 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Вспышка захвата тела — яркая белая вспышка с частицами, callback после завершения */
+  /** ВАУ-захват: душа (светящаяся сфера с хвостом частиц) вылетает из старого
+   *  тела и ныряет в труп. Мир в слоумо, твины — в реальном времени.
+   *  Кадр №1 трейлера. */
+  private playSoulTransfer(fromX: number, fromY: number, toX: number, toY: number, onArrive: () => void) {
+    this.worldTimeScale = 0.22;
+    sfxSoulRip();
+
+    // Душа: яркое ядро + ореол
+    const core = this.add.circle(fromX, fromY, 7, 0xffffff, 1)
+      .setDepth(62).setBlendMode(Phaser.BlendModes.ADD);
+    const halo = this.add.circle(fromX, fromY, 16, 0x88bbff, 0.5)
+      .setDepth(61).setBlendMode(Phaser.BlendModes.ADD);
+    // Хвост из частиц следует за ядром
+    const trail = this.add.particles(fromX, fromY, 'particle_circle', {
+      speed: { min: 10, max: 40 },
+      scale: { start: 0.6, end: 0 },
+      alpha: { start: 0.9, end: 0 },
+      tint: [0xffffff, 0xaaddff, 0x6699ff],
+      lifespan: 420,
+      frequency: 12,
+      blendMode: Phaser.BlendModes.ADD,
+    }).setDepth(60);
+    trail.startFollow(core);
+
+    // Вспышка-выход из старого тела
+    const burst = this.add.circle(fromX, fromY, 26, 0xaaddff, 0.6)
+      .setDepth(60).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: burst, scale: 2, alpha: 0, duration: 300, onComplete: () => burst.destroy() });
+
+    // Полёт по лёгкой дуге: контрольная точка сбоку от прямой
+    const mx = (fromX + toX) / 2, my = (fromY + toY) / 2;
+    const dx = toX - fromX, dy = toY - fromY;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    const arc = Math.min(60, len * 0.35);
+    const cpx = mx - (dy / len) * arc, cpy = my + (dx / len) * arc;
+    const t = { v: 0 };
+    this.tweens.add({
+      targets: t, v: 1,
+      duration: 480,
+      ease: 'Cubic.easeIn',
+      onUpdate: () => {
+        const u = 1 - t.v;
+        const x = u * u * fromX + 2 * u * t.v * cpx + t.v * t.v * toX;
+        const y = u * u * fromY + 2 * u * t.v * cpy + t.v * t.v * toY;
+        core.setPosition(x, y); halo.setPosition(x, y);
+      },
+      onComplete: () => {
+        trail.stopFollow(); trail.emitting = false;
+        this.time.delayedCall(450, () => trail.destroy());
+        core.destroy(); halo.destroy();
+        // Удар в точку прибытия: вспышка экрана + зум-панч + лёгкая тряска
+        const cam = this.cameras.main;
+        cam.flash(150, 255, 255, 255);
+        cam.shake(200, 0.0045);
+        const baseZoom = cam.zoom;
+        this.tweens.add({
+          targets: cam, zoom: baseZoom * 1.12, duration: 130, yoyo: true,
+          ease: 'Quad.easeOut', onComplete: () => { cam.zoom = baseZoom; },
+        });
+        onArrive();
+      },
+    });
+  }
+
   private spawnCaptureFlash(x: number, y: number, onComplete: () => void) {
     // Яркая вспышка
     const flash = this.add.circle(x, y, 40, 0xffffff, 0.9)
@@ -3451,8 +3523,19 @@ export class GameScene extends Phaser.Scene {
     creature.destroy();
     this.creatures = this.creatures.filter(c => c !== creature);
 
-    // Вспышка захвата → появление тела
-    this.spawnCaptureFlash(cx, cy, () => {
+    // ВАУ-секвенция: старое тело обмякает → душа летит в труп (слоумо) →
+    // вспышка/зум-панч → новое тело встаёт. В астрале летит сама Сфера.
+    const fromX = this.playerBody?.x ?? this.sphere.x;
+    const fromY = this.playerBody?.y ?? this.sphere.y;
+    const oldBody = this.playerBody;
+    if (oldBody) {
+      oldBody.release(); // отключаем управление на время перелёта
+      this.tweens.add({ targets: oldBody, alpha: 0.25, duration: 420 }); // тело «гаснет»
+    } else {
+      this.sphere.setVisible(false); // Сфера «и есть» летящая душа
+    }
+
+    this.playSoulTransfer(fromX, fromY, cx, cy, () => {
       // Уничтожаем старое тело (Сфера покидает его)
       this.bodyQuestTracker.clear();
       this.clearBodyQuestObjects();
@@ -3460,6 +3543,8 @@ export class GameScene extends Phaser.Scene {
         this.playerBody.destroy();
         this.playerBody = null;
       }
+      this.worldTimeScale = 1;
+      this.spawnCaptureFlash(cx, cy, () => {}); // вспышка + аккорд захвата
 
       this.playerBody = new Body(this, cx, cy, def, this.getEquippedStats());
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
@@ -3471,6 +3556,10 @@ export class GameScene extends Phaser.Scene {
       this.fillBodySlots(this.playerBody);
       this.sphere.enterBody();
       this.sphere.lastBodyId = def.id;
+
+      // Тело «встаёт»: проявление с лёгким отскоком
+      this.playerBody.setScale(0.7).setAlpha(0);
+      this.tweens.add({ targets: this.playerBody, scale: 1, alpha: 1, duration: 240, ease: 'Back.easeOut' });
 
       this.events.emit('body-captured', lt(def.nameRu, def.name));
 
