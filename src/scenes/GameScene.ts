@@ -342,6 +342,7 @@ export class GameScene extends Phaser.Scene {
     this.sphere.mapH = zoneH;
 
     if (this.isNewGame) {
+      this.registry.set('seenHints', {}); // новая игра — обучающие подсказки заново
       this.sphere.characterName = this.newGameCharName ?? '';
       if (this.newGameWeapon1) {
         const itemId1 = `starter_${this.newGameWeapon1}`;
@@ -708,6 +709,13 @@ export class GameScene extends Phaser.Scene {
       // Выход из тела [Q]
       if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
         this.exitBody();
+      }
+      // Онбординг: про выход из тела — когда игрок с захваченным телом в сейф-зоне
+      if ((this.sphere.killCounts['__captures'] ?? 0) > 0
+          && this.isInSafeZone(this.playerBody.x, this.playerBody.y)) {
+        this.onboardHint('exitbody', lt(
+          '[Q] — выйти из тела в астрал (можно только в безопасной зоне)',
+          '[Q] — leave the body into astral (safe zones only)'));
       }
       // [E] в теле — лут, квестодатель, ноды, верстаки, NPC, захват
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
@@ -2316,7 +2324,37 @@ export class GameScene extends Phaser.Scene {
   private showPrologue() {
     if (localStorage.getItem('essence_prologue_shown')) return;
     localStorage.setItem('essence_prologue_shown', '1');
-    this.events.emit('show-dialog', PROLOGUE_DIALOG);
+    this.events.emit('show-dialog', {
+      messages: PROLOGUE_DIALOG,
+      onEnd: () => this.onboardHint('controls', lt(
+        'WASD — движение · ЛКМ — выбрать цель · [1] — атака · Tab — смена оружия',
+        'WASD — move · LMB — select target · [1] — attack · Tab — swap weapon')),
+    });
+  }
+
+  /** Сколько подсказок видно сейчас — одновременные стекаются вниз. */
+  private activeOnboardHints = 0;
+
+  /** Одноразовая обучающая подсказка (крупно вверху, 1 раз за прохождение).
+   *  Учёт показанных — в registry (переживает смену зон; сбрасывается New Game). */
+  private onboardHint(id: string, msg: string): void {
+    const seen: Record<string, boolean> = this.registry.get('seenHints') ?? {};
+    if (seen[id]) return;
+    seen[id] = true;
+    this.registry.set('seenHints', seen);
+    const cam = this.cameras.main;
+    const y = 92 + this.activeOnboardHints * 54;
+    this.activeOnboardHints++;
+    const tx = this.add.text(cam.width / 2, y, msg, {
+      fontSize: '19px', fontFamily: '"Cormorant Garamond", serif', color: '#ffe8a0',
+      stroke: '#1a1208', strokeThickness: 5, align: 'center',
+      backgroundColor: '#000000aa', padding: { x: 16, y: 9 },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(99980).setAlpha(0);
+    this.tweens.add({ targets: tx, alpha: 1, duration: 400 });
+    this.tweens.add({
+      targets: tx, alpha: 0, duration: 700, delay: 7000,
+      onComplete: () => { tx.destroy(); this.activeOnboardHints = Math.max(0, this.activeOnboardHints - 1); },
+    });
   }
 
   /** Switch between weapon 1 and weapon 2 */
@@ -3455,6 +3493,9 @@ export class GameScene extends Phaser.Scene {
         repeat: -1,
       });
       this.events.emit('capture-available', lt(creature.definition.nameRu, creature.definition.name));
+      this.onboardHint('capture', lt(
+        'Тело можно захватить: подойди и нажми [E]. Тела — твои учителя.',
+        'You can capture this body: walk up and press [E]. Bodies are your teachers.'));
     }
 
     // Через 30 сек тело само исчезает и встаёт в очередь респауна
@@ -3586,6 +3627,11 @@ export class GameScene extends Phaser.Scene {
 
       // Body quest — show intro dialog on first possession
       this.tryShowBodyQuest(def.id);
+
+      // Онбординг: после первого вселения объясняем петлю обучения
+      this.time.delayedCall(900, () => this.onboardHint('bodyquest', lt(
+        'Ты в новом теле! Выполни его квест (★ на панели квестов) — выучишь умение навсегда.',
+        'You are in a new body! Complete its quest (★ on the quest panel) to learn its skill forever.')));
     });
   }
 
