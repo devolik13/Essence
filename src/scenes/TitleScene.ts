@@ -4,6 +4,7 @@ import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, findFree
 import { t, lt, initLang } from '../i18n/index';
 import { WeaponType } from '../types/bodies';
 import { THEME, TC } from '../ui/theme';
+import { stopMusic } from '../systems/music';
 
 export class TitleScene extends Phaser.Scene {
   private menuContainer!: Phaser.GameObjects.Container;
@@ -14,6 +15,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
+    stopMusic(); // возврат из игры/титров — фоновая музыка затихает
     initLang();
     migrateOldSave();
     this.cameras.main.setBackgroundColor('#0d0b08');

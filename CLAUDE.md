@@ -739,6 +739,13 @@ T3 заклинания — только NPC-касты боссов. Игрок
 - **Частицы**: снаряды с хвостами, удары, касты, лечение, AoE, захват тела
 - **13 процедурных звуков**: удар, выстрел, каст, крит, смерть, блок, захват, вытяжка души (sfxSoulRip), лечение, бафф, level up, переход зоны
 - **Спрайты**: воин (idle/walk/atk), маг (idle/walk/cast)
+- **Фоновая музыка** (`src/systems/music.ts`, треки в `public/assets/music/`,
+  лицензии — `LICENSES.md` там же): HTMLAudio-стриминг (НЕ через BootScene),
+  кроссфейд 1.2с, авторазлочка по первому жесту (autoplay policy).
+  Раскладка: village → First Light; water → PeriTune Glistening Ripples;
+  бой в фэнтези (isInCombat, гистерезис 6с) → Eclipzodiac Eleuxelier;
+  lab → Eclipzodiac Era Machine. TitleScene глушит музыку. Кредит в титрах
+  среза: «Music — Eclipzodiac · PeriTune»
 - **ВАУ-захват тела** (кадр №1 трейлера, `playSoulTransfer` в GameScene):
   завершение каста захвата → мир в слоумо ×0.22 (`worldTimeScale`, твины идут
   в реальном времени) → старое тело гаснет (alpha 0.25) → душа (ядро+ореол+

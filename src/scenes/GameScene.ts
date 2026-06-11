@@ -38,6 +38,7 @@ import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
 import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxSoulRip, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
+import { playMusic, MusicKey } from '../systems/music';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 import { buyRecipe as buyRecipeLogic, buyMaterial as buyMaterialLogic, consumeCraftMaterials, completeCraft, disassemble } from '../systems/craftingLogic';
 import { MapEditor } from '../systems/mapEditor';
@@ -221,6 +222,11 @@ export class GameScene extends Phaser.Scene {
 
   /** Множитель геймплейного времени (слоумо вау-захвата). 1 = норма. */
   private worldTimeScale = 1;
+
+  /** Базовый трек текущей зоны; в бою (вне lab) подменяется на 'battle'. */
+  private musicBase: MusicKey = 'village';
+  /** Гистерезис боевой музыки: >0 — бой недавно был, держим боевой трек. */
+  private combatMusicMs = 0;
 
   // New game flow
   private isNewGame = false;
@@ -465,6 +471,12 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Exit arrows (hidden, shown near edge) ──────
     this.createExitArrows();
+
+    // ─── Музыка зоны (боевой слой подмешивается в update) ──
+    this.musicBase = this.currentZone.id === 'lab' ? 'lab'
+      : this.currentZone.id === 'water' ? 'water' : 'village';
+    this.combatMusicMs = 0;
+    playMusic(this.musicBase);
 
     // ─── Камера ──────────────────────────────────────
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
@@ -1060,6 +1072,14 @@ export class GameScene extends Phaser.Scene {
           this.captureTarget = null;
         }
       }
+    }
+
+    // Музыка: в фэнтези-мире бой подменяет зональный трек (гистерезис 6с,
+    // чтобы трек не дёргался на каждом выходе из агро). В lab всегда свой.
+    if (this.musicBase !== 'lab') {
+      if (this.isInCombat) this.combatMusicMs = 6000;
+      else this.combatMusicMs = Math.max(0, this.combatMusicMs - delta);
+      playMusic(this.combatMusicMs > 0 ? 'battle' : this.musicBase);
     }
 
     // Респаун
@@ -5646,6 +5666,7 @@ export class GameScene extends Phaser.Scene {
       '"Learn in another world by possessing its creatures —\ndefend your own world with what you learned"'), '20px', '#aaccee', 1900);
     mk(cam.height * 0.58, lt('Дизайн и мир — Денис\nПрототип-арт: CraftPix + авторские ассеты',
       'Game design & world — Denis\nPrototype art: CraftPix + custom assets'), '18px', '#998877', 2700);
+    mk(cam.height * 0.765, lt('Музыка — Eclipzodiac · PeriTune', 'Music — Eclipzodiac · PeriTune'), '16px', '#887766', 3000);
     mk(cam.height * 0.70, 'Contact: devolik13@gmail.com', '20px', '#ffe08a', 3300);
     mk(cam.height * 0.84, lt('[Enter] — на титульный экран', '[Enter] — back to title'), '18px', '#776655', 3900);
 
