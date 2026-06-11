@@ -464,10 +464,15 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
     if (this.currentZone.id === 'lab') {
       this.cameras.main.setBackgroundColor(0x000000);
-      // Комната узкая (портретная) — заполняем ширину экрана зумом, чтобы не
-      // было пустоты по бокам. Вертикаль (портал↑→Машина→игрок) скроллится.
+      // Арена-комната: камера зафиксирована и показывает ВСЮ комнату целиком
+      // (ландшафтный формат под 16:9 → без пустоты по краям и без скролла к
+      // стенам). Не следуем за игроком в лаборатории.
       const cam = this.cameras.main;
-      this.cameras.main.setZoom(Math.max(1, cam.width / zoneW));
+      const fit = Math.min(cam.width / zoneW, cam.height / zoneH);
+      cam.setZoom(fit);
+      cam.stopFollow();
+      cam.centerOn(zoneW / 2, zoneH / 2);
+      this.cameraFollowTarget = undefined;
     }
     this.followCamera(this.sphere);
 
@@ -5229,7 +5234,7 @@ export class GameScene extends Phaser.Scene {
     // Разрыв Пустоты на севере — анимированный спрайт (фоллбек: овал)
     const zw = this.currentZone.widthTiles * TILE_SIZE;
     this.labRiftX = zw / 2;
-    this.labRiftY = 100; // top center
+    this.labRiftY = 55; // top center
     if (this.anims.exists('rift_swirl_anim')) {
       this.labRiftSpr = this.add.sprite(this.labRiftX, this.labRiftY, 'rift_swirl');
       this.labRiftSpr.play('rift_swirl_anim').setDisplaySize(170, 170).setDepth(5);

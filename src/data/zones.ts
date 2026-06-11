@@ -700,10 +700,11 @@ export const ZONE_EARTH: ZoneConfig = {
 
 // Размер обрезан под мебель игрока (src/data/mapLayouts/lab.json). Машина и
 // портал спозиционированы относительно мебели (динамо/катушка обрамляют Машину).
-const LAB_W = 17; // обрезано под мебель (право)
-const LAB_H = 22; // обрезано под мебель (низ)
-const LAB_MACHINE_X = 334;  // середина динамо/катушки
-const LAB_MACHINE_Y = 415;
+// Ландшафтная комната-арена (30×17 ≈ 16:9) — камера показывает всю целиком.
+const LAB_W = 30;
+const LAB_H = 17;
+const LAB_MACHINE_X = 546;  // середина динамо/катушки (см. mapLayouts/lab.json)
+const LAB_MACHINE_Y = 275;
 
 export const ZONE_LAB: ZoneConfig = {
   id: 'lab',
@@ -714,7 +715,7 @@ export const ZONE_LAB: ZoneConfig = {
   baseTile: 'tile_stone',
   tint: 0x55585f, // холодный металл/камень
   // Игрок просыпается ВОЗЛЕ Машины (учёные будят его)
-  respawnPoint: { x: LAB_MACHINE_X, y: LAB_MACHINE_Y + 130 },
+  respawnPoint: { x: LAB_MACHINE_X, y: LAB_MACHINE_Y + 110 },
   spawnGroups: [
     // Машина Переноса — защищаемый объект (immobile, фракция 'lab')
     { x: LAB_MACHINE_X, y: LAB_MACHINE_Y, creatureId: 'transfer_machine', count: 1 },
