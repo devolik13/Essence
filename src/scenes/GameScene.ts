@@ -427,6 +427,7 @@ export class GameScene extends Phaser.Scene {
         this.playerBody = new Body(this, startX, startY, bodyDef, this.getEquippedStats());
         this.playerBody.mapW = zoneW; this.playerBody.mapH = zoneH;
         this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
+        this.playerBody.onDamaged = () => this.onPlayerStruck();
         this.playerBody.possess(this);
         this.playerBody.shieldBlock = this.computeShieldBlock();
         this.fillBodySlots(this.playerBody);
@@ -1460,6 +1461,16 @@ export class GameScene extends Phaser.Scene {
    *  - Пассивное (Type 1): захват живого
    *  - Боевое (Type 2): только мёртвого
    */
+  /** Прямое попадание по игроку прерывает каст захвата тела (Body.onDamaged). */
+  private onPlayerStruck(): void {
+    if (this.captureProcess?.state === CaptureState.Casting) {
+      this.captureProcess = interruptCapture(this.captureProcess);
+      this.captureTarget = null;
+      this.events.emit('capture-interrupt');
+      this.showMessage(lt('Захват прерван — тебя атаковали!', 'Capture interrupted — you were attacked!'));
+    }
+  }
+
   private tryCaptureDead(): boolean {
     if (this.captureProcess?.state === CaptureState.Casting) return false;
 
@@ -1496,6 +1507,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
+      this.playerBody.onDamaged = () => this.onPlayerStruck();
       this.playerBody.possess(this);
       this.playerBody.shieldBlock = this.computeShieldBlock();
       this.fillBodySlots(this.playerBody);
@@ -3453,6 +3465,7 @@ export class GameScene extends Phaser.Scene {
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
       this.playerBody.wallCheckFn = (x, y) => this.isBlockedByWall(x, y, true);
+      this.playerBody.onDamaged = () => this.onPlayerStruck();
       this.playerBody.possess(this);
       this.playerBody.shieldBlock = this.computeShieldBlock();
       this.fillBodySlots(this.playerBody);

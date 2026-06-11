@@ -528,7 +528,13 @@ export class Body extends Phaser.GameObjects.Container {
    *  идут мимо takeDamage и щитом не режутся. */
   public shieldBlock = 0;
 
+  /** Вызывается при ЛЮБОМ прямом попадании по телу (даже полностью
+   *  поглощённом щитом/tempHP). GameScene прерывает этим захват тела.
+   *  DoT-тики идут мимо takeDamage и его не дёргают. */
+  public onDamaged?: () => void;
+
   takeDamage(amount: number): number {
+    if (amount > 0) this.onDamaged?.();
     if (this.shieldBlock > 0 && amount > 0) {
       amount = Math.max(0, amount - this.shieldBlock);
     }
