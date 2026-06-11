@@ -1189,8 +1189,9 @@ export class GameScene extends Phaser.Scene {
       ts.tileScaleY = 0.3;
     }
 
-    // Лаборатория: викторианский кафель (арт) или металлический пол (фоллбек)
-    // + рамка-стена по периметру.
+    // Лаборатория: викторианский кафель (арт) или металлический пол (фоллбек).
+    // Пол покрывает ВСЮ зону. Рамка tile_lab_wall убрана — её латунная труба
+    // тайлилась в «полосатую подложку» и съедала 64px пола по периметру.
     if (zone.id === 'lab') {
       const zw = wt * TILE_SIZE;
       const zh = ht * TILE_SIZE;
@@ -1200,13 +1201,6 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.add.tileSprite(0, 0, zw, zh, 'tile_lab').setOrigin(0, 0).setDepth(-10);
       }
-      // Стена по краю арены (2 тайла толщиной)
-      const wallT = TILE_SIZE * 2;
-      const wallDepth = -9;
-      this.add.tileSprite(0, 0, zw, wallT, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
-      this.add.tileSprite(0, zh - wallT, zw, wallT, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
-      this.add.tileSprite(0, 0, wallT, zh, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
-      this.add.tileSprite(zw - wallT, 0, wallT, zh, 'tile_lab_wall').setOrigin(0, 0).setDepth(wallDepth);
     }
 
     // Emit minimap terrain colors for UIScene
