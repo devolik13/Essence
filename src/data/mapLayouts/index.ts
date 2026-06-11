@@ -1,5 +1,6 @@
 import { PlacedMapObject } from '../../types/mapObjects';
 import villageLayout from './village.json';
+import labLayout from './lab.json';
 
 /**
  * Встроенные (bundled) раскладки карты — по одной на зону.
@@ -11,6 +12,7 @@ import villageLayout from './village.json';
  */
 export const BUNDLED_LAYOUTS: Record<string, PlacedMapObject[]> = {
   village: villageLayout as PlacedMapObject[],
+  lab: labLayout as PlacedMapObject[],
 };
 
 export function getBundledLayout(zoneId: string): PlacedMapObject[] {

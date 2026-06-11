@@ -905,6 +905,26 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    // Разделение существ: мобы не налезают друг на друга (через сетку, O(соседей)).
+    // Лёгкое отталкивание — на каждой паре близких живых не-призраков.
+    {
+      const sep = 26; // мин. дистанция между центрами
+      for (const c of this.creatures) {
+        if (c.isDead || c.definition.immobile) continue;
+        this.creatureGrid.forEachNear(c.x, c.y, sep + 8, (o) => {
+          if (o === c || o.isDead || o.definition.immobile) return;
+          const dx = c.x - o.x;
+          const dy = c.y - o.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d > 0 && d < sep) {
+            const push = (sep - d) / d * 0.25; // мягко (каждая сторона по 0.25)
+            c.x += dx * push; c.y += dy * push;
+            o.x -= dx * push; o.y -= dy * push;
+          }
+        });
+      }
+    }
+
     // Обновляем текст урона
     this.damageTexts = this.damageTexts.filter(dt => !dt.update(time, delta));
     this.updateGroundZones(delta);
@@ -1196,10 +1216,10 @@ export class GameScene extends Phaser.Scene {
     }
     this.events.emit('minimap-terrain', { w: mmW, h: mmH, colors: mmColors, mapW: wt * TILE_SIZE, mapH: ht * TILE_SIZE });
 
-    // Камни возрождения
-    const respawnPoints = zone.safeZones
+    // Камни возрождения (в лаборатории игрок просыпается у Машины — камня нет)
+    const respawnPoints = zone.id === 'lab' ? [] : (zone.safeZones
       ? zone.safeZones.map(sz => sz.respawnPoint)
-      : [zone.respawnPoint];
+      : [zone.respawnPoint]);
     for (const rp of respawnPoints) {
       this.add.image(rp.x, rp.y - 80, 'respawn_stone');
       this.add.text(rp.x, rp.y - 106, t('misc.respawn_stone'), {
@@ -5202,7 +5222,7 @@ export class GameScene extends Phaser.Scene {
     // Разрыв Пустоты на севере — анимированный спрайт (фоллбек: овал)
     const zw = this.currentZone.widthTiles * TILE_SIZE;
     this.labRiftX = zw / 2;
-    this.labRiftY = 220;
+    this.labRiftY = 100; // top center
     if (this.anims.exists('rift_swirl_anim')) {
       this.labRiftSpr = this.add.sprite(this.labRiftX, this.labRiftY, 'rift_swirl');
       this.labRiftSpr.play('rift_swirl_anim').setDisplaySize(170, 170).setDepth(5);

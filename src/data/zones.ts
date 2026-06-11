@@ -698,10 +698,12 @@ export const ZONE_EARTH: ZoneConfig = {
 // Маленькая арена: Машина Переноса в центре, разрыв Пустоты на севере.
 // Волны тварей спавнятся скриптом данжа в GameScene (labDungeon).
 
-const LAB_W = 60;
-const LAB_H = 46;
-const LPW = LAB_W * T; // 1920 px
-const LPH = LAB_H * T; // 1472 px
+// Размер обрезан под мебель игрока (src/data/mapLayouts/lab.json). Машина и
+// портал спозиционированы относительно мебели (динамо/катушка обрамляют Машину).
+const LAB_W = 18;
+const LAB_H = 23;
+const LAB_MACHINE_X = 334;  // середина динамо/катушки
+const LAB_MACHINE_Y = 415;
 
 export const ZONE_LAB: ZoneConfig = {
   id: 'lab',
@@ -711,11 +713,11 @@ export const ZONE_LAB: ZoneConfig = {
   heightTiles: LAB_H,
   baseTile: 'tile_stone',
   tint: 0x55585f, // холодный металл/камень
-  // Игрок просыпается ВОЗЛЕ Машины (учёные будят его) — не у южной стены
-  respawnPoint: { x: LPW / 2, y: LPH / 2 + 110 },
+  // Игрок просыпается ВОЗЛЕ Машины (учёные будят его)
+  respawnPoint: { x: LAB_MACHINE_X, y: LAB_MACHINE_Y + 130 },
   spawnGroups: [
     // Машина Переноса — защищаемый объект (immobile, фракция 'lab')
-    { x: LPW / 2, y: LPH / 2, creatureId: 'transfer_machine', count: 1 },
+    { x: LAB_MACHINE_X, y: LAB_MACHINE_Y, creatureId: 'transfer_machine', count: 1 },
   ],
   exits: [], // выход — скриптом по победе/поражению
   questObjects: [],

@@ -1129,9 +1129,13 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
   анимированные `lab_dynamo`/`lab_tesla_coil` (renderObject проигрывает
   `${key}_anim`). Lab-пропы default-solid (`isKeyDefaultSolid`), рендер origin
   0.85, базовый размер 90px×scale. Расставляются игроком → экспорт `lab.json`
-  → бандл в `src/data/mapLayouts/`. **Кнопка «Lab Editor» на титуле**: прямой
-  вход в зону lab с авто-открытым редактором (init `editorOnStart`, данж/волны
-  не стартуют)
+  → бандл в `src/data/mapLayouts/lab.json`. **Кнопка «Lab Editor» на титуле**:
+  прямой вход в зону lab с авто-открытым редактором (init `editorOnStart`,
+  данж/волны не стартуют). Зона обрезана под мебель (18×23 тайла), Машина (334,415)
+  между динамо/катушкой, портал top-center (zw/2,100), камень возрождения в lab
+  не рисуется. Пропы default-solid → коллизии. `PlacedMapObject.flipX` —
+  зеркалирование (стол с колбами). Существа не налезают друг на друга
+  (creature-creature separation в update через creatureGrid)
 - **Ритуал закрытия разрыва**: после 2-й волны разрыв «нестабилен» → [E] в 110px →
   канал 6 сек (движение прерывает), каст-бар через aoeCast UIData → победа → `LAB_VICTORY_DIALOG`
   → возврат в village. Разрыв — пульсирующий овал (labRiftGfx). При готовности

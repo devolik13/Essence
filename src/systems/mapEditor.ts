@@ -260,6 +260,7 @@ export class MapEditor {
       }
     }
     img.setAngle(obj.angle ?? 0);
+    if (obj.flipX) img.setFlipX(true);
     img.setDepth(obj.y);
     if (obj.tint !== undefined && obj.tint !== 0xffffff) img.setTint(obj.tint);
     this.sprites.set(obj, img);
