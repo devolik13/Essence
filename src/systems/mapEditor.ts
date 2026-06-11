@@ -525,6 +525,8 @@ export class MapEditor {
       this.currentScale = 35 / frameW;
     } else if (key.startsWith('node_') || key.startsWith('wb_')) {
       this.currentScale = 1; // фикстуры рендерятся в своём размере (×scale)
+    } else if (key.startsWith('lab_')) {
+      this.currentScale = 1; // lab-пропы: база 90px × scale (как renderObject)
     } else {
       this.currentScale = 0.3;
     }
@@ -542,12 +544,17 @@ export class MapEditor {
     const p = this.scene.input.activePointer;
     const worldPt = this.scene.cameras.main.getWorldPoint(p.x, p.y);
     const isMob = this.selectedKey.startsWith('mob_');
-    this.previewImage = this.scene.add.image(worldPt.x, worldPt.y, this.selectedKey, isMob ? 0 : undefined)
-      .setOrigin(0.5, isMob ? 0.5 : 0.9)
-      .setScale(this.currentScale)
+    const isLab = this.selectedKey.startsWith('lab_');
+    this.previewImage = this.scene.add.image(worldPt.x, worldPt.y, this.selectedKey, (isMob || isLab) ? 0 : undefined)
+      .setOrigin(0.5, isMob ? 0.5 : isLab ? 0.85 : 0.9)
       .setAngle(this.currentAngle)
       .setAlpha(0.5)
       .setDepth(100000);
+    if (isLab) {
+      this.previewImage.setDisplaySize(90 * this.currentScale, 90 * this.currentScale);
+    } else {
+      this.previewImage.setScale(this.currentScale);
+    }
     const t = TINT_PALETTE[this.currentTintIndex];
     if (t !== 0xffffff) this.previewImage.setTint(t);
   }
@@ -746,7 +753,7 @@ export class MapEditor {
         this.updateSelectionOutline();
         this.save();
       } else {
-        this.currentScale = Math.max(0.05, Math.min(2.0, this.currentScale + delta));
+        this.currentScale = Math.max(0.05, Math.min(3.0, this.currentScale + delta));
         this.refreshPreview();
       }
     }
@@ -848,7 +855,11 @@ export class MapEditor {
 
   private refreshPreview(): void {
     if (!this.previewImage) return;
-    this.previewImage.setScale(this.currentScale);
+    if (this.selectedKey?.startsWith('lab_')) {
+      this.previewImage.setDisplaySize(90 * this.currentScale, 90 * this.currentScale);
+    } else {
+      this.previewImage.setScale(this.currentScale);
+    }
     this.previewImage.setAngle(this.currentAngle);
     const t = TINT_PALETTE[this.currentTintIndex];
     if (t === 0xffffff) this.previewImage.clearTint();
