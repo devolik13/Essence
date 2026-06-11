@@ -465,12 +465,14 @@ export class GameScene extends Phaser.Scene {
     if (this.currentZone.id === 'lab') {
       const cam = this.cameras.main;
       cam.setBackgroundColor(0x000000);
-      // Комната меньше экрана: расширяем границы камеры симметрично, чтобы
-      // комната стояла ПО ЦЕНТРУ экрана (иначе Phaser клампит её в левый угол).
+      // Комната меньше экрана: по X центрируем статично, а по Y даём камере
+      // ход ±LAB_FOLLOW_Y за игроком — низ комнаты выезжает из-под HUD,
+      // карта «едет» вместе с игроком (иначе Phaser клампит её в левый угол).
       if (zoneW < cam.width || zoneH < cam.height) {
         const bw = Math.max(zoneW, cam.width);
         const bh = Math.max(zoneH, cam.height);
-        cam.setBounds(-(bw - zoneW) / 2, -(bh - zoneH) / 2, bw, bh);
+        const LAB_FOLLOW_Y = 150;
+        cam.setBounds(-(bw - zoneW) / 2, -(bh - zoneH) / 2 - LAB_FOLLOW_Y, bw, bh + LAB_FOLLOW_Y * 2);
       }
     }
     this.followCamera(this.sphere);
@@ -5252,11 +5254,12 @@ export class GameScene extends Phaser.Scene {
           { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
         scientists.push({ spr, label, toX, toY });
       };
-      // Стоят у изголовья — будят; отбегут в нижние углы комнаты (от разрыва)
-      const zw2 = this.currentZone.widthTiles * TILE_SIZE;
+      // Стоят ВМЕСТЕ у изголовья (одна позиция) — будят; после диалога
+      // разбегаются ВНИЗ в разные стороны, на свободный пол по обе стороны
+      // верстака (мебель внизу: бочки/лампа слева, стол/кушетка справа).
       const zh2 = this.currentZone.heightTiles * TILE_SIZE;
-      mk('scientist_man_down', 'scientist_man_idle_down', px - 40, py - 10, lt('Тесла', 'Tesla'), zw2 * 0.22, zh2 - 120);
-      mk('scientist_woman_down', 'scientist_woman_idle_down', px + 40, py - 10, lt('Кюри', 'Curie'), zw2 * 0.78, zh2 - 120);
+      mk('scientist_man_down', 'scientist_man_idle_down', px - 26, py - 12, lt('Тесла', 'Tesla'), 142, zh2 - 42);
+      mk('scientist_woman_down', 'scientist_woman_idle_down', px + 26, py - 12, lt('Кюри', 'Curie'), 292, zh2 - 42);
     }
 
     // Вводный диалог (пробуждение) → разрыв вспыхивает, учёные отбегают → волны

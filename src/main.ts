@@ -32,4 +32,6 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+// Dev-хук для автотестов/отладки (чтение позиций игрока/камеры из консоли)
+(window as any).__game = game;
