@@ -5359,9 +5359,22 @@ export class GameScene extends Phaser.Scene {
       // Стоят ВМЕСТЕ у изголовья (одна позиция) — будят; после диалога
       // разбегаются ВНИЗ в разные стороны, на свободный пол по обе стороны
       // верстака (мебель внизу: бочки/лампа слева, стол/кушетка справа).
+      // При ретрае (labRetry) — сразу на местах разбега.
       const zh2 = this.currentZone.heightTiles * TILE_SIZE;
-      mk('scientist_man_down', 'scientist_man_idle_down', px - 26, py - 12, lt('Тесла', 'Tesla'), 142, zh2 - 42);
-      mk('scientist_woman_down', 'scientist_woman_idle_down', px + 26, py - 12, lt('Кюри', 'Curie'), 292, zh2 - 42);
+      const retry = this.registry.get('labRetry') === true;
+      mk('scientist_man_down', 'scientist_man_idle_down',
+        retry ? 142 : px - 26, retry ? zh2 - 42 : py - 12, lt('Тесла', 'Tesla'), 142, zh2 - 42);
+      mk('scientist_woman_down', 'scientist_woman_idle_down',
+        retry ? 292 : px + 26, retry ? zh2 - 42 : py - 12, lt('Кюри', 'Curie'), 292, zh2 - 42);
+    }
+
+    // Ретрай после поражения: без вводного диалога — сразу к [F] Начать оборону
+    if (this.registry.get('labRetry') === true) {
+      this.registry.set('labRetry', false);
+      this.labState = 'ready_to_start';
+      this.showMessage(lt('Машина восстановлена. Они придут снова.', 'The Machine is restored. They will come again.'));
+      this.showLabStartPrompt();
+      return;
     }
 
     // Вводный диалог (пробуждение) → разрыв вспыхивает, учёные отбегают → волны
@@ -5450,13 +5463,10 @@ export class GameScene extends Phaser.Scene {
 
   private updateLabDungeon(delta: number) {
     if (this.labState !== 'running') return;
-    // Поражение: Машина уничтожена
+    // Поражение: Машина уничтожена → экран поражения (ретрай/деревня)
     if (this.labMachine && this.labMachine.isDead) {
       this.labState = 'defeat';
-      this.showMessage(lt('Машина Переноса уничтожена. Путь между мирами потерян...', 'The Transfer Machine is destroyed. The way between worlds is lost...'));
-      this.time.delayedCall(4000, () => {
-        this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
-      });
+      this.showLabDefeatScreen();
       return;
     }
     // Проверка зачистки волны — раз в 500мс
@@ -5514,11 +5524,93 @@ export class GameScene extends Phaser.Scene {
     this.events.emit('show-dialog', {
       messages: LAB_VICTORY_DIALOG,
       onEnd: () => {
-        this.time.delayedCall(1500, () => {
-          this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
-        });
+        // Питч-срез: победа в лаборатории = финал демо → титры с CTA.
+        // Обычная игра: возврат в деревню.
+        if (this.pitchMode) {
+          this.time.delayedCall(800, () => this.showSliceCredits());
+        } else {
+          this.time.delayedCall(1500, () => {
+            this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
+          });
+        }
       },
     });
+  }
+
+  /** Полноэкранный оверлей (затемнение + текст), мир замирает (worldTimeScale 0). */
+  private makeEndOverlay(alpha: number): Phaser.GameObjects.Rectangle {
+    this.worldTimeScale = 0;
+    const cam = this.cameras.main;
+    const dim = this.add.rectangle(cam.width / 2, cam.height / 2, cam.width, cam.height, 0x000000, 0)
+      .setScrollFactor(0).setDepth(99990);
+    this.tweens.add({ targets: dim, fillAlpha: alpha, duration: 700 });
+    return dim;
+  }
+
+  /** Экран поражения данжа: [Enter] — заново (без вводного диалога), [Esc] — в деревню. */
+  private showLabDefeatScreen() {
+    this.makeEndOverlay(0.88);
+    const cam = this.cameras.main;
+    const cx = cam.width / 2;
+    const mk = (y: number, msg: string, size: string, color: string, delay: number) => {
+      const tx = this.add.text(cx, y, msg, {
+        fontSize: size, fontFamily: '"Cormorant Garamond", serif', color,
+        stroke: '#000000', strokeThickness: 4, align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(99991).setAlpha(0);
+      this.tweens.add({ targets: tx, alpha: 1, duration: 600, delay });
+      return tx;
+    };
+    mk(cam.height * 0.34, lt('МАШИНА УНИЧТОЖЕНА', 'THE MACHINE IS DESTROYED'), '42px', '#ff6655', 300);
+    mk(cam.height * 0.46, lt('Пустота прорвалась. Но каждая отправленная душа\nвозвращается, зная врага лучше.',
+      'The Void broke through. But every soul we send\ncomes back knowing the enemy better.'), '20px', '#ccbbaa', 900);
+    mk(cam.height * 0.62, lt('[Enter] — попробовать снова      [Esc] — в деревню',
+      '[Enter] — try again      [Esc] — back to the village'), '22px', '#ffe08a', 1500);
+
+    const kb = this.input.keyboard;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' && e.key !== 'Escape') return;
+      kb?.off('keydown', onKey);
+      if (e.key === 'Enter') {
+        this.registry.set('labRetry', true); // повтор без вводного диалога
+        this.scene.restart({ zoneId: 'lab', spawnX: undefined, spawnY: undefined });
+      } else {
+        this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
+      }
+    };
+    kb?.on('keydown', onKey);
+  }
+
+  /** Титры вертикального среза (только pitchMode): CTA + возврат на титул. */
+  private showSliceCredits() {
+    this.scene.sleep('UIScene'); // HUD прячется — чистый кадр титров
+    this.makeEndOverlay(0.96);
+    const cam = this.cameras.main;
+    const cx = cam.width / 2;
+    const mk = (y: number, msg: string, size: string, color: string, delay: number) => {
+      const tx = this.add.text(cx, y, msg, {
+        fontSize: size, fontFamily: '"Cormorant Garamond", serif', color,
+        stroke: '#000000', strokeThickness: 3, align: 'center',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(99991).setAlpha(0);
+      this.tweens.add({ targets: tx, alpha: 1, duration: 800, delay });
+      return tx;
+    };
+    mk(cam.height * 0.20, 'E S S E N C E', '56px', '#ffd87a', 300);
+    mk(cam.height * 0.31, lt('Вертикальный срез — спасибо за игру!', 'Vertical slice — thanks for playing!'), '24px', '#eeddcc', 1100);
+    mk(cam.height * 0.44, lt('«Учись в чужом мире, вселяясь в существ —\nзащищай свой мир тем, что выучил»',
+      '"Learn in another world by possessing its creatures —\ndefend your own world with what you learned"'), '20px', '#aaccee', 1900);
+    mk(cam.height * 0.58, lt('Дизайн и мир — Денис\nПрототип-арт: CraftPix + авторские ассеты',
+      'Game design & world — Denis\nPrototype art: CraftPix + custom assets'), '18px', '#998877', 2700);
+    mk(cam.height * 0.70, 'Contact: devolik13@gmail.com', '20px', '#ffe08a', 3300);
+    mk(cam.height * 0.84, lt('[Enter] — на титульный экран', '[Enter] — back to title'), '18px', '#776655', 3900);
+
+    const kb = this.input.keyboard;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      kb?.off('keydown', onKey);
+      this.scene.stop('UIScene');
+      this.scene.start('TitleScene');
+    };
+    kb?.on('keydown', onKey);
   }
 
   // ═══ REGION: Boss Phases ════════════════════════════════════════════════
