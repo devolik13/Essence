@@ -5664,8 +5664,8 @@ export class GameScene extends Phaser.Scene {
     mk(cam.height * 0.31, lt('Вертикальный срез — спасибо за игру!', 'Vertical slice — thanks for playing!'), '24px', '#eeddcc', 1100);
     mk(cam.height * 0.44, lt('«Учись в чужом мире, вселяясь в существ —\nзащищай свой мир тем, что выучил»',
       '"Learn in another world by possessing its creatures —\ndefend your own world with what you learned"'), '20px', '#aaccee', 1900);
-    mk(cam.height * 0.58, lt('Дизайн и мир — Денис\nПрототип-арт: CraftPix + авторские ассеты',
-      'Game design & world — Denis\nPrototype art: CraftPix + custom assets'), '18px', '#998877', 2700);
+    mk(cam.height * 0.58, lt('Дизайн и мир — Devolik\nПрототип-арт: CraftPix + авторские ассеты',
+      'Game design & world — Devolik\nPrototype art: CraftPix + custom assets'), '18px', '#998877', 2700);
     mk(cam.height * 0.765, lt('Музыка — Eclipzodiac · PeriTune', 'Music — Eclipzodiac · PeriTune'), '16px', '#887766', 3000);
     mk(cam.height * 0.70, 'Contact: devolik13@gmail.com', '20px', '#ffe08a', 3300);
     mk(cam.height * 0.84, lt('[Enter] — на титульный экран', '[Enter] — back to title'), '18px', '#776655', 3900);
