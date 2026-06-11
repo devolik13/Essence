@@ -288,7 +288,20 @@ export class MapEditor {
     const gs = this.scene as unknown as { editorMode: boolean; creatures?: Array<{ setAlpha?: (a: number) => void; sprite?: { setAlpha?: (a: number) => void } }>; playerBody?: { setAlpha?: (a: number) => void }; sphere?: { setAlpha?: (a: number) => void } };
     gs.editorMode = true;
     this.savedCamZoom = this.scene.cameras.main.zoom;
-    this.scene.cameras.main.stopFollow();
+    const cam0 = this.scene.cameras.main;
+    cam0.stopFollow();
+    // Маленькая зона (лаборатория) целиком влезает на экран: вписываем её в
+    // область СЛЕВА от палитры и центрируем там — без «подложки» вокруг и
+    // без скрытия комнаты за палитрой.
+    const zb = cam0.getBounds();
+    if (zb.width > 0 && zb.width <= 2000 && zb.height <= 2000) {
+      const availW = cam0.width - this.PANEL_W; // место слева от палитры
+      const fit = Math.min(availW / zb.width, cam0.height / zb.height) * 0.96;
+      cam0.setZoom(fit);
+      // Комната центрируется в свободной области слева от палитры
+      cam0.scrollX = zb.width / 2 - availW / 2 / fit;
+      cam0.scrollY = zb.height / 2 - cam0.height / 2 / fit;
+    }
     this.scene.events.emit('editor-mode', true);
     if (gs.creatures) {
       for (const c of gs.creatures) {
