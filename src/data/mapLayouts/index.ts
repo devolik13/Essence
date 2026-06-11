@@ -18,3 +18,17 @@ export const BUNDLED_LAYOUTS: Record<string, PlacedMapObject[]> = {
 export function getBundledLayout(zoneId: string): PlacedMapObject[] {
   return BUNDLED_LAYOUTS[zoneId] ?? [];
 }
+
+/**
+ * Версия bundled-раскладки. УВЕЛИЧИВАТЬ при каждом изменении JSON в git!
+ * localStorage-копия, сохранённая против другой версии, автоматически
+ * сбрасывается (lazy-sync: «Load from file» больше не нужен после pull).
+ */
+export const LAYOUT_VERSIONS: Record<string, number> = {
+  village: 1,
+  lab: 3,
+};
+
+export function getLayoutVersion(zoneId: string): number {
+  return LAYOUT_VERSIONS[zoneId] ?? 0;
+}

@@ -1,16 +1,27 @@
 import { PlacedMapObject, MAP_OBJECTS_STORAGE_PREFIX } from '../types/mapObjects';
-import { getBundledLayout } from '../data/mapLayouts';
+import { getBundledLayout, getLayoutVersion } from '../data/mapLayouts';
+
+const VER_SUFFIX = '_basever';
 
 /**
  * Загрузка раскладки зоны.
  * Приоритет: localStorage (рабочая копия) > bundled JSON из git > пустой массив.
+ * АВТОСИНК: если рабочая копия была сохранена против ДРУГОЙ версии bundled
+ * (Claude обновил JSON в git), она устарела и сбрасывается — иначе пол/зона
+ * и мебель расходятся («у тебя и у меня разные данные»).
  */
 export function loadMapObjects(zoneId: string): PlacedMapObject[] {
   try {
     const raw = localStorage.getItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      const savedVer = Number(localStorage.getItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId + VER_SUFFIX) ?? '0');
+      if (savedVer !== getLayoutVersion(zoneId)) {
+        // Бандл обновился — локальная копия устарела, сбрасываем.
+        localStorage.removeItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId);
+      } else {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
     }
   } catch {
     /* ignore */
@@ -20,6 +31,8 @@ export function loadMapObjects(zoneId: string): PlacedMapObject[] {
 
 export function saveMapObjects(zoneId: string, objects: PlacedMapObject[]): void {
   localStorage.setItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId, JSON.stringify(objects));
+  // Запоминаем, против какой версии bundled сделана эта рабочая копия
+  localStorage.setItem(MAP_OBJECTS_STORAGE_PREFIX + zoneId + VER_SUFFIX, String(getLayoutVersion(zoneId)));
 }
 
 /** Экспорт в JSON-строку (красиво отформатированную). */
