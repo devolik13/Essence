@@ -1,0 +1,77 @@
+Battle Music by Eclipzodiac.  RPG MAKER MIX.
+
+* Contains originals BGMs that are looped and ready to be imported into RPG Maker: MV, MZ and VX  (Xp not tested)
+
+-------How to install it on RPG Maker:---------
+
+Open RPG Maker, click on Resource manager, click on audio/bgm,  then click import, select the files then accept.
+
+-----------ABOUT MY SONGS---------
+
+*This is the RPG Maker mix of my songs. There will be more songs! Follow my socials to check what's going on.
+
+*You can cut them/ modify them/ remix them and use them in your projects but please credit me as the original creator "Eclipzodiac". 
+You can also review them ;)
+
+*If you want to do any other commercial activity with my songs you should ask me first.
+
+*If you want me to work on some special requests (Modify a song / create a song / make an alternate version of a song / collaborate on your project / etc), 
+you can ask me but I don't think I can attend them because I am a little busy with my normal job (but feel free 
+to ask (PM me on twitter / Steam / Youtube).
+
+---If you want to know what else is going on, you can----
+
+-Subscribe to my Youtube channel: https://www.youtube.com/channel/UCfzcMxUu5PeIqq16dtByuNg
+	On Youtube, new songs from my album "Battle Music" will be uploaded there first. I would love if you subscribe 
+	to my channel and review/rate my songs.	
+
+-Follow me on Twitter: https://twitter.com/eclipzodiac
+	On twitter I'll be uploading small previews of my songs and I'll be notifiying when a new song is uploaded, also memes and other art.
+
+-Follow me on Newgrounds: https://eclipzodiac.newgrounds.com/
+	This is where you can DOWNLOAD MY SONGS (You don't need an account to do it). New songs from my other albums will be uploaded there first.
+
+-Add me as a friend on steam (Just to be friends ;))
+
+**********************Your support = Me releasing songs more quickly********************************
+
+-----------Q and A--------------
+
+Q*How many songs will your album have in total?
+A-My plan is to have [R̸̬͛Ẹ̴̈D̸̩͗A̷̫̋C̷͐͜T̶̞͝E̴͈̔D̷͔̄] number of songs, so we're about a little over half way up there.
+
+Q*Hey, what about a "final boss song"?
+A-There will be actually a [̷̳̃R̷̳͆E̵͓̅D̴͕͝A̵͇̔C̴̟͛T̴͈̑E̷͎̐D̸̻̈́]̷̱̑[̴̯͝R̵͚̄E̴̬͐D̴͓͂A̷̲̾C̵͍̐T̴̯͐E̸̱͗D̸̢͂]̸̮̄[̵̘̈́R̷̼̚Ė̷͜D̵̪̋A̶͓̋Ć̶̲T̸͖̈Ḙ̶͘D̵̘̓]̶̡͐[̴̠͑R̵̟̐E̵͙͒D̴̺̅A̷̹̚Ć̷̪Ť̵̪E̵̘̍D̶͇͗]̴͕͘ so expect them to be awesome ;)
+
+-----------Other Info---------------
+
+I also have more videogame related albums that I'm working on (They will be usable on RPG Maker someday too!):
+	~Retro VG soundtrack: A fictional RPG-style soundtrack that has mix of 16-bit and modern instruments.
+	~Final levels: An album that only have videogame-like "Final stages" songs. 
+You can check both albums on my Newgrounds page.
+
+Usage suggestions for each song:
+
+1-Brave Reaction: Suggested as a standard battle with common enemies.
+2-Showdown in Turmoil carnival: Suggested as an ambush song or a battle song taking place in a circus.
+3-Ancient prisoner: Fight a mysterious enemy / tactical battle.
+4-Eleuxelier: Fight an important enemy. You can build tension with the 39 seconds long intro it has, you have to time it.
+5-The gauntlet and the dragon: A tutorial battle or a sequence of various challenges.
+6-King Astroborealis: Fight a supernatural entity or a very important figure.
+7-Nerve Monster: Fight a vicious creature.
+8-I’ts right below your feet: Slow and tactical fight / fight with a giant.
+9-Our enemy: Song when a mission starts and there’s battles in it. 
+10-Power to the hero: Second standard battle theme. Suggested when fighting more challenging common enemies.
+11-Duel under the Eclipse: A very passionate bossfight. Fight with an enemy very close to the hero. Can be used as a final battle theme.
+12-Era Machine: Fight a powerful robot.
+Coming soon:
+13-Full Strength Unleashed: A fast paced music track with a lot of passion. 
+Coming soon:
+1̴̖̋̎̀̊͜͠4̸̛͎͎̯͇̇͜-̵̖̤̀͐͌͂ ̶̨̛͓̄̓̾̊͠[̵̢̘̺̺͐̍͊Ṟ̶̅E̵̻̪͕͈̐̈̇̍̾̕D̷͎̅̿̀͑̐A̵̻̹̠̠̋͝C̷͚̲̜͛̅̚͝T̸̛̞̥ͅĘ̶́̆͐D̴͓͔̺̞̻̣̃̅̈̚͝͝]̸̬̟̯̋ ̸̨̭̳͔̀̔͗͠C̸͎͈̱͕̅̐̽͝o̵͚̽̄̿̇ň̷͕̭̺̿f̶̩̼̮̘̏̑̍r̵̨̥̼̲̊͋ö̸̳̭́̓ṱ̷̅̌a̸̧͑͑̐t̴̗̥͛̚i̵̤͐̿ö̴̖́͗̎͠n̴̢̜͗͆̈ ̶̧̻̯̐͜ȁ̵̗̱̲̻g̸̘̲̈́a̸̯̝̲̾̀i̸̢̨̥͠͠ͅs̸͉̱͙̿̈́̑t̵̢̝̆̓ ̶̨̝͇̒͘ą̴͔͔͓͋̐͒ ̶̢̝̤͕̄̕v̶̜̯̖͒͐́ͅȁ̶̳̼̦͒̑p̵̧͉͒͂͒́ͅr̷̨̛̀̽̎e̷̫̻͊͆
+.̷̡̗̦̥̙̝͎͔͕͙̖͔͙̥̖̖͍̔̌͊̀͆͋̓̋̈́̽͋̎́͘͜͠5
+ ̷̱̋ 
+
+
+----------
+I'll love and apreciate your feedback
+Eclizodiac-
