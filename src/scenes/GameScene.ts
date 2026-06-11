@@ -462,7 +462,13 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Камера ──────────────────────────────────────
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
-    if (this.currentZone.id === 'lab') this.cameras.main.setBackgroundColor(0x000000);
+    if (this.currentZone.id === 'lab') {
+      this.cameras.main.setBackgroundColor(0x000000);
+      // Комната узкая (портретная) — заполняем ширину экрана зумом, чтобы не
+      // было пустоты по бокам. Вертикаль (портал↑→Машина→игрок) скроллится.
+      const cam = this.cameras.main;
+      this.cameras.main.setZoom(Math.max(1, cam.width / zoneW));
+    }
     this.followCamera(this.sphere);
 
     // Show prologue on first game start (village only)
