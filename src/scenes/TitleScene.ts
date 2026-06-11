@@ -96,9 +96,29 @@ export class TitleScene extends Phaser.Scene {
       this.scene.stop();
     }, this.menuContainer, false, 180, 36);
 
+    // Lab Editor: прямой вход в лабораторию с открытым редактором карт —
+    // расставить мебель и экспортировать lab.json (Ctrl+E).
+    this.addButton(cx, 528, lt('Редактор лаборатории', 'Lab Editor'), () => {
+      localStorage.removeItem('essence_slot_99');
+      setActiveSlot(99);
+      this.registry.set('pitchMode', true);
+      this.scene.start('GameScene', {
+        isNewGame: true,
+        zoneId: 'lab',
+        starterBodyId: 'starter_sword',
+        starterWeapon1: WeaponType.Sword,
+        starterWeapon2: WeaponType.StaffFire,
+        characterName: lt('Доброволец', 'Volunteer'),
+        editorOnStart: true,
+      });
+      this.scene.start('UIScene');
+      this.scene.stop();
+    }, this.menuContainer, false, 200, 30);
+
     // Подсказка про редактор карт
-    this.menuContainer.add(this.add.text(cx, 540,
-      'В игре нажми ` (ё) или F2 — откроется редактор карт',
+    this.menuContainer.add(this.add.text(cx, 568,
+      lt('Расставь мебель → Ctrl+E скачает lab.json → пришли мне',
+         'Arrange furniture → Ctrl+E downloads lab.json → send it to me'),
       { fontSize: '11px', color: '#88aabb', fontStyle: 'italic' } as Phaser.Types.GameObjects.Text.TextStyle
     ).setOrigin(0.5));
   }

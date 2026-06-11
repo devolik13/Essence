@@ -231,14 +231,23 @@ export class MapEditor {
       ? RESOURCE_NODES[obj.key.replace('node_', '')]
       : undefined;
     const isPlantNode = !!nodeDef?.sprite;
-    const img = isMob
-      ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
-      : this.scene.add.image(obj.x, obj.y, textureKey);
+    // Lab-пропы: 768px-арт давим до базовых ~90px (× scale); анимированные
+    // (динамо/катушка) — sprite c проигрыванием, чтобы крутились и в игре.
+    const isLabProp = obj.key.startsWith('lab_');
+    const labAnimKey = `${obj.key}_anim`;
+    const img = (isLabProp && this.scene.anims.exists(labAnimKey))
+      ? this.scene.add.sprite(obj.x, obj.y, textureKey).play(labAnimKey)
+      : isMob
+        ? this.scene.add.image(obj.x, obj.y, textureKey, 0)
+        : this.scene.add.image(obj.x, obj.y, textureKey);
     if (isPlantNode) {
       // Растительные ноды — origin снизу (как декорация), высота ~40px.
       img.setOrigin(0.5, 0.85);
       const targetH = 40 * obj.scale;
       img.setScale(targetH / img.height);
+    } else if (isLabProp) {
+      img.setOrigin(0.5, 0.85);
+      img.setDisplaySize(90 * obj.scale, 90 * obj.scale);
     } else {
       img.setOrigin(0.5, centered ? 0.5 : 0.9);
       if (centered) {
@@ -419,6 +428,14 @@ export class MapEditor {
     const flt = <T extends { key: string }>(arr: T[]): T[] =>
       ft ? arr.filter(e => e.key.toLowerCase().includes(ft)) : arr;
 
+    // Декор лаборатории (текстуры из BootScene assets/lab/props).
+    const LAB_PROP_KEYS = [
+      'lab_prop_cabinet', 'lab_prop_blackboard', 'lab_prop_lab_table',
+      'lab_prop_bookcase', 'lab_prop_desk_chair', 'lab_prop_workbench',
+      'lab_prop_console', 'lab_prop_barrels', 'lab_prop_cot', 'lab_prop_lamp',
+      'lab_dynamo', 'lab_tesla_coil',
+    ];
+
     // Сворачиваемые секции палитры.
     const sections: { name: string; color: string; prefix: string; isMob?: boolean;
                       entries: { key: string; textureKey: string }[] }[] = [
@@ -430,6 +447,10 @@ export class MapEditor {
         entries: flt(EDITOR_WORKBENCH_ENTRIES).map(e => ({ key: e.key, textureKey: e.key })) },
       { name: 'Decorations', color: '#cccccc', prefix: 'cp_',
         entries: flt(CP_ASSETS.map(([k]) => ({ key: k }))).map(e => ({ key: e.key, textureKey: e.key })) },
+      { name: 'Lab', color: '#aa88cc', prefix: 'lab_',
+        entries: flt(LAB_PROP_KEYS.map(k => ({ key: k })))
+          .filter(e => this.scene.textures.exists(e.key))
+          .map(e => ({ key: e.key, textureKey: e.key })) },
     ];
 
     const startY = this.PANEL_HEADER_H - this.scrollOffset;

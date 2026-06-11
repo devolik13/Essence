@@ -26,6 +26,8 @@ export const DEFAULT_SOLID_PREFIXES: string[] = [
   'cp_fence', 'cp_well', 'cp_windmill', 'cp_barrel', 'cp_crate',
   'cp_barn', 'cp_shrine', 'cp_altar', 'cp_lantern', 'cp_signpost',
   'cp_stump', 'cp_pillar', 'cp_statue',
+  // Мебель лаборатории — по умолчанию с коллизией (лампы потом C → walkable)
+  'lab_prop_', 'lab_dynamo', 'lab_tesla_coil',
 ];
 
 export function isKeyDefaultSolid(key: string): boolean {

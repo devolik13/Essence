@@ -1124,12 +1124,14 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
   варп-разрыв `rift_swirl` (в лаборатории и у вейпоинта Игниса), Машина
   `transfer_machine.webp` (статичная). Процедурные `body_void_*` остались
   фоллбеком; `body_transfer_machine` процедурный удалён
-- **Декор лаборатории** (`spawnLabDecor` в GameScene, план — `wip/лаборатория_декор.md`):
-  пол-кафель `lab_floor` (TileSprite ×0.25), 10 статичных пропов `lab_prop_*` +
-  анимированные динамо/катушка Теслы (`lab_dynamo_anim`/`lab_tesla_coil_anim`).
-  Запад — наука, восток — механика, юг — жилой угол; центр свободен под бой.
-  Крупные предметы — circular-коллайдеры (addMapCollider, после spawnAll
-  редактора чтобы не затёрло)
+- **Декор лаборатории**: пол-кафель `lab_floor` (TileSprite ×0.25) — хардкод.
+  Мебель — через **редактор карт** (секция палитры «Lab»): пропы `lab_prop_*` +
+  анимированные `lab_dynamo`/`lab_tesla_coil` (renderObject проигрывает
+  `${key}_anim`). Lab-пропы default-solid (`isKeyDefaultSolid`), рендер origin
+  0.85, базовый размер 90px×scale. Расставляются игроком → экспорт `lab.json`
+  → бандл в `src/data/mapLayouts/`. **Кнопка «Lab Editor» на титуле**: прямой
+  вход в зону lab с авто-открытым редактором (init `editorOnStart`, данж/волны
+  не стартуют)
 - **Ритуал закрытия разрыва**: после 2-й волны разрыв «нестабилен» → [E] в 110px →
   канал 6 сек (движение прерывает), каст-бар через aoeCast UIData → победа → `LAB_VICTORY_DIALOG`
   → возврат в village. Разрыв — пульсирующий овал (labRiftGfx). При готовности
