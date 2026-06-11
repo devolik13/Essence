@@ -462,6 +462,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Камера ──────────────────────────────────────
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
+    if (this.currentZone.id === 'lab') this.cameras.main.setBackgroundColor(0x000000);
     this.followCamera(this.sphere);
 
     // Show prologue on first game start (village only)

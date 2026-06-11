@@ -700,8 +700,8 @@ export const ZONE_EARTH: ZoneConfig = {
 
 // Размер обрезан под мебель игрока (src/data/mapLayouts/lab.json). Машина и
 // портал спозиционированы относительно мебели (динамо/катушка обрамляют Машину).
-const LAB_W = 18;
-const LAB_H = 23;
+const LAB_W = 17; // обрезано под мебель (право)
+const LAB_H = 22; // обрезано под мебель (низ)
 const LAB_MACHINE_X = 334;  // середина динамо/катушки
 const LAB_MACHINE_Y = 415;
 
