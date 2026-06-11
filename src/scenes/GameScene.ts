@@ -462,7 +462,17 @@ export class GameScene extends Phaser.Scene {
 
     // ─── Камера ──────────────────────────────────────
     this.cameras.main.setBounds(0, 0, zoneW, zoneH);
-    if (this.currentZone.id === 'lab') this.cameras.main.setBackgroundColor(0x000000);
+    if (this.currentZone.id === 'lab') {
+      const cam = this.cameras.main;
+      cam.setBackgroundColor(0x000000);
+      // Комната меньше экрана: расширяем границы камеры симметрично, чтобы
+      // комната стояла ПО ЦЕНТРУ экрана (иначе Phaser клампит её в левый угол).
+      if (zoneW < cam.width || zoneH < cam.height) {
+        const bw = Math.max(zoneW, cam.width);
+        const bh = Math.max(zoneH, cam.height);
+        cam.setBounds(-(bw - zoneW) / 2, -(bh - zoneH) / 2, bw, bh);
+      }
+    }
     this.followCamera(this.sphere);
 
     // Show prologue on first game start (village only)
@@ -5223,7 +5233,7 @@ export class GameScene extends Phaser.Scene {
     // Разрыв Пустоты на севере — анимированный спрайт (фоллбек: овал)
     const zw = this.currentZone.widthTiles * TILE_SIZE;
     this.labRiftX = zw / 2;
-    this.labRiftY = 220;
+    this.labRiftY = 60; // верх комнаты
     if (this.anims.exists('rift_swirl_anim')) {
       this.labRiftSpr = this.add.sprite(this.labRiftX, this.labRiftY, 'rift_swirl');
       this.labRiftSpr.play('rift_swirl_anim').setDisplaySize(170, 170).setDepth(5);
@@ -5248,9 +5258,11 @@ export class GameScene extends Phaser.Scene {
           { fontSize: '9px', color: '#ffdd88', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(4);
         scientists.push({ spr, label, toX, toY });
       };
-      // Стоят у изголовья — будят; отбегут вниз за Машину (подальше от разрыва)
-      mk('scientist_man_down', 'scientist_man_idle_down', px - 40, py - 10, lt('Тесла', 'Tesla'), mx - 190, my + 200);
-      mk('scientist_woman_down', 'scientist_woman_idle_down', px + 40, py - 10, lt('Кюри', 'Curie'), mx + 190, my + 200);
+      // Стоят у изголовья — будят; отбегут в нижние углы комнаты (от разрыва)
+      const zw2 = this.currentZone.widthTiles * TILE_SIZE;
+      const zh2 = this.currentZone.heightTiles * TILE_SIZE;
+      mk('scientist_man_down', 'scientist_man_idle_down', px - 40, py - 10, lt('Тесла', 'Tesla'), zw2 * 0.22, zh2 - 120);
+      mk('scientist_woman_down', 'scientist_woman_idle_down', px + 40, py - 10, lt('Кюри', 'Curie'), zw2 * 0.78, zh2 - 120);
     }
 
     // Вводный диалог (пробуждение) → разрыв вспыхивает, учёные отбегают → волны

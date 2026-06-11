@@ -700,10 +700,12 @@ export const ZONE_EARTH: ZoneConfig = {
 
 // Размер обрезан под мебель игрока (src/data/mapLayouts/lab.json). Машина и
 // портал спозиционированы относительно мебели (динамо/катушка обрамляют Машину).
-const LAB_W = 60;
-const LAB_H = 46;
-const LAB_MACHINE_X = 960;  // центр зоны (LPW/2); мебель расставлена вокруг
-const LAB_MACHINE_Y = 736;  // центр зоны (LPH/2)
+// Комната по камешкам-маркерам игрока (lab.json): 13×20 тайлов = 416×640.
+// Влезает в экран целиком — камера статична, вокруг чернота.
+const LAB_W = 13;
+const LAB_H = 20;
+const LAB_MACHINE_X = 305;  // середина динамо/катушки
+const LAB_MACHINE_Y = 420;
 
 export const ZONE_LAB: ZoneConfig = {
   id: 'lab',
