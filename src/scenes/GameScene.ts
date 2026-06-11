@@ -28,6 +28,7 @@ import { rollLoot, ITEMS, isShieldCompatibleWeapon, equipmentStatBonuses } from 
 import { checkAchievements } from '../systems/achievements';
 import { SCHOOL_BONUSES, MagicSchool } from '../data/magicSchools';
 import { t, lt } from '../i18n';
+import { addMapCollider } from '../systems/mapColliders';
 import { getNPCDialog, PROLOGUE_DIALOG, CHAPTER1_FINALE_DIALOG, LAB_INTRO_DIALOG, LAB_VICTORY_DIALOG } from '../data/dialogs';
 import { getBodyQuest, getBodyQuests } from '../data/bodyQuests';
 import { BodyQuestTracker } from '../systems/bodyQuestTracker';
@@ -324,6 +325,9 @@ export class GameScene extends Phaser.Scene {
       window.addEventListener('keydown', domHandler);
       this.teardownFns.push(() => window.removeEventListener('keydown', domHandler));
     }
+
+    // ─── Декор лаборатории (после spawnAll редактора — коллайдеры живут) ──
+    if (this.currentZone.id === 'lab') this.spawnLabDecor();
 
     // ─── Сфера ───────────────────────────────────────
     const startX = this.spawnX ?? this.currentZone.respawnPoint.x;
@@ -1150,11 +1154,17 @@ export class GameScene extends Phaser.Scene {
       ts.tileScaleY = 0.3;
     }
 
-    // Лаборатория: металлический пол (TileSprite) + рамка-стена по периметру.
+    // Лаборатория: викторианский кафель (арт) или металлический пол (фоллбек)
+    // + рамка-стена по периметру.
     if (zone.id === 'lab') {
       const zw = wt * TILE_SIZE;
       const zh = ht * TILE_SIZE;
-      this.add.tileSprite(0, 0, zw, zh, 'tile_lab').setOrigin(0, 0).setDepth(-10);
+      if (this.textures.exists('lab_floor')) {
+        const fl = this.add.tileSprite(0, 0, zw, zh, 'lab_floor').setOrigin(0, 0).setDepth(-10);
+        fl.tileScaleX = 0.25; fl.tileScaleY = 0.25; // 512px текстура → паттерн 128px
+      } else {
+        this.add.tileSprite(0, 0, zw, zh, 'tile_lab').setOrigin(0, 0).setDepth(-10);
+      }
       // Стена по краю арены (2 тайла толщиной)
       const wallT = TILE_SIZE * 2;
       const wallDepth = -9;
@@ -5242,6 +5252,46 @@ export class GameScene extends Phaser.Scene {
         });
       },
     });
+  }
+
+  /** Декор лаборатории по плану комнаты (wip/лаборатория_декор.md):
+   *  запад — наука, восток — механика, юг — жилой угол. Центр и коридор
+   *  разрыв↔Машина свободны. Крупные предметы — circular-коллайдеры. */
+  private spawnLabDecor(): void {
+    type Prop = { key: string; x: number; y: number; size: number; solid?: boolean; anim?: string };
+    const props: Prop[] = [
+      // Запад — научная половина
+      { key: 'lab_prop_cabinet',    x: 260,  y: 170,  size: 96,  solid: true },
+      { key: 'lab_prop_blackboard', x: 450,  y: 150,  size: 84,  solid: true },
+      { key: 'lab_prop_lab_table',  x: 270,  y: 480,  size: 120, solid: true },
+      { key: 'lab_prop_bookcase',   x: 170,  y: 720,  size: 100, solid: true },
+      { key: 'lab_prop_desk_chair', x: 210,  y: 970,  size: 104, solid: true },
+      // Восток — механическая половина
+      { key: 'lab_dynamo',          x: 1650, y: 210,  size: 120, solid: true, anim: 'lab_dynamo_anim' },
+      { key: 'lab_prop_workbench',  x: 1680, y: 540,  size: 104, solid: true },
+      { key: 'lab_prop_console',    x: 1290, y: 700,  size: 96,  solid: true },
+      { key: 'lab_tesla_coil',      x: 1450, y: 600,  size: 104, solid: true, anim: 'lab_tesla_coil_anim' },
+      { key: 'lab_prop_barrels',    x: 1700, y: 920,  size: 88,  solid: true },
+      // Юг — жилой угол + свет
+      { key: 'lab_prop_cot',        x: 280,  y: 1250, size: 100, solid: true },
+      { key: 'lab_prop_lamp',       x: 560,  y: 1260, size: 64 },
+      { key: 'lab_prop_lamp',       x: 1380, y: 1260, size: 64 },
+    ];
+    for (const pr of props) {
+      if (!this.textures.exists(pr.key)) continue;
+      if (pr.anim && this.anims.exists(pr.anim)) {
+        const spr = this.add.sprite(pr.x, pr.y, pr.key);
+        spr.play(pr.anim);
+        spr.setDisplaySize(pr.size, pr.size).setDepth(3);
+      } else {
+        this.add.image(pr.x, pr.y, pr.key).setDisplaySize(pr.size, pr.size).setDepth(3);
+      }
+      if (pr.solid) {
+        // Коллайдер у основания предмета (низ спрайта), чтобы можно было
+        // «заходить за» верхушку визуально
+        addMapCollider({ x: pr.x, y: pr.y + pr.size * 0.2, r: pr.size * 0.32 });
+      }
+    }
   }
 
   /** Подсказка «[F] Начать оборону» — игрок ставит умения, потом сам стартует. */

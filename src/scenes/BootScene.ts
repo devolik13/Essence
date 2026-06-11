@@ -1135,6 +1135,13 @@ export class BootScene extends Phaser.Scene {
       this.load.spritesheet(`void_colossus_atk_${dir}_sheet`,  `assets/lab/void_colossus_atk_${dir}.webp`,  { frameWidth: 256, frameHeight: 256 });
     }
     this.load.spritesheet('rift_swirl', 'assets/lab/rift_swirl.webp', { frameWidth: 256, frameHeight: 256 });
+    // Декор лаборатории (статичные пропы + 2 анимированных)
+    for (const prop of ['bookcase', 'barrels', 'workbench', 'blackboard', 'cot', 'lamp', 'console', 'desk_chair', 'lab_table', 'cabinet']) {
+      this.load.image(`lab_prop_${prop}`, `assets/lab/props/${prop}.webp`);
+    }
+    this.load.image('lab_floor', 'assets/lab/props/lab_floor.webp');
+    this.load.spritesheet('lab_dynamo', 'assets/lab/props/dynamo_sheet.webp', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('lab_tesla_coil', 'assets/lab/props/tesla_coil_sheet.webp', { frameWidth: 256, frameHeight: 256 });
     // Машина Переноса — статичная картинка (заменяет процедурный спрайт)
     this.load.image('body_transfer_machine', 'assets/lab/transfer_machine.webp');
 
@@ -1295,6 +1302,8 @@ export class BootScene extends Phaser.Scene {
       mk('lab_assistant_atk_left',  'lab_hero_cast_right', 24, 0);
       mk('sphere_swirl_anim', 'sphere_swirl', 14, -1);
       mk('rift_swirl_anim', 'rift_swirl', 12, -1);
+      mk('lab_dynamo_anim', 'lab_dynamo', 10, -1);
+      mk('lab_tesla_coil_anim', 'lab_tesla_coil', 12, -1);
       // Твари Пустоты: idle = первые кадры walk (медленно), left = flip right
       for (const vid of ['void_stalker', 'void_colossus']) {
         // 25 кадров атаки: сталкер бьёт часто (КД 0.8с) — 30fps (~0.83с),
