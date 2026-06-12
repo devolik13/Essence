@@ -1663,12 +1663,19 @@ export class GameScene extends Phaser.Scene {
   /** Слоты 5-7 — нейтральные (не оружейные) скилы Сферы. Доступны в ЛЮБОМ теле,
    *  включая зверей/элементалей: Ускорение/Рывок/Лечение и т.п. */
   private fillNeutralSlots(body: Body) {
+    // Не дублируем то, что уже стоит в слотах 0-4 (напр., Ускорение — родной
+    // скилл зайца в слоте 1; в нейтральный слот его второй раз не кладём).
+    const taken = new Set<string>();
+    for (let s = 0; s < 5; s++) {
+      const a = body.abilitySlots[s].ability;
+      if (a) taken.add(a.id);
+    }
     const neutralSlotIds = this.sphere.savedSlotIds.slice(5);
     for (let i = 0; i < 3; i++) {
       const savedId = neutralSlotIds[i];
-      if (savedId) {
+      if (savedId && !taken.has(savedId)) {
         body.abilitySlots[5 + i].ability = this.sphere.learnedSpells.find(s => s.id === savedId) ?? null;
-      } else if (i === 0) {
+      } else if (!savedId && i === 0 && !taken.has('acceleration')) {
         // Auto-fill first neutral with Acceleration if learned
         body.abilitySlots[5].ability = this.sphere.learnedSpells.find(s => s.id === 'acceleration') ?? null;
       }
