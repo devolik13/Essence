@@ -738,16 +738,17 @@ export class GameScene extends Phaser.Scene {
       // Стрелка-указатель на квест-цель (если она за экраном)
       this.updateQuestArrow();
 
-      // Выход из тела [Q]
-      if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
-        this.exitBody();
-      }
-      // Онбординг: про выход из тела — когда игрок с захваченным телом в сейф-зоне
+      // Онбординг: про выход из тела — когда игрок с захваченным телом в сейф-зоне.
+      // СТРОГО до обработки [Q]: exitBody() обнуляет playerBody.
       if ((this.sphere.killCounts['__captures'] ?? 0) > 0
           && this.isInSafeZone(this.playerBody.x, this.playerBody.y)) {
         this.onboardHint('exitbody', lt(
           '[Q] — выйти из тела в астрал (можно только в безопасной зоне)',
           '[Q] — leave the body into astral (safe zones only)'));
+      }
+      // Выход из тела [Q]
+      if (Phaser.Input.Keyboard.JustDown(this.keyQ)) {
+        this.exitBody();
       }
       // [E] в теле — лут, квестодатель, ноды, верстаки, NPC, захват
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
