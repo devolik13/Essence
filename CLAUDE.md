@@ -745,7 +745,7 @@ T3 заклинания — только NPC-касты боссов. Игрок
   Раскладка: village → ВРЕМЕННО Glistening Ripples (First Light/Megollyen убран —
   нужно личное разрешение автора, см. LICENSES.md); water → PeriTune Glistening Ripples;
   бой в фэнтези (isInCombat, гистерезис 6с) → Eclipzodiac Eleuxelier;
-  lab → Eclipzodiac Era Machine. TitleScene глушит музыку. Кредит в титрах
+  lab → Eclipzodiac Era Machine. Музыка деревни стартует уже на титуле (после первого жеста) и бесшовно продолжается в CharCreate/игре (same-key no-op). Кредит в титрах
   среза: «Music — Eclipzodiac · PeriTune»
 - **ВАУ-захват тела** (кадр №1 трейлера, `playSoulTransfer` в GameScene):
   завершение каста захвата → мир в слоумо ×0.22 (`worldTimeScale`, твины идут
@@ -1150,9 +1150,7 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
   анимированные `lab_dynamo`/`lab_tesla_coil` (renderObject проигрывает
   `${key}_anim`). Lab-пропы default-solid (`isKeyDefaultSolid`), рендер origin
   0.85, базовый размер 90px×scale. Расставляются игроком → экспорт `lab.json`
-  → бандл в `src/data/mapLayouts/lab.json`. **Кнопка «Lab Editor» на титуле**:
-  прямой вход в зону lab с авто-открытым редактором (init `editorOnStart`,
-  данж/волны не стартуют). Зона обрезана под мебель (18×23 тайла), Машина (334,415)
+  → бандл в `src/data/mapLayouts/lab.json`. Кнопка «Lab Editor» с титула УБРАНА (мебель финализирована; редактор — ` / F2 в игре, init-флаг `editorOnStart` оставлен в коде). Зона обрезана под мебель (18×23 тайла), Машина (334,415)
   между динамо/катушкой, портал top-center (zw/2,100), камень возрождения в lab
   не рисуется. Пропы default-solid → коллизии. **Размер комнаты задан игроком
   камешками-маркерами** (cp_rock_05 по углам в экспорте) → зона 13×20 тайлов

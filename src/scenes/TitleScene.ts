@@ -4,7 +4,7 @@ import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, findFree
 import { t, lt, initLang } from '../i18n/index';
 import { WeaponType } from '../types/bodies';
 import { THEME, TC } from '../ui/theme';
-import { stopMusic } from '../systems/music';
+import { playMusic } from '../systems/music';
 
 export class TitleScene extends Phaser.Scene {
   private menuContainer!: Phaser.GameObjects.Container;
@@ -17,7 +17,10 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    stopMusic(); // возврат из игры/титров — фоновая музыка затихает
+    // Музыка деревни начинается уже на титуле (после первого клика — autoplay
+    // policy) и БЕСШОВНО продолжается в создании персонажа и в самой игре:
+    // playMusic с тем же ключом — no-op, трек не перезапускается.
+    playMusic('village');
     initLang();
     migrateOldSave();
     this.cameras.main.setBackgroundColor('#0d0b08');
@@ -121,31 +124,8 @@ export class TitleScene extends Phaser.Scene {
       this.scene.stop();
     }, this.menuContainer, false, 180, 36);
 
-    // Lab Editor: прямой вход в лабораторию с открытым редактором карт —
-    // расставить мебель и экспортировать lab.json (Ctrl+E).
-    this.addButton(cx, 528, lt('Редактор лаборатории', 'Lab Editor'), () => {
-      localStorage.removeItem('essence_slot_99');
-      setActiveSlot(99);
-      this.registry.set('pitchMode', true);
-      this.scene.start('GameScene', {
-        isNewGame: true,
-        zoneId: 'lab',
-        starterBodyId: 'starter_sword',
-        starterWeapon1: WeaponType.Sword,
-        starterWeapon2: WeaponType.StaffFire,
-        characterName: lt('Доброволец', 'Volunteer'),
-        editorOnStart: true,
-      });
-      this.scene.start('UIScene');
-      this.scene.stop();
-    }, this.menuContainer, false, 200, 30);
-
-    // Подсказка про редактор карт
-    this.menuContainer.add(this.add.text(cx, 568,
-      lt('Расставь мебель → Ctrl+E скачает lab.json → пришли мне',
-         'Arrange furniture → Ctrl+E downloads lab.json → send it to me'),
-      { fontSize: '11px', color: '#88aabb', fontStyle: 'italic' } as Phaser.Types.GameObjects.Text.TextStyle
-    ).setOrigin(0.5));
+    // (Кнопка Lab Editor убрана — мебель расставлена, lab.json в бандле.
+    // Редактор карт по-прежнему доступен в игре: ` / F2; вход в lab — F8.)
   }
 
   // ── Load View ─────────────────────────────────────────
