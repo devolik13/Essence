@@ -1145,6 +1145,14 @@ export class BootScene extends Phaser.Scene {
     // Машина Переноса — статичная картинка (заменяет процедурный спрайт)
     this.load.image('body_transfer_machine', 'assets/lab/transfer_machine.webp');
 
+    // ── Иллюстрации пролога (Qwen-генерация, 1280×720 webp) ─────────────────
+    // Грузим все 6; отсутствующие пока файлы дадут loaderror в консоли —
+    // показ в UIScene гейтится на textures.exists, так что это безопасно:
+    // кадры подключаются сами по мере появления файлов в assets/prologue/.
+    for (let i = 1; i <= 6; i++) {
+      this.load.image(`prologue_${i}`, `assets/prologue/prologue_${i}.webp`);
+    }
+
     // ── Spell spritesheets ──────────────────────────────────────────────────
     // FIRE
     this.load.spritesheet('spell_fireball',       'assets/spells/fire/fireball_sheet.webp',        { frameWidth: 341, frameHeight: 341 }); // 3×3=9

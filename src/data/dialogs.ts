@@ -9,6 +9,8 @@ export interface DialogMessage {
   text: string;
   /** Русский вариант текста (для lang=ru) */
   textRu?: string;
+  /** Ключ текстуры иллюстрации (показывается над панелью диалога, если текстура загружена) */
+  image?: string;
 }
 
 export interface DialogResult {
@@ -374,29 +376,29 @@ export const CHAPTER1_FINALE_DIALOG: DialogMessage[] = [
 
 export const PROLOGUE_DIALOG: DialogMessage[] = [
   // ACT 1 — Warp Rifts
-  { speaker: '', text: "Late 19th century. The age of steam and electricity.", textRu: 'Конец XIX века. Эпоха пара и электричества.' },
-  { speaker: '', text: "They began appearing without warning. Warp rifts — tears in space that open for seconds and vanish. From them emerge creatures — translucent, almost non-material. They seize people and drag them into the rift.", textRu: 'Они начали появляться без предупреждения. Варп-разрывы — дыры в пространстве, которые открываются на секунды и исчезают. Из них выходят существа — полупрозрачные, почти нематериальные. Они хватают людей и утаскивают в разрыв.' },
-  { speaker: '', text: "Bullets pass through. Explosions scatter. Electric discharge leaves no trace. Armies are powerless.", textRu: 'Пули проходят насквозь. Взрывы рассеиваются. Электрический разряд не оставляет следа. Армии бессильны.' },
+  { speaker: '', text: "Late 19th century. The age of steam and electricity.", textRu: 'Конец XIX века. Эпоха пара и электричества.', image: 'prologue_1' },
+  { speaker: '', text: "They began appearing without warning. Warp rifts — tears in space that open for seconds and vanish. From them emerge creatures — translucent, almost non-material. They seize people and drag them into the rift.", textRu: 'Они начали появляться без предупреждения. Варп-разрывы — дыры в пространстве, которые открываются на секунды и исчезают. Из них выходят существа — полупрозрачные, почти нематериальные. Они хватают людей и утаскивают в разрыв.', image: 'prologue_2' },
+  { speaker: '', text: "Bullets pass through. Explosions scatter. Electric discharge leaves no trace. Armies are powerless.", textRu: 'Пули проходят насквозь. Взрывы рассеиваются. Электрический разряд не оставляет следа. Армии бессильны.', image: 'prologue_2' },
 
   // The Discovery
-  { speaker: '', text: "Nikola Tesla and Marie Curie work with wave measurements near the rifts. Tesla builds an unconventional resonator — and finds something. A frequency that should not exist.", textRu: 'Никола Тесла и Мари Кюри работают с волновыми измерениями возле разрывов. Тесла строит нестандартный резонатор — и находит нечто. Частоту, которой не должно существовать.' },
-  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Somewhere there is another place. It vibrates at the same frequency as they do.", textRu: 'Где-то есть другое место. Оно вибрирует на той же частоте что и они.' },
-  { speaker: '', text: "Physical matter cannot be transferred — flesh won't pass through. But brain waves resonate perfectly. Conclusion: consciousness can be transferred.", textRu: 'Физическую материю переправить невозможно — плоть не проходит. Но мозговые волны резонируют идеально. Вывод: сознание можно переправить.' },
+  { speaker: '', text: "Nikola Tesla and Marie Curie work with wave measurements near the rifts. Tesla builds an unconventional resonator — and finds something. A frequency that should not exist.", textRu: 'Никола Тесла и Мари Кюри работают с волновыми измерениями возле разрывов. Тесла строит нестандартный резонатор — и находит нечто. Частоту, которой не должно существовать.', image: 'prologue_3' },
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "Somewhere there is another place. It vibrates at the same frequency as they do.", textRu: 'Где-то есть другое место. Оно вибрирует на той же частоте что и они.', image: 'prologue_3' },
+  { speaker: '', text: "Physical matter cannot be transferred — flesh won't pass through. But brain waves resonate perfectly. Conclusion: consciousness can be transferred.", textRu: 'Физическую материю переправить невозможно — плоть не проходит. Но мозговые волны резонируют идеально. Вывод: сознание можно переправить.', image: 'prologue_3' },
 
   // The First Volunteer
-  { speaker: '', text: "A colleague — a young assistant — has been listening to their arguments for three nights. Tesla insists: more time is needed. Curie says quietly: yesterday a rift opened two blocks from the laboratory.", textRu: 'Коллега учёных — молодой ассистент — слушает их спор третью ночь подряд. Тесла настаивает: нужно больше времени. Кюри говорит тихо: вчера разрыв открылся в двух кварталах от лаборатории.' },
-  { speaker: '', text: "The assistant sets down his papers.", textRu: 'Ассистент откладывает бумаги.' },
-  { speaker: 'You', speakerRu: 'Ты', text: "I'll go first.", textRu: 'Я пойду первым.' },
+  { speaker: '', text: "A colleague — a young assistant — has been listening to their arguments for three nights. Tesla insists: more time is needed. Curie says quietly: yesterday a rift opened two blocks from the laboratory.", textRu: 'Коллега учёных — молодой ассистент — слушает их спор третью ночь подряд. Тесла настаивает: нужно больше времени. Кюри говорит тихо: вчера разрыв открылся в двух кварталах от лаборатории.', image: 'prologue_4' },
+  { speaker: '', text: "The assistant sets down his papers.", textRu: 'Ассистент откладывает бумаги.', image: 'prologue_4' },
+  { speaker: 'You', speakerRu: 'Ты', text: "I'll go first.", textRu: 'Я пойду первым.', image: 'prologue_4' },
 
   // Before the Machine
-  { speaker: '', text: "The Transfer Machine looks like a copper-and-glass coffin. Inside — grilles, wires, the smell of ozone.", textRu: 'Машина переноса выглядит как гроб из меди и стекла. Внутри — решётки, провода, запах озона.' },
-  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "...", textRu: '...' },
-  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "We don't know what's there. We don't know how long. We don't know if you'll come back as yourself.", textRu: 'Мы не знаем что там. Мы не знаем как долго. Мы не знаем вернёшься ли ты собой.' },
-  { speaker: '', text: "You lie down. The lid closes. Darkness.", textRu: 'Ты ложишься. Крышка закрывается. Темнота.' },
+  { speaker: '', text: "The Transfer Machine looks like a copper-and-glass coffin. Inside — grilles, wires, the smell of ozone.", textRu: 'Машина переноса выглядит как гроб из меди и стекла. Внутри — решётки, провода, запах озона.', image: 'prologue_5' },
+  { speaker: 'Nikola Tesla', speakerRu: 'Никола Тесла', text: "...", textRu: '...', image: 'prologue_5' },
+  { speaker: 'Marie Curie', speakerRu: 'Мари Кюри', text: "We don't know what's there. We don't know how long. We don't know if you'll come back as yourself.", textRu: 'Мы не знаем что там. Мы не знаем как долго. Мы не знаем вернёшься ли ты собой.', image: 'prologue_5' },
+  { speaker: '', text: "You lie down. The lid closes. Darkness.", textRu: 'Ты ложишься. Крышка закрывается. Темнота.', image: 'prologue_5' },
 
   // Awakening
-  { speaker: '', text: "No hands. No weight. Only light and the sensation of vast space.", textRu: 'Нет рук. Нет веса. Только свет и ощущение огромного пространства.' },
-  { speaker: '', text: "Below — a village. Living people. The smell of smoke and bread. Near the resurrection stone stand bodies — as if waiting.", textRu: 'Внизу — деревня. Живые люди. Запах дыма и хлеба. У камня возрождения стоят тела — словно ждут.' },
+  { speaker: '', text: "No hands. No weight. Only light and the sensation of vast space.", textRu: 'Нет рук. Нет веса. Только свет и ощущение огромного пространства.', image: 'prologue_6' },
+  { speaker: '', text: "Below — a village. Living people. The smell of smoke and bread. Near the resurrection stone stand bodies — as if waiting.", textRu: 'Внизу — деревня. Живые люди. Запах дыма и хлеба. У камня возрождения стоят тела — словно ждут.', image: 'prologue_6' },
   { speaker: '', text: "You are the Essence. Find a body. Press [E] to possess it.", textRu: 'Ты — Сущность. Найди тело. Нажми [E], чтобы вселиться.' },
 ];
 

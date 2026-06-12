@@ -160,7 +160,9 @@ export class UIScene extends Phaser.Scene {
   private dialogContainer!: Phaser.GameObjects.Container;
   private dialogText!: Phaser.GameObjects.Text;
   private dialogSpeaker!: Phaser.GameObjects.Text;
-  private dialogQueue: { speaker: string; text: string }[] = [];
+  private dialogImage!: Phaser.GameObjects.Image;
+  private dialogImageFrame!: Phaser.GameObjects.Rectangle;
+  private dialogQueue: { speaker: string; text: string; image?: string }[] = [];
   private dialogVisible: boolean = false;
   private dialogOnEnd?: () => void;
   /** Активный крафт таймер */
@@ -370,7 +372,13 @@ export class UIScene extends Phaser.Scene {
         .on('pointerout', () => continueBtn.setColor(TC.ether2))
         .on('pointerdown', () => this.advanceDialog());
 
-      this.dialogContainer = this.add.container(0, 0, [dBg, this.dialogSpeaker, this.dialogText, continueBtn])
+      // Иллюстрация над панелью (пролог и т.п.) — рамка + картинка
+      this.dialogImageFrame = this.add.rectangle(GAME_WIDTH / 2, 300, 724, 411, THEME.ink1, 0.92)
+        .setStrokeStyle(2, THEME.brass1).setVisible(false);
+      this.dialogImage = this.add.image(GAME_WIDTH / 2, 300, '__DEFAULT')
+        .setDisplaySize(720, 405).setVisible(false);
+
+      this.dialogContainer = this.add.container(0, 0, [this.dialogImageFrame, this.dialogImage, dBg, this.dialogSpeaker, this.dialogText, continueBtn])
         .setScrollFactor(0).setDepth(2000).setVisible(false);
     }
 
@@ -2317,12 +2325,13 @@ export class UIScene extends Phaser.Scene {
 
   // ── Dialog system ──────────────────────────────────────
 
-  public showDialog(messages: { speaker: string; speakerRu?: string; text: string; textRu?: string }[], onEnd?: () => void) {
+  public showDialog(messages: { speaker: string; speakerRu?: string; text: string; textRu?: string; image?: string }[], onEnd?: () => void) {
     // Канон DialogMessage: speaker/text — EN, speakerRu/textRu — RU.
     // Локализуем при показе, чтобы в очереди лежал уже выбранный язык.
     this.dialogQueue = messages.map(m => ({
       speaker: lt(m.speakerRu, m.speaker),
       text: lt(m.textRu, m.text),
+      image: m.image,
     }));
     this.dialogOnEnd = onEnd;
     this.dialogVisible = true;
@@ -2343,6 +2352,13 @@ export class UIScene extends Phaser.Scene {
     const msg = this.dialogQueue.shift()!;
     this.dialogSpeaker.setText(msg.speaker);
     this.dialogText.setText(msg.text);
+    // Иллюстрация страницы (если задана и текстура реально загрузилась)
+    const hasImage = !!msg.image && this.textures.exists(msg.image);
+    if (hasImage) {
+      this.dialogImage.setTexture(msg.image!).setDisplaySize(720, 405);
+    }
+    this.dialogImage.setVisible(hasImage);
+    this.dialogImageFrame.setVisible(hasImage);
     this.dialogContainer.setVisible(true);
   }
 
