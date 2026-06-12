@@ -20,7 +20,7 @@ import { SpatialGrid } from '../systems/spatialGrid';
 import { Stats, StatName } from '../types/stats';
 import { AbilityDef } from '../types/abilities';
 import { QuestTracker } from '../systems/questTracker';
-import { QUESTS } from '../data/questDB';
+import { QUESTS, PITCH_QUESTS } from '../data/questDB';
 import { saveSphere, loadSphere } from '../systems/saveLoad';
 import { ALL_KNOWN_SPELLS, getSpellById } from '../data/allSpells';
 import { ALL_ZONES, ZoneConfig } from '../data/zones';
@@ -311,7 +311,9 @@ export class GameScene extends Phaser.Scene {
     this.pitchMode = this.registry.get('pitchMode') === true;
 
     // ─── Квесты ──────────────────────────────────────
-    this.questTracker = new QuestTracker(QUESTS);
+    // Питч: два стартовых квеста ВПЕРЕДИ списка (стартовый «Первый учитель» +
+    // главный «Игнис») — они сразу активны и видны первыми в HUD/журнале.
+    this.questTracker = new QuestTracker(this.pitchMode ? [...PITCH_QUESTS, ...QUESTS] : QUESTS);
 
     // ─── Тайловая карта ──────────────────────────────
     this.buildMap();
@@ -368,6 +370,8 @@ export class GameScene extends Phaser.Scene {
         for (const stat of Object.keys(this.sphere.stats) as StatName[]) {
           this.sphere.stats[stat] = 100;
         }
+        // Стартовый и главный квесты питча — сразу отслеживаются в HUD
+        this.sphere.trackedQuestIds = ['pq_first_body', 'pq_ignis'];
       }
     } else {
       const loaded = loadSphere(this.sphere, ALL_KNOWN_SPELLS, this.questTracker);

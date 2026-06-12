@@ -1,5 +1,31 @@
 import { QuestDef } from '../types/quests';
 
+/** Питч-демо: два квеста, выдаются СРАЗУ при старте Pitch Demo (без NPC).
+ *  Стартовый знакомит с петлёй «убей → вселись → выучи», главный ведёт к Игнису. */
+export const PITCH_QUESTS: QuestDef[] = [
+  {
+    id: 'pq_first_body',
+    nameRu: 'Первый учитель',
+    nameEn: 'Your First Teacher',
+    description: 'Выследи зайца на лугах у деревни и вселись в его тело [E]. Тела — твои учителя: выполни квест тела зайца — и его прыть останется с тобой навсегда.',
+    descriptionEn: "Hunt a hare in the meadows by the village and possess its body with [E]. Bodies are teachers: finish the hare's body quest and its speed is yours forever.",
+    objectives: [
+      { type: 'kill', targetId: 'hare', targetNameRu: 'заяц', targetNameEn: 'hare', count: 1 },
+      { type: 'capture', targetId: 'hare', targetNameRu: 'тело зайца', targetNameEn: "hare's body", count: 1 },
+    ],
+    xpReward: 30,
+  },
+  {
+    id: 'pq_ignis',
+    nameRu: 'Главная цель: Игнис',
+    nameEn: 'Main Goal: Ignis',
+    description: 'Страж Огня встал к западу от деревни. Учись у тел, собери умения — и забери его пламя. С него начнётся настоящая история.',
+    descriptionEn: 'The Fire Guardian stands west of the village. Learn from bodies, gather skills — then take his flame. That is where the real story begins.',
+    objectives: [{ type: 'kill', targetId: 'ignis', targetNameRu: 'Игнис', targetNameEn: 'Ignis', count: 1 }],
+    xpReward: 150,
+  },
+];
+
 export const QUESTS: QuestDef[] = [
   // ═══ ACT 1 — TUTORIAL (auto-given) ════════════════════════════════════════
 
