@@ -17,11 +17,17 @@
 
 export type MusicKey = 'village' | 'water' | 'battle' | 'lab';
 
+// Safari не играет OGG Vorbis → выбираем расширение по поддержке браузера.
+// Каждый трек лежит в двух форматах: .ogg (основной) + .mp3 (фоллбек).
+const OGG_OK = typeof Audio !== 'undefined'
+  && new Audio().canPlayType('audio/ogg; codecs="vorbis"') !== '';
+const EXT = OGG_OK ? 'ogg' : 'mp3';
+
 const SRC: Record<MusicKey, string> = {
-  village: 'assets/music/water_glistening_ripples.ogg',
-  water: 'assets/music/water_glistening_ripples.ogg',
-  battle: 'assets/music/battle_eleuxelier.ogg',
-  lab: 'assets/music/lab_era_machine.ogg',
+  village: `assets/music/water_glistening_ripples.${EXT}`,
+  water: `assets/music/water_glistening_ripples.${EXT}`,
+  battle: `assets/music/battle_eleuxelier.${EXT}`,
+  lab: `assets/music/lab_era_machine.${EXT}`,
 };
 
 const VOLUME = 0.32;

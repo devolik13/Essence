@@ -2,9 +2,9 @@
 
 | Файл | Трек | Автор | Использование в игре | Условия |
 |------|------|-------|----------------------|---------|
-| `battle_eleuxelier.ogg` | Eleuxelier (Battle Music, RPG Maker Mix) | **Eclipzodiac** | Бой в фэнтези-мире | Бесплатно, можно резать/изменять и использовать в проектах с указанием автора («please credit me as the original creator "Eclipzodiac"»). Полный текст: `eclipzodiac_terms.txt` |
-| `lab_era_machine.ogg` | Era Machine (Battle Music, RPG Maker Mix) | **Eclipzodiac** | Данж «Защита лаборатории» | То же |
-| `water_glistening_ripples.ogg` | Glistening Ripples | **PeriTune** (peritune.com) | Туманное озеро + (временно) деревня | Commercial use allowed, processing allowed; запрещена только коммерческая перепродажа самих треков. |
+| `battle_eleuxelier.ogg/.mp3` | Eleuxelier (Battle Music, RPG Maker Mix) | **Eclipzodiac** | Бой в фэнтези-мире | Бесплатно, можно резать/изменять и использовать в проектах с указанием автора («please credit me as the original creator "Eclipzodiac"»). Полный текст: `eclipzodiac_terms.txt` |
+| `lab_era_machine.ogg/.mp3` | Era Machine (Battle Music, RPG Maker Mix) | **Eclipzodiac** | Данж «Защита лаборатории» | То же |
+| `water_glistening_ripples.ogg/.mp3` | Glistening Ripples | **PeriTune** (peritune.com) | Туманное озеро + (временно) деревня | Commercial use allowed, processing allowed; запрещена только коммерческая перепродажа самих треков. |
 
 Кредит в титрах среза: **Music — Eclipzodiac · PeriTune**.
 
