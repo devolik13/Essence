@@ -1146,10 +1146,11 @@ export class BootScene extends Phaser.Scene {
     this.load.image('body_transfer_machine', 'assets/lab/transfer_machine.webp');
 
     // ── Иллюстрации пролога (Qwen-генерация, 1280×720 webp) ─────────────────
-    // Грузим все 6; отсутствующие пока файлы дадут loaderror в консоли —
-    // показ в UIScene гейтится на textures.exists, так что это безопасно:
-    // кадры подключаются сами по мере появления файлов в assets/prologue/.
-    for (let i = 1; i <= 6; i++) {
+    // PROLOGUE_FRAMES = сколько кадров реально лежит в assets/prologue/
+    // (грузим только их — иначе Phaser шумит «Failed to process file»).
+    // Добавил prologue_6.webp → подними до 6. Показ гейтится на textures.exists.
+    const PROLOGUE_FRAMES = 5;
+    for (let i = 1; i <= PROLOGUE_FRAMES; i++) {
       this.load.image(`prologue_${i}`, `assets/prologue/prologue_${i}.webp`);
     }
 
