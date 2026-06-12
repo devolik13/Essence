@@ -322,6 +322,9 @@ export class GameScene extends Phaser.Scene {
     {
       const toggle = () => { this.mapEditor?.toggle(); };
       const domHandler = (e: KeyboardEvent) => {
+        // Питч-демо: dev-инструменты (редактор Ё/F2/F9 и телепорт F8)
+        // отключены — издатель не должен случайно открыть редактор карт.
+        if (this.pitchMode) return;
         if (e.key === '`' || e.key === '~' || e.code === 'Backquote' ||
             e.key === 'F2' || e.key === 'F9') {
           e.preventDefault();
