@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESSENCE — Pitch Deck</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0b08; --ink2: #14110c; --panel: #1d1811;
+    --brass: #c9a227; --brass2: #ffd87a; --text: #e8ddc8; --text2: #998877;
+    --ether: #88bbff; --void: #9955cc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--ink); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; display: none; padding: 56px 84px 64px;
+    flex-direction: column; justify-content: center;
+  }
+  .slide.active { display: flex; }
+  .slide .bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .22; z-index: 0; }
+  .slide > div, .slide > h1, .slide > h2, .slide > p, .slide > ul { position: relative; z-index: 1; }
+  h1 { font-family: 'Cormorant Garamond', serif; font-size: 88px; letter-spacing: .35em; color: var(--brass2); font-weight: 600; }
+  h2 { font-family: 'Cormorant Garamond', serif; font-size: 44px; color: var(--brass2); margin-bottom: 28px; font-weight: 600; }
+  .kicker { font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: var(--brass); margin-bottom: 14px; }
+  p.lead { font-size: 24px; line-height: 1.45; color: var(--text); max-width: 880px; font-weight: 300; }
+  p.sub { font-size: 17px; line-height: 1.55; color: var(--text2); max-width: 840px; margin-top: 16px; }
+  .hook { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-style: italic; color: var(--text); margin-top: 22px; }
+  .cols { display: flex; gap: 36px; margin-top: 26px; align-items: stretch; }
+  .col { flex: 1; }
+  .card { background: #14110ccc; border: 1px solid #3a2e1a; border-radius: 6px; padding: 22px 26px; }
+  .card h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--brass2); margin-bottom: 10px; }
+  .card p { font-size: 15px; line-height: 1.5; color: var(--text2); }
+  img.shot { width: 100%; border: 1px solid #3a2e1a; border-radius: 4px; display: block; }
+  .imgcap { font-size: 12px; color: var(--text2); margin-top: 8px; font-style: italic; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 28px; }
+  .num { font-family: 'Cormorant Garamond', serif; font-size: 52px; color: var(--brass2); line-height: 1; }
+  .numlabel { font-size: 14px; color: var(--text2); margin-top: 6px; }
+  .loop { display: flex; align-items: center; gap: 18px; margin-top: 34px; }
+  .loopbox { flex: 1; border: 1px solid var(--brass); border-radius: 8px; padding: 22px; background: #14110cdd; text-align: center; }
+  .loopbox h3 { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--brass2); }
+  .loopbox .tag { font-size: 12px; letter-spacing: .25em; color: var(--brass); text-transform: uppercase; }
+  .loopbox p { font-size: 14px; color: var(--text2); margin-top: 8px; line-height: 1.45; }
+  .looparrow { font-size: 40px; color: var(--brass); flex: 0 0 auto; }
+  .foot { position: absolute; bottom: 22px; left: 84px; right: 84px; display: flex; justify-content: space-between; font-size: 11px; color: #5a4d3a; z-index: 2; letter-spacing: .08em; }
+  .pgnum { position: absolute; bottom: 22px; right: 30px; font-size: 11px; color: #5a4d3a; z-index: 3; }
+  .contact { color: var(--ether); }
+  ul.bullets { margin-top: 18px; list-style: none; }
+  ul.bullets li { font-size: 19px; line-height: 1.5; color: var(--text); padding-left: 26px; position: relative; margin-bottom: 13px; font-weight: 300; }
+  ul.bullets li::before { content: '◆'; position: absolute; left: 0; color: var(--brass); font-size: 12px; top: 7px; }
+  ul.bullets li b { color: var(--brass2); font-weight: 600; }
+  .nav-hint { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #5a4d3a; z-index: 5; }
+  .npcrow { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+  .npc { width: 38px; height: 52px; border-radius: 6px 6px 3px 3px; background: #3a2e1a; border: 1px solid #5a4d3a; position: relative; }
+  .npc.player { background: #2a3550; border-color: var(--ether); box-shadow: 0 0 14px #88bbff66; }
+  .npc.player::after { content: '?'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ether); font-size: 22px; font-weight: 600; }
+  .vs { font-family: 'Cormorant Garamond', serif; font-size: 34px; color: var(--void); text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- 1 · TITLE -->
+<section class="slide active">
+  <div class="bg" style="background-image:url('img/prologue_5.webp'); opacity:.34"></div>
+  <div style="text-align:center">
+    <div class="kicker">A PvP MMORPG · Vertical Slice</div>
+    <h1>E S S E N C E</h1>
+    <p class="hook">You are not the body. You are what's inside.</p>
+    <p class="sub" style="margin:26px auto 0; text-align:center">Possess anything. Learn from everything. Defend what's yours.</p>
+    <p class="sub" style="margin:40px auto 0; text-align:center">Devolik · <span class="contact">devolik13@gmail.com</span> · playable in any browser</p>
+  </div>
+</section>
+
+<!-- 2 · OPPORTUNITY -->
+<section class="slide">
+  <div class="kicker">The Opportunity</div>
+  <h2>MMO players are starving for a new fantasy</h2>
+  <ul class="bullets">
+    <li>Every year brings another interchangeable «chosen hero» MMO. The audience is loyal, hungry — and bored.</li>
+    <li>Two proven thrills have <b>never been combined in one MMO</b>: possession-driven progression («be anything») and hidden-identity play («trust no one»).</li>
+    <li>That intersection is empty. <b>Essence is built to own it.</b></li>
+  </ul>
+</section>
+
+<!-- 3 · FANTASY -->
+<section class="slide">
+  <div class="bg" style="background-image:url('img/prologue_2.webp'); opacity:.16"></div>
+  <div class="kicker">The Player Fantasy</div>
+  <h2>You are a bodiless Essence</h2>
+  <ul class="bullets">
+    <li>Every creature of the world — hare, wolf, bandit, fire elemental, boss — is <b>a body you can take</b>.</li>
+    <li>Bodies are <b>teachers</b>: live their life, complete their quest, keep their skill forever.</li>
+    <li>The body dies — <b>you don't</b>. Slip out, find another, come back stronger.</li>
+  </ul>
+</section>
+
+<!-- 4 · LOOP -->
+<section class="slide">
+  <div class="kicker">The Core Loop</div>
+  <h2>Two worlds. One soul.</h2>
+  <div class="loop">
+    <div class="loopbox">
+      <div class="tag">The School</div>
+      <h3>Fantasy World</h3>
+      <p>Possess creatures, earn their skills, master 13 schools of resonance magic.</p>
+    </div>
+    <div class="looparrow">⇄</div>
+    <div class="loopbox">
+      <div class="tag">The Exam</div>
+      <h3>Steam World · Home</h3>
+      <p>Return as yourself. Defend your loved ones from the Void, seal the warp rifts — with everything you learned out there.</p>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:30px">Progress is never abstract: every skill learned «over there» is a weapon for the world you actually care about.</p>
+</section>
+
+<!-- 5 · MECHANIC 1 -->
+<section class="slide">
+  <div class="kicker">Signature Mechanic · Trailer Shot #1</div>
+  <h2>Steal a body mid-combat</h2>
+  <div class="cols">
+    <div class="col" style="flex:1.25">
+      <img class="shot" src="img/shot_capture_crop.png">
+      <div class="imgcap">In-engine: the soul ripped out in slow-motion, arcing toward the fresh corpse.</div>
+    </div>
+    <div class="col">
+      <ul class="bullets">
+        <li>Drop an enemy → channel the capture on its corpse → <b>world slows, your soul flies</b> → you rise as them.</li>
+        <li>Any direct hit <b>interrupts</b> the cast: stealing a body in a fight is a high-risk, high-reward play.</li>
+        <li>In PvP, your victim's friends watch their ally's body stand up — <b>as you</b>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · MECHANIC 2 -->
+<section class="slide">
+  <div class="kicker">Signature Mechanic · PvP No One Else Has</div>
+  <h2>Conflict quests: hidden players among NPCs</h2>
+  <div class="cols">
+    <div class="col card">
+      <h3 style="text-align:center">Raid the caravan</h3>
+      <div class="npcrow">
+        <div class="npc"></div><div class="npc"></div><div class="npc player"></div><div class="npc"></div>
+      </div>
+    </div>
+    <div class="col" style="flex:0 0 80px; display:flex; align-items:center"><div class="vs" style="width:100%">VS</div></div>
+    <div class="col card">
+      <h3 style="text-align:center">Guard the caravan</h3>
+      <div class="npcrow">
+        <div class="npc"></div><div class="npc player"></div><div class="npc"></div><div class="npc"></div>
+      </div>
+    </div>
+  </div>
+  <ul class="bullets" style="margin-top:30px">
+    <li>Two opposing quests over one event. Both sides staffed by NPCs. <b>Some of those NPCs are real players.</b></li>
+    <li>Nobody knows who. Play it straight, bluff, betray at the perfect moment — <b>social deduction inside an open MMO world</b>.</li>
+  </ul>
+</section>
+
+<!-- 7 · LORE -->
+<section class="slide">
+  <div class="bg" style="background-image:url('img/prologue_3.webp'); opacity:.2"></div>
+  <div class="kicker">The Lore Hook</div>
+  <h2>Magic is resonance</h2>
+  <ul class="bullets">
+    <li><b>1899.</b> Warp rifts tear open above the steam cities. Bullets pass through the creatures that crawl out.</li>
+    <li><b>Tesla and Curie</b> find a frequency that should not exist: flesh cannot cross — <b>consciousness can</b>.</li>
+    <li>You volunteered. The fantasy world is real, its «magic» is resonant physics — and every soul sent across comes back able to fight the Void.</li>
+  </ul>
+  <p class="sub">Steampunk × fantasy with one consistent rulebook — and a finale twist we keep for the call.</p>
+</section>
+
+<!-- 8 · PLAYABLE -->
+<section class="slide">
+  <div class="kicker">Not a Concept — a Build</div>
+  <h2>Playable today, in the browser</h2>
+  <div class="grid3">
+    <div><div class="num">87</div><div class="numlabel">abilities across 5 magic schools + 10 weapon lines</div></div>
+    <div><div class="num">30+</div><div class="numlabel">body-possession quests («bodies are teachers»)</div></div>
+    <div><div class="num">108</div><div class="numlabel">craftable items, 7 professions</div></div>
+    <div><div class="num">250+</div><div class="numlabel">creatures living on one seamless map</div></div>
+    <div><div class="num">2</div><div class="numlabel">worlds: fantasy chapter 1 + steam-world dungeon</div></div>
+    <div><div class="num">EN/RU</div><div class="numlabel">full localization, day one</div></div>
+  </div>
+  <p class="sub" style="margin-top:30px">Vertical slice: prologue → first possessions → elemental boss with phases → warp rift → lab defense → credits. <b style="color:var(--brass2)">10 seconds from link to gameplay — no install.</b></p>
+</section>
+
+<!-- 9 · MARKET -->
+<section class="slide">
+  <div class="kicker">Market</div>
+  <h2>Proven appetites, empty intersection</h2>
+  <div class="cols">
+    <div class="col card"><h3>Realm of the Mad God</h3><p>Browser MMOs retain for a decade when the loop is sharp. Web = zero-friction acquisition.</p></div>
+    <div class="col card"><h3>Albion Online</h3><p>Indie-born MMOs can grow into sustainable, 10-year businesses without AAA budgets.</p></div>
+    <div class="col card"><h3>Among Us · Werewolf</h3><p>Hidden identity is a mass-market thrill. Nobody has shipped it inside a persistent RPG world.</p></div>
+  </div>
+  <p class="sub" style="margin-top:28px">Essence positions as <b style="color:var(--brass2)">«the possession MMO»</b> — a one-line elevator pitch players retell to each other (our trailer test: viewers describe the loop unprompted).</p>
+</section>
+
+<!-- 10 · ROADMAP -->
+<section class="slide">
+  <div class="kicker">Content Roadmap</div>
+  <h2>A decade of horizontal growth</h2>
+  <ul class="bullets">
+    <li><b>Chapter 1 — The School</b> (vertical slice done): village, 4 elemental zones, first rift sealed.</li>
+    <li><b>Chapters 2–4</b>: Shadow, new regions, steam-world dungeon line (lab defense is the prototype).</li>
+    <li><b>13 schools of magic</b>: 5 built · 8 post-launch as DLC — <b>horizontal content, never power</b>.</li>
+    <li><b>Multiplayer core</b>: conflict quests with hidden players — the retention engine.</li>
+  </ul>
+</section>
+
+<!-- 11 · MODEL -->
+<section class="slide">
+  <div class="kicker">Business Model</div>
+  <h2>Pay for worlds, not for power</h2>
+  <ul class="bullets">
+    <li><b>Buy-to-play</b> base + cosmetic monetization (bodies are the ultimate skin system — possession makes cosmetics core fantasy, not vanity).</li>
+    <li><b>DLC = new schools & chapters</b>: horizontal additions; a day-one player and a year-three player meet as equals in skill, not stats.</li>
+    <li>No pay-to-win by design: every ability must be earned by living as its teacher.</li>
+  </ul>
+</section>
+
+<!-- 12 · TEAM -->
+<section class="slide">
+  <div class="kicker">Team</div>
+  <h2>One designer, a working world</h2>
+  <ul class="bullets">
+    <li><b>Devolik</b> — game design, world, systems. Designed and shipped the entire playable slice solo, using AI-assisted development as a force multiplier.</li>
+    <li>Honest production note: prototype environment art uses licensed packs; the four IP-defining assets (Sphere, soul-capture VFX, Void creatures, Transfer Machine) are custom. Concept illustrations are AI-assisted and disclosed.</li>
+    <li><b>Looking for:</b> a co-dev/production partner to take a proven loop to a market vertical — the design is far ahead of the hands available.</li>
+  </ul>
+</section>
+
+<!-- 13 · ASK -->
+<section class="slide">
+  <div class="kicker">The Ask</div>
+  <h2>Fund the bridge from slice to vertical</h2>
+  <ul class="bullets">
+    <li><b>Co-development / production financing</b> to build: multiplayer core (conflict quests), art unification pass, chapters 1–2 content complete.</li>
+    <li>Milestone-first: next deliverable is a closed alpha of the conflict-quest PvP — the mechanic that markets itself.</li>
+    <li>Open to: publisher production deal · co-dev studio partnership · incubator/fund.</li>
+  </ul>
+</section>
+
+<!-- 14 · CTA -->
+<section class="slide">
+  <div class="bg" style="background-image:url('img/prologue_1.webp'); opacity:.3"></div>
+  <div style="text-align:center">
+    <div class="kicker">Play It Now</div>
+    <h1 style="font-size:64px">E S S E N C E</h1>
+    <p class="lead" style="margin:26px auto 0; text-align:center">The build is one click away — 10 seconds from link to gameplay.</p>
+    <p class="hook" style="margin-top:18px">[ itch.io private build link ]</p>
+    <p class="sub" style="margin:34px auto 0; text-align:center">Devolik · <span class="contact">devolik13@gmail.com</span></p>
+  </div>
+</section>
+
+<div class="nav-hint">← → arrows · click to advance</div>
+<div class="pgnum"><span id="pg"></span></div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let cur = 0;
+  const show = (i) => {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle('active', j === cur));
+    document.getElementById('pg').textContent = (cur + 1) + ' / ' + slides.length;
+  };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') show(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(cur - 1);
+    if (e.key === 'Home') show(0);
+  });
+  document.addEventListener('click', (e) => { if (e.clientX > innerWidth * 0.2) show(cur + 1); else show(cur - 1); });
+  show(0);
+</script>
+</body>
+</html>
