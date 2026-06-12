@@ -1556,10 +1556,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   private possessStarterBody(index: number) {
+    if (this.soulTransferActive) return; // душа уже в полёте — не дублируем
     const def = STARTER_BODIES[index];
     const sb = this.starterBodies[index];
     const pos = { x: sb.x, y: sb.y };
-    this.spawnCaptureFlash(pos.x, pos.y, () => {
+    // Тот же вау-перелёт, что при захвате моба: в астрале летит сама Сфера
+    const fromX = this.sphere.x, fromY = this.sphere.y;
+    this.sphere.setVisible(false);
+    this.playSoulTransfer(fromX, fromY, pos.x, pos.y, () => {
+      this.worldTimeScale = 1;
+      this.spawnCaptureFlash(pos.x, pos.y, () => {}); // вспышка + аккорд
       this.playerBody = new Body(this, pos.x, pos.y, def, this.getEquippedStats());
       this.playerBody.mapW = this.currentZone.widthTiles * TILE_SIZE;
       this.playerBody.mapH = this.currentZone.heightTiles * TILE_SIZE;
@@ -1570,6 +1576,9 @@ export class GameScene extends Phaser.Scene {
       this.fillBodySlots(this.playerBody);
       this.sphere.enterBody();
       this.sphere.lastBodyId = def.id;
+      // Тело «встаёт» с лёгким отскоком
+      this.playerBody.setScale(0.7).setAlpha(0);
+      this.tweens.add({ targets: this.playerBody, scale: 1, alpha: 1, duration: 240, ease: 'Back.easeOut' });
     });
   }
 
@@ -2858,7 +2867,11 @@ export class GameScene extends Phaser.Scene {
   /** ВАУ-захват: душа (светящаяся сфера с хвостом частиц) вылетает из старого
    *  тела и ныряет в труп. Мир в слоумо, твины — в реальном времени.
    *  Кадр №1 трейлера. */
+  /** Перелёт души уже идёт — защита от повторного запуска (спам [E]). */
+  private soulTransferActive = false;
+
   private playSoulTransfer(fromX: number, fromY: number, toX: number, toY: number, onArrive: () => void) {
+    this.soulTransferActive = true;
     this.worldTimeScale = 0.22;
     sfxSoulRip();
 
@@ -2914,6 +2927,7 @@ export class GameScene extends Phaser.Scene {
           targets: cam, zoom: baseZoom * 1.12, duration: 130, yoyo: true,
           ease: 'Quad.easeOut', onComplete: () => { cam.zoom = baseZoom; },
         });
+        this.soulTransferActive = false;
         onArrive();
       },
     });

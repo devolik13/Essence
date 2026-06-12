@@ -179,6 +179,7 @@ export const CREATURE_DB: Record<string, BodyDefinition> = {
     weapon: WeaponType.StaffNature, color: 0x9944aa, abilityName: 'Summon Wolf',
     npcSpells: [MOB_NATURE_T1],
     signatureSpell: MOB_NATURE_T1,
+    displaySizeMultiplier: 1.5,
   },
 
   wounded_human: {
