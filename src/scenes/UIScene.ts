@@ -251,6 +251,20 @@ export class UIScene extends Phaser.Scene {
 
   create() {
     this.scene.bringToTop();
+    // UIScene — синглтон: после scene.stop (титры) → нового старта поля с
+    // лениво-создаваемыми объектами указывали бы на УНИЧТОЖЕННЫЕ объекты
+    // прошлой сессии (boss-баннер крашил setText: drawImage of null).
+    this.bossBanner = undefined;
+    this.bossNameText = undefined;
+    this.bossHpText = undefined;
+    this.bossBarFill = undefined;
+    this.sealIcons = [];
+    this.menuBtnBgs = [];
+    this.menuBtnIcons = [];
+    this.menuBtnTexts = [];
+    this.vendorButtons = [];
+    this.dialogQueue = [];
+    this.dialogOnEnd = undefined;
     // Load saved layout before creating anything
     this.loadUILayout();
     this.loadWindowLayouts();
@@ -468,12 +482,21 @@ export class UIScene extends Phaser.Scene {
 
     // ── Events ────────────────────────────────────────────
     const gs = this.scene.get('GameScene');
-    gs.events.on('update-ui', (data: UIData) => this.updateUI(data));
-    gs.events.on('editor-mode', (active: boolean) => {
+    // ВАЖНО: эмиттер живёт в GameScene и переживает перезапуски UIScene
+    // (титры делают scene.stop('UIScene')). Без снятия слушателей при
+    // SHUTDOWN старая UIScene продолжала бы получать события и дёргать
+    // уничтоженные объекты (Uncaught TypeError: drawImage of null).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onGS = (event: string, handler: (...args: any[]) => void) => {
+      gs.events.on(event, handler);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => gs.events.off(event, handler));
+    };
+    onGS('update-ui', (data: UIData) => this.updateUI(data));
+    onGS('editor-mode', (active: boolean) => {
       this.scene.setVisible(!active);
       this.input.enabled = !active;
     });
-    gs.events.on('minimap-terrain', (t: { w: number; h: number; colors: number[]; mapW: number; mapH: number }) => {
+    onGS('minimap-terrain', (t: { w: number; h: number; colors: number[]; mapW: number; mapH: number }) => {
       this.minimapMapW = t.mapW;
       this.minimapMapH = t.mapH;
       this.buildMinimapTexture(t);
@@ -496,44 +519,44 @@ export class UIScene extends Phaser.Scene {
     // DOM windows close themselves on Escape (openWindowShell key handler).
     // Here we only need to close the Phaser stats window.
     this.input.keyboard?.on('keydown-ESC', () => { if (this.currentWindow === 'stats') this.closeSingleWindow('stats'); });
-    gs.events.on('stat-up', (data: { stat: StatName; newValue: number }) => {
+    onGS('stat-up', (data: { stat: StatName; newValue: number }) => {
       this.addLog(`▲ ${STAT_NAMES_SHORT[data.stat]} → ${data.newValue}`);
     });
-    gs.events.on('creature-killed', (data: { name: string; xp: number; stats: StatName[] }) => {
+    onGS('creature-killed', (data: { name: string; xp: number; stats: StatName[] }) => {
       const s = data.stats.map(s => STAT_NAMES_SHORT[s]).join(', ');
       this.addLog(`${data.name} killed  +${data.xp} XP → [${s}]`);
     });
-    gs.events.on('player-died', (data: { xpLost: number; debuffDuration: number }) => {
+    onGS('player-died', (data: { xpLost: number; debuffDuration: number }) => {
       this.addLog(t('death.message'));
       if (data?.xpLost > 0) this.addLog(`  ↓ Lost ${data.xpLost} XP`);
       this.addLog(`  ✦ Weakness: -15% dmg for ${data?.debuffDuration ?? 30}с`);
     });
-    gs.events.on('body-captured', (name: string) => this.addLog(`${t('log.captured')} ${name}`));
-    gs.events.on('bestiary-revealed', (data: { id: string; reason: string; nameRu: string }) => {
+    onGS('body-captured', (name: string) => this.addLog(`${t('log.captured')} ${name}`));
+    onGS('bestiary-revealed', (data: { id: string; reason: string; nameRu: string }) => {
       this.addLog(`✦ ${data.nameRu} → ${t('menu.bestiary')}`);
       if (isBestiaryWindowDomOpen()) refreshBestiaryWindowDom();
     });
-    gs.events.on('show-dialog', (data: { speaker: string; text: string }[] | { messages: { speaker: string; text: string }[]; onEnd?: () => void }) => {
+    onGS('show-dialog', (data: { speaker: string; text: string }[] | { messages: { speaker: string; text: string }[]; onEnd?: () => void }) => {
       if (Array.isArray(data)) {
         this.showDialog(data);
       } else {
         this.showDialog(data.messages, data.onEnd);
       }
     });
-    gs.events.on('capture-available', (name: string) => this.addLog(`${name} ${t('log.capture_prompt')}`));
-    gs.events.on('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
-    gs.events.on('capture-interrupt', () => this.addLog('✖ Захват прерван (движение)'));
-    gs.events.on('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
+    onGS('capture-available', (name: string) => this.addLog(`${name} ${t('log.capture_prompt')}`));
+    onGS('capture-start', (name: string) => this.addLog(`${t('log.capturing')} ${name}...`));
+    onGS('capture-interrupt', () => this.addLog('✖ Захват прерван (движение)'));
+    onGS('spell-learned', (spell: import('../types/abilities').AbilityDef) => {
       this.addLog(`${t('log.learned')} ${lt(spell.nameRu, spell.nameEn)}`);
       this.spellToastQueue.push(spell);
     });
-    gs.events.on('spell-locked', (data: { spell: import('../types/abilities').AbilityDef; prereqId: string }) => {
+    onGS('spell-locked', (data: { spell: import('../types/abilities').AbilityDef; prereqId: string }) => {
       this.addLog(`✗ ${lt(data.spell.nameRu, data.spell.nameEn)} ${t('log.prereq')}`);
     });
-    gs.events.on('quest-complete', (data: { name: string; xp: number }) => {
+    onGS('quest-complete', (data: { name: string; xp: number }) => {
       this.addLog(`✦ QUEST: ${data.name}  +${data.xp} XP`);
     });
-    gs.events.on('quest-giver-talk', (data: { active: import('../types/quests').QuestProgress[]; done: import('../types/quests').QuestProgress[] }) => {
+    onGS('quest-giver-talk', (data: { active: import('../types/quests').QuestProgress[]; done: import('../types/quests').QuestProgress[] }) => {
       this.addLog('── Ranger ──');
       if (data.active.length === 0) {
         this.addLog('  All quests complete!');
@@ -549,32 +572,32 @@ export class UIScene extends Phaser.Scene {
         this.addLog(`  ✓ Completed: ${data.done.length}`);
       }
     });
-    gs.events.on('seal-frequency-gained', (element: string) => {
+    onGS('seal-frequency-gained', (element: string) => {
       this.addLog(`✦ Seal frequency: ${element}`);
       this.updateSealIndicator();
     });
-    gs.events.on('save-loaded', () => this.addLog(t('log.progress_loaded')));
-    gs.events.on('log', (data: { text: string; color?: string }) => this.addLog(data.text));
-    gs.events.on('open-vendor', () => {
+    onGS('save-loaded', () => this.addLog(t('log.progress_loaded')));
+    onGS('log', (data: { text: string; color?: string }) => this.addLog(data.text));
+    onGS('open-vendor', () => {
       // Independent window — does not close inventory/etc.
       this.openVendorDom();
     });
-    gs.events.on('open-crafting', (workbenchType: string) => {
+    onGS('open-crafting', (workbenchType: string) => {
       this.craftingWorkbenchType = workbenchType;
       this.openCraftingDom(workbenchType);
     });
-    gs.events.on('aoe-targeting', (name: string) => {
+    onGS('aoe-targeting', (name: string) => {
       this.addLog(`◎ Targeting: ${name}  [LMB/RMB]`);
     });
-    gs.events.on('spell-out-of-range', () => this.addLog(t('log.too_far')));
-    gs.events.on('loot-dropped', (data: { creatureName: string; loot: string }) => {
+    onGS('spell-out-of-range', () => this.addLog(t('log.too_far')));
+    onGS('loot-dropped', (data: { creatureName: string; loot: string }) => {
       this.addLog(`↓ ${data.loot}`);
     });
-    gs.events.on('achievement-unlocked', (ach: AchievementDef) => {
+    onGS('achievement-unlocked', (ach: AchievementDef) => {
       this.achievementNotifQueue.push(ach);
       this.addLog(`${t('log.achievement')} ${lt(ach.nameRu, ach.nameEn)}`);
     });
-    gs.events.on('boss-state', (data: { name: string; hp: number; maxHp: number; hpFrac: number } | null) => {
+    onGS('boss-state', (data: { name: string; hp: number; maxHp: number; hpFrac: number } | null) => {
       this.updateBossBanner(data);
     });
   }
@@ -1333,6 +1356,20 @@ export class UIScene extends Phaser.Scene {
   // ── Skill bar ─────────────────────────────────────────
 
   private buildSkillBar() {
+    // UIScene — синглтон: при повторном create (рестарт после титров) старые
+    // УНИЧТОЖЕННЫЕ элементы оставались в массивах, и updateSkillBar крашился
+    // (setColor по мёртвому тексту → drawImage of null). Чистим перед сборкой.
+    this.skillSlotsBg = [];
+    this.skillSlotsFrame = [];
+    this.skillSlotsInner = [];
+    this.skillSlotsIcon = [];
+    this.skillSlotsImage = [];
+    this.skillSlotsKey = [];
+    this.skillSlotsMana = [];
+    this.skillSlotsCd = [];
+    this.skillSlotsCdText = [];
+    this.skillSlotsEnchantGlow = [];
+
     const DIVIDER_GAP = 16; // extra gap between weapon (0-4) and neutral (5-7)
     const totalW = SKILL_SLOTS_COUNT * SKILL_SLOT_SIZE + (SKILL_SLOTS_COUNT - 1) * SKILL_SLOT_GAP + DIVIDER_GAP;
     const startX = (GAME_WIDTH - totalW) / 2;

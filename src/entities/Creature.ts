@@ -303,6 +303,10 @@ export class Creature extends Phaser.GameObjects.Container {
           this.retaliating = false; // ушёл за поводок — перестаёт огрызаться
         } else if (dist <= attackRange) {
           this.aiState = 'attack';
+          // Стоя на месте, разворачиваемся К ЦЕЛИ: facing обновлялся только
+          // движением, и спрайт атаки бил в последнее направление ходьбы
+          // (Колосс смотрел вверх, а замахивался «вниз»).
+          this.updateFacing(playerX - this.x, playerY - this.y);
         } else {
           this.aiState = 'chase';
         }
