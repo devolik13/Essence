@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH } from '../utils/constants';
+import { GAME_WIDTH, GAME_HEIGHT } from '../utils/constants';
 import { getCharacters, deleteCharacter, setActiveSlot, migrateOldSave, findFreeSlot } from '../systems/saveLoad';
 import { t, lt, initLang } from '../i18n/index';
 import { WeaponType } from '../types/bodies';
@@ -9,6 +9,8 @@ import { stopMusic } from '../systems/music';
 export class TitleScene extends Phaser.Scene {
   private menuContainer!: Phaser.GameObjects.Container;
   private loadContainer!: Phaser.GameObjects.Container;
+  private bgArt?: Phaser.GameObjects.Image;
+  private bgArtScale = 1;
 
   constructor() {
     super({ key: 'TitleScene' });
@@ -19,6 +21,18 @@ export class TitleScene extends Phaser.Scene {
     initLang();
     migrateOldSave();
     this.cameras.main.setBackgroundColor('#0d0b08');
+
+    // Арт-фон (кадр пролога «Эпоха пара») + виньетка, чтобы меню читалось
+    if (this.textures.exists('prologue_1')) {
+      this.bgArt = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'prologue_1')
+        .setAlpha(0.38);
+      this.bgArtScale = Math.max(GAME_WIDTH / this.bgArt.width, GAME_HEIGHT / this.bgArt.height);
+      this.bgArt.setScale(this.bgArtScale * 1.04);
+      const vign = this.add.graphics();
+      vign.fillStyle(0x0d0b08, 0.55).fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+      vign.fillGradientStyle(0x0d0b08, 0x0d0b08, 0x0d0b08, 0x0d0b08, 0.9, 0.9, 0.1, 0.1);
+      vign.fillRect(0, 0, GAME_WIDTH, 240);
+    }
 
     this.menuContainer = this.add.container(0, 0);
     this.loadContainer = this.add.container(0, 0);
@@ -32,6 +46,15 @@ export class TitleScene extends Phaser.Scene {
   private buildMenu() {
     this.tweens.killAll();
     this.menuContainer.removeAll(true);
+
+    // «Дыхание» арт-фона — пересоздаём после killAll
+    if (this.bgArt) {
+      this.bgArt.setScale(this.bgArtScale * 1.04);
+      this.tweens.add({
+        targets: this.bgArt, scale: this.bgArtScale * 1.1,
+        duration: 22000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+    }
 
     const cx = GAME_WIDTH / 2;
 

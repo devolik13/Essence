@@ -162,6 +162,8 @@ export class UIScene extends Phaser.Scene {
   private dialogSpeaker!: Phaser.GameObjects.Text;
   private dialogImage!: Phaser.GameObjects.Image;
   private dialogImageFrame!: Phaser.GameObjects.Rectangle;
+  private dialogDim!: Phaser.GameObjects.Rectangle;
+  private kenBurnsTween?: Phaser.Tweens.Tween;
   private dialogQueue: { speaker: string; text: string; image?: string }[] = [];
   private dialogVisible: boolean = false;
   private dialogOnEnd?: () => void;
@@ -372,13 +374,19 @@ export class UIScene extends Phaser.Scene {
         .on('pointerout', () => continueBtn.setColor(TC.ether2))
         .on('pointerdown', () => this.advanceDialog());
 
-      // Иллюстрация над панелью (пролог и т.п.) — рамка + картинка
+      // Иллюстрация над панелью (пролог и т.п.): затемнение игры позади +
+      // рамка + картинка с медленным наездом (Ken Burns)
+      this.dialogDim = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.55)
+        .setVisible(false);
       this.dialogImageFrame = this.add.rectangle(GAME_WIDTH / 2, 300, 724, 411, THEME.ink1, 0.92)
         .setStrokeStyle(2, THEME.brass1).setVisible(false);
       this.dialogImage = this.add.image(GAME_WIDTH / 2, 300, '__DEFAULT')
         .setDisplaySize(720, 405).setVisible(false);
+      // Маска, чтобы наезд не вылезал за рамку
+      const imgMask = this.make.graphics({}).fillRect(GAME_WIDTH / 2 - 360, 300 - 202, 720, 405);
+      this.dialogImage.setMask(imgMask.createGeometryMask());
 
-      this.dialogContainer = this.add.container(0, 0, [this.dialogImageFrame, this.dialogImage, dBg, this.dialogSpeaker, this.dialogText, continueBtn])
+      this.dialogContainer = this.add.container(0, 0, [this.dialogDim, this.dialogImageFrame, this.dialogImage, dBg, this.dialogSpeaker, this.dialogText, continueBtn])
         .setScrollFactor(0).setDepth(2000).setVisible(false);
     }
 
@@ -2354,11 +2362,19 @@ export class UIScene extends Phaser.Scene {
     this.dialogText.setText(msg.text);
     // Иллюстрация страницы (если задана и текстура реально загрузилась)
     const hasImage = !!msg.image && this.textures.exists(msg.image);
+    this.kenBurnsTween?.remove();
     if (hasImage) {
       this.dialogImage.setTexture(msg.image!).setDisplaySize(720, 405);
+      // Ken Burns: медленный наезд, пока страница открыта (маска держит рамку)
+      this.kenBurnsTween = this.tweens.add({
+        targets: this.dialogImage,
+        displayWidth: 792, displayHeight: 446,
+        duration: 14000, ease: 'Sine.easeInOut',
+      });
     }
     this.dialogImage.setVisible(hasImage);
     this.dialogImageFrame.setVisible(hasImage);
+    this.dialogDim.setVisible(hasImage); // затемняем игру только под иллюстрацию
     this.dialogContainer.setVisible(true);
   }
 

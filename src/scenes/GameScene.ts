@@ -498,6 +498,26 @@ export class GameScene extends Phaser.Scene {
     // Show prologue on first game start (village only)
     if (this.currentZone.id === 'village') {
       this.time.delayedCall(500, () => this.showPrologue());
+      // Возврат из лаборатории после победы — деревня замечает перемену.
+      // Замыкает петлю двух миров: «выучил там — защитил своих — вернулся другим».
+      if (this.registry.get('labReturn') === true) {
+        this.registry.set('labReturn', false);
+        this.time.delayedCall(1200, () => {
+          this.events.emit('show-dialog', {
+            messages: [
+              { speaker: 'Mira', speakerRu: 'Мира',
+                text: "You're back... You stand differently. Like someone who held a door shut against the dark.",
+                textRu: 'Ты вернулся... Ты иначе стоишь. Как тот, кто держал дверь, когда в неё ломилась тьма.' },
+              { speaker: 'Bert — Hunter', speakerRu: 'Берт — охотник',
+                text: "The air smelled of thunder last night. Wherever you went — it followed you back. Or it didn't dare.",
+                textRu: 'Этой ночью пахло грозой. Куда бы ты ни ходил — оно вернулось за тобой. Или не посмело.' },
+              { speaker: 'Aldric — Blacksmith', speakerRu: 'Алдрик — кузнец',
+                text: "Hmph. Whatever you fought out there left marks on your soul, not your armor. Rest. Then we talk.",
+                textRu: 'Хм. То, с чем ты дрался, оставило отметины не на броне — на душе. Отдохни. Потом поговорим.' },
+            ],
+          });
+        });
+      }
     }
 
     // Прямой вход в редактор (кнопка «Lab Editor» с титула)
@@ -5595,6 +5615,7 @@ export class GameScene extends Phaser.Scene {
         if (this.pitchMode) {
           this.time.delayedCall(800, () => this.showSliceCredits());
         } else {
+          this.registry.set('labReturn', true); // деревня встречает героя
           this.time.delayedCall(1500, () => {
             this.scene.restart({ zoneId: 'village', spawnX: undefined, spawnY: undefined });
           });
