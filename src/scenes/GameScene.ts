@@ -2374,8 +2374,14 @@ export class GameScene extends Phaser.Scene {
 
   /** Show prologue on first game start */
   private showPrologue() {
-    if (localStorage.getItem('essence_prologue_shown')) return;
-    localStorage.setItem('essence_prologue_shown', '1');
+    // Питч: пролог играет КАЖДЫЙ запуск (свежий прогон — принцип демо, и
+    // издатель всегда видит интро с иллюстрациями). Обычная игра — раз на
+    // устройство (флаг). Кто видел старый пролог без картинок — увидит новый
+    // через Pitch Demo.
+    if (!this.pitchMode) {
+      if (localStorage.getItem('essence_prologue_shown')) return;
+      localStorage.setItem('essence_prologue_shown', '1');
+    }
     this.events.emit('show-dialog', {
       messages: PROLOGUE_DIALOG,
       onEnd: () => this.onboardHint('controls', lt(

@@ -704,7 +704,7 @@ export const ZONE_EARTH: ZoneConfig = {
 // Влезает в экран целиком — камера статична, вокруг чернота.
 const LAB_W = 13;
 const LAB_H = 20;
-const LAB_MACHINE_X = 305;  // середина динамо/катушки
+const LAB_MACHINE_X = 265;  // чуть левее центра, между динамо/катушкой
 const LAB_MACHINE_Y = 420;
 
 export const ZONE_LAB: ZoneConfig = {
