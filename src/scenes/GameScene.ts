@@ -3932,24 +3932,11 @@ export class GameScene extends Phaser.Scene {
       const names: Record<string, string> = { fire: 'Fire', water: 'Water', earth: 'Earth', wind: 'Wind' };
       this.showMessage(`Seal frequency acquired: ${names[def.element]}!`);
 
-      // Boss reward: auto-learn T2 spell of the Guardian's school.
-      // ТОЛЬКО В ПИТЧЕ: в обычной игре T2 даёт элементаль-учитель (asher/fogger/
-      // mudder/whistler) — правило «одно умение = один учитель».
-      const rewardSpellIds: Record<string, string> = {
-        fire: 'mob_fire_arrow', water: 'mob_ice_arrow',
-        earth: 'mob_stone_spike', wind: 'mob_wind_blade',
-      };
-      const rewardId = rewardSpellIds[def.element];
-      if (this.pitchMode && rewardId && !this.sphere.learnedSpells.find(s => s.id === rewardId)) {
-        const spell = getSpellById(rewardId);
-        if (spell) {
-          this.sphere.learnedSpells.push(spell);
-          this.sphere.spellProgress[spell.id] = 9999;
-          this.events.emit('spell-learned', spell);
-          if (this.playerBody) this.fillBodySlots(this.playerBody); // сразу в скилл-бар
-          sfxLevelUp();
-        }
-      }
+      // Босс даёт ТОЛЬКО частоту Печати. Заклинания — строго через квесты тел
+      // («одно умение = один учитель»): Огненная стрела — у ашера (bq_asher),
+      // Огненная стена — у Игниса (bq_ignis). В питче оба огненных даются как
+      // исключение при завершении квеста Игниса и переходе в портал
+      // (grantBodyQuestReward, bq_ignis) — НЕ при убийстве босса.
 
       const allCollected = Object.values(this.sphere.sealFrequencies).every(v => v);
       if (allCollected) {
