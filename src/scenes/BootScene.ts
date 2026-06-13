@@ -1149,7 +1149,7 @@ export class BootScene extends Phaser.Scene {
     // PROLOGUE_FRAMES = сколько кадров реально лежит в assets/prologue/
     // (грузим только их — иначе Phaser шумит «Failed to process file»).
     // Добавил prologue_6.webp → подними до 6. Показ гейтится на textures.exists.
-    const PROLOGUE_FRAMES = 5;
+    const PROLOGUE_FRAMES = 6;
     for (let i = 1; i <= PROLOGUE_FRAMES; i++) {
       this.load.image(`prologue_${i}`, `assets/prologue/prologue_${i}.webp`);
     }
