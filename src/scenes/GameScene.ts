@@ -1967,60 +1967,48 @@ export class GameScene extends Phaser.Scene {
     const px = this.playerBody.x, py = this.playerBody.y;
     const interactRange = 80;
 
-    // Resource nodes
+    // Собираем ВСЕХ кандидатов в радиусе с дистанцией и действием, затем
+    // выбираем БЛИЖАЙШЕГО (а не первого по типу). Иначе торговец/NPC
+    // перебивал морковку-квест-объект рядом с ним. Подошёл вплотную к
+    // нужному — он и сработает. action возвращает true при успехе.
+    const candidates: { d: number; action: () => boolean }[] = [];
+
     for (const node of this.resourceNodes) {
       if (node.depleted) continue;
       const d = distance(px, py, node.x, node.y);
-      if (d < interactRange) {
-        this.startGathering(node);
-        return true;
-      }
+      if (d < interactRange) candidates.push({ d, action: () => { this.startGathering(node); return true; } });
     }
-
-    // Workbenches
     for (const wb of this.workbenches) {
       const d = distance(px, py, wb.x, wb.y);
-      if (d < interactRange) {
-        this.openCraftingUI(wb.type);
-        return true;
-      }
+      if (d < interactRange) candidates.push({ d, action: () => { this.openCraftingUI(wb.type); return true; } });
     }
-
-    // Healing well — restores full HP + mana (placed map fixture `cp_well`).
     if (this.mapEditor) {
       for (const o of this.mapEditor.getObjects()) {
         if (o.key !== 'cp_well') continue;
-        if (distance(px, py, o.x, o.y) < interactRange) {
-          this.useHealingWell();
-          return true;
-        }
+        const d = distance(px, py, o.x, o.y);
+        if (d < interactRange) candidates.push({ d, action: () => { this.useHealingWell(); return true; } });
       }
     }
-
-    // NPCs (vendor)
     for (const npc of this.worldNPCs) {
       const d = distance(px, py, npc.x, npc.y);
-      if (d < interactRange) {
-        if (npc.role === 'vendor') {
-          this.openVendorUI();
-        } else if (npc.role === 'weapon_vendor') {
-          this.openWeaponVendor();
-        } else if (npc.role === 'npc') {
-          this.talkToNPC(npc.id);
-        }
+      if (d < interactRange) candidates.push({ d, action: () => {
+        if (npc.role === 'vendor') this.openVendorUI();
+        else if (npc.role === 'weapon_vendor') this.openWeaponVendor();
+        else if (npc.role === 'npc') this.talkToNPC(npc.id);
         return true;
-      }
+      } });
     }
-
-    // Quest objects (collectible / destructible via [E])
     for (const qo of this.questObjects) {
       if (qo.used) continue;
       const d = distance(px, py, qo.x, qo.y);
-      if (d < interactRange) {
-        if (this.interactQuestObject(qo)) return true;
-      }
+      if (d < interactRange) candidates.push({ d, action: () => this.interactQuestObject(qo) });
     }
 
+    // Ближайший первым; если его действие не сработало — пробуем следующего.
+    candidates.sort((a, b) => a.d - b.d);
+    for (const c of candidates) {
+      if (c.action()) return true;
+    }
     return false;
   }
 
