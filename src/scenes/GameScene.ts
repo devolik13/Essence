@@ -439,6 +439,11 @@ export class GameScene extends Phaser.Scene {
       autoBodyId = null;
       this.sphere.lastBodyId = null;
     }
+    // Новая игра в деревне: игрок ПОЯВЛЯЕТСЯ СФЕРОЙ (как учит пролог — «Ты
+    // Сущность, найди тело, нажми [E]») и сам вселяется в одно из стартовых
+    // тел. Авто-вселение пропускаем. В lab всегда тело ассистента, при
+    // загрузке — восстановление как было.
+    if (this.isNewGame && this.currentZone.id !== 'lab') autoBodyId = null;
     if (autoBodyId) {
       const bodyDef = CREATURE_DB[autoBodyId] ?? lookupStarterBody(autoBodyId);
       if (bodyDef) {
@@ -634,6 +639,10 @@ export class GameScene extends Phaser.Scene {
     // ─── Клик ────────────────────────────────────────
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       resumeAudio(); // Unlock audio on first click
+      // Открыт нарративный диалог (пролог и т.п.) — клик листает реплики, а не
+      // проваливается в мир (иначе персонаж шёл за картинкой пролога).
+      const ui = this.scene.get('UIScene') as import('./UIScene').UIScene;
+      if (ui?.isDialogOpen?.()) return;
       // Правая кнопка — отмена AoE
       if (pointer.rightButtonDown()) {
         this.exitAoeTargeting();
@@ -1586,6 +1595,12 @@ export class GameScene extends Phaser.Scene {
       // Тело «встаёт» с лёгким отскоком
       this.playerBody.setScale(0.7).setAlpha(0);
       this.tweens.add({ targets: this.playerBody, scale: 1, alpha: 1, duration: 240, ease: 'Back.easeOut' });
+      // Засчитываем «вселение в любое тело» (q1_awakening и т.п.) — иначе
+      // стартовый квест зависал, ведь теперь игрок стартует Сферой и сам
+      // вселяется в стартовое тело через [E].
+      const captureCompleted = this.questTracker.onCapture(def.id);
+      for (const q of captureCompleted) this.onQuestComplete(q);
+      this.persistState();
     });
   }
 

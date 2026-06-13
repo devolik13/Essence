@@ -167,6 +167,8 @@ export class UIScene extends Phaser.Scene {
   private kenBurnsTween?: Phaser.Tweens.Tween;
   private dialogQueue: { speaker: string; text: string; image?: string }[] = [];
   private dialogVisible: boolean = false;
+  /** Открыт ли нарративный диалог (блокирует мировой клик в GameScene). */
+  public isDialogOpen(): boolean { return this.dialogVisible; }
   private dialogOnEnd?: () => void;
   /** Активный крафт таймер */
   private craftingProgress: { remaining: number; total: number; name: string } | null = null;
