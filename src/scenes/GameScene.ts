@@ -5051,9 +5051,17 @@ export class GameScene extends Phaser.Scene {
     if (zoneAnimKey && this.anims.exists(zoneAnimKey)) {
       zoneSprite = this.add.sprite(wx, wy, zoneAnimKey).setDepth(6);
       zoneSprite.play(zoneAnimKey);
-      zoneSprite.setDisplaySize(isWall ? wallW : radius * 2, isWall ? wallT * 2 : radius * 2);
-      zoneSprite.setAlpha(0.8);
-      if (spell.school === 'fire') zoneSprite.setFlipY(true);
+      // Огненная стена — вид сверху, симметричная полоса (языки в обе стороны):
+      // даём чуть больше высоты, чтобы языки выбивались за зону, и аддитивное
+      // свечение поверх земли. Остальные зоны — как были.
+      if (spell.school === 'fire') {
+        zoneSprite.setDisplaySize(isWall ? wallW : radius * 2, isWall ? wallT * 3 : radius * 2);
+        zoneSprite.setBlendMode(Phaser.BlendModes.ADD);
+        zoneSprite.setAlpha(0.95);
+      } else {
+        zoneSprite.setDisplaySize(isWall ? wallW : radius * 2, isWall ? wallT * 2 : radius * 2);
+        zoneSprite.setAlpha(0.8);
+      }
       if (isWall) zoneSprite.setRotation(angle);
     }
 
