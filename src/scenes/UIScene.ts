@@ -2820,7 +2820,7 @@ export class UIScene extends Phaser.Scene {
         .setText(`${lt('НОВОЕ УМЕНИЕ ОТКРЫТО', 'NEW ABILITY UNLOCKED')}
 ${lt(spell.nameRu, spell.nameEn)}`)
         .setAlpha(1).setVisible(true);
-      this.spellToastTimer = 1700;
+      this.spellToastTimer = 2700; // +1с к показу (просьба Devolik)
     }
   }
 
