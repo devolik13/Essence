@@ -5,6 +5,7 @@ import { Creature } from '../entities/Creature';
 import { StatName } from '../types/stats';
 import { t, lt, initLang } from '../i18n';
 import { CaptureProcess, CaptureState } from '../systems/capture';
+import { sfxUiClick, sfxUiPage } from '../systems/sfx';
 import { calcRank, xpToNextLevel } from '../systems/progression';
 import { GAME_WIDTH, GAME_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../utils/constants';
 import { STAT_NAMES_SHORT } from '../utils/statNames';
@@ -2237,6 +2238,7 @@ export class UIScene extends Phaser.Scene {
    * Each window's button highlight reflects only its own open state.
    */
   private toggleWindow(type: WindowType) {
+    sfxUiClick();
     if (this.isWindowOpen(type)) {
       this.closeSingleWindow(type);
       return;
@@ -2384,6 +2386,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   private advanceDialog() {
+    sfxUiPage();
     if (this.dialogQueue.length === 0) {
       this.dialogContainer.setVisible(false);
       this.dialogVisible = false;

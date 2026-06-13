@@ -37,7 +37,7 @@ import { WORKBENCH_NAMES_RU, WORKBENCH_NAMES_EN, WORKBENCH_COLORS } from '../dat
 import { STATUS_DEFS, StatusEffectId, isBuffStatus } from '../types/statuses';
 // decorations atlas no longer used — all placed through in-game editor
 import { spawnProjectileVFX, spawnHitVFX, spawnMeleeSwingVFX, spawnCastVFX, spawnHealVFX, spawnAoeVFX, spawnSpellImpact, spawnSpellProjectile, getSpellZoneAnim } from '../systems/vfx';
-import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxSoulRip, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition } from '../systems/sfx';
+import { resumeAudio, sfxMeleeHit, sfxRangedShot, sfxMagicCast, sfxMagicHit, sfxCritHit, sfxDeath, sfxCapture, sfxSoulRip, sfxHeal, sfxBuff, sfxBlock, sfxMiss, sfxLevelUp, sfxZoneTransition, sfxPickup, sfxQuestComplete, sfxRiftSeal } from '../systems/sfx';
 import { playMusic, MusicKey } from '../systems/music';
 import { MOB_COPPER_DROPS, formatCurrency } from '../systems/currency';
 import { buyRecipe as buyRecipeLogic, buyMaterial as buyMaterialLogic, consumeCraftMaterials, completeCraft, disassemble } from '../systems/craftingLogic';
@@ -2322,6 +2322,7 @@ export class GameScene extends Phaser.Scene {
         }
         const lootStr = drop.items.map(d => `+${d.qty} ${ITEMS[d.itemId] ? lt(ITEMS[d.itemId].nameRu, ITEMS[d.itemId].nameEn) : d.itemId}`).join(', ');
         this.showMessage(lootStr);
+        sfxPickup();
         drop.gfx.destroy();
         this.lootDrops.splice(i, 1);
         this.persistState();
@@ -3847,6 +3848,7 @@ export class GameScene extends Phaser.Scene {
     const progress = this.bodyQuestTracker.getActive();
     if (!progress) return;
     const bq = progress.def;
+    sfxQuestComplete();
     if (!bq.repeatable) this.sphere.triggeredBodyQuests.push(bq.id);
     this.bodyQuestTracker.clear();
     this.clearBodyQuestObjects();
@@ -3950,6 +3952,7 @@ export class GameScene extends Phaser.Scene {
 
   private onQuestComplete(q: import('../types/quests').QuestProgress) {
     const xpReward = q.def.xpReward;
+    sfxQuestComplete();
     this.events.emit('quest-complete', { name: lt(q.def.nameRu, q.def.nameEn), xp: xpReward });
 
     if (this.playerBody && xpReward > 0) {
@@ -5633,6 +5636,8 @@ export class GameScene extends Phaser.Scene {
     // Разрыв закрыт — победа
     this.labRitual = 'done';
     this.labState = 'victory';
+    sfxRiftSeal(); // мощный схлоп — кульминация данжа
+    this.cameras.main.shake(400, 0.006);
     const riftClose = this.labRiftSpr ?? this.labRiftGfx;
     if (riftClose) {
       this.tweens.add({ targets: riftClose, alpha: 0, scaleX: 0.05, scaleY: 0.05, duration: 1200, ease: 'Cubic.easeIn' });
