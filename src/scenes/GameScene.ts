@@ -5531,9 +5531,9 @@ export class GameScene extends Phaser.Scene {
     if (this.labStartPrompt) this.labStartPrompt.destroy();
     const cam = this.cameras.main;
     this.labStartPrompt = this.add.text(cam.width / 2, cam.height - 150,
-      lt('▶ [F] Начать оборону', '▶ [F] Begin the defense'),
+      lt('Выбери заклинания на панели\n▶ [F] — начать защиту', 'Set your abilities on the bar\n▶ [F] — begin the defense'),
       { fontSize: '20px', fontFamily: '"Cormorant Garamond", serif', color: '#ffe08a',
-        stroke: '#1a1208', strokeThickness: 4, align: 'center' })
+        stroke: '#1a1208', strokeThickness: 4, align: 'center', lineSpacing: 6 })
       .setOrigin(0.5).setScrollFactor(0).setDepth(2000);
     this.tweens.add({ targets: this.labStartPrompt, alpha: { from: 0.55, to: 1 }, duration: 700, yoyo: true, repeat: -1 });
   }
