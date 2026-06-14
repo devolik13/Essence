@@ -1076,8 +1076,9 @@ BootScene → TitleScene → CharCreateScene → GameScene + UIScene
 
 ### UI-хром
 - Система `t(key)` в `src/i18n/index.ts` — 160+ ключей EN/RU
-- **Окно настроек (⚙)**: кнопка меню после Бестиария + хоткей [O] — `src/ui/settingsWindowDom.ts`
+- **Окно настроек (⚙)**: кнопка меню после Бестиария + хоткей [O] в игре + **кнопка на титульном экране** (до старта) — `src/ui/settingsWindowDom.ts`. Секции: Язык (EN/RU) + Звук (слайдер громкости музыки)
 - Язык сохраняется в localStorage (`essence_lang`), дефолт EN
+- **Громкость музыки**: слайдер 0–100% → `setMusicVolume`/`getMusicVolume` (music.ts), localStorage `essence_music_vol`, потолок MAX_VOLUME 0.32. Применяется к текущему треку сразу (вне фейда)
 
 ### Контент (БД) — двуязычный, канон полей:
 - `nameRu`/`descRu`/`description`/`targetNameRu` = **русский**

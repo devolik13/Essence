@@ -5,6 +5,7 @@ import { t, lt, initLang } from '../i18n/index';
 import { WeaponType } from '../types/bodies';
 import { THEME, TC } from '../ui/theme';
 import { playMusic } from '../systems/music';
+import { showSettingsDom, hideSettingsDom } from '../ui/settingsWindowDom';
 
 export class TitleScene extends Phaser.Scene {
   private menuContainer!: Phaser.GameObjects.Container;
@@ -123,6 +124,14 @@ export class TitleScene extends Phaser.Scene {
       this.scene.start('UIScene');
       this.scene.stop();
     }, this.menuContainer, false, 180, 36);
+
+    // Настройки (язык + громкость музыки) — доступны до старта игры
+    this.addButton(cx, 540, '⚙ ' + t('settings.title'), () => {
+      showSettingsDom({
+        onClose: () => hideSettingsDom(),
+        onLangChange: () => { hideSettingsDom(); this.scene.restart(); },
+      });
+    }, this.menuContainer, false, 180, 32);
 
     // (Кнопка Lab Editor убрана — мебель расставлена, lab.json в бандле.
     // Редактор карт по-прежнему доступен в игре: ` / F2; вход в lab — F8.)

@@ -30,7 +30,15 @@ const SRC: Record<MusicKey, string> = {
   lab: `assets/music/lab_era_machine.${EXT}`,
 };
 
-const VOLUME = 0.32;
+// Громкость музыки 0..1 (множитель базовой). Сохраняется в localStorage.
+const MAX_VOLUME = 0.32; // потолок «100%» — комфортный фон, не глушит SFX
+let volumeFactor = (() => {
+  const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('essence_music_vol') : null;
+  const v = saved !== null ? Number(saved) : 1;
+  return isNaN(v) ? 1 : Math.max(0, Math.min(1, v));
+})();
+function VOLUME(): number { return MAX_VOLUME * volumeFactor; }
+
 const FADE_MS = 1200;
 const STEP_MS = 50;
 
@@ -78,7 +86,7 @@ function crossfadeTo(next: HTMLAudioElement | null): void {
     for (const el of [...live]) {
       const s = start.get(el) ?? 0;
       if (el === next) {
-        el.volume = Math.min(VOLUME, s + (VOLUME - s) * t);
+        el.volume = Math.min(VOLUME(), s + (VOLUME() - s) * t);
       } else {
         el.volume = Math.max(0, s * (1 - t));
         if (t >= 1) {
@@ -122,6 +130,18 @@ export function playMusic(key: MusicKey | ''): void {
 
 export function stopMusic(): void {
   playMusic('');
+}
+
+/** Громкость музыки 0..1 (доля от потолка). */
+export function getMusicVolume(): number { return volumeFactor; }
+
+/** Установить громкость музыки 0..1: применяется к текущему треку немедленно
+ *  (если не идёт кроссфейд) и сохраняется в localStorage. */
+export function setMusicVolume(v: number): void {
+  volumeFactor = Math.max(0, Math.min(1, v));
+  try { localStorage.setItem('essence_music_vol', String(volumeFactor)); } catch { /* ignore */ }
+  // Применяем сразу к звучащему треку, если в этот момент нет фейда.
+  if (fading === null && cur && !cur.paused) cur.volume = VOLUME();
 }
 
 /** Dev-хук для автотестов: сколько элементов реально звучит. */

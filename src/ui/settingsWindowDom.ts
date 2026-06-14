@@ -4,7 +4,8 @@
  * (звук, управление и т.д.) по мере надобности.
  */
 import { openWindowShell, DOMWindowHandle, makeDraggable, restoreWindowPos } from './domWindowBase';
-import { t, getLang, setLang, Lang } from '../i18n';
+import { t, lt, getLang, setLang, Lang } from '../i18n';
+import { getMusicVolume, setMusicVolume } from '../systems/music';
 
 interface SettingsCallbacks {
   onClose: () => void;
@@ -89,6 +90,45 @@ export function showSettingsDom(cb: SettingsCallbacks): void {
   section.appendChild(secHeader);
   section.appendChild(secBody);
   body.appendChild(section);
+
+  // Body — секция «Звук» (громкость музыки)
+  const sndSection = el('div', 'cv-vendor-section');
+  const sndHeader = el('button', 'cv-section-header');
+  sndHeader.setAttribute('aria-expanded', 'true');
+  const sndCaret = el('span', 'cv-caret', '▾');
+  sndHeader.appendChild(sndCaret);
+  sndHeader.appendChild(el('span', 'cv-section-name', lt('Звук', 'Sound')));
+  const sndBody = el('div', 'cv-section-body');
+
+  const volRow = el('div', 'cv-item-row');
+  volRow.appendChild(el('span', 'cv-item-icon', '🎵'));
+  volRow.appendChild(el('span', 'cv-item-name', lt('Музыка', 'Music')));
+  const pct = el('span', 'cv-item-name', Math.round(getMusicVolume() * 100) + '%');
+  pct.style.minWidth = '44px';
+  pct.style.textAlign = 'right';
+  const slider = el('input') as HTMLInputElement;
+  slider.type = 'range';
+  slider.min = '0'; slider.max = '100'; slider.step = '5';
+  slider.value = String(Math.round(getMusicVolume() * 100));
+  slider.style.flex = '1';
+  slider.style.margin = '0 8px';
+  slider.addEventListener('input', () => {
+    const v = Number(slider.value) / 100;
+    setMusicVolume(v);
+    pct.textContent = slider.value + '%';
+  });
+  volRow.appendChild(slider);
+  volRow.appendChild(pct);
+  sndBody.appendChild(volRow);
+
+  sndHeader.addEventListener('click', () => {
+    const collapsed = sndBody.classList.toggle('is-collapsed');
+    sndHeader.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    sndCaret.textContent = collapsed ? '▸' : '▾';
+  });
+  sndSection.appendChild(sndHeader);
+  sndSection.appendChild(sndBody);
+  body.appendChild(sndSection);
 
   inner.appendChild(body);
   win.appendChild(inner);
