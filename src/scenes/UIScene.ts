@@ -495,6 +495,8 @@ export class UIScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => gs.events.off(event, handler));
     };
     onGS('update-ui', (data: UIData) => this.updateUI(data));
+    // Режим записи трейлера (F10): прячем/показываем весь HUD
+    onGS('recording-mode', (on: boolean) => this.scene.setVisible(!on));
     onGS('editor-mode', (active: boolean) => {
       this.scene.setVisible(!active);
       this.input.enabled = !active;

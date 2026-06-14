@@ -223,6 +223,9 @@ export class GameScene extends Phaser.Scene {
   /** Множитель геймплейного времени (слоумо вау-захвата). 1 = норма. */
   private worldTimeScale = 1;
 
+  /** Режим записи трейлера (F10): HUD скрыт для чистых кадров. */
+  private recordingMode = false;
+
   /** Базовый трек текущей зоны; в бою (вне lab) подменяется на 'battle'. */
   private musicBase: MusicKey = 'village';
   /** Гистерезис боевой музыки: >0 — бой недавно был, держим боевой трек. */
@@ -324,6 +327,14 @@ export class GameScene extends Phaser.Scene {
     {
       const toggle = () => { this.mapEditor?.toggle(); };
       const domHandler = (e: KeyboardEvent) => {
+        // F10 — «режим записи»: прячет/показывает HUD для чистых кадров
+        // трейлера. Работает ВЕЗДЕ, в т.ч. в питче (трейлер снимают из питча).
+        if (e.key === 'F10') {
+          e.preventDefault();
+          this.recordingMode = !this.recordingMode;
+          this.events.emit('recording-mode', this.recordingMode);
+          return;
+        }
         // Питч-демо: dev-инструменты (редактор Ё/F2/F9 и телепорт F8)
         // отключены — издатель не должен случайно открыть редактор карт.
         if (this.pitchMode) return;
